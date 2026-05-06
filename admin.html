@@ -168,6 +168,14 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>👥 ユーザー一覧</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">登録済みユーザーの情報を確認。データ件数や設定状況が確認できます。</p>
+      <button class="btn" id="loadUsersBtn" style="width:100%;">ユーザーリストを読み込み</button>
+      <div id="usersResult" style="margin-top:8px;font-size:12px;"></div>
+      <div id="usersList" style="margin-top:8px;"></div>
+    </section>
+
+    <section class="admin-card">
       <h3>🧹 空ユーザー クリーンアップ</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">データがない匿名ユーザーを検出して削除。user_self と mm は保護されます。</p>
       <button class="btn" id="scanEmptyUsersBtn" style="width:100%;">空ユーザーをスキャン</button>
@@ -194,7 +202,7 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc } from './js/firebase-storage.js?v=2';
+import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
 
@@ -800,6 +808,67 @@ document.getElementById('scanEmptyUsersBtn').onclick = async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = '空ユーザーをスキャン';
+  }
+};
+
+// ---- ユーザー一覧 --------------------------------------------------
+
+document.getElementById('loadUsersBtn').onclick = async () => {
+  const btn = document.getElementById('loadUsersBtn');
+  const result = document.getElementById('usersResult');
+  const list = document.getElementById('usersList');
+
+  btn.disabled = true;
+  btn.textContent = '読み込み中…';
+  result.textContent = '';
+  list.innerHTML = '';
+
+  try {
+    const users = await listAllUsersWithStats();
+    if (users.length === 0) {
+      result.textContent = 'ユーザーが見つかりません';
+      result.style.color = '#d32f2f';
+    } else {
+      result.textContent = `✓ ${users.length}件のユーザーを読み込みました`;
+      result.style.color = 'green';
+
+      let html = '<div style="max-height:400px;overflow-y:auto;">';
+      html += '<table style="width:100%;font-size:11px;border-collapse:collapse;">';
+      html += '<thead><tr style="background:#f5f5f5;font-weight:600;">';
+      html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">userId</th>';
+      html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">表示名</th>';
+      html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">種別</th>';
+      html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
+      html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
+      html += '</tr></thead><tbody>';
+
+      for (const u of users) {
+        const typeBadge = u.isAnonymous
+          ? '<span style="background:#e3f2fd;color:#1565c0;padding:2px 6px;border-radius:3px;font-size:10px;">匿名</span>'
+          : '<span style="background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:3px;font-size:10px;">認証</span>';
+        const roleBadge = u.role === 'admin'
+          ? '<span style="background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:3px;font-size:10px;margin-left:4px;">管</span>'
+          : '';
+        const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ja-JP') : '不明';
+
+        html += `<tr style="border-bottom:1px solid #eee;">`;
+        html += `<td style="padding:6px;font-family:monospace;"><strong>${u.userId}</strong>${roleBadge}</td>`;
+        html += `<td style="padding:6px;">${u.displayName || '—'}</td>`;
+        html += `<td style="padding:6px;text-align:center;">${typeBadge}</td>`;
+        html += `<td style="padding:6px;text-align:center;font-weight:600;">${u.driveCount || 0}件</td>`;
+        html += `<td style="padding:6px;color:var(--muted);">${createdAt}</td>`;
+        html += `</tr>`;
+      }
+
+      html += '</tbody></table></div>';
+      list.innerHTML = html;
+    }
+  } catch (e) {
+    result.textContent = '✗ 読み込み失敗: ' + e.message;
+    result.style.color = '#d32f2f';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'ユーザーリストを読み込み';
   }
 };
 </script>

@@ -502,3 +502,66 @@ export async function adminDeleteUserDoc(userId) {
     return false;
   }
 }
+
+// ========== ADMIN: List all users with stats ==========
+
+export async function listAllUsersWithStats() {
+  await waitForAuth();
+  const users = [];
+  try {
+    // Get all users from users collection
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const userMap = {};
+    for (const d of usersSnap.docs) {
+      const data = d.data();
+      if (data.userId) {
+        userMap[data.userId] = {
+          uid: d.id,
+          userId: data.userId,
+          isAnonymous: data.isAnonymous || false,
+          createdAt: data.createdAt || null,
+          role: 'member'
+        };
+      }
+    }
+    
+    // Get roles from userRoles collection
+    try {
+      const rolesSnap = await getDocs(collection(db, 'userRoles'));
+      for (const d of rolesSnap.docs) {
+        const data = d.data();
+        if (userMap[d.id]) {
+          userMap[d.id].role = data.role || 'member';
+        }
+      }
+    } catch (e) {
+      // userRoles collection may not exist
+    }
+    
+    // Get display names and config info
+    for (const userId of Object.keys(userMap)) {
+      try {
+        const configSnap = await getDoc(doc(db, 'userConfigs', userId));
+        if (configSnap.exists()) {
+          const config = configSnap.data();
+          userMap[userId].displayName = config.displayName || '';
+          userMap[userId].vehicleType = config.defaults?.vehicleType || '';
+          userMap[userId].lastUpdated = config.lastUpdated || null;
+        }
+      } catch (e) {}
+      
+      // Count drives
+      try {
+        const drivesSnap = await getDocs(collection(db, 'drives', userId, 'daily'));
+        userMap[userId].driveCount = drivesSnap.size;
+      } catch (e) {
+        userMap[userId].driveCount = 0;
+      }
+    }
+    
+    return Object.values(userMap).sort((a, b) => a.userId.localeCompare(b.userId));
+  } catch (e) {
+    console.error('listAllUsersWithStats failed:', e);
+    return [];
+  }
+}
