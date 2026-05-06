@@ -726,7 +726,7 @@ document.getElementById('scanEmptyUsersBtn').onclick = async () => {
   
   try {
     const users = await listAnonymousUsers();
-    const protectedUsers = ['user_self', 'mm'];
+      const protectedUsers = ['user_self', 'mm', 'user_sample'];
     const emptyUsers = [];
     
     for (const u of users) {

@@ -27,7 +27,7 @@ function getUserIdFromEmail(email) {
 }
 
 // Default anonymous user ID (no random generation)
-const DEFAULT_ANONYMOUS_USER_ID = 'user_self';
+const DEFAULT_ANONYMOUS_USER_ID = 'user_sample';
 
 // Initialize auth
 export async function initAuth() {
