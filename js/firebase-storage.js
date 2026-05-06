@@ -455,3 +455,50 @@ export function getAllUsersDrivesForMonthCached(yearMonth) { return null; }
 export function getUserDisplayMapCached() { return null; }
 export function getUserRoleMapCached() { return null; }
 export function listActiveUserIdsCached() { return null; }
+
+// ========== ADMIN CLEANUP: Remove empty anonymous users ==========
+
+export async function listAnonymousUsers() {
+  await waitForAuth();
+  const users = [];
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    for (const d of snap.docs) {
+      const data = d.data();
+      if (data.isAnonymous && data.userId) {
+        users.push({ uid: d.id, userId: data.userId });
+      }
+    }
+  } catch (e) {
+    console.error('listAnonymousUsers failed:', e);
+  }
+  return users;
+}
+
+export async function countUserDrives(userId) {
+  await waitForAuth();
+  try {
+    const snap = await getDocs(collection(db, 'drives', userId, 'daily'));
+    return snap.size;
+  } catch (e) {
+    return 0;
+  }
+}
+
+export async function adminDeleteUserDoc(userId) {
+  await waitForAuth();
+  try {
+    // Delete from users collection by querying userId
+    const q = query(collection(db, 'users'), where('userId', '==', userId));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      await deleteDoc(d.ref);
+    }
+    // Delete userConfig
+    await deleteDoc(doc(db, 'userConfigs', userId));
+    return true;
+  } catch (e) {
+    console.error('adminDeleteUserDoc failed:', e);
+    return false;
+  }
+}

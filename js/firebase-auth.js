@@ -26,6 +26,9 @@ function getUserIdFromEmail(email) {
   return email.split('@')[0];
 }
 
+// Default anonymous user ID (no random generation)
+const DEFAULT_ANONYMOUS_USER_ID = 'user_self';
+
 // Initialize auth
 export async function initAuth() {
   if (authInitPromise) return authInitPromise;
@@ -45,33 +48,25 @@ export async function initAuth() {
           return;
         }
         
-        // 匿名ユーザーの場合（既存のロジック）
+        // 匿名ユーザーの場合
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           const localUserId = localStorage.getItem('taxi_user_id');
-          if (userDoc.exists()) {
-            const storedUserId = userDoc.data().userId;
-            // localStorage の値があれば優先（アカウント切り替え対応）
-            if (localUserId && localUserId !== storedUserId) {
-              currentUserId = localUserId;
-              await setDoc(doc(db, 'users', user.uid), {
-                userId: localUserId,
-                updatedAt: new Date().toISOString()
-              }, { merge: true });
-            } else {
-              currentUserId = storedUserId;
-            }
-          } else {
-            // 既存のlocalStorage userIdがあれば優先
-            currentUserId = (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId))
-              ? localUserId
-              : generateUserId();
-            await setDoc(doc(db, 'users', user.uid), {
-              userId: currentUserId,
-              createdAt: new Date().toISOString(),
-              isAnonymous: true
-            });
-          }
+          
+          // localStorageの有効なuserIdを優先（アカウント切り替え対応）
+          const effectiveUserId = (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId))
+            ? localUserId
+            : (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
+          
+          currentUserId = effectiveUserId;
+          localStorage.setItem('taxi_user_id', effectiveUserId);
+          
+          await setDoc(doc(db, 'users', user.uid), {
+            userId: effectiveUserId,
+            updatedAt: new Date().toISOString(),
+            isAnonymous: true
+          }, { merge: true });
+          
           unsubscribe();
           resolve(user);
         } catch (e) {
@@ -79,19 +74,24 @@ export async function initAuth() {
           reject(e);
         }
       } else {
-        // Not signed in, try anonymous
+        // Not signed in, try anonymous (but don't generate random ID)
         try {
           const result = await signInAnonymously(auth);
           currentUser = result.user;
+          
           const existingUserId = localStorage.getItem('taxi_user_id');
           currentUserId = (existingUserId && /^[a-z][a-z0-9_]*$/.test(existingUserId))
             ? existingUserId
-            : generateUserId();
+            : DEFAULT_ANONYMOUS_USER_ID;
+          
+          localStorage.setItem('taxi_user_id', currentUserId);
+          
           await setDoc(doc(db, 'users', currentUser.uid), {
             userId: currentUserId,
             createdAt: new Date().toISOString(),
             isAnonymous: true
-          });
+          }, { merge: true });
+          
           unsubscribe();
           resolve(currentUser);
         } catch (e) {
@@ -140,17 +140,6 @@ export async function logout() {
   currentUserId = null;
   authInitPromise = null;
   localStorage.removeItem('taxi_user_id');
-}
-
-// Generate a random user ID
-function generateUserId() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  result += chars.charAt(Math.floor(Math.random() * 26));
-  for (let i = 0; i < 7; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
 }
 
 // Get current user ID

@@ -168,6 +168,14 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>🧹 空ユーザー クリーンアップ</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">データがない匿名ユーザーを検出して削除。user_self と mm は保護されます。</p>
+      <button class="btn" id="scanEmptyUsersBtn" style="width:100%;">空ユーザーをスキャン</button>
+      <div id="cleanupResult" style="margin-top:8px;font-size:12px;"></div>
+      <div id="cleanupList" style="margin-top:8px;"></div>
+    </section>
+
+    <section class="admin-card">
       <h3>📋 使い方</h3>
       <ol style="font-size:12px;color:#666;padding-left:20px;margin:0;">
         <li>上のフォームに新規ユーザーのIDとパスワードを入力</li>
@@ -186,7 +194,7 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives } from './js/firebase-storage.js?v=2';
+import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
 
@@ -701,6 +709,97 @@ document.getElementById('bulkSaveBtn').onclick = async () => {
   } finally {
     btn.disabled = false;
     btn.textContent = '保存';
+  }
+};
+
+// ---- 空ユーザー クリーンアップ ----------------------------------------
+
+document.getElementById('scanEmptyUsersBtn').onclick = async () => {
+  const btn = document.getElementById('scanEmptyUsersBtn');
+  const result = document.getElementById('cleanupResult');
+  const list = document.getElementById('cleanupList');
+  
+  btn.disabled = true;
+  btn.textContent = 'スキャン中…';
+  result.textContent = '';
+  list.innerHTML = '';
+  
+  try {
+    const users = await listAnonymousUsers();
+    const protectedUsers = ['user_self', 'mm'];
+    const emptyUsers = [];
+    
+    for (const u of users) {
+      if (protectedUsers.includes(u.userId)) continue;
+      const driveCount = await countUserDrives(u.userId);
+      if (driveCount === 0) {
+        emptyUsers.push(u);
+      }
+    }
+    
+    if (emptyUsers.length === 0) {
+      result.textContent = '✓ 削除対象の空ユーザーはありません';
+      result.style.color = 'green';
+    } else {
+      result.textContent = `⚠ ${emptyUsers.length}件の空ユーザーが見つかりました`;
+      result.style.color = '#e65100';
+      
+      let html = '<div style="max-height:200px;overflow-y:auto;margin-bottom:8px;">';
+      for (const u of emptyUsers) {
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px;background:#f5f5f5;border-radius:4px;margin-bottom:4px;">
+            <span style="font-family:monospace;font-size:12px;">${u.userId}</span>
+            <button class="btn delete-user-btn" data-userid="${u.userId}" style="font-size:11px;padding:4px 8px;background:#d32f2f;color:#fff;">削除</button>
+          </div>
+        `;
+      }
+      html += '</div>';
+      html += `<button class="btn" id="deleteAllEmptyBtn" style="width:100%;background:#d32f2f;color:#fff;">${emptyUsers.length}件まとめて削除</button>`;
+      list.innerHTML = html;
+      
+      // 個別削除
+      list.querySelectorAll('.delete-user-btn').forEach(b => {
+        b.onclick = async () => {
+          const userId = b.dataset.userid;
+          if (!confirm(`「${userId}」を削除しますか？`)) return;
+          b.disabled = true;
+          b.textContent = '削除中…';
+          const ok = await adminDeleteUserDoc(userId);
+          if (ok) {
+            b.parentElement.remove();
+            result.textContent = `✓ 「${userId}」を削除しました`;
+            result.style.color = 'green';
+          } else {
+            b.disabled = false;
+            b.textContent = '削除';
+            result.textContent = `✗ 「${userId}」の削除に失敗しました`;
+            result.style.color = '#d32f2f';
+          }
+        };
+      });
+      
+      // 一括削除
+      document.getElementById('deleteAllEmptyBtn').onclick = async () => {
+        if (!confirm(`${emptyUsers.length}件の空ユーザーをすべて削除しますか？\nこの操作は元に戻せません。`)) return;
+        const btnAll = document.getElementById('deleteAllEmptyBtn');
+        btnAll.disabled = true;
+        btnAll.textContent = '削除中…';
+        let deleted = 0;
+        for (const u of emptyUsers) {
+          const ok = await adminDeleteUserDoc(u.userId);
+          if (ok) deleted++;
+        }
+        list.innerHTML = '';
+        result.textContent = `✓ ${deleted}/${emptyUsers.length}件を削除しました`;
+        result.style.color = 'green';
+      };
+    }
+  } catch (e) {
+    result.textContent = '✗ スキャン失敗: ' + e.message;
+    result.style.color = '#d32f2f';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '空ユーザーをスキャン';
   }
 };
 </script>
