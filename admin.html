@@ -77,80 +77,23 @@ if (location.hostname.includes('-dev')) {
       <input class="input" id="newUserPassword" type="password" placeholder="6文字以上" autocomplete="off">
       <label class="muted" style="margin-top:8px;display:block;">表示名（任意）</label>
       <input class="input" id="newUserDisplayName" placeholder="山田太郎" autocomplete="off">
-    </section>
-
-    <section class="admin-card" id="keihoTemplateSection" style="display:none;">
-      <h3>📋 デフォルトテンプレート</h3>
-      <p class="muted" style="font-size:11px;margin-bottom:8px;">標準設定のテンプレートが未作成です。新規ユーザー作成時のデフォルトとして使用されます。</p>
-      <button class="btn" id="createKeihoTemplateBtn" style="width:100%;background:#e65100;color:#fff;">
-        デフォルトテンプレートを作成
-      </button>
-    </section>
-
-    <section class="admin-card">
-      <h3>📋 テンプレート設定</h3>
-      <label class="muted">テンプレート選択</label>
-      <select class="select" id="templateSelect">
-        <option value="">-- テンプレートを選択 --</option>
-      </select>
-      <div id="templateEditActions" style="margin-top:8px;display:none;">
-        <button class="btn" id="updateTemplateBtn" style="width:100%;background:var(--primary);color:#fff;margin-bottom:6px;">
-          選択中のテンプレートを更新
-        </button>
-        <p class="muted" style="font-size:10px;text-align:center;margin:0;">上の設定値を変更してから「更新」を押してください</p>
-      </div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">
-      <button class="btn" id="saveTemplateBtn" style="width:100%;background:var(--gray);color:#333;">
-        新規テンプレートとして保存
-      </button>
-    </section>
-
-    <section class="admin-card">
-      <h3>💰 給与計算設定</h3>
-      <label class="muted">計算方式</label>
-      <select class="select" id="payrollModeSelect">
-        <option value="step_rate">変動歩率</option>
-        <option value="fixed_rate">固定歩率</option>
-      </select>
       
-      <div id="fixedRateSection" style="display:none;margin-top:12px;">
-        <label class="muted">固定歩率 (%)</label>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <input type="range" id="fixedRateSlider" min="40" max="75" value="55" style="flex:1;">
-          <input type="number" id="fixedRateInput" value="55" min="40" max="75" style="width:60px;">
-          <span>%</span>
-        </div>
-      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
+      <p class="muted" style="font-size:11px;margin-bottom:6px;"><strong>初期設定</strong>（作成後も変更可）</p>
       
-      <div id="stepRateSection" style="margin-top:12px;">
-        <label class="muted">責任出番数</label>
-        <input class="input" id="responsibilityShiftsInput" type="number" value="11">
-        <label class="muted" style="margin-top:8px;">12-13乗務歩率</label>
-        <input class="input" id="extraRateInput" type="number" step="0.01" value="0.62">
-      </div>
-    </section>
-
-    <section class="admin-card">
-      <h3>⚙️ デフォルト設定</h3>
       <label class="muted">車種</label>
       <select class="select" id="vehicleTypeSelect">
         <option value="japantaxi">ジャパンタクシー</option>
         <option value="premium">プレミアム</option>
       </select>
-      <label class="muted" style="margin-top:8px;">出庫時刻</label>
+      <label class="muted" style="margin-top:8px;display:block;">出庫時刻</label>
       <input class="input" id="departureTimeInput" type="time" value="07:00">
+      <label class="muted" style="margin-top:8px;display:block;">責任出番数</label>
+      <input class="input" id="responsibilityShiftsInput" type="number" value="11">
+      
+      <button class="btn" id="createUserBtn" style="margin-top:12px;width:100%;">ユーザーを作成</button>
+      <div id="createUserResult"></div>
     </section>
-
-    <section class="admin-card">
-      <h3>🔒 データ共有設定</h3>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-        <input type="checkbox" id="shareDataCheckbox" checked>
-        <span>他ユーザーにデータを見せる</span>
-      </label>
-    </section>
-
-    <button class="btn" id="createUserBtn" style="margin-top:10px;width:100%;margin-bottom:10px;">ユーザーを作成</button>
-    <div id="createUserResult"></div>
 
     <section class="admin-card">
       <h3>📥 過去データ一括取込</h3>
@@ -228,17 +171,6 @@ if (location.hostname.includes('-dev')) {
       <div id="adminSwitchStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
     </section>
 
-    <section class="admin-card">
-      <h3>📋 使い方</h3>
-      <ol style="font-size:12px;color:#666;padding-left:20px;margin:0;">
-        <li>上のフォームに新規ユーザーのIDとパスワードを入力</li>
-        <li>テンプレートを選択するか、個別に設定を調整</li>
-        <li>「ユーザーを作成」をクリック</li>
-        <li>作成後、userIdとパスワードをユーザーに伝える</li>
-        <li>ユーザーは settings.html でログインして使う</li>
-      </ol>
-    </section>
-
     <a href="index.html" style="display:block;text-align:center;padding:10px;color:var(--primary);text-decoration:none;font-size:14px;">← ホームに戻る</a>
   </div>
 </main>
@@ -247,7 +179,7 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser } from './js/firebase-storage.js?v=2';
+import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
 
@@ -369,193 +301,6 @@ document.getElementById('logoutBtn').onclick = async () => {
   showLoginUI();
 };
 
-// テンプレート関連
-async function loadTemplates() {
-  const select = document.getElementById('templateSelect');
-  try {
-    select.innerHTML = '<option value="">読み込み中…</option>';
-    const templates = await getCompanyTemplates();
-    select.innerHTML = '<option value="">-- テンプレートを選択 --</option>';
-    templates.forEach(t => {
-      const option = document.createElement('option');
-      option.value = t.id;
-      option.textContent = t.name;
-      select.appendChild(option);
-    });
-    if (templates.length === 0) {
-      select.innerHTML = '<option value="">テンプレートがありません</option>';
-    }
-    return templates;
-  } catch (e) {
-    console.error('テンプレート読み込み失敗:', e);
-    select.innerHTML = '<option value="">読み込み失敗</option>';
-    return [];
-  }
-}
-
-// デフォルトテンプレート作成ボタンの表示判定
-async function checkAndShowKeihoTemplateButton() {
-  try {
-    const templates = await getCompanyTemplates();
-    const hasDefault = templates.some(t => t.id === 'default');
-    document.getElementById('keihoTemplateSection').style.display = hasDefault ? 'none' : '';
-  } catch (e) {
-    console.error('テンプレート確認失敗:', e);
-  }
-}
-
-// デフォルトテンプレート作成
-document.getElementById('createKeihoTemplateBtn').onclick = async () => {
-  const btn = document.getElementById('createKeihoTemplateBtn');
-  btn.disabled = true;
-  btn.textContent = '作成中…';
-  
-  try {
-    // デフォルトテンプレートは基本的な設定値のみ（rateTableは各社/各所属で異なるため含めない）
-    const templateData = {
-      name: 'デフォルト',
-      payrollMode: DEFAULT_CONFIG.payrollMode || 'step_rate',
-      fixedRate: DEFAULT_CONFIG.fixedRate || 0.55,
-      responsibilityShifts: DEFAULT_CONFIG.responsibilityShifts || 11,
-      extraRate: DEFAULT_CONFIG.extraRate || 0.62,
-      defaults: DEFAULT_CONFIG.defaults || { vehicleType: 'japantaxi', departureTime: '07:00' },
-      privacy: DEFAULT_CONFIG.privacy || { shareDataWithOthers: true }
-    };
-    
-    await saveCompanyTemplate('default', templateData);
-    alert('デフォルトテンプレートを作成しました');
-    document.getElementById('keihoTemplateSection').style.display = 'none';
-    loadTemplates();
-  } catch (e) {
-    alert('作成に失敗しました: ' + e.message);
-    btn.disabled = false;
-    btn.textContent = 'デフォルトテンプレートを作成';
-  }
-};
-
-// 計算方式切り替え
-document.getElementById('payrollModeSelect').onchange = (e) => {
-  const isFixed = e.target.value === 'fixed_rate';
-  document.getElementById('fixedRateSection').style.display = isFixed ? '' : 'none';
-  document.getElementById('stepRateSection').style.display = isFixed ? 'none' : '';
-};
-
-// スライダーと数値入力の連動
-document.getElementById('fixedRateSlider').oninput = (e) => {
-  document.getElementById('fixedRateInput').value = e.target.value;
-};
-document.getElementById('fixedRateInput').onchange = (e) => {
-  document.getElementById('fixedRateSlider').value = e.target.value;
-};
-
-// テンプレート選択時
-document.getElementById('templateSelect').onchange = async (e) => {
-  const templateId = e.target.value;
-  const editActions = document.getElementById('templateEditActions');
-  
-  if (!templateId) {
-    editActions.style.display = 'none';
-    currentTemplateRateTable = null;
-    return;
-  }
-  
-  try {
-    const templates = await getCompanyTemplates();
-    const template = templates.find(t => t.id === templateId);
-    if (!template) return;
-    
-    document.getElementById('payrollModeSelect').value = template.payrollMode || 'step_rate';
-    document.getElementById('fixedRateInput').value = Math.round((template.fixedRate || 0.55) * 100);
-    document.getElementById('fixedRateSlider').value = Math.round((template.fixedRate || 0.55) * 100);
-    document.getElementById('responsibilityShiftsInput').value = template.responsibilityShifts || 11;
-    document.getElementById('extraRateInput').value = template.extraRate || 0.62;
-    document.getElementById('vehicleTypeSelect').value = template.defaults?.vehicleType || 'japantaxi';
-    document.getElementById('departureTimeInput').value = template.defaults?.departureTime || '07:00';
-    document.getElementById('shareDataCheckbox').checked = template.privacy?.shareDataWithOthers !== false;
-    
-    // rateTableを保持（ユーザー作成時に使用）
-    currentTemplateRateTable = template.rateTable || null;
-    
-    document.getElementById('payrollModeSelect').dispatchEvent(new Event('change'));
-    
-    // 更新ボタンを表示
-    editActions.style.display = '';
-  } catch (e) {
-    console.error('テンプレート適用失敗:', e);
-  }
-};
-
-// テンプレート更新（上書き保存）
-document.getElementById('updateTemplateBtn').onclick = async () => {
-  const templateId = document.getElementById('templateSelect').value;
-  if (!templateId) return;
-  
-  if (!confirm('選択中のテンプレートを上書き更新しますか？')) return;
-  
-  const btn = document.getElementById('updateTemplateBtn');
-  btn.disabled = true;
-  btn.textContent = '更新中…';
-  
-  try {
-    const templates = await getCompanyTemplates();
-    const existing = templates.find(t => t.id === templateId);
-    
-    const templateData = {
-      name: existing?.name || templateId,
-      payrollMode: document.getElementById('payrollModeSelect').value,
-      fixedRate: parseInt(document.getElementById('fixedRateInput').value) / 100,
-      responsibilityShifts: parseInt(document.getElementById('responsibilityShiftsInput').value),
-      extraRate: parseFloat(document.getElementById('extraRateInput').value),
-      rateTable: existing?.rateTable || DEFAULT_CONFIG.rateTable || null,
-      defaults: {
-        vehicleType: document.getElementById('vehicleTypeSelect').value,
-        departureTime: document.getElementById('departureTimeInput').value
-      },
-      privacy: {
-        shareDataWithOthers: document.getElementById('shareDataCheckbox').checked
-      }
-    };
-    
-    await saveCompanyTemplate(templateId, templateData);
-    alert('テンプレートを更新しました');
-  } catch (e) {
-    alert('更新に失敗しました: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '選択中のテンプレートを更新';
-  }
-};
-
-// 新規テンプレート保存
-document.getElementById('saveTemplateBtn').onclick = async () => {
-  const name = prompt('テンプレート名を入力してください:');
-  if (!name) return;
-  
-  const templateData = {
-    name,
-    payrollMode: document.getElementById('payrollModeSelect').value,
-    fixedRate: parseInt(document.getElementById('fixedRateInput').value) / 100,
-    responsibilityShifts: parseInt(document.getElementById('responsibilityShiftsInput').value),
-    extraRate: parseFloat(document.getElementById('extraRateInput').value),
-    rateTable: currentTemplateRateTable || DEFAULT_CONFIG.rateTable || null,
-    defaults: {
-      vehicleType: document.getElementById('vehicleTypeSelect').value,
-      departureTime: document.getElementById('departureTimeInput').value
-    },
-    privacy: {
-      shareDataWithOthers: document.getElementById('shareDataCheckbox').checked
-    }
-  };
-  
-  try {
-    await saveCompanyTemplate(name.toLowerCase().replace(/\s+/g, '_'), templateData);
-    alert('テンプレートを保存しました');
-    loadTemplates();
-  } catch (e) {
-    alert('保存に失敗しました: ' + e.message);
-  }
-};
-
 // 新規ユーザー作成
 document.getElementById('createUserBtn').onclick = async () => {
   const btn = document.getElementById('createUserBtn');
@@ -607,24 +352,24 @@ document.getElementById('createUserBtn').onclick = async () => {
       };
       
       const config = {
-        payrollMode: document.getElementById('payrollModeSelect').value,
-        fixedRate: parseInt(document.getElementById('fixedRateInput').value) / 100,
+        payrollMode: 'step_rate',
+        fixedRate: 0.55,
         rateTable: rateTable,
-        extraRate: parseFloat(document.getElementById('extraRateInput').value),
+        extraRate: 0.62,
         premiumIncentive: {
           thresholdSalesExclTax: 80000,
           amountPerShift: 2000
         },
-        responsibilityShifts: parseInt(document.getElementById('responsibilityShiftsInput').value),
+        responsibilityShifts: parseInt(document.getElementById('responsibilityShiftsInput').value) || 11,
         defaults: {
-          vehicleType: document.getElementById('vehicleTypeSelect').value,
-          departureTime: document.getElementById('departureTimeInput').value
+          vehicleType: document.getElementById('vehicleTypeSelect').value || 'japantaxi',
+          departureTime: document.getElementById('departureTimeInput').value || '07:00'
         },
         takeHomeRate: 0.75,
         takeHomeTarget: 500000,
         paidLeaveAmount: 39340,
         privacy: {
-          shareDataWithOthers: document.getElementById('shareDataCheckbox').checked
+          shareDataWithOthers: true
         },
         displayName: displayName || '',
         weatherLocation: { lat: 35.6938, lon: 139.7036, name: '千代田区' },
@@ -885,6 +630,7 @@ document.getElementById('loadUsersBtn').onclick = async () => {
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">種別</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
+      html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">操作</th>';
       html += '</tr></thead><tbody>';
 
       for (const u of users) {
@@ -902,11 +648,23 @@ document.getElementById('loadUsersBtn').onclick = async () => {
         html += `<td style="padding:6px;text-align:center;">${typeBadge}</td>`;
         html += `<td style="padding:6px;text-align:center;font-weight:600;">${u.driveCount || 0}件</td>`;
         html += `<td style="padding:6px;color:var(--muted);">${createdAt}</td>`;
+        html += `<td style="padding:6px;text-align:center;"><button class="btn edit-user-btn" data-userid="${u.userId}" style="font-size:10px;padding:4px 8px;background:var(--primary);color:#fff;">⚙️ 設定</button></td>`;
         html += `</tr>`;
       }
 
       html += '</tbody></table></div>';
       list.innerHTML = html;
+      
+      // 設定編集ボタンのイベント
+      list.querySelectorAll('.edit-user-btn').forEach(b => {
+        b.onclick = () => {
+          const userId = b.dataset.userid;
+          document.getElementById('targetUserIdForConfig').value = userId;
+          document.getElementById('adminConfigStatus').textContent = `「${userId}」の設定を読み込んでください`;
+          document.getElementById('adminConfigStatus').style.color = 'var(--primary)';
+          window.scrollTo({ top: document.getElementById('targetUserIdForConfig').offsetTop - 100, behavior: 'smooth' });
+        };
+      });
     }
   } catch (e) {
     result.textContent = '✗ 読み込み失敗: ' + e.message;
