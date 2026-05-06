@@ -184,10 +184,13 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
-      <h3>⚙️ 管理者設定</h3>
-      <p class="muted" style="font-size:11px;margin-bottom:8px;">自身の設定を編集。レートテーブル、デフォルト値など。</p>
+      <h3>⚙️ ユーザー設定編集</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">特定ユーザーの設定を編集。レートテーブル、デフォルト値など。</p>
       
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <label class="muted">対象ユーザーID</label>
+      <input class="input" id="targetUserIdForConfig" placeholder="sample1" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      
+      <div style="display:flex;gap:8px;margin-top:12px;margin-bottom:12px;">
         <button class="btn" id="loadAdminConfigBtn" style="flex:1;">設定を読み込み</button>
         <button class="btn" id="saveAdminConfigBtn" style="flex:1;background:var(--primary);color:#fff;">💾 設定を保存</button>
       </div>
@@ -212,7 +215,7 @@ if (location.hostname.includes('-dev')) {
       <input class="input" id="adminPaidLeaveAmount" type="number" step="100" min="0" value="39340">
       
       <label class="muted" style="margin-top:8px;display:block;">表示名</label>
-      <input class="input" id="adminDisplayName" placeholder="管理者">
+      <input class="input" id="adminDisplayName" placeholder="山田太郎">
       
       <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
       
@@ -244,7 +247,7 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfig, saveConfig } from './js/firebase-storage.js?v=2';
+import { getCompanyTemplates, saveCompanyTemplate, adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
 
@@ -918,27 +921,40 @@ document.getElementById('loadUsersBtn').onclick = async () => {
 
 let adminCurrentConfig = null;
 
+let adminTargetUserId = null;
+
 async function loadAdminConfig() {
   const status = document.getElementById('adminConfigStatus');
+  const targetUserId = document.getElementById('targetUserIdForConfig').value.trim();
+  
+  if (!targetUserId) {
+    status.textContent = '✗ 対象ユーザーIDを入力してください';
+    status.style.color = '#d32f2f';
+    return;
+  }
+  
   try {
     status.textContent = '読み込み中…';
-    const config = await getConfig().catch(() => null);
+    adminTargetUserId = targetUserId;
+    const config = await getConfigForUser(targetUserId);
     adminCurrentConfig = config;
     if (!adminCurrentConfig) {
       const { DEFAULT_CONFIG } = await import('./js/default-config.js?v=2');
       adminCurrentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      status.textContent = `✓ 「${targetUserId}」の設定が未作成です。デフォルト値を表示しています。`;
+    } else {
+      status.textContent = `✓ 「${targetUserId}」の設定を読み込みました`;
     }
+    status.style.color = 'green';
     
-    document.getElementById('adminVehicleType').value = adminCurrentConfig.defaults.vehicleType;
-    document.getElementById('adminDepartureTime').value = adminCurrentConfig.defaults.departureTime;
+    document.getElementById('adminVehicleType').value = adminCurrentConfig.defaults?.vehicleType || 'japantaxi';
+    document.getElementById('adminDepartureTime').value = adminCurrentConfig.defaults?.departureTime || '07:00';
     document.getElementById('adminTakeHomeRate').value = adminCurrentConfig.takeHomeRate ?? 0.75;
     document.getElementById('adminTakeHomeTarget').value = adminCurrentConfig.takeHomeTarget ?? 500000;
     document.getElementById('adminPaidLeaveAmount').value = adminCurrentConfig.paidLeaveAmount ?? 39340;
     document.getElementById('adminDisplayName').value = adminCurrentConfig.displayName || '';
     
     renderAdminRateTable(adminCurrentConfig.rateTable);
-    status.textContent = '✓ 設定を読み込みました';
-    status.style.color = 'green';
   } catch (e) {
     status.textContent = '✗ 読み込み失敗: ' + e.message;
     status.style.color = '#d32f2f';
@@ -971,7 +987,10 @@ function renderAdminRateTable(rt) {
 document.getElementById('loadAdminConfigBtn').onclick = loadAdminConfig;
 
 document.getElementById('saveAdminConfigBtn').onclick = async () => {
-  if (!adminCurrentConfig) { alert('設定が読み込まれていません'); return; }
+  if (!adminCurrentConfig || !adminTargetUserId) { 
+    alert('設定が読み込まれていません。対象ユーザーIDを入力して「設定を読み込み」を押してください。'); 
+    return; 
+  }
   const status = document.getElementById('adminConfigStatus');
   
   try {
@@ -982,16 +1001,18 @@ document.getElementById('saveAdminConfigBtn').onclick = async () => {
     adminCurrentConfig.takeHomeTarget = parseInt(document.getElementById('adminTakeHomeTarget').value);
     adminCurrentConfig.paidLeaveAmount = parseInt(document.getElementById('adminPaidLeaveAmount').value);
     
+    if (!adminCurrentConfig.rateTable) adminCurrentConfig.rateTable = {};
     document.querySelectorAll('#adminRateTableEditor input[data-shifts]').forEach(inp => {
       const s = inp.dataset.shifts; const i = parseInt(inp.dataset.idx); const k = inp.dataset.key;
+      if (!adminCurrentConfig.rateTable[s]) adminCurrentConfig.rateTable[s] = [];
       if (!adminCurrentConfig.rateTable[s][i]) adminCurrentConfig.rateTable[s][i] = {};
       adminCurrentConfig.rateTable[s][i][k] = parseFloat(inp.value);
     });
     adminCurrentConfig.rateTable['12_13rate'] = parseFloat(document.getElementById('adminRate1213').value);
     adminCurrentConfig.lastUpdated = new Date().toISOString();
     
-    await saveConfig(adminCurrentConfig);
-    status.textContent = '✓ 保存しました';
+    await adminSaveConfigForUser(adminTargetUserId, adminCurrentConfig);
+    status.textContent = `✓ 「${adminTargetUserId}」の設定を保存しました`;
     status.style.color = 'green';
   } catch (e) {
     status.textContent = '✗ 保存失敗: ' + e.message;

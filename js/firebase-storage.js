@@ -135,6 +135,26 @@ export async function saveConfig(config) {
   return true;
 }
 
+// Admin: Get config for any user
+export async function getConfigForUser(targetUserId) {
+  await waitForAuth();
+  const ref = doc(db, 'userConfigs', targetUserId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return snap.data();
+}
+
+// Admin: Save config for any user
+export async function adminSaveConfigForUser(targetUserId, config) {
+  await waitForAuth();
+  const ref = doc(db, 'userConfigs', targetUserId);
+  await setDoc(ref, {
+    ...config,
+    updatedAt: new Date().toISOString()
+  });
+  return true;
+}
+
 // ========== BATCH OPERATIONS (for data migration) ==========
 
 export async function batchSaveDrives(drives) {

@@ -236,9 +236,14 @@ document.getElementById('loginBtn').onclick = async () => {
     await logout();
     const res = await loginWithUserId(userId, password);
     if (res.success) {
-      status.textContent = '✓ ログイン成功。再読み込みします…';
+      status.textContent = '✓ ログイン成功';
       status.style.color = 'green';
-      setTimeout(() => location.reload(), 600);
+      // adminの場合は管理者ページに遷移
+      if (userId === 'admin') {
+        setTimeout(() => location.href = 'admin.html', 600);
+      } else {
+        setTimeout(() => location.reload(), 600);
+      }
     } else {
       status.textContent = '✗ ' + res.error;
       status.style.color = '#d32f2f';
