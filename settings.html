@@ -36,9 +36,25 @@ if (location.hostname.includes('-dev')) {
     <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:10px;">
       <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">現在のアカウント</div>
       <div style="font-size:18px;font-weight:600;" id="currentUserIdDisplay">--</div>
+      <div id="authTypeBadge" style="font-size:10px;margin-top:4px;color:#e65100;font-weight:600;"></div>
     </div>
-    <button class="btn" id="switchAccountBtn" style="width:100%;display:none;">🔄 アカウントを切り替え</button>
+
+    <!-- 匿名ユーザー用: ログインフォーム -->
+    <div id="anonymousLoginSection" style="display:none;">
+      <p class="muted" style="font-size:11px;margin-bottom:6px;">管理者から配布された userId とパスワードでログインしてください。</p>
+      <input class="input" id="loginUserId" placeholder="userId" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="input" id="loginPassword" type="password" placeholder="パスワード" style="margin-top:6px;" autocomplete="off">
+      <button class="btn" id="loginBtn" style="width:100%;margin-top:8px;background:var(--primary);color:#fff;">🔐 ログイン</button>
+      <div id="loginStatus" style="margin-top:6px;font-size:12px;"></div>
+    </div>
+
+    <!-- メール認証ユーザー: ログアウト -->
+    <button class="btn" id="logoutBtn" style="width:100%;margin-top:8px;display:none;background:var(--gray);color:#333;">ログアウト</button>
+
+    <!-- 管理者のみ: アカウント切り替え -->
+    <button class="btn" id="switchAccountBtn" style="width:100%;display:none;margin-top:8px;">🔄 アカウントを切り替え</button>
     <div id="switchAccountStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
+
     <label class="muted" style="margin-top:12px;display:block;">表示名(任意)</label>
     <input class="input" id="displayNameInput" placeholder="自分">
     <p class="muted" style="font-size:10px;margin-top:2px;">集計画面の表示用。</p>
@@ -99,7 +115,7 @@ import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, get
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
-import { isEmailAuth, logout } from './js/firebase-auth.js';
+import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
 
@@ -200,6 +216,45 @@ document.getElementById('switchAccountBtn').onclick = async () => {
   setTimeout(() => location.reload(), 400);
 };
 
+// ログイン（匿名 → メール認証）
+document.getElementById('loginBtn').onclick = async () => {
+  const userId = document.getElementById('loginUserId').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const status = document.getElementById('loginStatus');
+  
+  if (!userId || !password) {
+    status.textContent = '✗ IDとパスワードを入力してください';
+    status.style.color = '#d32f2f';
+    return;
+  }
+  
+  status.textContent = 'ログイン中…';
+  status.style.color = '';
+  
+  try {
+    // 匿名ユーザーをログアウトしてメール認証でログイン
+    await logout();
+    const res = await loginWithUserId(userId, password);
+    if (res.success) {
+      status.textContent = '✓ ログイン成功。再読み込みします…';
+      status.style.color = 'green';
+      setTimeout(() => location.reload(), 600);
+    } else {
+      status.textContent = '✗ ' + res.error;
+      status.style.color = '#d32f2f';
+    }
+  } catch (e) {
+    status.textContent = '✗ ログインエラー: ' + e.message;
+    status.style.color = '#d32f2f';
+  }
+};
+
+// ログアウト（メール認証 → 匿名）
+document.getElementById('logoutBtn').onclick = async () => {
+  await logout();
+  location.reload();
+};
+
 document.getElementById('saveConfigBtn').onclick = async () => {
   if (!currentConfig) { alert('設定が読み込まれていません'); return; }
   currentConfig.displayName = document.getElementById('displayNameInput').value;
@@ -274,8 +329,34 @@ document.getElementById('weatherDefaultBtn').onclick = () => {
   document.getElementById('weatherGpsInfo').textContent = 'デフォルト（千代田区）に戻しました';
 };
 
+// 認証状態に応じてUIを切り替え
+async function initUI() {
+  try {
+    await initAuth();
+    const user = getCurrentUser();
+    const isAnon = !user || user.isAnonymous;
+    const authBadge = document.getElementById('authTypeBadge');
+    
+    if (isAnon) {
+      // 匿名ユーザー: ログインフォームを表示
+      document.getElementById('anonymousLoginSection').style.display = '';
+      document.getElementById('logoutBtn').style.display = 'none';
+      authBadge.textContent = 'サンプルデータ（ログインしてください）';
+    } else {
+      // メール認証ユーザー: ログアウトボタンを表示
+      document.getElementById('anonymousLoginSection').style.display = 'none';
+      document.getElementById('logoutBtn').style.display = '';
+      authBadge.textContent = 'ログイン中';
+      authBadge.style.color = 'green';
+    }
+  } catch (e) {
+    console.error('Auth check failed:', e);
+  }
+}
+
 // 常に読み込み
 loadConfig();
+initUI();
 </script>
 </body>
 </html>
