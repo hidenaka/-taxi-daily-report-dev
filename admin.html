@@ -96,6 +96,17 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>🔐 既存ユーザーにパスワード設定</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">匿名ユーザー（user_self, mm など）にパスワードを設定して、ログインできるようにします。データはそのまま保持されます。</p>
+      <label class="muted">ユーザーID</label>
+      <input class="input" id="upgradeUserId" placeholder="user_self" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <label class="muted" style="margin-top:8px;display:block;">新しいパスワード</label>
+      <input class="input" id="upgradePassword" type="password" placeholder="6文字以上" autocomplete="off">
+      <button class="btn" id="upgradeUserBtn" style="margin-top:12px;width:100%;background:#e65100;color:#fff;">パスワードを設定</button>
+      <div id="upgradeResult" style="margin-top:8px;font-size:12px;"></div>
+    </section>
+
+    <section class="admin-card">
       <h3>📥 過去データ一括取込</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">新規ユーザーの過去日報をテキスト形式で一括登録。Geminiプロンプト形式対応。</p>
       <label class="muted">対象ユーザーID</label>
@@ -405,6 +416,59 @@ async function saveConfigToUser(userId, config) {
   const { db } = await import('./js/firebase-init.js');
   await setDoc(doc(db, 'userConfigs', userId), config);
 }
+
+// ---- 既存ユーザーのパスワード設定 ------------------------------------
+
+document.getElementById('upgradeUserBtn').onclick = async () => {
+  const btn = document.getElementById('upgradeUserBtn');
+  const result = document.getElementById('upgradeResult');
+  const userId = document.getElementById('upgradeUserId').value.trim();
+  const password = document.getElementById('upgradePassword').value;
+
+  if (!userId || !password) {
+    result.textContent = '✗ userIdとパスワードを入力してください';
+    result.style.color = '#d32f2f';
+    return;
+  }
+  if (password.length < 6) {
+    result.textContent = '✗ パスワードは6文字以上にしてください';
+    result.style.color = '#d32f2f';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '設定中…';
+  result.textContent = '';
+
+  try {
+    const res = await createUserWithCredentials(userId, password);
+    if (res.success) {
+      result.innerHTML = `
+        <div class="invite-result">
+          <strong>✓ パスワード設定完了</strong>
+          <p style="font-size:12px;margin:6px 0;">userId: <strong>${userId}</strong></p>
+          <p class="muted" style="font-size:10px;margin-top:6px;">${userId} はこれでメール認証でログインできます。<br>settings.html から userId + パスワードでログインしてください。</p>
+        </div>
+      `;
+      document.getElementById('upgradeUserId').value = '';
+      document.getElementById('upgradePassword').value = '';
+    } else {
+      // ユーザーが既に存在する場合
+      if (res.error && res.error.includes('already-in-use')) {
+        result.textContent = `✗ 「${userId}」は既にメール認証が設定されています`;
+      } else {
+        result.textContent = '✗ ' + res.error;
+      }
+      result.style.color = '#d32f2f';
+    }
+  } catch (e) {
+    result.textContent = '✗ ' + e.message;
+    result.style.color = '#d32f2f';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'パスワードを設定';
+  }
+};
 
 // ---- 過去データ一括取込 ---------------------------------------------
 
