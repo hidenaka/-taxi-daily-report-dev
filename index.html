@@ -126,7 +126,7 @@ async function load() {
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayIso();
   await ensureActiveVehicleType({
     getDrive: () => getDrive(todayStr).catch(() => null),
     getConfig: () => Promise.resolve(config),

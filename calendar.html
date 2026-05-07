@@ -96,7 +96,7 @@ async function load() {
   config = await getConfig();
   if (!config) return alert('config.json未取得');
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = todayIso();
   await ensureActiveVehicleType({
     getDrive: () => getDrive(todayStr).catch(() => null),
     getConfig: () => Promise.resolve(config),

@@ -428,7 +428,7 @@ async function load() {
     ]);
     // 初回のみ: タブ初期化
     if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = todayIso();
       await ensureActiveVehicleType({
         getDrive: () => getDrive(todayStr).catch(() => null),
         getConfig: () => getConfig().catch(() => null),

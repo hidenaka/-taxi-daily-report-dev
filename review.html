@@ -173,7 +173,7 @@ if (location.hostname.includes('-dev')) {
 </main>
 <div id="navHost"></div>
 <script type="module">
-import { renderBottomNav, formatYen, formatDate, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod } from './js/app.js';
+import { renderBottomNav, formatYen, formatDate, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, todayIso } from './js/app.js';
 import { getDrivesForMonth, getDrivesForMonthCached, getConfig, getConfigCached, getDrive } from './js/storage.js';
 import {
   ensureActiveVehicleType,
@@ -284,7 +284,7 @@ async function load() {
 
     // 初回のみ: タブ初期化
     if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
-      const todayStr = new Date().toISOString().slice(0, 10);
+      const todayStr = todayIso();
       await ensureActiveVehicleType({
         getDrive: () => getDrive(todayStr).catch(() => null),
         getConfig: () => Promise.resolve(config),
