@@ -184,7 +184,7 @@ async function render() {
   const firstNCount = sortedForRate.length;
   const avgFirstNExcl = firstNCount > 0 ? firstNExcl / firstNCount : 0;
 
-  if (isPast || drives.length >= respShifts) {
+  if (isPast || rawDrives.length >= respShifts) {
     summaryHtml += `
       <div class="kv"><div>総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
       <div class="kv"><div>手取り推定（×${(takeHomeRate*100).toFixed(0)}%）</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
@@ -209,7 +209,7 @@ async function render() {
       <div class="kv"><div>月度予想 手取り</div><div style="color:var(--primary);"><strong>${formatYen(predictedTakeHome)}</strong></div></div>
       <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 責任出番(${respShifts})</p>
     `;
-  } else if (isCurrent && drives.length === 0) {
+  } else if (isCurrent && rawDrives.length === 0) {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると予想が表示されます</p>`;
   } else {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">未来の月度</p>`;
