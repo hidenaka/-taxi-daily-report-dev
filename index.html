@@ -141,8 +141,8 @@ async function load() {
 
 async function render() {
   const rawDrives = await getDrivesForMonth(viewPeriod);
+  rawDrives.sort((a, b) => a.date.localeCompare(b.date));
   const drives = filterDrivesByVehicle(rawDrives, getActiveVehicleType());
-  drives.sort((a, b) => a.date.localeCompare(b.date));
   const range = getBillingPeriodRange(viewPeriod);
   const today = todayIso();
   const isPast = range.end < today;
@@ -156,12 +156,12 @@ async function render() {
   const takeHomeRate = config.takeHomeRate ?? 0.75;
   const respShifts = config.responsibilityShifts;
 
-  const actualResult = calcTotalPay(drives, config, range.start, range.end);
+  const actualResult = calcTotalPay(rawDrives, config, range.start, range.end);
   const actualTakeHome = actualResult.total * takeHomeRate;
 
   let predicted = null;
-  if (isCurrent && drives.length > 0 && drives.length < respShifts) {
-    predicted = predictMonthly(drives, config, range.start, range.end);
+  if (isCurrent && rawDrives.length > 0 && rawDrives.length < respShifts) {
+    predicted = predictMonthly(rawDrives, config, range.start, range.end);
   }
 
   // サマリー
@@ -174,12 +174,12 @@ async function render() {
     <div class="kv"><div>乗務数${isPast ? '（実績）' : ''}</div><div><strong>${actualResult.shiftCount}</strong>${isCurrent || isFuture ? ` / ${respShifts}` : ''}乗務${actualResult.paidLeaveDays > 0 ? ` <span class="badge" style="background:#ce93d8;color:#fff;">有給${actualResult.paidLeaveDays}日</span>` : ''}</div></div>
   `;
 
-  // 月度合計営収+1乗務平均(税込、実績ベース)
-  const monthly = calcMonthlySales(drives);
+  // 月度合計営収+1乗務平均(税込、実績ベース) — 給与関連は車種混在の合算
+  const monthly = calcMonthlySales(rawDrives);
   const avgSalesIncl = actualResult.shiftCount > 0 ? monthly.inclTax / actualResult.shiftCount : 0;
-  // 1〜11乗務目までの税抜平均営収(歩率判定用)。歩率は11乗務目までの平均で決まる
+  // 1〜11乗務目までの税抜平均営収(歩率判定用)。歩率は11乗務目までの平均で決まる(車種混在)
   const FIRST_N_FOR_RATE = 11;
-  const sortedForRate = [...drives].sort((a, b) => a.date.localeCompare(b.date)).slice(0, FIRST_N_FOR_RATE);
+  const sortedForRate = [...rawDrives].sort((a, b) => a.date.localeCompare(b.date)).slice(0, FIRST_N_FOR_RATE);
   const firstNExcl = sortedForRate.reduce((s, d) => s + calcDailySales(d).exclTax, 0);
   const firstNCount = sortedForRate.length;
   const avgFirstNExcl = firstNCount > 0 ? firstNExcl / firstNCount : 0;
@@ -225,7 +225,7 @@ async function render() {
     const requiredTotal = target / takeHomeRate;
     const remaining = Math.max(0, requiredTotal - actualResult.total);
     const remainingShifts = Math.max(0, respShifts - actualResult.shiftCount);
-    const monthlySales = calcMonthlySales(drives);
+    const monthlySales = calcMonthlySales(rawDrives);
     const avgRate = (actualResult.shiftCount > 0 && monthlySales.exclTax > 0) ? (actualResult.basePay / monthlySales.exclTax) : 0.65;
     const perShiftPayRequired = remainingShifts > 0 ? remaining / remainingShifts : 0;
     const perShiftSalesExclTax = avgRate > 0 ? perShiftPayRequired / avgRate : 0;
