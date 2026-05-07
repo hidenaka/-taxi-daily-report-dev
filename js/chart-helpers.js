@@ -514,21 +514,36 @@ export function calcPaceAtElapsed(drives, depHour, elapsedMin, dowFilter = null)
     if (active) samples.push({ date: d.date, sales: s, count: cnt, tripMin: tm, restMin: rm });
   }
   if (samples.length === 0) return { days: 0, totalDays: matched.length, samples };
-  const sumSales = samples.reduce((s,v) => s + v.sales, 0);
-  const sumRest = samples.reduce((s,v) => s + v.restMin, 0);
-  const sumTrip = samples.reduce((s,v) => s + v.tripMin, 0);
-  const sumCount = samples.reduce((s,v) => s + v.count, 0);
-  const maxSamp = samples.reduce((a,b) => a.sales >= b.sales ? a : b);
-  const minSamp = samples.reduce((a,b) => a.sales <= b.sales ? a : b);
-  const restVals = samples.map(v => v.restMin);
-  const countVals = samples.map(v => v.count);
+
+  // 外れ値除外: IQR方式で異常に高い単価の日を除外
+  const salesValues = samples.map(v => v.sales).sort((a, b) => a - b);
+  const q1Index = Math.floor(salesValues.length * 0.25);
+  const q3Index = Math.floor(salesValues.length * 0.75);
+  const q1 = salesValues[q1Index];
+  const q3 = salesValues[q3Index];
+  const iqr = q3 - q1;
+  const upperBound = q3 + 1.5 * iqr;
+  const filteredSamples = samples.filter(v => v.sales <= upperBound);
+
+  // 除外された日数が多すぎる場合は元のデータを使用（全てが外れ値の場合の保険）
+  const finalSamples = filteredSamples.length >= samples.length * 0.5 ? filteredSamples : samples;
+
+  const sumSales = finalSamples.reduce((s,v) => s + v.sales, 0);
+  const sumRest = finalSamples.reduce((s,v) => s + v.restMin, 0);
+  const sumTrip = finalSamples.reduce((s,v) => s + v.tripMin, 0);
+  const sumCount = finalSamples.reduce((s,v) => s + v.count, 0);
+  const maxSamp = finalSamples.reduce((a,b) => a.sales >= b.sales ? a : b);
+  const minSamp = finalSamples.reduce((a,b) => a.sales <= b.sales ? a : b);
+  const restVals = finalSamples.map(v => v.restMin);
+  const countVals = finalSamples.map(v => v.count);
   return {
-    days: samples.length,
+    days: finalSamples.length,
     totalDays: matched.length,
-    avgSales: sumSales / samples.length,
-    avgRest: sumRest / samples.length,
-    avgTrip: sumTrip / samples.length,
-    avgCount: sumCount / samples.length,
+    excludedDays: samples.length - finalSamples.length,
+    avgSales: sumSales / finalSamples.length,
+    avgRest: sumRest / finalSamples.length,
+    avgTrip: sumTrip / finalSamples.length,
+    avgCount: sumCount / finalSamples.length,
     maxSales: maxSamp.sales,
     maxDate: maxSamp.date,
     minSales: minSamp.sales,
