@@ -40,6 +40,7 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <h1>シフトカレンダー</h1>
+  <div id="vehicleTabsContainer"></div>
 
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -74,12 +75,19 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, todayIso, toLocalIso, currentBillingPeriod, getBillingPeriodRange, formatBillingPeriod, shiftBillingPeriod } from './js/app.js';
-import { getConfig, saveConfig, getDrivesForMonth } from './js/storage.js';
+import { getConfig, saveConfig, getDrivesForMonth, getDrive } from './js/storage.js';
+import {
+  ensureActiveVehicleType,
+  getActiveVehicleType,
+  filterDrivesByVehicle,
+  renderVehicleTabs,
+} from './js/vehicle-filter.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('calendar');
 
 let viewPeriod = currentBillingPeriod();
 let config = null;
+let rawDrivesThisMonth = [];
 let drivesThisMonth = [];
 
 const DOW = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -87,12 +95,24 @@ const DOW = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 async function load() {
   config = await getConfig();
   if (!config) return alert('config.json未取得');
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  await ensureActiveVehicleType({
+    getDrive: () => getDrive(todayStr).catch(() => null),
+    getConfig: () => Promise.resolve(config),
+    todayDateStr: todayStr,
+  });
+  renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+    onChange: () => render(),
+  });
+
   await render();
 }
 
 async function render() {
   document.getElementById('monthLabel').textContent = formatBillingPeriod(viewPeriod);
-  drivesThisMonth = await getDrivesForMonth(viewPeriod);
+  rawDrivesThisMonth = await getDrivesForMonth(viewPeriod);
+  drivesThisMonth = filterDrivesByVehicle(rawDrivesThisMonth, getActiveVehicleType());
   renderGrid();
   renderDowToggles();
   renderSummary();
