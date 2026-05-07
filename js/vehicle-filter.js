@@ -35,24 +35,29 @@ export function pickDefaultVehicleType(todayDrive, config) {
 }
 
 // ============================================================
-// DOM/sessionStorage アダプタ（テスト対象外、各ページで使用）
+// DOM/localStorage アダプタ（テスト対象外、各ページで使用）
 // ============================================================
 
-let _memoryFallback = null;
+let _activeType = null;       // 現在の有効値（in-memory、最新）
+let _memoryFallback = null;   // localStorage 不可時のフォールバック
 
 export function getActiveVehicleType() {
+  if (_activeType) return _activeType;
   try {
-    const v = sessionStorage.getItem(STORAGE_KEY);
-    return isValidVehicleType(v) ? v : (_memoryFallback || 'all');
-  } catch {
-    return _memoryFallback || 'all';
-  }
+    const v = localStorage.getItem(STORAGE_KEY);
+    if (isValidVehicleType(v)) {
+      _activeType = v;
+      return v;
+    }
+  } catch {}
+  return _memoryFallback || 'all';
 }
 
 export function setActiveVehicleType(type) {
   if (!isValidVehicleType(type)) return false;
+  _activeType = type;
   try {
-    sessionStorage.setItem(STORAGE_KEY, type);
+    localStorage.setItem(STORAGE_KEY, type);
   } catch {
     _memoryFallback = type;
   }
@@ -103,11 +108,49 @@ export function renderVehicleTabs(container, options = {}) {
   });
 }
 
+// ホーム上部の「今日の車種: [JT] [プレ]」プロミネントなトグル
+// 'all' は含まれない。タップで activeVehicleType を切替（タブと連動）
+export function renderTodayVehicleToggle(container, options = {}) {
+  if (!container) return;
+  const onChange = options.onChange || (() => {});
+
+  const current = getActiveVehicleType();
+  const tabs = [
+    { key: 'japantaxi', label: 'ジャパン' },
+    { key: 'premium', label: 'プレミアム' },
+  ];
+
+  container.innerHTML = `
+    <div class="today-vehicle">
+      <span class="today-vehicle-label">今日の車種</span>
+      <div class="today-vehicle-buttons">
+        ${tabs.map(t => `<button type="button" data-vt="${t.key}" class="${t.key === current ? 'active' : ''}">${t.label}</button>`).join('')}
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll('.today-vehicle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.vt;
+      if (setActiveVehicleType(type)) {
+        container.querySelectorAll('.today-vehicle button').forEach(b => b.classList.toggle('active', b === btn));
+        onChange(type);
+      }
+    });
+  });
+}
+
+// ensureActiveVehicleType: 永続化された値があればそれを使う。なければ fresh resolve（ただし保存はしない）
+// → settings 変更後の再訪問でデフォルトが正しく反映される
 export async function ensureActiveVehicleType(deps) {
-  let current = null;
-  try { current = sessionStorage.getItem(STORAGE_KEY); } catch {}
-  if (isValidVehicleType(current)) return current;
+  let stored = null;
+  try { stored = localStorage.getItem(STORAGE_KEY); } catch {}
+  if (isValidVehicleType(stored)) {
+    _activeType = stored;
+    return stored;
+  }
+  // 永続化された明示的な選択なし → 都度 fresh resolve（保存はしない）
   const def = await resolveDefaultVehicleType(deps);
-  setActiveVehicleType(def);
+  _activeType = def;
   return def;
 }

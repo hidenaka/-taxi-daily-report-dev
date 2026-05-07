@@ -31,3 +31,23 @@ nav.bottom a.active { color: var(--primary); }
 .vehicle-tabs button.active {
   background: var(--primary); color: #fff; font-weight: 600;
 }
+
+/* === 今日の車種 トグル (ホーム上部) === */
+.today-vehicle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; margin: 8px 0;
+  background: #fff8e1; border-left: 4px solid #f57f17; border-radius: 4px;
+}
+.today-vehicle-label {
+  font-size: 12px; font-weight: 600; color: #f57f17;
+}
+.today-vehicle-buttons { display: flex; gap: 6px; flex: 1; }
+.today-vehicle-buttons button {
+  flex: 1; padding: 8px; background: #fff; color: #555;
+  border: 1px solid #ddd; border-radius: 4px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: inherit;
+}
+.today-vehicle-buttons button.active {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+}

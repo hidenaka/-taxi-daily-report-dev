@@ -96,3 +96,58 @@ test('pickDefaultVehicleType: 不正値（today=taxi, config=foo）→ allにフ
 test('pickDefaultVehicleType: regular値はjapantaxiにマップ', () => {
   assert.equal(pickDefaultVehicleType({ vehicleType: 'regular' }, null), 'japantaxi');
 });
+
+// === Adapter behavior tests (in-memory state, no DOM) ===
+
+import {
+  setActiveVehicleType,
+  getActiveVehicleType,
+} from '../js/vehicle-filter.js';
+
+// Mock localStorage and window for node test environment
+globalThis.localStorage = {
+  _data: {},
+  getItem(k) { return this._data[k] ?? null; },
+  setItem(k, v) { this._data[k] = String(v); },
+  removeItem(k) { delete this._data[k]; },
+  clear() { this._data = {}; },
+};
+globalThis.window = {
+  _listeners: {},
+  dispatchEvent(e) {
+    const ls = this._listeners[e.type] || [];
+    ls.forEach(fn => fn(e));
+  },
+  addEventListener(type, fn) {
+    (this._listeners[type] = this._listeners[type] || []).push(fn);
+  },
+  removeEventListener(type, fn) {
+    if (this._listeners[type]) this._listeners[type] = this._listeners[type].filter(x => x !== fn);
+  },
+};
+globalThis.CustomEvent = class CustomEvent {
+  constructor(type, init = {}) {
+    this.type = type;
+    this.detail = init.detail;
+  }
+};
+
+test('setActiveVehicleType: 有効値で localStorage に保存される', () => {
+  globalThis.localStorage.clear();
+  const ok = setActiveVehicleType('premium');
+  assert.equal(ok, true);
+  assert.equal(globalThis.localStorage.getItem('activeVehicleType'), 'premium');
+});
+
+test('setActiveVehicleType: 無効値は false を返し localStorage に保存しない', () => {
+  globalThis.localStorage.clear();
+  const ok = setActiveVehicleType('invalid');
+  assert.equal(ok, false);
+  assert.equal(globalThis.localStorage.getItem('activeVehicleType'), null);
+});
+
+test('getActiveVehicleType: 保存値があればそれを返す', () => {
+  globalThis.localStorage.clear();
+  setActiveVehicleType('japantaxi');
+  assert.equal(getActiveVehicleType(), 'japantaxi');
+});
