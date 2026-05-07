@@ -73,6 +73,7 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <section class="card" id="todayHintCard" style="display:none;"></section>
+  <div id="vehicleTabsContainer"></div>
   <section class="card" id="summaryCard">読み込み中…</section>
   <section class="card" id="targetCard" style="display:none;"></section>
   <section class="card" id="calCard" style="display:none;"></section>
@@ -83,7 +84,13 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
-import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
+import { getConfig, getDrivesForMonth, flushPendingQueue, getDrive } from './js/storage.js';
+import {
+  ensureActiveVehicleType,
+  getActiveVehicleType,
+  filterDrivesByVehicle,
+  renderVehicleTabs,
+} from './js/vehicle-filter.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
@@ -118,11 +125,23 @@ async function load() {
   if (!config) {
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  await ensureActiveVehicleType({
+    getDrive: () => getDrive(todayStr).catch(() => null),
+    getConfig: () => Promise.resolve(config),
+    todayDateStr: todayStr,
+  });
+  renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+    onChange: () => render(),
+  });
+
   await render();
 }
 
 async function render() {
-  const drives = await getDrivesForMonth(viewPeriod);
+  const rawDrives = await getDrivesForMonth(viewPeriod);
+  const drives = filterDrivesByVehicle(rawDrives, getActiveVehicleType());
   drives.sort((a, b) => a.date.localeCompare(b.date));
   const range = getBillingPeriodRange(viewPeriod);
   const today = todayIso();
