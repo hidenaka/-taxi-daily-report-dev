@@ -73,8 +73,6 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <section class="card" id="todayHintCard" style="display:none;"></section>
-  <div id="todayVehicleContainer"></div>
-  <div id="vehicleTabsContainer"></div>
   <section class="card" id="summaryCard">読み込み中…</section>
   <section class="card" id="targetCard" style="display:none;"></section>
   <section class="card" id="calCard" style="display:none;"></section>
@@ -85,14 +83,7 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
-import { getConfig, getDrivesForMonth, flushPendingQueue, getDrive } from './js/storage.js';
-import {
-  ensureActiveVehicleType,
-  getActiveVehicleType,
-  filterDrivesByVehicle,
-  renderVehicleTabs,
-  renderTodayVehicleToggle,
-} from './js/vehicle-filter.js';
+import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
@@ -127,43 +118,14 @@ async function load() {
   if (!config) {
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
-
-  const todayStr = todayIso();
-  await ensureActiveVehicleType({
-    getDrive: () => getDrive(todayStr).catch(() => null),
-    getConfig: () => Promise.resolve(config),
-    todayDateStr: todayStr,
-  });
-  renderTodayVehicleToggle(document.getElementById('todayVehicleContainer'), {
-    onChange: () => {
-      // トグル → タブ側の active 状態を同期
-      const tabsContainer = document.getElementById('vehicleTabsContainer');
-      const current = getActiveVehicleType();
-      tabsContainer.querySelectorAll('.vehicle-tabs button').forEach(b => {
-        b.classList.toggle('active', b.dataset.vt === current);
-      });
-      render();
-    },
-  });
-  renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
-    onChange: () => {
-      // タブ → トグル側の active 状態も同期
-      const toggleContainer = document.getElementById('todayVehicleContainer');
-      const current = getActiveVehicleType();
-      toggleContainer.querySelectorAll('.today-vehicle button').forEach(b => {
-        b.classList.toggle('active', b.dataset.vt === current);
-      });
-      render();
-    },
-  });
-
   await render();
 }
 
 async function render() {
   const rawDrives = await getDrivesForMonth(viewPeriod);
   rawDrives.sort((a, b) => a.date.localeCompare(b.date));
-  const drives = filterDrivesByVehicle(rawDrives, getActiveVehicleType());
+  // ホームではフィルタなし。drives は raw と同一（calendar/sumTableは全件表示）
+  const drives = rawDrives;
   const range = getBillingPeriodRange(viewPeriod);
   const today = todayIso();
   const isPast = range.end < today;

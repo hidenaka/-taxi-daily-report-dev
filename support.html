@@ -64,7 +64,7 @@ if (location.hostname.includes('-dev')) {
     <a href="support.html" style="flex:1;background:var(--primary);color:#fff;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">営業サポート</a>
     <a href="review.html" style="flex:1;background:#f0f0f0;color:#333;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">振り返り</a>
   </div>
-  <div id="vehicleTabsContainer"></div>
+  <div id="todayVehicleContainer"></div>
   <div id="dataSourceInfo" style="font-size:11px;color:var(--muted);margin-bottom:12px;"></div>
   <p class="muted" style="font-size:11px;margin-top:-6px;">過去データから「効率の悪い時間/降ろし方」を可視化して営業スタイルを最適化</p>
 
@@ -163,7 +163,7 @@ import {
   ensureActiveVehicleType,
   getActiveVehicleType,
   filterDrivesByVehicle,
-  renderVehicleTabs,
+  renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
 import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed } from './js/chart-helpers.js';
 
@@ -426,15 +426,15 @@ async function load() {
       getUserDisplayMap(),
       getUserRoleMap()
     ]);
-    // 初回のみ: タブ初期化
-    if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
+    // 初回のみ: 今日の車種トグル初期化
+    if (!document.querySelector('#todayVehicleContainer .today-vehicle')) {
       const todayStr = todayIso();
       await ensureActiveVehicleType({
         getDrive: () => getDrive(todayStr).catch(() => null),
         getConfig: () => getConfig().catch(() => null),
         todayDateStr: todayStr,
       });
-      renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+      renderTodayVehicleToggle(document.getElementById('todayVehicleContainer'), {
         onChange: () => {
           applyVehicleFilterAndRender('');
           renderPaceCard();
