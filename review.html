@@ -80,6 +80,7 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <h1 style="margin-top:0;">分析</h1>
+  <div id="vehicleTabsContainer"></div>
   <div style="display:flex;gap:4px;margin-bottom:12px;">
     <a href="support.html" style="flex:1;background:#f0f0f0;color:#333;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">営業サポート</a>
     <a href="review.html" style="flex:1;background:var(--primary);color:#fff;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">振り返り</a>
@@ -173,7 +174,13 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDate, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod } from './js/app.js';
-import { getDrivesForMonth, getDrivesForMonthCached, getConfig, getConfigCached } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getConfig, getConfigCached, getDrive } from './js/storage.js';
+import {
+  ensureActiveVehicleType,
+  getActiveVehicleType,
+  filterDrivesByVehicle,
+  renderVehicleTabs,
+} from './js/vehicle-filter.js';
 import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown } from './js/chart-helpers.js';
 
@@ -182,6 +189,8 @@ document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 let monthsRange = 6;
 let allDrives = [];
 let monthSummaries = []; // [{ym, drives, totalSales, totalShifts, totalPay, totalTripMin, ...}]
+let rawDrivesByMonth = []; // フィルタ前の月別drives
+let currentPeriods = [];   // 現在の期間配列を保持
 let config = null;
 let selectedMetric = 'total';
 let heatZonePreset = 'shift'; // 'human' | 'shift'
@@ -202,6 +211,13 @@ document.querySelectorAll('#metricTabs button').forEach(b => {
     renderTrend();
   };
 });
+
+function applyVehicleFilterAndRender(label) {
+  const type = getActiveVehicleType();
+  const filtered = rawDrivesByMonth.map(arr => filterDrivesByVehicle(arr, type));
+  buildMonthSummaries(currentPeriods, filtered);
+  renderAll(currentPeriods, label);
+}
 
 function buildMonthSummaries(periods, drivesByMonth) {
   monthSummaries = [];
@@ -248,10 +264,11 @@ async function load() {
   const cachedConfig = getConfigCached();
   const cachedByMonth = periods.map(ym => getDrivesForMonthCached(ym));
   const cacheComplete = cachedConfig && cachedByMonth.every(d => d !== null);
+  currentPeriods = periods;
   if (cacheComplete) {
     config = cachedConfig;
-    buildMonthSummaries(periods, cachedByMonth);
-    renderAll(periods, ' · 同期中…');
+    rawDrivesByMonth = cachedByMonth;
+    applyVehicleFilterAndRender(' · 同期中…');
   } else {
     document.getElementById('rangeInfo').textContent = '読み込み中…';
   }
@@ -263,8 +280,22 @@ async function load() {
       ...periods.map(ym => getDrivesForMonth(ym))
     ]);
     config = freshConfig;
-    buildMonthSummaries(periods, freshByMonth);
-    renderAll(periods, '');
+    rawDrivesByMonth = freshByMonth;
+
+    // 初回のみ: タブ初期化
+    if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      await ensureActiveVehicleType({
+        getDrive: () => getDrive(todayStr).catch(() => null),
+        getConfig: () => Promise.resolve(config),
+        todayDateStr: todayStr,
+      });
+      renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+        onChange: () => applyVehicleFilterAndRender(''),
+      });
+    }
+
+    applyVehicleFilterAndRender('');
   } catch (e) {
     if (!cacheComplete) {
       document.getElementById('rangeInfo').textContent = `読み込み失敗: ${e.message}`;
