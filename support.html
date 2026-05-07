@@ -64,6 +64,7 @@ if (location.hostname.includes('-dev')) {
     <a href="support.html" style="flex:1;background:var(--primary);color:#fff;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">営業サポート</a>
     <a href="review.html" style="flex:1;background:#f0f0f0;color:#333;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">振り返り</a>
   </div>
+  <div id="vehicleTabsContainer"></div>
   <div id="dataSourceInfo" style="font-size:11px;color:var(--muted);margin-bottom:12px;"></div>
   <p class="muted" style="font-size:11px;margin-top:-6px;">過去データから「効率の悪い時間/降ろし方」を可視化して営業スタイルを最適化</p>
 
@@ -157,7 +158,13 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, toLocalIso } from './js/app.js';
-import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig } from './js/storage.js';
+import {
+  ensureActiveVehicleType,
+  getActiveVehicleType,
+  filterDrivesByVehicle,
+  renderVehicleTabs,
+} from './js/vehicle-filter.js';
 import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed } from './js/chart-helpers.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
@@ -165,9 +172,13 @@ document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 const todayIso = () => toLocalIso(new Date());
 
 let monthsRange = 6;
-let myDrives = [];      // 自分のみ(ペース・ヒートマップ用)
-let allDrives = [];     // 全員統合(推奨・エリア分析・近隣マップ用)
-let activeUserIds = []; // 集計対象数表示用
+let myDrives = [];      // 自分のみ(ペース・ヒートマップ用) — フィルタ済み
+let allDrives = [];     // 全員統合(推奨・エリア分析・近隣マップ用) — フィルタ済み
+let activeUserIds = []; // 集計対象数表示用 — フィルタ後のユニークuserId数
+let rawMyDrives = [];   // フィルタ前 自分(全月flat)
+let rawAllDrives = [];  // フィルタ前 全員(全月flat)
+let rawAllUserIds = []; // フィルタ前 アクティブUserId
+let currentPeriods = [];
 let userDisplayMap = {}; // userId -> displayName
 let myUserId = '';      // 履歴で自分/他人を区別する用
 let areaSort = 'dropoffs';
@@ -198,6 +209,8 @@ async function renderPaceCard() {
     drives = all.flat();
     paceCache[months] = drives;
   }
+  // 車種フィルタ適用 (paceCache は raw を保持)
+  drives = filterDrivesByVehicle(drives, getActiveVehicleType());
   const todayDow = paceState.dowFilter !== undefined && paceState.dowFilter !== null ? paceState.dowFilter : dowOf(todayIso());
   paceState = { allDrives: drives, dowFilter: todayDow, manualElapsedMin: paceState.manualElapsedMin, todayDepHour: paceState.todayDepHour || 7 };
   renderPaceBody();
@@ -351,14 +364,26 @@ function updateDataSourceInfo() {
 }
 
 function applyLoaded(periods, myParts, allParts, userIds, displayMap, roleMap, label) {
-  myDrives = myParts.flat();
-  allDrives = allParts.flat();
-  activeUserIds = userIds;
+  rawMyDrives = myParts.flat();
+  rawAllDrives = allParts.flat();
+  rawAllUserIds = userIds;
   userDisplayMap = displayMap;
   userRoleMap = roleMap;
   myUserId = getMyUserId();
+  currentPeriods = periods;
+  applyVehicleFilterAndRender(label);
+}
+
+function applyVehicleFilterAndRender(label) {
+  const type = getActiveVehicleType();
+  myDrives = filterDrivesByVehicle(rawMyDrives, type);
+  allDrives = filterDrivesByVehicle(rawAllDrives, type);
+  // フィルタ後のユニークuserIdを再計算
+  const filteredUserIds = new Set(allDrives.map(d => d.userId).filter(Boolean));
+  // rawAllUserIds の中で、filteredUserIds に含まれているものだけを残す
+  activeUserIds = rawAllUserIds.filter(uid => filteredUserIds.has(uid));
   document.getElementById('rangeInfo').textContent =
-    `${formatBillingPeriod(periods[0])} 〜 ${formatBillingPeriod(periods[periods.length-1])} (自分: ${myDrives.length}乗務 / 全員: ${allDrives.length}乗務)${label || ''}`;
+    `${formatBillingPeriod(currentPeriods[0])} 〜 ${formatBillingPeriod(currentPeriods[currentPeriods.length-1])} (自分: ${myDrives.length}乗務 / 全員: ${allDrives.length}乗務)${label || ''}`;
   neighborMap = buildNeighborMap(allDrives);
   updateDataSourceInfo();
   populateRecommendArea();
@@ -366,6 +391,11 @@ function applyLoaded(periods, myParts, allParts, userIds, displayMap, roleMap, l
   renderHourEff();
   renderHighValue();
   renderArea();
+  // paceState の allDrives も同期
+  if (paceState && paceState.allDrives) {
+    paceState.allDrives = filterDrivesByVehicle(paceState.allDrives, type);
+    if (typeof renderPaceBody === 'function') renderPaceBody();
+  }
 }
 
 async function load() {
@@ -396,6 +426,21 @@ async function load() {
       getUserDisplayMap(),
       getUserRoleMap()
     ]);
+    // 初回のみ: タブ初期化
+    if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      await ensureActiveVehicleType({
+        getDrive: () => getDrive(todayStr).catch(() => null),
+        getConfig: () => getConfig().catch(() => null),
+        todayDateStr: todayStr,
+      });
+      renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+        onChange: () => {
+          applyVehicleFilterAndRender('');
+          renderPaceCard();
+        },
+      });
+    }
     applyLoaded(periods, myParts, allParts, userIds, displayMap, roleMap, '');
   } catch (e) {
     if (!cacheComplete) {
