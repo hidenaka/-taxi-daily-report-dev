@@ -229,17 +229,18 @@ function renderSummary() {
   const { start, end } = getBillingPeriodRange(viewPeriod);
   const planned = config.shifts.expandedDates.filter(d => d >= start && d <= end).length;
   const paid = (config.shifts.paidLeaveDates || []).filter(d => d >= start && d <= end).length;
-  const actual = drivesThisMonth.length;
-  const remaining = Math.max(0, planned - actual);
+  const actual = drivesThisMonth.length;          // 表示用（車種別カウント）
+  const actualRaw = rawDrivesThisMonth.length;    // 責任出番判定用（合算）
+  const remaining = Math.max(0, planned - actualRaw);
   const futurePlanned = config.shifts.expandedDates.filter(d => d >= start && d <= end && d >= todayIso()).length;
-  const willMakeResp = (actual + futurePlanned) >= config.responsibilityShifts;
+  const willMakeResp = (actualRaw + futurePlanned) >= config.responsibilityShifts;
   const paidAmount = paid * (config.paidLeaveAmount || 0);
   document.getElementById('summary').innerHTML = `
     <div>予定: <strong>${planned}乗務</strong></div>
     <div>実績: <strong>${actual}乗務</strong></div>
     <div>残り: <strong>${remaining}乗務</strong></div>
     <div>有給: <strong>${paid}日</strong> ${paid > 0 ? `(¥${paidAmount.toLocaleString()})` : ''}</div>
-    <div style="color:${willMakeResp ? 'var(--primary)' : 'var(--orange)'}">責任出番達成見込み: <strong>${willMakeResp ? '○' : '△'} (${actual + remaining}/${config.responsibilityShifts})</strong></div>
+    <div style="color:${willMakeResp ? 'var(--primary)' : 'var(--orange)'}">責任出番達成見込み: <strong>${willMakeResp ? '○' : '△'} (${actualRaw + remaining}/${config.responsibilityShifts})</strong></div>
   `;
 }
 
