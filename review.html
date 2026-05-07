@@ -215,29 +215,30 @@ document.querySelectorAll('#metricTabs button').forEach(b => {
 function applyVehicleFilterAndRender(label) {
   const type = getActiveVehicleType();
   const filtered = rawDrivesByMonth.map(arr => filterDrivesByVehicle(arr, type));
-  buildMonthSummaries(currentPeriods, filtered);
+  buildMonthSummaries(currentPeriods, filtered, rawDrivesByMonth);
   renderAll(currentPeriods, label);
 }
 
-function buildMonthSummaries(periods, drivesByMonth) {
+function buildMonthSummaries(periods, filteredByMonth, rawByMonth) {
   monthSummaries = [];
   allDrives = [];
   for (let i = 0; i < periods.length; i++) {
     const ym = periods[i];
-    const drives = drivesByMonth[i] || [];
+    const drives = filteredByMonth[i] || [];
+    const rawDrives = rawByMonth[i] || [];
     allDrives.push(...drives);
-    const monthly = calcMonthlySales(drives);
-    const pay = calcTotalPay(drives, config);
+    const monthly = calcMonthlySales(drives);              // filtered
+    const pay = calcTotalPay(rawDrives, config);            // raw — 給与は車種混在合算
     const detailed = drives.filter(d => !isSummaryOnly(d));
     let totalMin = 0;
     for (const d of detailed) totalMin += calcTimeBreakdown(d).totalMin;
     monthSummaries.push({
       ym, drives,
-      totalSales: monthly.inclTax,
-      totalShifts: drives.length,
-      totalPay: pay.total,
-      totalShiftMin: totalMin,
-      hourly: totalMin > 0 ? monthly.inclTax / (totalMin / 60) : 0
+      totalSales: monthly.inclTax,                          // filtered
+      totalShifts: drives.length,                            // filtered
+      totalPay: pay.total,                                   // raw
+      totalShiftMin: totalMin,                               // filtered
+      hourly: totalMin > 0 ? monthly.inclTax / (totalMin / 60) : 0  // filtered
     });
   }
 }
