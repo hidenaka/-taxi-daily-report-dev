@@ -260,14 +260,29 @@ async function load() {
   for (let i = monthsRange - 1; i >= 0; i--) {
     periods.push(shiftBillingPeriod(current, -i));
   }
+  currentPeriods = periods;
 
-  // === Phase 1: キャッシュから即時描画 ===
+  // === Phase 0: キャッシュ済み config から activeVehicleType を解決してタブを即描画 ===
   const cachedConfig = getConfigCached();
   const cachedByMonth = periods.map(ym => getDrivesForMonthCached(ym));
   const cacheComplete = cachedConfig && cachedByMonth.every(d => d !== null);
-  currentPeriods = periods;
-  if (cacheComplete) {
+  if (cachedConfig) {
     config = cachedConfig;
+    const todayStr = todayIso();
+    await ensureActiveVehicleType({
+      getDrive: () => getDrive(todayStr).catch(() => null),
+      getConfig: () => Promise.resolve(cachedConfig),
+      todayDateStr: todayStr,
+    });
+    if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
+      renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
+        onChange: () => applyVehicleFilterAndRender(''),
+      });
+    }
+  }
+
+  // === Phase 1: キャッシュから即時描画 (settings 解決済みのフィルタを使う) ===
+  if (cacheComplete) {
     rawDrivesByMonth = cachedByMonth;
     applyVehicleFilterAndRender(' · 同期中…');
   } else {
@@ -283,7 +298,7 @@ async function load() {
     config = freshConfig;
     rawDrivesByMonth = freshByMonth;
 
-    // 初回のみ: タブ初期化
+    // cache が無かった場合のみここで初期化 (Phase 0 でやれていれば skip)
     if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
       const todayStr = todayIso();
       await ensureActiveVehicleType({

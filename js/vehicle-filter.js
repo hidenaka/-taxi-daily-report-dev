@@ -1,7 +1,13 @@
 // js/vehicle-filter.js — 車種別フィルタリング共通モジュール
 
 const VALID_TYPES = ['all', 'japantaxi', 'premium'];
-const STORAGE_KEY = 'activeVehicleType';
+const STORAGE_KEY = 'activeVehicleType_v2'; // v2: 古い auto-save された値を破棄するため key 変更
+// 旧 key の値がある場合は migrate (一度だけ削除 → 新 key には書かない、settings 解決に任せる)
+try {
+  if (typeof localStorage !== 'undefined' && localStorage.getItem('activeVehicleType')) {
+    localStorage.removeItem('activeVehicleType');
+  }
+} catch {}
 
 // ============================================================
 // 純粋関数（テスト対象）
