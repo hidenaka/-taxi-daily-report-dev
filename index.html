@@ -73,6 +73,7 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <section class="card" id="todayHintCard" style="display:none;"></section>
+  <div id="todayVehicleContainer"></div>
   <div id="vehicleTabsContainer"></div>
   <section class="card" id="summaryCard">読み込み中…</section>
   <section class="card" id="targetCard" style="display:none;"></section>
@@ -90,6 +91,7 @@ import {
   getActiveVehicleType,
   filterDrivesByVehicle,
   renderVehicleTabs,
+  renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales } from './js/payroll.js';
@@ -132,8 +134,27 @@ async function load() {
     getConfig: () => Promise.resolve(config),
     todayDateStr: todayStr,
   });
+  renderTodayVehicleToggle(document.getElementById('todayVehicleContainer'), {
+    onChange: () => {
+      // トグル → タブ側の active 状態を同期
+      const tabsContainer = document.getElementById('vehicleTabsContainer');
+      const current = getActiveVehicleType();
+      tabsContainer.querySelectorAll('.vehicle-tabs button').forEach(b => {
+        b.classList.toggle('active', b.dataset.vt === current);
+      });
+      render();
+    },
+  });
   renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
-    onChange: () => render(),
+    onChange: () => {
+      // タブ → トグル側の active 状態も同期
+      const toggleContainer = document.getElementById('todayVehicleContainer');
+      const current = getActiveVehicleType();
+      toggleContainer.querySelectorAll('.today-vehicle button').forEach(b => {
+        b.classList.toggle('active', b.dataset.vt === current);
+      });
+      render();
+    },
   });
 
   await render();
