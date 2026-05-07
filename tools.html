@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>ツール — タクシー日報</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+.tool-card { display: block; background: var(--surface); border-radius: 12px; padding: 20px; margin-bottom: 14px; border: 1px solid var(--border); text-decoration: none; color: inherit; }
+.tool-card:hover { background: #fafafa; }
+.tool-card .icon { font-size: 32px; margin-bottom: 8px; }
+.tool-card h3 { margin: 0 0 4px; font-size: 16px; }
+.tool-card p { margin: 0; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+localStorage.removeItem('github_token');
+localStorage.removeItem('github_data_repo');
+
+if (location.hostname.includes('-dev')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.textContent = '🚧 開発環境';
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:#fff;padding:4px 8px;font-size:11px;text-align:center;font-weight:600;z-index:9999;';
+    document.body.appendChild(badge);
+  });
+}
+</script>
+<main style="padding:14px;">
+  <h1>ツール</h1>
+  <p class="muted" style="font-size:12px;margin-bottom:14px;">外部ツールへのリンク</p>
+
+  <a href="../タクシー乗務タイマー/index.html" class="tool-card">
+    <div class="icon">⏱️</div>
+    <h3>乗務タイマー</h3>
+    <p>休憩時間・拘束時間を管理するタイマーツール</p>
+  </a>
+
+  <a href="../乗務地図関係/ic.html" class="tool-card">
+    <div class="icon">🗺️</div>
+    <h3>IC判定</h3>
+    <p>高速道路のIC（インターチェンジ）判定ツール</p>
+  </a>
+
+</main>
+<div id="navHost"></div>
+<script type="module">
+import { renderBottomNav } from './js/app.js';
+document.getElementById('navHost').innerHTML = renderBottomNav('tools');
+</script>
+</body>
+</html>

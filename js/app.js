@@ -10,6 +10,7 @@ export function renderBottomNav(activePage) {
     { id: 'input', label: '入力', href: 'input.html' },
     { id: 'calendar', label: 'カレンダー', href: 'calendar.html' },
     { id: 'analytics', label: '分析', href: 'support.html' },
+    { id: 'tools', label: 'ツール', href: 'tools.html' },
     { id: 'settings', label: '設定', href: 'settings.html' }
   ];
   const isActive = (it) => {
