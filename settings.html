@@ -104,6 +104,27 @@ if (location.hostname.includes('-dev')) {
     <div id="rateTableEditor"></div>
   </section>
 
+  <section class="card" id="cancelSection" style="display:none;border-color:#fca5a5;">
+    <h3 style="color:#991b1b;">退会する</h3>
+    <p class="muted" style="font-size:12px;margin-bottom:8px;">退会すると次回更新日以降サービスを利用できなくなります。乗務データは退会後30日間保持され、その後削除されます。</p>
+    <div id="cancelStatusBadge" style="font-size:12px;margin-bottom:10px;"></div>
+    <div id="cancelForm">
+      <label class="muted" style="display:block;margin-top:6px;">退会理由(任意)</label>
+      <select class="select" id="cancelReasonSel">
+        <option value="">選択しない</option>
+        <option value="not_using">使わなくなった</option>
+        <option value="too_expensive">料金が高い</option>
+        <option value="other_service">他サービスを利用</option>
+        <option value="missing_feature">必要な機能がない</option>
+        <option value="other">その他</option>
+      </select>
+      <button class="btn" id="cancelSubBtn" style="width:100%;margin-top:10px;background:#dc2626;color:#fff;">退会する</button>
+    </div>
+    <div id="cancelDoneMsg" style="display:none;padding:12px;background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;border-radius:6px;font-size:13px;">
+      退会処理が完了しました。
+    </div>
+  </section>
+
 </main>
 <div id="navHost"></div>
 <div style="position:fixed;bottom:70px;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:10px 14px;z-index:10;">
@@ -117,9 +138,65 @@ import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
 import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import {
+  getSubscription,
+  cancelSubscription,
+  requiresOnboarding,
+  isCanceledOrUnpaid,
+} from './js/subscription-state.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
 renderLegalFooter();
+
+async function initCancelSection() {
+  try {
+    const sub = await getSubscription();
+    const section = document.getElementById('cancelSection');
+    if (!section) return;
+    if (requiresOnboarding(sub)) {
+      // 未申込/pending → 退会セクションを出さない
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+    const badge = document.getElementById('cancelStatusBadge');
+    const form = document.getElementById('cancelForm');
+    const done = document.getElementById('cancelDoneMsg');
+    if (isCanceledOrUnpaid(sub)) {
+      badge.textContent = `現在の状態: ${sub.status}`;
+      badge.style.color = '#991b1b';
+      form.style.display = 'none';
+      done.style.display = '';
+    } else {
+      badge.textContent = `現在の状態: ${sub.status}`;
+      badge.style.color = '#065f46';
+    }
+  } catch (e) {
+    console.error('cancel section init error:', e);
+  }
+}
+
+document.getElementById('cancelSubBtn').addEventListener('click', async () => {
+  const reason = document.getElementById('cancelReasonSel').value || null;
+  if (!confirm('本当に退会しますか?\n退会後はサービスをご利用いただけなくなります。')) return;
+  const btn = document.getElementById('cancelSubBtn');
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+  try {
+    await cancelSubscription(reason);
+    document.getElementById('cancelForm').style.display = 'none';
+    document.getElementById('cancelDoneMsg').style.display = '';
+    document.getElementById('cancelStatusBadge').textContent = '退会済み';
+    document.getElementById('cancelStatusBadge').style.color = '#991b1b';
+  } catch (e) {
+    console.error('cancel error:', e);
+    alert('退会処理に失敗しました: ' + (e.message || e));
+    btn.disabled = false;
+    btn.textContent = '退会する';
+  }
+});
+
+initCancelSection();
 
 let currentConfig = null;
 let myRole = 'member';
