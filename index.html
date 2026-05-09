@@ -88,6 +88,7 @@ import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -108,6 +109,7 @@ if (autoConfigured) {
 }
 
 document.getElementById('navHost').innerHTML = renderBottomNav('home');
+renderLegalFooter();
 
 let viewPeriod = currentBillingPeriod();
 let config = null;
