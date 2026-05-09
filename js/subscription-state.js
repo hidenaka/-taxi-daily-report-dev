@@ -14,6 +14,38 @@ export const SUBSCRIPTION_STATUSES = [
   'unpaid',
 ];
 
+// 課金システム導入前から利用しているユーザー(grandfathered)。
+// Firestoreに subscriptions ドキュメントが無くても active として扱う。
+// 退会操作で実ドキュメントを作成すると、以後はそちらが優先される。
+export const GRANDFATHERED_USERS = ['user_self', 'mm'];
+
+export function isGrandfathered(userId) {
+  return GRANDFATHERED_USERS.includes(userId);
+}
+
+export function buildGrandfatheredSubscription(userId) {
+  return {
+    status: 'active',
+    planId: 'grandfathered_v1',
+    agreedTermsAt: null,
+    agreedTermsVersion: null,
+    agreedPrivacyAt: null,
+    agreedPrivacyVersion: null,
+    agreedTokuteishouAt: null,
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+    trialEndsAt: null,
+    canceledAt: null,
+    cancelReason: null,
+    stripeCustomerId: null,
+    stripeSubscriptionId: null,
+    createdAt: null,
+    updatedAt: null,
+    grandfathered: true,
+    _userId: userId,
+  };
+}
+
 // ============================================================
 // 純粋関数(テスト対象)
 // ============================================================
@@ -67,8 +99,9 @@ export async function getSubscription() {
   const { db, userId, fs } = await loadFirebase();
   const ref = fs.doc(db, 'subscriptions', userId);
   const snap = await fs.getDoc(ref);
-  if (!snap.exists()) return null;
-  return snap.data();
+  if (snap.exists()) return snap.data();
+  if (isGrandfathered(userId)) return buildGrandfatheredSubscription(userId);
+  return null;
 }
 
 export async function recordAgreementAndSubscribe(versions) {
@@ -101,15 +134,21 @@ export async function cancelSubscription(reason) {
   const { db, userId, fs } = await loadFirebase();
   const ref = fs.doc(db, 'subscriptions', userId);
   const existing = await fs.getDoc(ref);
-  if (!existing.exists()) {
+  const now = new Date().toISOString();
+  let baseData;
+  if (existing.exists()) {
+    baseData = existing.data();
+  } else if (isGrandfathered(userId)) {
+    baseData = buildGrandfatheredSubscription(userId);
+  } else {
     throw new Error('No subscription to cancel');
   }
-  const now = new Date().toISOString();
   await fs.setDoc(ref, {
-    ...existing.data(),
+    ...baseData,
     status: 'canceled',
     canceledAt: now,
     cancelReason: reason || null,
+    createdAt: baseData.createdAt || now,
     updatedAt: now,
   });
   return true;

@@ -1,11 +1,14 @@
 import { test, assert } from './run.js';
 import {
   SUBSCRIPTION_STATUSES,
+  GRANDFATHERED_USERS,
   isValidStatus,
   isPaying,
   isCanceledOrUnpaid,
   requiresOnboarding,
   computeAgreementSnapshot,
+  isGrandfathered,
+  buildGrandfatheredSubscription,
 } from '../js/subscription-state.js';
 
 // --- isValidStatus ---
@@ -102,4 +105,37 @@ test('computeAgreementSnapshot: versions が null でも例外を投げない', 
 test('computeAgreementSnapshot: nowIso 省略時に現在時刻が入る(ISO形式)', () => {
   const out = computeAgreementSnapshot({ terms: 'x', privacy: 'y' });
   assert.match(out.agreedTermsAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+});
+
+// --- isGrandfathered ---
+test('isGrandfathered: user_self と mm を受け入れる', () => {
+  assert.equal(isGrandfathered('user_self'), true);
+  assert.equal(isGrandfathered('mm'), true);
+});
+
+test('isGrandfathered: GRANDFATHERED_USERS に同一', () => {
+  assert.deepEqual(GRANDFATHERED_USERS.slice().sort(), ['mm', 'user_self']);
+});
+
+test('isGrandfathered: 他の userId は false', () => {
+  assert.equal(isGrandfathered('user_sample'), false);
+  assert.equal(isGrandfathered('user_x'), false);
+  assert.equal(isGrandfathered(''), false);
+  assert.equal(isGrandfathered(null), false);
+});
+
+// --- buildGrandfatheredSubscription ---
+test('buildGrandfatheredSubscription: status=active と grandfathered=true', () => {
+  const sub = buildGrandfatheredSubscription('user_self');
+  assert.equal(sub.status, 'active');
+  assert.equal(sub.grandfathered, true);
+  assert.equal(sub.planId, 'grandfathered_v1');
+  assert.equal(sub._userId, 'user_self');
+});
+
+test('buildGrandfatheredSubscription: 純関数の他のヘルパで正しく扱える', () => {
+  const sub = buildGrandfatheredSubscription('mm');
+  assert.equal(isPaying(sub), true);
+  assert.equal(requiresOnboarding(sub), false);
+  assert.equal(isCanceledOrUnpaid(sub), false);
 });
