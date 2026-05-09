@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>入力 — タクシー日報</title>
+<title>入力 — タクシー日報分析</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
 .preview-table { width: 100%; font-size: 12px; border-collapse: collapse; }
@@ -193,7 +193,7 @@ async function init() {
   document.getElementById('dateHint').textContent = `自動判定: ${candidate}（変更可）`;
 }
 
-const GEMINI_PROMPT = `この画面を開いて　プロンプトをコピーしてgemini上でユーザーアップロードした複数のタクシー日報写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
+const GEMINI_PROMPT = `この画面を開いて　プロンプトをコピーしてgemini上でユーザーアップロードした複数のタクシー日報分析写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
 
 【1枚あたりの出力フォーマット】
 日付: YYYY-MM-DD

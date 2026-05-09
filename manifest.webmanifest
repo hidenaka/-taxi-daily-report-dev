@@ -1,6 +1,6 @@
 {
-  "name": "タクシー日報",
-  "short_name": "タクシー日報",
+  "name": "タクシー日報分析",
+  "short_name": "タクシー日報分析",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
