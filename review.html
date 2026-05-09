@@ -183,8 +183,10 @@ import {
 } from './js/vehicle-filter.js';
 import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown } from './js/chart-helpers.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
+renderLegalFooter();
 
 let monthsRange = 6;
 let allDrives = [];
