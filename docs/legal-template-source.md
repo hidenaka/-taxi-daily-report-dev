@@ -16,9 +16,9 @@
 ## TODO(B 着手時または運営開始時)
 - ~~開示請求受付メールアドレス確定~~ ✅ 2026-05-10 `haqei64384@gmail.com` 確定済
   対象: legal/tokuteishou.html, legal/privacy.html
-- 月額サブスク料金確定 → `[TBD-PRICE]` を実際の金額に置換
-  対象: legal/terms.html(第4条)
-- 事業者表示名(屋号 or 本名)確定 → `[TBD-OWNER]` を実際の値に置換
+- ~~月額サブスク料金確定~~ ✅ 2026-05-10 `月額1,000円(税込)` 確定済
+  対象: legal/terms.html(第4条), subscribe.html
+- ~~事業者表示名確定~~ ✅ 2026-05-10 `タクシー日報分析運営室` 確定済
   対象: legal/terms.html, legal/privacy.html, js/legal-footer.js (copyright)
 
 ## 文書間の整合性チェック項目
