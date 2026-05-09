@@ -14,7 +14,7 @@
 - 2026-05-08 初版作成
 
 ## TODO(B 着手時または運営開始時)
-- 開示請求受付メールアドレス確定 → `[TBD-EMAIL]` を実際の値に置換
+- ~~開示請求受付メールアドレス確定~~ ✅ 2026-05-10 `haqei64384@gmail.com` 確定済
   対象: legal/tokuteishou.html, legal/privacy.html
 - 月額サブスク料金確定 → `[TBD-PRICE]` を実際の金額に置換
   対象: legal/terms.html(第4条)
