@@ -116,8 +116,10 @@ import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
 import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
+renderLegalFooter();
 
 let currentConfig = null;
 let myRole = 'member';
