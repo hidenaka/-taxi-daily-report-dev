@@ -193,6 +193,7 @@ import { getMyUserId } from './js/storage.js?v=2';
 import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 const loginSection = document.getElementById('loginSection');
 const adminContent = document.getElementById('adminContent');
@@ -864,6 +865,8 @@ document.getElementById('adminSwitchAccountBtn').onclick = async () => {
   status.textContent = `✓ 「${trimmed}」に切り替えました。再読み込みします…`;
   setTimeout(() => location.reload(), 400);
 };
+
+renderLegalFooter();
 </script>
 </body>
 </html>
