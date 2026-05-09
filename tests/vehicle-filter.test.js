@@ -136,14 +136,15 @@ test('setActiveVehicleType: 有効値で localStorage に保存される', () =>
   globalThis.localStorage.clear();
   const ok = setActiveVehicleType('premium');
   assert.equal(ok, true);
-  assert.equal(globalThis.localStorage.getItem('activeVehicleType'), 'premium');
+  // STORAGE_KEY は 'activeVehicleType_v2'（v1→v2 migrate 後の現行キー）
+  assert.equal(globalThis.localStorage.getItem('activeVehicleType_v2'), 'premium');
 });
 
 test('setActiveVehicleType: 無効値は false を返し localStorage に保存しない', () => {
   globalThis.localStorage.clear();
   const ok = setActiveVehicleType('invalid');
   assert.equal(ok, false);
-  assert.equal(globalThis.localStorage.getItem('activeVehicleType'), null);
+  assert.equal(globalThis.localStorage.getItem('activeVehicleType_v2'), null);
 });
 
 test('getActiveVehicleType: 保存値があればそれを返す', () => {
