@@ -121,8 +121,10 @@ import { getConfig, saveConfig, getMyUserId, setMyUserId } from './js/storage.js
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
+renderLegalFooter();
 
 let currentConfig = null;
 let loggedInUserId = null;
