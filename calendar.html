@@ -82,8 +82,10 @@ import {
   filterDrivesByVehicle,
   renderVehicleTabs,
 } from './js/vehicle-filter.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('calendar');
+renderLegalFooter();
 
 let viewPeriod = currentBillingPeriod();
 let config = null;
