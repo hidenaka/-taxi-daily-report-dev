@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>お申し込み — タクシー日報</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  body { padding-bottom: 24px; }
+  .agree-row { display:flex; align-items:flex-start; gap:8px; margin:10px 0; padding:10px; background:#f9fafb; border-radius:6px; border:1px solid var(--border); }
+  .agree-row input[type=checkbox] { margin-top:3px; flex-shrink:0; }
+  .agree-row label { font-size:13px; line-height:1.5; cursor:pointer; }
+  .agree-row a { color: var(--primary); }
+  .price-box { padding:12px; background:#fffbe6; border:1px solid #ffe58f; border-radius:6px; margin:12px 0; }
+  .price-amount { font-size:24px; font-weight:700; color:#d97706; }
+  .price-unit { font-size:13px; color:var(--muted); margin-left:4px; }
+  .submit-btn { width:100%; padding:14px; font-size:15px; font-weight:600; background:var(--primary); color:#fff; border:none; border-radius:6px; margin-top:12px; }
+  .submit-btn:disabled { background:#cbd5e1; cursor:not-allowed; }
+  .status-msg { padding:12px; border-radius:6px; margin:12px 0; font-size:13px; }
+  .status-msg.info { background:#e0f2fe; border:1px solid #7dd3fc; color:#075985; }
+  .status-msg.success { background:#d1fae5; border:1px solid #6ee7b7; color:#065f46; }
+  .status-msg.error { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; }
+  .back-link { display:inline-block; margin-bottom:12px; color:var(--primary); text-decoration:none; font-size:13px; }
+</style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+if (location.hostname.includes('-dev')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.textContent = '🚧 開発環境';
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:#fff;padding:4px 8px;font-size:11px;text-align:center;font-weight:600;z-index:9999;';
+    document.body.appendChild(badge);
+  });
+}
+</script>
+<main style="padding:14px;max-width:520px;margin:0 auto;">
+  <a href="index.html" class="back-link">← ホームに戻る</a>
+  <h1>お申し込み</h1>
+  <p class="muted" style="margin-bottom:14px;">タクシー日報のご利用には、下記書面への同意とお申し込みが必要です。</p>
+
+  <section class="card">
+    <h3>サービス概要</h3>
+    <p style="font-size:13px;line-height:1.6;">個人タクシー乗務員のための日報管理サービスです。OCR済みテキストから売上集計、歩率計算、天候記録を自動化します。複数人で営業データを統合した需要パターン分析もご利用いただけます。</p>
+  </section>
+
+  <section class="card">
+    <h3>料金</h3>
+    <div class="price-box">
+      <div>月額サブスクリプション</div>
+      <div><span class="price-amount" id="priceAmount">[TBD-PRICE]</span><span class="price-unit">(税込)/月</span></div>
+      <p class="muted" style="font-size:11px;margin-top:6px;">お申し込み後に決済画面が表示されます。決済完了をもってご利用開始となります。</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>書面への同意</h3>
+    <p class="muted" style="font-size:11px;margin-bottom:8px;">下記すべてをご確認のうえ、チェックを入れてください。</p>
+
+    <div class="agree-row">
+      <input type="checkbox" id="agreeTerms">
+      <label for="agreeTerms">
+        <a href="legal/terms.html" target="_blank" rel="noopener">利用規約</a>を読み、内容に同意します
+      </label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreePrivacy">
+      <label for="agreePrivacy">
+        <a href="legal/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>を読み、個人情報の取扱いに同意します
+      </label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreeTokuteishou">
+      <label for="agreeTokuteishou">
+        <a href="legal/tokuteishou.html" target="_blank" rel="noopener">特定商取引法に基づく表記</a>を確認しました
+      </label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreeAll">
+      <label for="agreeAll">上記書面の内容を理解したうえで申し込みます</label>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" disabled>同意して申し込む</button>
+    <div id="statusMsg"></div>
+  </section>
+
+  <section class="card" id="alreadySubscribedSection" style="display:none;">
+    <h3>お申し込み状況</h3>
+    <div id="alreadySubscribedMsg" class="status-msg info"></div>
+    <a href="index.html" class="btn btn-block" style="text-align:center;text-decoration:none;display:block;">ホームへ戻る</a>
+  </section>
+
+</main>
+<script type="module">
+import { renderLegalFooter } from './js/legal-footer.js';
+import {
+  getSubscription,
+  recordAgreementAndSubscribe,
+  isPaying,
+} from './js/subscription-state.js';
+
+renderLegalFooter();
+
+// 法務文書の現行バージョン(legal-template-source.md 初版日)
+const AGREEMENT_VERSIONS = {
+  terms: '2026-05-08',
+  privacy: '2026-05-08',
+  tokuteishou: '2026-05-08',
+};
+
+const checkboxes = ['agreeTerms', 'agreePrivacy', 'agreeTokuteishou', 'agreeAll']
+  .map(id => document.getElementById(id));
+const submitBtn = document.getElementById('submitBtn');
+const statusMsg = document.getElementById('statusMsg');
+
+function updateSubmitState() {
+  submitBtn.disabled = !checkboxes.every(cb => cb.checked);
+}
+checkboxes.forEach(cb => cb.addEventListener('change', updateSubmitState));
+
+function showStatus(text, kind) {
+  statusMsg.innerHTML = `<div class="status-msg ${kind}">${text}</div>`;
+}
+
+async function init() {
+  try {
+    const sub = await getSubscription();
+    if (!sub) return; // 未申込 → 申込画面そのまま表示
+
+    // 既に申込済み(pending含む) → 同意セクションを隠して状態表示に切替
+    const formSection = document.querySelector('.card:nth-of-type(3)');
+    if (formSection) formSection.style.display = 'none';
+    const already = document.getElementById('alreadySubscribedSection');
+    const msg = document.getElementById('alreadySubscribedMsg');
+    already.style.display = '';
+
+    if (sub.status === 'pending') {
+      msg.textContent = 'お申し込みを受け付けました。決済手続きの準備中です(現在は未接続)。';
+    } else if (isPaying(sub)) {
+      msg.textContent = `ご利用中です(状態: ${sub.status})。`;
+    } else if (sub.status === 'canceled') {
+      msg.textContent = '退会済みです。再度お申し込みをご希望の場合はお問い合わせください。';
+    } else {
+      msg.textContent = `現在の状態: ${sub.status}`;
+    }
+  } catch (e) {
+    console.error('subscription load error:', e);
+  }
+}
+
+submitBtn.addEventListener('click', async () => {
+  if (!checkboxes.every(cb => cb.checked)) return;
+  submitBtn.disabled = true;
+  showStatus('処理中...', 'info');
+  try {
+    await recordAgreementAndSubscribe(AGREEMENT_VERSIONS);
+    showStatus('お申し込みありがとうございます。決済手続きの準備中です(現在は未接続)。', 'success');
+    submitBtn.style.display = 'none';
+  } catch (e) {
+    console.error('subscribe error:', e);
+    showStatus('エラーが発生しました: ' + (e.message || e), 'error');
+    submitBtn.disabled = false;
+  }
+});
+
+init();
+</script>
+</body>
+</html>
