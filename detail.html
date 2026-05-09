@@ -97,6 +97,7 @@ import { getDrive, listFiles, saveDriveSafe, deleteDrive } from './js/storage.js
 import { calcDailySales } from './js/payroll.js';
 import { calcTimeBreakdown, hourlyActivity, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, formatMin, timeToMinutes } from './js/chart-helpers.js';
 import { weatherEmoji } from './js/weather.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 
 const SHIFT_START_HOUR = 7;
 function shiftHour(h) { return h < SHIFT_START_HOUR ? h + 24 : h; }
@@ -114,6 +115,7 @@ function shiftedMinutes(t) {
 }
 
 document.getElementById('navHost').innerHTML = renderBottomNav('home');
+renderLegalFooter();
 
 const params = new URLSearchParams(location.search);
 const date = params.get('date');
