@@ -53,7 +53,9 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav } from './js/app.js';
+import { renderLegalFooter } from './js/legal-footer.js';
 document.getElementById('navHost').innerHTML = renderBottomNav('tools');
+renderLegalFooter();
 </script>
 </body>
 </html>
