@@ -60,6 +60,12 @@ if (location.hostname.includes('-dev')) {
 <script type="module">
 import { renderBottomNav } from './js/app.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { enforceAccess } from './js/access-control.js';
+
+if (!(await enforceAccess('core'))) {
+  throw new Error('access-denied: redirected');
+}
+
 document.getElementById('navHost').innerHTML = renderBottomNav('tools');
 renderLegalFooter();
 </script>

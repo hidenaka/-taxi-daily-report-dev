@@ -374,6 +374,12 @@
   </style>
 </head>
 <body>
+  <script type="module">
+    import { enforceAccess } from '../js/access-control.js';
+    if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
+      throw new Error('access-denied: redirected');
+    }
+  </script>
   <a href="../" class="back-link">← タクシー日報に戻る</a>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab active" aria-current="page">⏱ 乗務タイマー</a>
