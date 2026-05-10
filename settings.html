@@ -101,6 +101,7 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="rateTableSection" style="display:none;">
     <h3>レートテーブル <span class="muted" style="font-size:10px;font-weight:normal;">(管理者のみ)</span></h3>
     <p class="muted">乗務数別の売上ティアと歩率。編集は慎重に。</p>
+    <button class="btn" id="resetRateTableBtn" style="width:100%;margin-bottom:8px;background:#fff3e0;color:#e65100;border:1px solid #ff9800;">🔄 歩率テーブルをデフォルトに戻す</button>
     <div id="rateTableEditor"></div>
   </section>
 
@@ -262,6 +263,25 @@ function renderRateTable(rt) {
   rateDiv.innerHTML = `<strong>12-13乗務率</strong> <input class="input" id="rate1213" type="number" step="0.01" value="${rt['12_13rate']}" style="width:100px;">`;
   host.appendChild(rateDiv);
 }
+
+document.getElementById('resetRateTableBtn').onclick = async () => {
+  if (!confirm('歩率テーブルを default-config.js のデフォルト値で上書きします。\n現在の編集内容は破棄されます。よろしいですか？')) return;
+  const btn = document.getElementById('resetRateTableBtn');
+  const orig = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+  try {
+    currentConfig.rateTable = JSON.parse(JSON.stringify(DEFAULT_CONFIG.rateTable));
+    await saveConfig(currentConfig);
+    renderRateTable(currentConfig.rateTable);
+    btn.textContent = '✓ 復元しました';
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 2000);
+  } catch (e) {
+    alert('保存に失敗しました: ' + e.message);
+    btn.textContent = orig;
+    btn.disabled = false;
+  }
+};
 
 document.getElementById('switchAccountBtn').onclick = async () => {
   const status = document.getElementById('switchAccountStatus');

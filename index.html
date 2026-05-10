@@ -264,11 +264,22 @@ async function render() {
         `;
 
         if (!isLocked && remainingShifts > 0) {
+          // インセンティブ・有給は到達 rate に依存しないので、予測値を流用
+          const incentivePart = predicted ? predicted.incentive : actualResult.incentive;
+          const paidLeavePart = actualResult.paidLeaveAmount;
+          const projectAtTier = (tier) => {
+            const basePay = tier.salesMin * tier.rate;
+            const total = basePay + incentivePart + paidLeavePart;
+            const takeHome = total * takeHomeRate;
+            return { total, takeHome };
+          };
+
           const renderUpTierBlock = (tier, idx, isSecond) => {
             const gapExcl = Math.max(0, tier.salesMin - currentSalesExclTax);
             const perDayExcl = gapExcl / remainingShifts;
             const perDayIncl = perDayExcl * 1.1;
             const targetIncl = tier.salesMin * 1.1;
+            const proj = projectAtTier(tier);
             const bg = isSecond ? '#dcedc8' : '#e8f5e9';
             const accent = isSecond ? '#558b2f' : '#2e7d32';
             const arrow = isSecond ? '▲▲' : '▲';
@@ -278,6 +289,7 @@ async function render() {
                 <div style="color:${accent};font-weight:600;">${arrow} ${(tier.rate*100).toFixed(1)}% へ上げる${suffix}</div>
                 <div style="margin-top:4px;color:#333;">残り${remainingShifts}乗務で 1日 <strong>${formatYen(perDayIncl)}</strong>(税込) 以上 <span style="color:#666;">/ 税抜 ${formatYen(perDayExcl)}</span></div>
                 <div style="color:#666;font-size:10px;">月度合計 税込<strong>${formatYen(targetIncl)}</strong> (税抜${formatYen(tier.salesMin)}) で達成</div>
+                <div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(0,0,0,0.12);font-size:10px;color:#444;">予想 総支給 <strong>${formatYen(proj.total)}</strong> / 手取り <strong style="color:var(--primary);">${formatYen(proj.takeHome)}</strong></div>
               </div>
             `;
           };
@@ -296,11 +308,13 @@ async function render() {
             const perDayMaxExcl = allowanceExcl / remainingShifts;
             const perDayMaxIncl = perDayMaxExcl * 1.1;
             const thresholdIncl = downTier.tier.salesMin * 1.1;
+            const projDown = projectAtTier(downTier.tier);
             buritsuHtml += `
               <div style="margin-top:6px;padding:6px 8px;background:#fff3e0;border-left:3px solid #ff9800;border-radius:4px;font-size:11px;">
                 <div style="color:#e65100;font-weight:600;">▼ ${(downTier.tier.rate*100).toFixed(1)}% へ下がる境界</div>
                 <div style="margin-top:4px;color:#333;">残り${remainingShifts}乗務で 1日 <strong>${formatYen(perDayMaxIncl)}</strong>(税込) を超えると低下 <span style="color:#666;">/ 税抜 ${formatYen(perDayMaxExcl)}</span></div>
                 <div style="color:#666;font-size:10px;">月度合計 税込<strong>${formatYen(thresholdIncl)}</strong> (税抜${formatYen(downTier.tier.salesMin)}) 以上で低下</div>
+                <div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(0,0,0,0.12);font-size:10px;color:#444;">下がった場合の予想 総支給 <strong>${formatYen(projDown.total)}</strong> / 手取り <strong style="color:#e65100;">${formatYen(projDown.takeHome)}</strong></div>
               </div>
             `;
           }
