@@ -51,23 +51,41 @@ export function getRestrictionReason(sub) {
 // アダプタ(副作用あり、テスト対象外)
 // ============================================================
 
+// 認証判定中、UIを操作できないようにする(visibility + pointer-events)。
+// 判定がasyncなので、その間ユーザーが素早くタップして使えてしまうのを防ぐ。
+function hideUntilCheck() {
+  if (!document.body) return;
+  document.body.style.visibility = 'hidden';
+  document.body.style.pointerEvents = 'none';
+}
+
+function revealAfterCheck() {
+  if (!document.body) return;
+  document.body.style.visibility = '';
+  document.body.style.pointerEvents = '';
+}
+
 // 各ページの先頭で呼ぶ。アクセス不可なら subscribe.html にリダイレクト。
 // 戻り値: アクセス可なら true、リダイレクトした場合は false (このあとの処理は止めるべき)
 export async function enforceAccess(feature, options = {}) {
   const redirectUrl = options.redirect || 'subscribe.html';
+  hideUntilCheck();
   const { getSubscription } = await import('./subscription-state.js');
   let sub = null;
   try {
     sub = await getSubscription();
   } catch (e) {
     console.error('enforceAccess: failed to load subscription', e);
-    // 取得失敗時は安全側に倒してリダイレクト
+    // 取得失敗時は安全側に倒してリダイレクト(body は隠したまま)
     location.replace(redirectUrl);
     return false;
   }
   if (!canAccess(feature, sub)) {
+    // 不可: 隠したままリダイレクト
     location.replace(redirectUrl);
     return false;
   }
+  // 可: body を表示
+  revealAfterCheck();
   return true;
 }
