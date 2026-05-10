@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taxi-daily-v85';
+const CACHE_NAME = 'taxi-daily-v86';
 const STATIC_FILES = [
   './',
   './index.html',
@@ -10,6 +10,10 @@ const STATIC_FILES = [
   './settings.html',
   './bulk-input.html',
   './subscribe.html',
+  './tools.html',
+  './tools/index.html',
+  './tools/ic.html',
+  './tools/arrivals.html',
   './css/style.css',
   './js/app.js',
   './js/parser.js',
