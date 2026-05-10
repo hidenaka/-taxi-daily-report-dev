@@ -71,6 +71,12 @@ if (location.hostname.includes('-dev')) {
   });
 }
 </script>
+<div id="onboardBanner" style="display:none;padding:12px 14px;background:#fff7e6;border-bottom:1px solid #ffd591;color:#7c4a00;font-size:13px;">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <span id="onboardBannerMsg" style="flex:1;min-width:200px;">サービスのご利用にはお申し込みが必要です。</span>
+    <a href="subscribe.html" id="onboardBannerCta" style="display:inline-block;padding:6px 14px;background:#d97706;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;">お申し込みへ →</a>
+  </div>
+</div>
 <main style="padding:14px;">
   <section class="card" id="todayHintCard" style="display:none;"></section>
   <section class="card" id="summaryCard">読み込み中…</section>
@@ -85,10 +91,11 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, calcMonthlySales } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -110,6 +117,36 @@ if (autoConfigured) {
 
 document.getElementById('navHost').innerHTML = renderBottomNav('home');
 renderLegalFooter();
+
+// 申込誘導バナー: subscription state に応じて表示制御
+async function initOnboardBanner() {
+  try {
+    const sub = await getSubscription();
+    const banner = document.getElementById('onboardBanner');
+    const msg = document.getElementById('onboardBannerMsg');
+    const cta = document.getElementById('onboardBannerCta');
+    if (!banner) return;
+
+    if (!sub) {
+      // 未申込
+      msg.textContent = 'サービスのご利用にはお申し込みが必要です。';
+      cta.textContent = 'お申し込みへ →';
+      banner.style.display = '';
+    } else if (sub.status === 'pending') {
+      msg.textContent = 'お申し込みありがとうございます。決済手続きをお進めください。';
+      cta.textContent = '続きへ →';
+      banner.style.display = '';
+    } else if (isCanceledOrUnpaid(sub)) {
+      msg.textContent = `現在の状態: ${formatStatus(sub.status)}。再度のお申し込みはお問い合わせください。`;
+      cta.style.display = 'none';
+      banner.style.display = '';
+    }
+    // active / trial / past_due / grandfathered → バナー非表示(初期状態のまま)
+  } catch (e) {
+    console.warn('onboard banner init failed:', e);
+  }
+}
+initOnboardBanner();
 
 let viewPeriod = currentBillingPeriod();
 let config = null;
@@ -199,6 +236,63 @@ async function render() {
   } else {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">未来の月度</p>`;
   }
+
+  // 歩率セクション(現状の歩率 + アップ/ダウン境界)
+  if (rawDrives.length > 0 && config.payrollMode !== 'fixed_rate') {
+    const rateTable = config.rateTable;
+    const tierKey = String(Math.min(respShifts, 11));
+    const projectionTiers = rateTable && (rateTable[tierKey] || rateTable["11"]);
+    if (projectionTiers && projectionTiers.length > 0) {
+      const currentSalesExclTax = monthly.exclTax;
+      const currentTierIdx = findTierIdx(projectionTiers, currentSalesExclTax);
+      if (currentTierIdx >= 0) {
+        const currentTier = projectionTiers[currentTierIdx];
+        const isLocked = rawDrives.length >= 11; // 11乗務以降は歩率確定
+        const remainingShifts = Math.max(0, respShifts - rawDrives.length);
+        // 確定後は actualResult.rate(実際の計算結果)を採用
+        const displayRate = isLocked ? actualResult.rate : currentTier.rate;
+        const badgeBg = isLocked ? '#c8e6c9' : '#fff3e0';
+        const badgeFg = isLocked ? '#2e7d32' : '#e65100';
+        const badgeLabel = isLocked ? '確定' : '暫定';
+
+        let buritsuHtml = `
+          <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
+          <div class="kv"><div>歩率<span class="badge" style="font-size:9px;background:${badgeBg};color:${badgeFg};margin-left:4px;">${badgeLabel}</span></div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
+        `;
+
+        if (!isLocked && remainingShifts > 0) {
+          const upTier = findNextHigherRateTier(projectionTiers, currentTierIdx);
+          const downTier = findNextLowerRateTier(projectionTiers, currentTierIdx);
+          if (upTier) {
+            const gapExcl = Math.max(0, upTier.tier.salesMin - currentSalesExclTax);
+            const perDayExcl = gapExcl / remainingShifts;
+            const perDayIncl = perDayExcl * 1.1;
+            buritsuHtml += `
+              <div style="margin-top:6px;padding:6px 8px;background:#e8f5e9;border-left:3px solid #2e7d32;border-radius:4px;font-size:11px;">
+                <div style="color:#2e7d32;font-weight:600;">▲ ${(upTier.tier.rate*100).toFixed(1)}% へ上げる</div>
+                <div style="margin-top:4px;color:#333;">残り${remainingShifts}乗務 × 1日 <strong>${formatYen(perDayIncl)}</strong>(税込) 以上</div>
+                <div style="color:#888;font-size:10px;">税抜換算 ${formatYen(perDayExcl)} / 月度合計 税抜${formatYen(upTier.tier.salesMin)} 到達で達成</div>
+              </div>
+            `;
+          }
+          if (downTier) {
+            const allowanceExcl = Math.max(0, downTier.tier.salesMin - currentSalesExclTax);
+            const perDayMaxExcl = allowanceExcl / remainingShifts;
+            const perDayMaxIncl = perDayMaxExcl * 1.1;
+            buritsuHtml += `
+              <div style="margin-top:6px;padding:6px 8px;background:#fff3e0;border-left:3px solid #ff9800;border-radius:4px;font-size:11px;">
+                <div style="color:#e65100;font-weight:600;">▼ ${(downTier.tier.rate*100).toFixed(1)}% へ下がる境界</div>
+                <div style="margin-top:4px;color:#333;">残り${remainingShifts}乗務 × 1日 <strong>${formatYen(perDayMaxIncl)}</strong>(税込) を超えると低下</div>
+                <div style="color:#888;font-size:10px;">税抜換算 ${formatYen(perDayMaxExcl)} / 月度合計 税抜${formatYen(downTier.tier.salesMin)} 以上で低下</div>
+              </div>
+            `;
+          }
+        }
+        summaryHtml += buritsuHtml;
+      }
+    }
+  }
+
   document.getElementById('summaryCard').innerHTML = summaryHtml;
   document.getElementById('prevBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, -1); render(); };
   document.getElementById('nextBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, 1); render(); };

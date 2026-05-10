@@ -46,3 +46,28 @@ export function getRestrictionReason(sub) {
       return 'ご利用いただけません';
   }
 }
+
+// ============================================================
+// アダプタ(副作用あり、テスト対象外)
+// ============================================================
+
+// 各ページの先頭で呼ぶ。アクセス不可なら subscribe.html にリダイレクト。
+// 戻り値: アクセス可なら true、リダイレクトした場合は false (このあとの処理は止めるべき)
+export async function enforceAccess(feature, options = {}) {
+  const redirectUrl = options.redirect || 'subscribe.html';
+  const { getSubscription } = await import('./subscription-state.js');
+  let sub = null;
+  try {
+    sub = await getSubscription();
+  } catch (e) {
+    console.error('enforceAccess: failed to load subscription', e);
+    // 取得失敗時は安全側に倒してリダイレクト
+    location.replace(redirectUrl);
+    return false;
+  }
+  if (!canAccess(feature, sub)) {
+    location.replace(redirectUrl);
+    return false;
+  }
+  return true;
+}
