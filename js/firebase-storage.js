@@ -585,3 +585,37 @@ export async function listAllUsersWithStats() {
     return [];
   }
 }
+
+// ========== ADMIN: Subscriptions ==========
+
+// 全 subscriptions/* を取得 (Admin専用)
+export async function listAllSubscriptions() {
+  await waitForAuth();
+  const out = [];
+  try {
+    const snap = await getDocs(collection(db, 'subscriptions'));
+    for (const d of snap.docs) {
+      out.push({ userId: d.id, ...d.data() });
+    }
+  } catch (e) {
+    console.error('listAllSubscriptions failed:', e);
+  }
+  return out.sort((a, b) => a.userId.localeCompare(b.userId));
+}
+
+// 1ユーザー分の subscription を取得 (Admin専用)
+export async function adminGetSubscription(targetUserId) {
+  await waitForAuth();
+  const ref = doc(db, 'subscriptions', targetUserId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  return snap.data();
+}
+
+// 任意ユーザーの subscription を保存 (Admin専用)
+export async function adminSaveSubscription(targetUserId, subscription) {
+  await waitForAuth();
+  const ref = doc(db, 'subscriptions', targetUserId);
+  await setDoc(ref, subscription);
+  return true;
+}
