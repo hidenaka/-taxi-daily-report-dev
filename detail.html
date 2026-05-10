@@ -98,6 +98,11 @@ import { calcDailySales } from './js/payroll.js';
 import { calcTimeBreakdown, hourlyActivity, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, formatMin, timeToMinutes } from './js/chart-helpers.js';
 import { weatherEmoji } from './js/weather.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { enforceAccess } from './js/access-control.js';
+
+if (!(await enforceAccess('core'))) {
+  throw new Error('access-denied: redirected');
+}
 
 const SHIFT_START_HOUR = 7;
 function shiftHour(h) { return h < SHIFT_START_HOUR ? h + 24 : h; }

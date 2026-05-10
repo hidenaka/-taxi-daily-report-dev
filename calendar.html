@@ -83,6 +83,11 @@ import {
   renderVehicleTabs,
 } from './js/vehicle-filter.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { enforceAccess } from './js/access-control.js';
+
+if (!(await enforceAccess('core'))) {
+  throw new Error('access-denied: redirected');
+}
 
 document.getElementById('navHost').innerHTML = renderBottomNav('calendar');
 renderLegalFooter();

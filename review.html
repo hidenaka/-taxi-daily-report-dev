@@ -184,6 +184,11 @@ import {
 import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js';
 import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown } from './js/chart-helpers.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { enforceAccess } from './js/access-control.js';
+
+if (!(await enforceAccess('analysis'))) {
+  throw new Error('access-denied: redirected');
+}
 
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 renderLegalFooter();
