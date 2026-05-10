@@ -143,6 +143,7 @@ import {
   cancelSubscription,
   requiresOnboarding,
   isCanceledOrUnpaid,
+  formatStatus,
 } from './js/subscription-state.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
@@ -163,12 +164,12 @@ async function initCancelSection() {
     const form = document.getElementById('cancelForm');
     const done = document.getElementById('cancelDoneMsg');
     if (isCanceledOrUnpaid(sub)) {
-      badge.textContent = `現在の状態: ${sub.status}`;
+      badge.textContent = `現在の状態: ${formatStatus(sub.status)}`;
       badge.style.color = '#991b1b';
       form.style.display = 'none';
       done.style.display = '';
     } else {
-      badge.textContent = `現在の状態: ${sub.status}`;
+      badge.textContent = `現在の状態: ${formatStatus(sub.status)}`;
       badge.style.color = '#065f46';
     }
   } catch (e) {

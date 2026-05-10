@@ -14,6 +14,22 @@ export const SUBSCRIPTION_STATUSES = [
   'unpaid',
 ];
 
+export const SUBSCRIPTION_STATUS_LABELS = {
+  pending: '保留中(決済前)',
+  trial: 'トライアル中',
+  active: '有効',
+  past_due: '支払い遅延',
+  canceled: '退会済み',
+  unpaid: '未払い',
+};
+
+// 表示用: "active(有効)" のように英語と日本語を併記
+export function formatStatus(status) {
+  const label = SUBSCRIPTION_STATUS_LABELS[status];
+  if (!status) return '----';
+  return label ? `${status}(${label})` : status;
+}
+
 // 課金システム導入前から利用しているユーザー(grandfathered)。
 // Firestoreに subscriptions ドキュメントが無くても active として扱う。
 // 退会操作で実ドキュメントを作成すると、以後はそちらが優先される。

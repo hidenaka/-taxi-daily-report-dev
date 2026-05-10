@@ -103,6 +103,7 @@ import {
   getSubscription,
   recordAgreementAndSubscribe,
   isPaying,
+  formatStatus,
 } from './js/subscription-state.js';
 
 renderLegalFooter();
@@ -143,11 +144,11 @@ async function init() {
     if (sub.status === 'pending') {
       msg.textContent = 'お申し込みを受け付けました。決済手続きの準備中です(現在は未接続)。';
     } else if (isPaying(sub)) {
-      msg.textContent = `ご利用中です(状態: ${sub.status})。`;
+      msg.textContent = `ご利用中です(状態: ${formatStatus(sub.status)})。`;
     } else if (sub.status === 'canceled') {
       msg.textContent = '退会済みです。再度お申し込みをご希望の場合はお問い合わせください。';
     } else {
-      msg.textContent = `現在の状態: ${sub.status}`;
+      msg.textContent = `現在の状態: ${formatStatus(sub.status)}`;
     }
   } catch (e) {
     console.error('subscription load error:', e);

@@ -1,6 +1,7 @@
 import { test, assert } from './run.js';
 import {
   SUBSCRIPTION_STATUSES,
+  SUBSCRIPTION_STATUS_LABELS,
   GRANDFATHERED_USERS,
   isValidStatus,
   isPaying,
@@ -10,6 +11,7 @@ import {
   isGrandfathered,
   buildGrandfatheredSubscription,
   adminBuildSubscriptionPayload,
+  formatStatus,
 } from '../js/subscription-state.js';
 
 // --- isValidStatus ---
@@ -197,4 +199,27 @@ test('adminBuildSubscriptionPayload: 開始日・終了日を空文字でクリ�
   const out = adminBuildSubscriptionPayload(existing, { currentPeriodStart: '', currentPeriodEnd: '' }, NOW);
   assert.equal(out.currentPeriodStart, null);
   assert.equal(out.currentPeriodEnd, null);
+});
+
+// --- formatStatus / SUBSCRIPTION_STATUS_LABELS ---
+test('SUBSCRIPTION_STATUS_LABELS: 全 status に日本語ラベルがある', () => {
+  for (const s of SUBSCRIPTION_STATUSES) {
+    assert.ok(SUBSCRIPTION_STATUS_LABELS[s], `${s} should have a label`);
+  }
+});
+
+test('formatStatus: 既知の status は "英語(日本語)" 形式', () => {
+  assert.equal(formatStatus('active'), 'active(有効)');
+  assert.equal(formatStatus('pending'), 'pending(保留中(決済前))');
+  assert.equal(formatStatus('canceled'), 'canceled(退会済み)');
+});
+
+test('formatStatus: 不明な status はそのまま返す', () => {
+  assert.equal(formatStatus('UNKNOWN'), 'UNKNOWN');
+});
+
+test('formatStatus: null/undefined/空文字は ---- を返す', () => {
+  assert.equal(formatStatus(null), '----');
+  assert.equal(formatStatus(undefined), '----');
+  assert.equal(formatStatus(''), '----');
 });
