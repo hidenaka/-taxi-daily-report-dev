@@ -71,18 +71,19 @@ function getRateTable(config) {
   return null;
 }
 
-export function calcBasePay(drives, config) {
+export function calcBasePay(drives, config, options = {}) {
   const shiftCount = drives.length;
+  const respShifts = config.responsibilityShifts || 11;
 
   // 固定歩率モード
   if (config.payrollMode === 'fixed_rate') {
     const monthly = calcMonthlySales(drives);
     const rate = config.fixedRate || 0.55;
-    return { 
-      basePay: monthly.exclTax * rate, 
-      rate, 
+    return {
+      basePay: monthly.exclTax * rate,
+      rate,
       shiftCount,
-      extraRate: null 
+      extraRate: null
     };
   }
 
@@ -97,7 +98,13 @@ export function calcBasePay(drives, config) {
 
   if (shiftCount <= 11) {
     const monthly = calcMonthlySales(drives);
-    const tiers = rateTable[String(shiftCount)] || rateTable["11"];
+    // useResponsibilityTier: 予定責任出番(respShifts)ベースでティア表を選ぶ
+    // 例: shiftCount=10, respShifts=11 → rateTable["11"]を使う(途中段階の暫定計算用)
+    // デフォルト false → 実shiftCountベース(過去月の実績計算用、互換性維持)
+    const tierKey = options.useResponsibilityTier
+      ? String(Math.min(respShifts, 11))
+      : String(shiftCount);
+    const tiers = rateTable[tierKey] || rateTable["11"];
     const rate = findRate(tiers, monthly.exclTax);
     return { basePay: monthly.exclTax * rate, rate, shiftCount };
   }
@@ -138,8 +145,8 @@ export function calcPaidLeavePay(config, periodStart, periodEnd) {
   };
 }
 
-export function calcTotalPay(drives, config, periodStart, periodEnd) {
-  const base = calcBasePay(drives, config);
+export function calcTotalPay(drives, config, periodStart, periodEnd, options = {}) {
+  const base = calcBasePay(drives, config, options);
   const incentive = calcIncentive(drives, config);
   const paidLeave = (periodStart && periodEnd)
     ? calcPaidLeavePay(config, periodStart, periodEnd)

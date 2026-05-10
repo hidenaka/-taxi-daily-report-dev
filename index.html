@@ -178,7 +178,10 @@ async function render() {
   const takeHomeRate = config.takeHomeRate ?? 0.75;
   const respShifts = config.responsibilityShifts;
 
-  const actualResult = calcTotalPay(rawDrives, config, range.start, range.end);
+  // 現在月度かつ責任出番未達の段階では、予定責任出番ベース(rateTable["11"]等)で歩率計算
+  // 過去月度・確定月度は実shiftCountベース(従来通り)
+  const useResponsibilityTier = isCurrent && rawDrives.length > 0 && rawDrives.length < respShifts;
+  const actualResult = calcTotalPay(rawDrives, config, range.start, range.end, { useResponsibilityTier });
   const actualTakeHome = actualResult.total * takeHomeRate;
 
   let predicted = null;
