@@ -61,8 +61,10 @@ function hideUntilCheck() {
 
 function revealAfterCheck() {
   if (!document.body) return;
-  document.body.style.visibility = '';
-  document.body.style.pointerEvents = '';
+  // inline style で 'visible'/'auto' を強制設定。
+  // 単に '' にすると <head> の <style>body{visibility:hidden}</style> が依然オーバーライドしてしまう。
+  document.body.style.visibility = 'visible';
+  document.body.style.pointerEvents = 'auto';
 }
 
 // 各ページの先頭で呼ぶ。アクセス不可なら subscribe.html にリダイレクト。
