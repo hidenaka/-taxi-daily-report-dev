@@ -4,6 +4,6 @@ node_modules/
 .env.local
 .superpowers/
 *.log
-data/
+/data/
 icon-gen-*.png
 icon-v2-*.png

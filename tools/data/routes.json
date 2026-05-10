@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "labels": {
+    "tomei":           "東名",
+    "chuo":            "中央道",
+    "kanetsu":         "関越道",
+    "tohoku":          "東北道",
+    "joban":           "常磐道",
+    "keiyo":           "京葉道",
+    "tokan":           "東関東道",
+    "aqua":            "アクアライン",
+    "tateyama":        "館山道",
+    "third_keihin":    "第三京浜",
+    "yokoyoko":        "玉川経由",
+    "yokohane_route":  "横羽線経由",
+    "kariba_route":    "狩場線経由",
+    "wangan_route":    "湾岸線経由",
+    "hodogaya_route":  "保土ヶ谷BP→横羽線経由",
+    "hokuseisen_route":"北西線→東名経由",
+    "kitasen_route":   "北西線→横浜北線→湾岸線経由",
+    "gaikan_direct":   "外環直乗り",
+    "none":            "首都高内のみ"
+  },
+  "via_gaikan_shorten_km": {
+    "_doc": "viaGaikan時、本線高速の控除km から差し引くkm。baselineが外環接続点と異なる方面のみ正の値を持つ。Wikipedia値: 関越道 練馬IC=0kp ↔ 大泉JCT=0.8kp なので 0.8km 短縮 (大泉JCTで降りて外環へ)。常磐/東北は baseline=三郷JCT/川口JCT が外環接続点なので 0。",
+    "kanetsu": 0.8,
+    "joban": 0,
+    "tohoku": 0
+  },
+  "needs_gaikan_transit": {
+    "tomei":           false,
+    "chuo":            false,
+    "kanetsu":         "optional",
+    "tohoku":          true,
+    "joban":           "optional",
+    "keiyo":           false,
+    "tokan":           false,
+    "aqua":            false,
+    "tateyama":        false,
+    "third_keihin":    false,
+    "yokoyoko":        false,
+    "yokohane_route":  false,
+    "kariba_route":    false,
+    "wangan_route":    false,
+    "hodogaya_route":  false,
+    "hokuseisen_route":false,
+    "kitasen_route":   false
+  },
+  "edges": []
+}

@@ -1,0 +1,315 @@
+{
+  "version": 2,
+  "source": "首都高内ルート候補。2026-04-27 にDijkstra(graph v3)由来の実走km値で全面更新。グラフ未モデル化のbaseline (nerima/tamagawa/狩場/湾岸/tokyo_ic→tamagawa) のみ手動値を維持。",
+  "pairs": [
+    {
+      "from": "misato_jct", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "C2→湾岸線", "km": 40.4, "default": true }
+      ]
+    },
+    {
+      "from": "misato_jct", "to": "kasumigaseki",
+      "options": [
+        { "id": "c2_c1", "label": "6号→C2→C1", "km": 26.1, "default": true }
+      ]
+    },
+    {
+      "from": "misato_jct", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "6号→C2→湾岸", "km": 43.1, "default": true }
+      ]
+    },
+    {
+      "from": "tokyo_ic", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "3号→C2→湾岸", "km": 23.7, "default": true }
+      ]
+    },
+    {
+      "from": "tokyo_ic", "to": "tamagawa_ic",
+      "options": [
+        { "id": "hokuseisen_kohoku_dai3", "label": "北西線→港北JCT→第三京浜",
+          "km": 30.0, "default": true,
+          "path": ["yokohama_aoba", "yokohama_kohoku_jct", "tamagawa_ic"] }
+      ]
+    },
+    {
+      "from": "tokyo_ic", "to": "kasumigaseki",
+      "options": [
+        { "id": "c1", "label": "3号→C1", "km": 12.0, "default": true }
+      ]
+    },
+    {
+      "from": "tokyo_ic", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "3号→C2→湾岸", "km": 26.4, "default": true }
+      ]
+    },
+    {
+      "from": "nerima", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "5号→C2→湾岸", "km": 31.0, "default": true },
+        { "id": "c1", "label": "5号→C1→湾岸", "km": 36.0 }
+      ]
+    },
+    {
+      "from": "nerima", "to": "kasumigaseki",
+      "options": [
+        { "id": "c2_c1", "label": "5号→C2→C1", "km": 17.0, "default": true }
+      ]
+    },
+    {
+      "from": "nerima", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "5号→C2→湾岸", "km": 26.2, "default": true },
+        { "id": "c1_yokohane", "label": "5号→C1→1号羽田→湾岸", "km": 31.2 }
+      ]
+    },
+    {
+      "from": "kawaguchi_jct", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "S1→C2→湾岸", "km": 47.0, "default": true }
+      ]
+    },
+    {
+      "from": "kawaguchi_jct", "to": "kasumigaseki",
+      "options": [
+        { "id": "c2_c1", "label": "S1→C2→C1", "km": 32.0, "default": true }
+      ]
+    },
+    {
+      "from": "kawaguchi_jct", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "S1→C2→湾岸", "km": 49.7, "default": true }
+      ]
+    },
+    {
+      "from": "bijogi_jct", "to": "kasumigaseki",
+      "options": [
+        { "id": "5_c1", "label": "5号→C1", "km": 25.9, "default": true }
+      ]
+    },
+    {
+      "from": "takaido", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "4号→C2→湾岸", "km": 26.5, "default": true }
+      ]
+    },
+    {
+      "from": "takaido", "to": "kasumigaseki",
+      "options": [
+        { "id": "c1", "label": "4号→C1", "km": 13.8, "default": true }
+      ]
+    },
+    {
+      "from": "takaido", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "4号→C2→湾岸", "km": 29.2, "default": true }
+      ]
+    },
+    {
+      "from": "shinozaki", "to": "kukou_chuou",
+      "options": [
+        { "id": "c2_wangan", "label": "7号→C2→湾岸", "km": 31.9, "default": true }
+      ]
+    },
+    {
+      "from": "shinozaki", "to": "kasumigaseki",
+      "options": [
+        { "id": "c1", "label": "7号→C1", "km": 17.6, "default": true }
+      ]
+    },
+    {
+      "from": "shinozaki", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "c2_wangan", "label": "7号→C2→湾岸", "km": 34.6, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_ichikawa", "to": "kukou_chuou",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸線直行", "km": 27.6, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_ichikawa", "to": "kasumigaseki",
+      "options": [
+        { "id": "wangan_c1", "label": "湾岸→9号→C1", "km": 26.1, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_ichikawa", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸線直行", "km": 30.3, "default": true }
+      ]
+    },
+    {
+      "from": "ukishima_jct", "to": "kukou_chuou",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸直行（アクア→羽田）", "km": 5.0, "default": true }
+      ]
+    },
+    {
+      "from": "ukishima_jct", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸直行", "km": 7.7, "default": true }
+      ]
+    },
+    {
+      "from": "bijogi_jct", "to": "kasumigaseki",
+      "options": [
+        { "id": "5go_c1", "label": "5号→C1", "km": 25.9, "default": true }
+      ]
+    },
+    {
+      "from": "bijogi_jct", "to": "kukou_chuou",
+      "options": [
+        { "id": "5go_c2_wangan", "label": "5号→C2→湾岸", "km": 40.9, "default": true }
+      ]
+    },
+    {
+      "from": "bijogi_jct", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "5go_c2_wangan", "label": "5号→C2→湾岸", "km": 43.6, "default": true }
+      ]
+    },
+    {
+      "from": "kariba_shutoko", "to": "kasumigaseki",
+      "options": [
+        { "id": "k3_k1_c1", "label": "K3→K1横羽線→C1", "km": 24.0, "default": true }
+      ]
+    },
+    {
+      "from": "kariba_shutoko", "to": "kukou_chuou",
+      "options": [
+        { "id": "k1_yokohane_wangan", "label": "K1→1号羽田→湾岸", "km": 22.0, "default": true }
+      ]
+    },
+    {
+      "from": "kariba_shutoko", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "k1_yokohane_wangan", "label": "K1→1号羽田→湾岸", "km": 18.0, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_shutoko", "to": "kasumigaseki",
+      "options": [
+        { "id": "wangan_9go_c1", "label": "湾岸→9号→C1", "km": 33.0, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_shutoko", "to": "kukou_chuou",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸線直行", "km": 18.0, "default": true }
+      ]
+    },
+    {
+      "from": "wangan_shutoko", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "wangan_direct", "label": "湾岸線直行", "km": 14.0, "default": true }
+      ]
+    },
+    {
+      "from": "tamagawa_ic", "to": "kasumigaseki",
+      "options": [
+        { "id": "general_3go_c1", "label": "一般道→東京IC→3号→C1", "km": 15.4, "default": true }
+      ]
+    },
+    {
+      "from": "tamagawa_ic", "to": "kukou_chuou",
+      "options": [
+        { "id": "general_3go_wangan", "label": "一般道→東京IC→3号→C2→湾岸", "km": 25.0, "default": true }
+      ]
+    },
+    {
+      "from": "tamagawa_ic", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "general_3go_wangan", "label": "一般道→東京IC→3号→C2→湾岸", "km": 20.2, "default": true }
+      ]
+    },
+    {
+      "from": "takaya_jct", "to": "kasumigaseki",
+      "options": [
+        { "id": "keiyo_7go_c2_c1", "label": "京葉道→篠崎→7号→C2→C1", "km": 26.1, "default": true }
+      ]
+    },
+    {
+      "from": "takaya_jct", "to": "kukou_chuou",
+      "options": [
+        { "id": "keiyo_7go_wangan", "label": "京葉道→篠崎→7号→C2→湾岸", "km": 27.6, "default": true }
+      ]
+    },
+    {
+      "from": "takaya_jct", "to": "wangan_kanpachi",
+      "options": [
+        { "id": "keiyo_7go_wangan", "label": "京葉道→篠崎→7号→C2→湾岸", "km": 30.3, "default": true }
+      ]
+    },
+
+    {
+      "from": "kasumigaseki", "to": "kukou_chuou",
+      "options": [
+        { "id": "c1_daiba_wangan", "label": "C1→1号羽田→11号台場→湾岸", "km": 21.4, "default": true }
+      ]
+    },
+    {
+      "from": "iikura", "to": "kukou_chuou",
+      "options": [
+        { "id": "c1_daiba_wangan", "label": "C1→1号羽田→11号台場→湾岸", "km": 19.3, "default": true }
+      ]
+    },
+    {
+      "from": "gaien", "to": "kukou_chuou",
+      "options": [
+        { "id": "yon_c1_daiba_wangan", "label": "4号→C1→1号羽田→11号台場→湾岸", "km": 25.2, "default": true }
+      ]
+    },
+    {
+      "from": "shibaura", "to": "kukou_chuou",
+      "options": [
+        { "id": "ichi_daiba_wangan", "label": "1号羽田→11号台場→湾岸", "km": 19.2, "default": true }
+      ]
+    },
+    {
+      "from": "ginza", "to": "kukou_chuou",
+      "options": [
+        { "id": "c1_daiba_wangan", "label": "C1→1号羽田→11号台場→湾岸", "km": 18.7, "default": true }
+      ]
+    },
+    {
+      "from": "kyobashi", "to": "kukou_chuou",
+      "options": [
+        { "id": "c1_daiba_wangan", "label": "C1→1号羽田→11号台場→湾岸", "km": 19.3, "default": true }
+      ]
+    },
+    {
+      "from": "hakozaki", "to": "kukou_chuou",
+      "options": [
+        { "id": "kyu_wangan", "label": "9号深川→湾岸", "km": 19.1, "default": true }
+      ]
+    },
+    {
+      "from": "kanda_bashi", "to": "kukou_chuou",
+      "options": [
+        { "id": "c1_roku_kyu_wangan", "label": "C1→6号→9号→湾岸", "km": 21.3, "default": true }
+      ]
+    },
+    {
+      "from": "yokohama_aoba", "to": "kukou_chuou",
+      "options": [
+        { "id": "hokusei_kita_k5_wangan", "label": "北西線→北線→大黒線→湾岸",
+          "km": 36.3, "default": true,
+          "path": ["yokohama_aoba", "yokohama_kohoku", "namamugi", "daikoku_jct", "kukou_chuou"] }
+      ]
+    },
+    {
+      "from": "yokohama_aoba", "to": "kasumigaseki",
+      "options": [
+        { "id": "hokusei_kita_k5_wangan_c1", "label": "北西線→北線→大黒線→湾岸→C1",
+          "km": 48.0, "default": true,
+          "path": ["yokohama_aoba", "yokohama_kohoku", "namamugi", "daikoku_jct", "kukou_chuou", "ohi_jct", "ohashi_jct", "tanimachi_jct", "kasumigaseki"] }
+      ]
+    }
+  ]
+}
