@@ -130,6 +130,14 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>📋 課金状況</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">サブスクリプションの状態確認・手動編集。Stripe接続前の暫定運用です。grandfathered(G) はFirestore非実体で active 扱いされているユーザー。</p>
+      <button class="btn" id="loadSubsBtn" style="width:100%;">課金状況を読み込み</button>
+      <div id="subsResult" style="margin-top:8px;font-size:12px;"></div>
+      <div id="subsList" style="margin-top:8px;overflow-x:auto;"></div>
+    </section>
+
+    <section class="admin-card">
       <h3>🧹 空ユーザー クリーンアップ</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">データがない匿名ユーザーを検出して削除。user_self と mm は保護されます。</p>
       <button class="btn" id="scanEmptyUsersBtn" style="width:100%;">空ユーザーをスキャン</button>
@@ -186,14 +194,45 @@ if (location.hostname.includes('-dev')) {
   </div>
 </main>
 
+<!-- 課金状況編集モーダル -->
+<div id="subEditModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;padding:14px;">
+  <div style="background:#fff;border-radius:12px;padding:18px;max-width:420px;width:100%;">
+    <h3 style="margin:0 0 10px;">課金状況を編集</h3>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">対象: <span id="subEditUserId" style="font-weight:600;color:var(--text);"></span><span id="subEditGrandfatheredBadge" style="margin-left:6px;font-size:10px;color:#0066cc;display:none;">(grandfathered)</span></div>
+
+    <label class="muted" style="display:block;margin-top:8px;">ステータス</label>
+    <select class="select" id="subEditStatus"></select>
+
+    <label class="muted" style="display:block;margin-top:8px;">プランID(任意)</label>
+    <input class="input" id="subEditPlanId" placeholder="monthly_v1">
+
+    <label class="muted" style="display:block;margin-top:8px;">利用開始日</label>
+    <input class="input" id="subEditPeriodStart" type="date">
+
+    <label class="muted" style="display:block;margin-top:8px;">次回更新日(終了日)</label>
+    <input class="input" id="subEditPeriodEnd" type="date">
+
+    <label class="muted" style="display:block;margin-top:8px;">退会理由(任意)</label>
+    <input class="input" id="subEditCancelReason" placeholder="">
+
+    <div id="subEditStatus2" style="margin-top:8px;font-size:12px;"></div>
+
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn" id="subEditCancelBtn" style="flex:1;background:var(--gray);color:#333;">キャンセル</button>
+      <button class="btn" id="subEditSaveBtn" style="flex:1;background:var(--primary);color:#fff;">💾 保存</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser } from './js/firebase-storage.js?v=2';
+import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
+import { SUBSCRIPTION_STATUSES, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload } from './js/subscription-state.js';
 
 const loginSection = document.getElementById('loginSection');
 const adminContent = document.getElementById('adminContent');
@@ -867,6 +906,135 @@ document.getElementById('adminSwitchAccountBtn').onclick = async () => {
 };
 
 renderLegalFooter();
+
+// ========== 📋 課金状況 ==========
+
+const subStatusSelect = document.getElementById('subEditStatus');
+SUBSCRIPTION_STATUSES.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s; opt.textContent = s;
+  subStatusSelect.appendChild(opt);
+});
+
+function fmtDate(iso) {
+  if (!iso) return '----';
+  const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : iso;
+}
+
+function isoDateOrNull(v) {
+  // input[type=date] の値("YYYY-MM-DD" or "") を ISO 文字列に変換
+  if (!v) return '';
+  return new Date(v + 'T00:00:00Z').toISOString();
+}
+
+function dateInputValue(iso) {
+  // ISO 文字列 を input[type=date] の value("YYYY-MM-DD") に
+  if (!iso) return '';
+  const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : '';
+}
+
+let subListCache = []; // 表示中のリスト(編集後に再描画)
+
+async function loadSubscriptionsView() {
+  const result = document.getElementById('subsResult');
+  const list = document.getElementById('subsList');
+  result.textContent = '読み込み中…';
+  list.innerHTML = '';
+  try {
+    const subs = await listAllSubscriptions();
+    // grandfathered ユーザーで実体無しの場合、仮想 active を補完
+    const existingIds = new Set(subs.map(s => s.userId));
+    for (const uid of GRANDFATHERED_USERS) {
+      if (!existingIds.has(uid)) {
+        subs.push({ userId: uid, _virtual: true, ...buildGrandfatheredSubscription(uid) });
+      }
+    }
+    subs.sort((a, b) => a.userId.localeCompare(b.userId));
+    subListCache = subs;
+    result.textContent = `${subs.length} 件 (実体: ${[...existingIds].length}, 仮想: ${subs.length - existingIds.size})`;
+    renderSubscriptionsTable(subs);
+  } catch (e) {
+    console.error(e);
+    result.textContent = '✗ 読み込み失敗: ' + (e.message || e);
+  }
+}
+
+function renderSubscriptionsTable(subs) {
+  const list = document.getElementById('subsList');
+  if (!subs.length) { list.innerHTML = '<div class="muted">データなし</div>'; return; }
+  const rows = subs.map(s => `
+    <tr>
+      <td style="padding:6px;border-bottom:1px solid #eee;font-weight:600;">${s.userId}${s._virtual ? '<br><span style="font-size:10px;color:#0066cc;font-weight:normal;">G(仮想)</span>' : (s.grandfathered ? '<br><span style="font-size:10px;color:#0066cc;font-weight:normal;">G</span>' : '')}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;">${s.status}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;font-size:11px;">${fmtDate(s.currentPeriodStart)}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;font-size:11px;">${fmtDate(s.currentPeriodEnd)}</td>
+      <td style="padding:6px;border-bottom:1px solid #eee;"><button class="btn" data-edit-sub="${s.userId}" style="padding:4px 8px;font-size:11px;">編集</button></td>
+    </tr>`).join('');
+  list.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:480px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="padding:6px;text-align:left;">userId</th>
+          <th style="padding:6px;text-align:left;">status</th>
+          <th style="padding:6px;text-align:left;">開始日</th>
+          <th style="padding:6px;text-align:left;">次回更新</th>
+          <th style="padding:6px;"></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  list.querySelectorAll('button[data-edit-sub]').forEach(btn => {
+    btn.addEventListener('click', () => openSubEditModal(btn.dataset.editSub));
+  });
+}
+
+function openSubEditModal(userId) {
+  const sub = subListCache.find(s => s.userId === userId);
+  document.getElementById('subEditUserId').textContent = userId;
+  document.getElementById('subEditGrandfatheredBadge').style.display = (sub?.grandfathered || sub?._virtual) ? '' : 'none';
+  document.getElementById('subEditStatus').value = sub?.status || 'pending';
+  document.getElementById('subEditPlanId').value = sub?.planId || '';
+  document.getElementById('subEditPeriodStart').value = dateInputValue(sub?.currentPeriodStart);
+  document.getElementById('subEditPeriodEnd').value = dateInputValue(sub?.currentPeriodEnd);
+  document.getElementById('subEditCancelReason').value = sub?.cancelReason || '';
+  document.getElementById('subEditStatus2').textContent = '';
+  document.getElementById('subEditModal').style.display = 'flex';
+}
+
+function closeSubEditModal() {
+  document.getElementById('subEditModal').style.display = 'none';
+}
+
+document.getElementById('subEditCancelBtn').addEventListener('click', closeSubEditModal);
+
+document.getElementById('subEditSaveBtn').addEventListener('click', async () => {
+  const userId = document.getElementById('subEditUserId').textContent;
+  const updates = {
+    status: document.getElementById('subEditStatus').value,
+    planId: document.getElementById('subEditPlanId').value.trim(),
+    currentPeriodStart: isoDateOrNull(document.getElementById('subEditPeriodStart').value),
+    currentPeriodEnd: isoDateOrNull(document.getElementById('subEditPeriodEnd').value),
+    cancelReason: document.getElementById('subEditCancelReason').value.trim(),
+  };
+  const status2 = document.getElementById('subEditStatus2');
+  status2.textContent = '保存中…';
+  try {
+    // 実体取得 → マージ → 書き込み
+    const existing = await adminGetSubscription(userId);
+    const payload = adminBuildSubscriptionPayload(existing, updates);
+    await adminSaveSubscription(userId, payload);
+    status2.textContent = '✓ 保存しました';
+    closeSubEditModal();
+    await loadSubscriptionsView();
+  } catch (e) {
+    console.error(e);
+    status2.textContent = '✗ 保存失敗: ' + (e.message || e);
+  }
+});
+
+document.getElementById('loadSubsBtn').addEventListener('click', loadSubscriptionsView);
 </script>
 </body>
 </html>
