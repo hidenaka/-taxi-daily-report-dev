@@ -36,6 +36,35 @@ export function findRate(tiers, salesExclTax) {
   return tiers[tiers.length - 1].rate;
 }
 
+// 現在の累計(税抜)が属するティアの index を返す。範囲外（最大超）→末尾
+export function findTierIdx(tiers, salesExclTax) {
+  if (!Array.isArray(tiers) || tiers.length === 0) return -1;
+  for (let i = 0; i < tiers.length; i++) {
+    if (salesExclTax >= tiers[i].salesMin && salesExclTax < tiers[i].salesMax) return i;
+  }
+  return tiers.length - 1;
+}
+
+// 現ティアより rate が高い直近の上位ティア（売上を増やす方向に進んで最初に出会う高 rate ティア）
+export function findNextHigherRateTier(tiers, currentIdx) {
+  if (!Array.isArray(tiers) || currentIdx < 0 || currentIdx >= tiers.length) return null;
+  const currentRate = tiers[currentIdx].rate;
+  for (let i = currentIdx + 1; i < tiers.length; i++) {
+    if (tiers[i].rate > currentRate) return { tier: tiers[i], idx: i };
+  }
+  return null;
+}
+
+// 現ティアより rate が低い直近の上位ティア（売上を増やす方向に進んで最初に出会う低 rate ティア = 越えると歩率が下がる境界）
+export function findNextLowerRateTier(tiers, currentIdx) {
+  if (!Array.isArray(tiers) || currentIdx < 0 || currentIdx >= tiers.length) return null;
+  const currentRate = tiers[currentIdx].rate;
+  for (let i = currentIdx + 1; i < tiers.length; i++) {
+    if (tiers[i].rate < currentRate) return { tier: tiers[i], idx: i };
+  }
+  return null;
+}
+
 function getRateTable(config) {
   if (!config || typeof config !== 'object') return null;
   if (config.rateTable && typeof config.rateTable === 'object') return config.rateTable;
