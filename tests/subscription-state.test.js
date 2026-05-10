@@ -9,6 +9,7 @@ import {
   computeAgreementSnapshot,
   isGrandfathered,
   buildGrandfatheredSubscription,
+  adminBuildSubscriptionPayload,
 } from '../js/subscription-state.js';
 
 // --- isValidStatus ---
@@ -138,4 +139,62 @@ test('buildGrandfatheredSubscription: 純関数の他のヘルパで正しく扱
   assert.equal(isPaying(sub), true);
   assert.equal(requiresOnboarding(sub), false);
   assert.equal(isCanceledOrUnpaid(sub), false);
+});
+
+// --- adminBuildSubscriptionPayload ---
+const NOW = '2026-05-10T10:00:00.000Z';
+
+test('adminBuildSubscriptionPayload: existing=null で初期payload生成', () => {
+  const out = adminBuildSubscriptionPayload(null, { status: 'active' }, NOW);
+  assert.equal(out.status, 'active');
+  assert.equal(out.createdAt, NOW);
+  assert.equal(out.updatedAt, NOW);
+  assert.equal(out.canceledAt, null);
+});
+
+test('adminBuildSubscriptionPayload: 既存をマージして上書き', () => {
+  const existing = {
+    status: 'pending', planId: 'old', currentPeriodStart: '2026-01-01',
+    createdAt: '2026-04-01T00:00:00.000Z', canceledAt: null,
+  };
+  const out = adminBuildSubscriptionPayload(existing, { status: 'active', planId: 'monthly_v1' }, NOW);
+  assert.equal(out.status, 'active');
+  assert.equal(out.planId, 'monthly_v1');
+  assert.equal(out.currentPeriodStart, '2026-01-01'); // 触らないものは保持
+  assert.equal(out.createdAt, '2026-04-01T00:00:00.000Z'); // createdAt 不変
+  assert.equal(out.updatedAt, NOW);
+});
+
+test('adminBuildSubscriptionPayload: status=canceled に遷移時、canceledAt が自動で入る', () => {
+  const existing = { status: 'active', canceledAt: null, createdAt: '2026-04-01T00:00:00.000Z' };
+  const out = adminBuildSubscriptionPayload(existing, { status: 'canceled' }, NOW);
+  assert.equal(out.status, 'canceled');
+  assert.equal(out.canceledAt, NOW);
+});
+
+test('adminBuildSubscriptionPayload: 既に canceledAt がある場合は上書きしない', () => {
+  const existing = { status: 'canceled', canceledAt: '2026-01-15T00:00:00.000Z', createdAt: '2026-01-01T00:00:00.000Z' };
+  const out = adminBuildSubscriptionPayload(existing, { cancelReason: 'admin' }, NOW);
+  assert.equal(out.canceledAt, '2026-01-15T00:00:00.000Z');
+  assert.equal(out.cancelReason, 'admin');
+});
+
+test('adminBuildSubscriptionPayload: canceled→active 復帰で canceledAt をクリア', () => {
+  const existing = { status: 'canceled', canceledAt: '2026-01-15T00:00:00.000Z', createdAt: '2026-01-01T00:00:00.000Z' };
+  const out = adminBuildSubscriptionPayload(existing, { status: 'active' }, NOW);
+  assert.equal(out.status, 'active');
+  assert.equal(out.canceledAt, null);
+});
+
+test('adminBuildSubscriptionPayload: 不正な status は無視する(既存維持)', () => {
+  const existing = { status: 'active', createdAt: NOW };
+  const out = adminBuildSubscriptionPayload(existing, { status: 'PAID' }, NOW);
+  assert.equal(out.status, 'active');
+});
+
+test('adminBuildSubscriptionPayload: 開始日・終了日を空文字でクリアできる', () => {
+  const existing = { status: 'active', currentPeriodStart: '2026-01-01', currentPeriodEnd: '2026-02-01', createdAt: NOW };
+  const out = adminBuildSubscriptionPayload(existing, { currentPeriodStart: '', currentPeriodEnd: '' }, NOW);
+  assert.equal(out.currentPeriodStart, null);
+  assert.equal(out.currentPeriodEnd, null);
 });

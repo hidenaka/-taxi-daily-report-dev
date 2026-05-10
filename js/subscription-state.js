@@ -81,6 +81,52 @@ export function computeAgreementSnapshot(versions, nowIso) {
   };
 }
 
+// 管理者UIからの編集を既存ドキュメントとマージして書き込み用 payload を作る。
+// updates: { status?, currentPeriodStart?, currentPeriodEnd?, planId?, cancelReason? }
+// existing: 既存の subscription オブジェクト or null
+// nowIso: 注入可能(テスト用)。書き込み時刻と canceledAt の判定に使う
+export function adminBuildSubscriptionPayload(existing, updates, nowIso) {
+  const now = nowIso || new Date().toISOString();
+  const base = existing || {
+    status: 'pending',
+    planId: null,
+    agreedTermsAt: null,
+    agreedTermsVersion: null,
+    agreedPrivacyAt: null,
+    agreedPrivacyVersion: null,
+    agreedTokuteishouAt: null,
+    currentPeriodStart: null,
+    currentPeriodEnd: null,
+    trialEndsAt: null,
+    canceledAt: null,
+    cancelReason: null,
+    stripeCustomerId: null,
+    stripeSubscriptionId: null,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const next = { ...base };
+  if (updates.status !== undefined && isValidStatus(updates.status)) next.status = updates.status;
+  if (updates.planId !== undefined) next.planId = updates.planId || null;
+  if (updates.currentPeriodStart !== undefined) next.currentPeriodStart = updates.currentPeriodStart || null;
+  if (updates.currentPeriodEnd !== undefined) next.currentPeriodEnd = updates.currentPeriodEnd || null;
+  if (updates.cancelReason !== undefined) next.cancelReason = updates.cancelReason || null;
+
+  // canceled に遷移した時、canceledAt が未設定なら今で埋める
+  if (next.status === 'canceled' && !next.canceledAt) {
+    next.canceledAt = now;
+  }
+  // canceled 以外に遷移した時は canceledAt をクリア
+  if (next.status !== 'canceled' && base.canceledAt) {
+    next.canceledAt = null;
+  }
+
+  next.createdAt = base.createdAt || now;
+  next.updatedAt = now;
+  return next;
+}
+
 // ============================================================
 // Firestore アダプタ(テスト対象外、各ページで使用)
 // ============================================================
