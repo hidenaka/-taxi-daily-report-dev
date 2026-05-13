@@ -2,7 +2,9 @@ export const DEFAULT_CONFIG = {
   shifts: {
     patterns: [],
     exceptions: { added: [], removed: [], swapped: [] },
-    expandedDates: []
+    expandedDates: [],
+    paidLeaveDates: [],
+    plannedVehicles: {}
   },
   defaults: {
     vehicleType: "japantaxi",
