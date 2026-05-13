@@ -9,6 +9,8 @@
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 6px; }
 .cal-cell { padding: 12px 0; text-align: center; background: #fff; border-radius: 4px; font-size: 14px; cursor: pointer; user-select: none; border: 1px solid #eee; }
 .cal-cell.planned { background: var(--green); color: #fff; font-weight: 600; border-color: var(--green); }
+.cal-cell.planned.japantaxi { background: #26c6da; border-color: #00acc1; color: #fff; }
+.cal-cell.planned.premium { background: #1976d2; border-color: #0d47a1; color: #fff; }
 .cal-cell.actual { background: var(--primary); color: #fff; font-weight: 600; border-color: var(--primary); }
 .cal-cell.paidleave { background: #ce93d8; color: #fff; font-weight: 600; border-color: #8e24aa; }
 .cal-cell.today { box-shadow: 0 0 0 2px #f57f17 inset; }
@@ -41,7 +43,6 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <h1>シフトカレンダー</h1>
-  <div id="vehicleTabsContainer"></div>
 
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -55,11 +56,12 @@ if (location.hostname.includes('-dev')) {
     <div class="cal-grid" id="calGrid"></div>
     <div style="margin-top:12px;font-size:11px;display:flex;gap:8px;flex-wrap:wrap;">
       <span><span style="display:inline-block;width:10px;height:10px;background:var(--primary);border-radius:2px;"></span> 実績</span>
-      <span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;"></span> 予定</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#26c6da;border-radius:2px;"></span> JT予定</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#1976d2;border-radius:2px;"></span> プレ予定</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#ce93d8;border-radius:2px;"></span> 有給</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#fff;box-shadow:0 0 0 2px #f57f17 inset;border-radius:2px;"></span> 今日</span>
     </div>
-    <p class="help">タップで「未→予定→有給→未」と循環。実績入力済の日（青）は変更不可。</p>
+    <p class="help">タップで「未 → デフォルト車種予定 → もう一方の車種予定 → 有給 → 未」と循環。デフォルト車種は設定で変更。実績入力済の日は変更不可。</p>
   </section>
 
   <section class="card">
@@ -78,11 +80,12 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, todayIso, toLocalIso, currentBillingPeriod, getBillingPeriodRange, formatBillingPeriod, shiftBillingPeriod } from './js/app.js';
 import { getConfig, saveConfig, getDrivesForMonth, getDrive } from './js/storage.js';
 import {
-  ensureActiveVehicleType,
-  getActiveVehicleType,
-  filterDrivesByVehicle,
-  renderVehicleTabs,
-} from './js/vehicle-filter.js';
+  getShiftStateForDate,
+  cycleShiftState,
+  applyShiftState,
+  getPlannedVehicle,
+  pruneOrphanVehicles,
+} from './js/planned-shifts.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 
@@ -95,7 +98,6 @@ renderLegalFooter();
 
 let viewPeriod = currentBillingPeriod();
 let config = null;
-let rawDrivesThisMonth = [];
 let drivesThisMonth = [];
 
 const DOW = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -103,24 +105,16 @@ const DOW = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 async function load() {
   config = await getConfig();
   if (!config) return alert('config.json未取得');
-
-  const todayStr = todayIso();
-  await ensureActiveVehicleType({
-    getDrive: () => getDrive(todayStr).catch(() => null),
-    getConfig: () => Promise.resolve(config),
-    todayDateStr: todayStr,
-  });
-  renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
-    onChange: () => render(),
-  });
-
+  config.shifts = config.shifts || {};
+  config.shifts.plannedVehicles = config.shifts.plannedVehicles || {};
+  config.shifts.paidLeaveDates = config.shifts.paidLeaveDates || [];
+  pruneOrphanVehicles(config);
   await render();
 }
 
 async function render() {
   document.getElementById('monthLabel').textContent = formatBillingPeriod(viewPeriod);
-  rawDrivesThisMonth = await getDrivesForMonth(viewPeriod);
-  drivesThisMonth = filterDrivesByVehicle(rawDrivesThisMonth, getActiveVehicleType());
+  drivesThisMonth = await getDrivesForMonth(viewPeriod);
   renderGrid();
   renderDowToggles();
   renderSummary();
@@ -169,9 +163,15 @@ function renderGrid() {
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
     const hasActual = isActual(iso);
-    if (hasActual) cell.classList.add('actual');
-    else if (isPaidLeave(iso)) cell.classList.add('paidleave');
-    else if (isPlanned(iso)) cell.classList.add('planned');
+    if (hasActual) {
+      cell.classList.add('actual');
+    } else if (isPaidLeave(iso)) {
+      cell.classList.add('paidleave');
+    } else if (isPlanned(iso)) {
+      cell.classList.add('planned');
+      const v = getPlannedVehicle(iso, config);
+      if (v) cell.classList.add(v);
+    }
     if (iso === todayIso()) cell.classList.add('today');
     cell.textContent = day;
     if (hasActual) {
@@ -184,22 +184,13 @@ function renderGrid() {
   }
 }
 
-// 状態循環: 未 → 予定 → 有給 → 未
+// 状態循環: 未 → デフォルト車種予定 → もう一方の車種予定 → 有給 → 未
 async function cycleStatus(iso) {
   if (isActual(iso)) return alert('実績入力済の日は変更できません');
-  if (!config.shifts.paidLeaveDates) config.shifts.paidLeaveDates = [];
-  const planned = config.shifts.expandedDates;
-  const paid = config.shifts.paidLeaveDates;
-  const isP = planned.includes(iso);
-  const isL = paid.includes(iso);
-  if (!isP && !isL) {
-    planned.push(iso); planned.sort();
-  } else if (isP && !isL) {
-    planned.splice(planned.indexOf(iso), 1);
-    paid.push(iso); paid.sort();
-  } else {
-    paid.splice(paid.indexOf(iso), 1);
-  }
+  const defaultType = config?.defaults?.vehicleType || 'japantaxi';
+  const current = getShiftStateForDate(iso, config);
+  const next = cycleShiftState(current, defaultType);
+  applyShiftState(config, iso, next);
   await saveConfig(config);
   await render();
 }
@@ -217,12 +208,15 @@ function renderDowToggles() {
       const idx = config.shifts.patterns.indexOf(dow);
       if (idx >= 0) config.shifts.patterns.splice(idx, 1); else config.shifts.patterns.push(dow);
       // 当月度のexpandedDatesに該当曜日を全展開（実績済以外）
+      const defaultType = config?.defaults?.vehicleType || 'japantaxi';
       const { start, end } = getBillingPeriodRange(viewPeriod);
+      config.shifts.plannedVehicles = config.shifts.plannedVehicles || {};
       for (const iso of eachDateInRange(start, end)) {
         const dt = new Date(iso + 'T00:00:00+09:00');
         const dowName = DOW[dt.getDay()];
         if (config.shifts.patterns.includes(dowName) && !config.shifts.expandedDates.includes(iso) && !isActual(iso)) {
           config.shifts.expandedDates.push(iso);
+          config.shifts.plannedVehicles[iso] = defaultType;
         }
       }
       config.shifts.expandedDates.sort();
@@ -237,18 +231,17 @@ function renderSummary() {
   const { start, end } = getBillingPeriodRange(viewPeriod);
   const planned = config.shifts.expandedDates.filter(d => d >= start && d <= end).length;
   const paid = (config.shifts.paidLeaveDates || []).filter(d => d >= start && d <= end).length;
-  const actual = drivesThisMonth.length;          // 表示用（車種別カウント）
-  const actualRaw = rawDrivesThisMonth.length;    // 責任出番判定用（合算）
-  const remaining = Math.max(0, planned - actualRaw);
+  const actual = drivesThisMonth.length;
+  const remaining = Math.max(0, planned - actual);
   const futurePlanned = config.shifts.expandedDates.filter(d => d >= start && d <= end && d >= todayIso()).length;
-  const willMakeResp = (actualRaw + futurePlanned) >= config.responsibilityShifts;
+  const willMakeResp = (actual + futurePlanned) >= config.responsibilityShifts;
   const paidAmount = paid * (config.paidLeaveAmount || 0);
   document.getElementById('summary').innerHTML = `
     <div>予定: <strong>${planned}乗務</strong></div>
     <div>実績: <strong>${actual}乗務</strong></div>
     <div>残り: <strong>${remaining}乗務</strong></div>
     <div>有給: <strong>${paid}日</strong> ${paid > 0 ? `(¥${paidAmount.toLocaleString()})` : ''}</div>
-    <div style="color:${willMakeResp ? 'var(--primary)' : 'var(--orange)'}">責任出番達成見込み: <strong>${willMakeResp ? '○' : '△'} (${actualRaw + remaining}/${config.responsibilityShifts})</strong></div>
+    <div style="color:${willMakeResp ? 'var(--primary)' : 'var(--orange)'}">責任出番達成見込み: <strong>${willMakeResp ? '○' : '△'} (${actual + remaining}/${config.responsibilityShifts})</strong></div>
   `;
 }
 
