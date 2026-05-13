@@ -21,6 +21,10 @@
 .cal-cell { min-height: 56px; padding: 4px 2px; text-align: center; background: #fafafa; border-radius: 4px; font-size: 11px; cursor: default; user-select: none; border: 1px solid #eee; display: flex; flex-direction: column; justify-content: space-between; }
 .cal-cell.actual { background: #e3f2fd; border-color: var(--primary); cursor: pointer; }
 .cal-cell.planned { background: #e8f5e9; border-color: #66bb6a; border-style: dashed; }
+.cal-cell.planned.japantaxi { background: #b2ebf2; border-color: #00acc1; border-style: dashed; }
+.cal-cell.planned.premium { background: #bbdefb; border-color: #1976d2; border-style: dashed; }
+.cal-cell.planned.japantaxi .tag,
+.cal-cell.planned.premium .tag { color: #0d47a1; }
 .cal-cell.paid { background: #f3e5f5; border-color: #ce93d8; }
 .cal-cell.today { box-shadow: 0 0 0 2px #f57f17 inset; }
 .cal-cell.dim { background: transparent; border: none; }
@@ -96,6 +100,7 @@ import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZ
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
+import { getPlannedVehicle, pruneOrphanVehicles } from './js/planned-shifts.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -157,6 +162,10 @@ async function load() {
   if (!config) {
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
   }
+  config.shifts = config.shifts || {};
+  config.shifts.plannedVehicles = config.shifts.plannedVehicles || {};
+  config.shifts.paidLeaveDates = config.shifts.paidLeaveDates || [];
+  pruneOrphanVehicles(config);
   await render();
 }
 
@@ -561,10 +570,23 @@ function renderCalendar(drives, range) {
     const isPlanned = plannedSet.has(iso);
     const isPaid = paidSet.has(iso);
     const cls = ['cal-cell'];
-    if (drive) cls.push('actual');
-    else if (isPaid) cls.push('paid');
-    else if (isPlanned && iso >= today) cls.push('planned');
+    let plannedVehicle = null;
+    if (drive) {
+      cls.push('actual');
+    } else if (isPaid) {
+      cls.push('paid');
+    } else if (isPlanned && iso >= today) {
+      cls.push('planned');
+      plannedVehicle = getPlannedVehicle(iso, config);
+      if (plannedVehicle) cls.push(plannedVehicle);
+    }
     if (isToday) cls.push('today');
+    let badge = '';
+    if (drive && (drive.vehicleType === 'premium' || drive.vehicleType === 'japantaxi')) {
+      badge = `<span class="vt-badge">${drive.vehicleType === 'premium' ? 'P' : 'J'}</span>`;
+    } else if (plannedVehicle) {
+      badge = `<span class="vt-badge">${plannedVehicle === 'premium' ? 'P' : 'J'}</span>`;
+    }
     let inner;
     if (drive) {
       const sales = calcDailySales(drive);
@@ -579,14 +601,15 @@ function renderCalendar(drives, range) {
     }
     const onclick = drive ? ` onclick="location.href='detail.html?date=${iso}'"` : ((isPlanned || isPaid) ? ` onclick="location.href='calendar.html'"` : '');
     const cursor = drive || isPlanned || isPaid ? 'cursor:pointer;' : '';
-    html += `<div class="${cls.join(' ')}" style="${cursor}"${onclick}>${inner}</div>`;
+    html += `<div class="${cls.join(' ')}" style="${cursor}"${onclick}>${badge}${inner}</div>`;
   }
   html += `</div>`;
   // 凡例
   html += `
     <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;color:var(--muted);flex-wrap:wrap;">
-      <span><span style="display:inline-block;width:10px;height:10px;background:#e3f2fd;border:1px solid var(--primary);border-radius:2px;vertical-align:middle;"></span> 実績</span>
-      <span><span style="display:inline-block;width:10px;height:10px;background:#e8f5e9;border:1px dashed #66bb6a;border-radius:2px;vertical-align:middle;"></span> 予定</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#e3f2fd;border:1px solid var(--primary);border-radius:2px;vertical-align:middle;"></span> 実績(J/P)</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#b2ebf2;border:1px dashed #00acc1;border-radius:2px;vertical-align:middle;"></span> JT予定</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#bbdefb;border:1px dashed #1976d2;border-radius:2px;vertical-align:middle;"></span> プレ予定</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#f3e5f5;border:1px solid #ce93d8;border-radius:2px;vertical-align:middle;"></span> 有給</span>
     </div>
   `;
