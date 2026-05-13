@@ -150,3 +150,31 @@ nav.bottom a.active { color: var(--primary); }
 .legal-doc .updated-at { color: var(--muted); font-size: 11px; text-align: right; margin-top: 24px; }
 .legal-doc .back-link { display: inline-block; margin: 12px 0; color: var(--primary); text-decoration: none; font-size: 13px; }
 .legal-doc .back-link:hover { text-decoration: underline; }
+
+/* ─── 予定セルの車種色分け & JP バッジ（calendar.html / index.html 共通） ─── */
+.cal-cell { position: relative; }
+.cal-cell.planned.japantaxi {
+  background: #26c6da;
+  border-color: #00acc1;
+  color: #fff;
+  font-weight: 600;
+}
+.cal-cell.planned.premium {
+  background: #1976d2;
+  border-color: #0d47a1;
+  color: #fff;
+  font-weight: 600;
+}
+.cal-cell .vt-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.88);
+  color: #333;
+  pointer-events: none;
+}
