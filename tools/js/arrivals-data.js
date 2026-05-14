@@ -8,17 +8,32 @@ export async function loadArrivals() {
 
 // ODPT が時刻未確定便で返す "to be determined" を null に正規化する。
 // nullish coalescing (`??`) のフォールバックは文字列を素通しするため、ここで吸収する。
-// あわせて status="不明" を actualTime の有無で「到着」「飛行中」に振り分ける。
-export function normalizeArrivals(data) {
+// あわせて status="不明" を時刻情報から「到着」「飛行中」に振り分ける。
+export function normalizeArrivals(data, now = new Date()) {
   if (!data || !Array.isArray(data.flights)) return data;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
   for (const f of data.flights) {
     if (f.estimatedTime === 'to be determined') f.estimatedTime = null;
     if (f.scheduledTime === 'to be determined') f.scheduledTime = null;
     if (f.actualTime === 'to be determined') f.actualTime = null;
     // ODPT が flightStatus を返さない便は status="不明" として渡される。
-    // 長距離国際線で多い。actualTime があれば「到着」、なければ「飛行中」とみなす。
+    // 長距離国際線で多い。判定:
+    //  1) actualTime あり → 「到着」（既に着陸記録あり）
+    //  2) estimatedTime/scheduledTime が現在時刻より前 → 「到着」（時刻を過ぎたものは着いている）
+    //  3) それ以外 → 「飛行中」
     if (f.status === '不明') {
-      f.status = f.actualTime ? '到着' : '飛行中';
+      if (f.actualTime) {
+        f.status = '到着';
+      } else {
+        const t = f.estimatedTime ?? f.scheduledTime;
+        if (t && typeof t === 'string') {
+          const [h, m] = t.split(':').map(Number);
+          const tMin = h * 60 + m;
+          f.status = (tMin < nowMin) ? '到着' : '飛行中';
+        } else {
+          f.status = '飛行中';
+        }
+      }
     }
   }
   return data;

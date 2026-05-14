@@ -53,13 +53,49 @@ test('normalizeArrivals 後に "estimatedTime ?? scheduledTime" が機能する'
   assert.equal(displayTime, '17:45');
 });
 
-test('normalizeArrivals: status="不明" + actualTime なし → "飛行中"', () => {
+test('normalizeArrivals: status="不明" + 過去時刻 → "到着"', () => {
+  // 現在 19:50 想定で、04:21 着の便は既に到着済みのはず
+  const now = new Date('2026-05-14T19:50:00+09:00');
   const data = {
     flights: [
-      { flightNumber: 'JL044', status: '不明', actualTime: null, estimatedTime: '18:44' }
+      { flightNumber: 'NH105', status: '不明', actualTime: null, estimatedTime: '04:21' }
     ]
   };
-  normalizeArrivals(data);
+  normalizeArrivals(data, now);
+  assert.equal(data.flights[0].status, '到着');
+});
+
+test('normalizeArrivals: status="不明" + 未来時刻 → "飛行中"', () => {
+  // 現在 19:50 想定で、22:00 着の便はまだ飛行中
+  const now = new Date('2026-05-14T19:50:00+09:00');
+  const data = {
+    flights: [
+      { flightNumber: 'JL044', status: '不明', actualTime: null, estimatedTime: '22:00' }
+    ]
+  };
+  normalizeArrivals(data, now);
+  assert.equal(data.flights[0].status, '飛行中');
+});
+
+test('normalizeArrivals: status="不明" + estimatedTimeなし + scheduledTimeのみ → 比較に使う', () => {
+  const now = new Date('2026-05-14T19:50:00+09:00');
+  const data = {
+    flights: [
+      { flightNumber: 'X', status: '不明', actualTime: null, estimatedTime: null, scheduledTime: '06:00' }
+    ]
+  };
+  normalizeArrivals(data, now);
+  assert.equal(data.flights[0].status, '到着');
+});
+
+test('normalizeArrivals: status="不明" + 時刻全くなし → "飛行中"（フォールバック）', () => {
+  const now = new Date('2026-05-14T19:50:00+09:00');
+  const data = {
+    flights: [
+      { flightNumber: 'X', status: '不明', actualTime: null, estimatedTime: null, scheduledTime: null }
+    ]
+  };
+  normalizeArrivals(data, now);
   assert.equal(data.flights[0].status, '飛行中');
 });
 
