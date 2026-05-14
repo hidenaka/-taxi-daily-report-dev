@@ -1,5 +1,12 @@
 # マルチユーザーサポート 実装計画
 
+> **✅ 完了 (2026-05-14 時点)**: Task 1-13 は全て実装済み。Task 14 (統合動作確認) も実運用で知人1人を登録済み。
+> Plan上のチェックボックスは履歴として `- [ ]` のまま残しているが、コードベースに反映済み (`js/userid.js`, `js/storage.js`, `js/parser.js`, `input.html`, `support.html`, `sw.js` v93, ドキュメント類)。
+> Plan以上の進化: Firebase Firestore 移行 / 認証強化 / キャッシュ層 / 車種フィルタリング。
+> 詳細管理: `.company/pm/projects/taxi-daily-report-active-plans.md`
+
+---
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 信頼できる知り合い2-5人とGitHub Private Repoで日報データを共有し、営業サポートの集計精度を高める(個人パフォーマンスは独立、需要パターンは統合)
