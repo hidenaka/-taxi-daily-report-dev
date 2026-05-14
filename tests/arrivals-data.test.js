@@ -52,3 +52,37 @@ test('normalizeArrivals 後に "estimatedTime ?? scheduledTime" が機能する'
   const displayTime = f.estimatedTime ?? f.scheduledTime ?? '--:--';
   assert.equal(displayTime, '17:45');
 });
+
+test('normalizeArrivals: status="不明" + actualTime なし → "飛行中"', () => {
+  const data = {
+    flights: [
+      { flightNumber: 'JL044', status: '不明', actualTime: null, estimatedTime: '18:44' }
+    ]
+  };
+  normalizeArrivals(data);
+  assert.equal(data.flights[0].status, '飛行中');
+});
+
+test('normalizeArrivals: status="不明" + actualTime あり → "到着"', () => {
+  const data = {
+    flights: [
+      { flightNumber: 'JL999', status: '不明', actualTime: '14:30', estimatedTime: '14:25' }
+    ]
+  };
+  normalizeArrivals(data);
+  assert.equal(data.flights[0].status, '到着');
+});
+
+test('normalizeArrivals: status="到着"/"欠航"/"遅延" はそのまま維持', () => {
+  const data = {
+    flights: [
+      { status: '到着' },
+      { status: '欠航' },
+      { status: '遅延' }
+    ]
+  };
+  normalizeArrivals(data);
+  assert.equal(data.flights[0].status, '到着');
+  assert.equal(data.flights[1].status, '欠航');
+  assert.equal(data.flights[2].status, '遅延');
+});

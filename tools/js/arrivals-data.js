@@ -8,12 +8,18 @@ export async function loadArrivals() {
 
 // ODPT が時刻未確定便で返す "to be determined" を null に正規化する。
 // nullish coalescing (`??`) のフォールバックは文字列を素通しするため、ここで吸収する。
+// あわせて status="不明" を actualTime の有無で「到着」「飛行中」に振り分ける。
 export function normalizeArrivals(data) {
   if (!data || !Array.isArray(data.flights)) return data;
   for (const f of data.flights) {
     if (f.estimatedTime === 'to be determined') f.estimatedTime = null;
     if (f.scheduledTime === 'to be determined') f.scheduledTime = null;
     if (f.actualTime === 'to be determined') f.actualTime = null;
+    // ODPT が flightStatus を返さない便は status="不明" として渡される。
+    // 長距離国際線で多い。actualTime があれば「到着」、なければ「飛行中」とみなす。
+    if (f.status === '不明') {
+      f.status = f.actualTime ? '到着' : '飛行中';
+    }
   }
   return data;
 }
