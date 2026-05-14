@@ -5,6 +5,12 @@
   "private": true,
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "serve": "python3 -m http.server 8000"
+    "serve": "python3 -m http.server 8000",
+    "admin:setup": "node scripts/setup-admin-uid.mjs",
+    "admin:list": "node scripts/list-admin-uids.mjs",
+    "admin:remove": "node scripts/remove-admin-uid.mjs"
+  },
+  "devDependencies": {
+    "firebase-admin": "^12.7.0"
   }
 }
