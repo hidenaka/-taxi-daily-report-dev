@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "taxi-dailydata-dev",
+    "prod": "taxi-dailydata"
+  }
+}

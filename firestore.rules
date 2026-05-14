@@ -1,0 +1,91 @@
+rules_version = '2';
+
+// Firestore Security Rules for taxi-daily-report
+// Deploy via:
+//   firebase deploy --only firestore:rules                  (-> dev)
+//   firebase deploy --only firestore:rules --project=prod   (-> prod)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Helper functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/adminUids/$(request.auth.uid));
+    }
+
+    function myUserId() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userId;
+    }
+
+    function isOwnerByUserId(userId) {
+      return isSignedIn() && myUserId() == userId;
+    }
+
+    // --- users/{firebaseAuthUid} ---
+    // Stores the mapping from Firebase Auth UID to application userId.
+    match /users/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+      allow read, write: if isAdmin();
+    }
+
+    // --- userConfigs/{userId} ---
+    match /userConfigs/{userId} {
+      allow read, write: if isOwnerByUserId(userId);
+      allow read, write: if isAdmin();
+    }
+
+    // --- drives/{userId}/daily/{date} ---
+    match /drives/{userId}/daily/{date} {
+      allow read, write: if isOwnerByUserId(userId);
+      allow read, write: if isAdmin();
+    }
+
+    // --- userRoles/{userId} ---
+    // Used by support.html etc. to display "全員データ" mode.
+    // role values are not secret, so any signed-in user can read.
+    match /userRoles/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // --- invites/{inviteCode} ---
+    // Admins create invite tokens. Signed-in users read for redemption.
+    match /invites/{inviteCode} {
+      allow read: if isSignedIn();
+      allow create, delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // --- companyTemplates/{templateId} ---
+    match /companyTemplates/{templateId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // --- subscriptions/{userId} (frozen at 2026-05-15) ---
+    match /subscriptions/{userId} {
+      allow read: if isOwnerByUserId(userId);
+      allow read, write: if isAdmin();
+    }
+
+    // --- adminUids/{firebaseAuthUid} ---
+    // Owner can read their own entry (lets the client know it has admin).
+    // Writes are not allowed via the client; entries are seeded from the
+    // Firebase Console manually.
+    match /adminUids/{uid} {
+      allow read: if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // --- Everything else: deny ---
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
