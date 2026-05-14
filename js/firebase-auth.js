@@ -124,6 +124,13 @@ export async function createUserWithCredentials(userId, password) {
   const email = getDummyEmail(userId);
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
+    // users/{uid} を先に作成（myUserId() が機能するために必須）
+    // これがないと Firestore Rules で userConfigs/{userId} への書き込みが拒否される
+    await setDoc(doc(db, 'users', result.user.uid), {
+      userId,
+      createdAt: new Date().toISOString(),
+      isAnonymous: false
+    });
     // userConfigsに初期設定を作成（DEFAULT_CONFIGをベースに）
     const defaultConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     await setDoc(doc(db, 'userConfigs', userId), defaultConfig);
