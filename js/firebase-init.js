@@ -3,9 +3,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-// 環境判定: hostname に -dev が含まれる、または localhost なら dev 扱い
+// 環境判定: hostname または pathname に -dev が含まれる、または localhost なら dev 扱い
+// GitHub Pages では https://hidenaka.github.io/-taxi-daily-report-dev/ のように
+// pathname にリポジトリ名(-dev)が入るため、両方を見る必要がある
 const isDevEnvironment =
   location.hostname.includes('-dev') ||
+  location.pathname.includes('-dev') ||
   location.hostname === 'localhost' ||
   location.hostname === '127.0.0.1';
 
