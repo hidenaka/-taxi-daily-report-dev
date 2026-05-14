@@ -2,7 +2,20 @@ export async function loadArrivals() {
   // GitHub Pages の CDN キャッシュもバイパスするため URL に時刻クエリを付与
   const res = await fetch(`./data/arrivals.json?t=${Date.now()}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  return normalizeArrivals(data);
+}
+
+// ODPT が時刻未確定便で返す "to be determined" を null に正規化する。
+// nullish coalescing (`??`) のフォールバックは文字列を素通しするため、ここで吸収する。
+export function normalizeArrivals(data) {
+  if (!data || !Array.isArray(data.flights)) return data;
+  for (const f of data.flights) {
+    if (f.estimatedTime === 'to be determined') f.estimatedTime = null;
+    if (f.scheduledTime === 'to be determined') f.scheduledTime = null;
+    if (f.actualTime === 'to be determined') f.actualTime = null;
+  }
+  return data;
 }
 
 export function filterByTerminals(arrivals, terminals) {
