@@ -250,7 +250,12 @@ async function render() {
   } else if (isCurrent && rawDrives.length === 0) {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると予想が表示されます</p>`;
   } else {
-    summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">未来の月度</p>`;
+    // 未来月度: 目標と予定責任出番を表示
+    summaryHtml += `
+      <div class="kv"><div>予定責任出番</div><div><strong>${respShifts}</strong>乗務</div></div>
+      <div class="kv"><div>目標手取り</div><div><strong>${formatYen(config.takeHomeTarget || 0)}</strong></div></div>
+      <p class="muted" style="font-size:11px;margin-top:4px;">未来月度です。カレンダーから予定を入れて準備できます。</p>
+    `;
   }
 
   // 歩率セクション(現状の歩率 + アップ/ダウン境界)
