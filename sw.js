@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taxi-daily-v103';
+const CACHE_NAME = 'taxi-daily-v104';
 const STATIC_FILES = [
   './',
   './index.html',
@@ -54,8 +54,9 @@ self.addEventListener('fetch', e => {
   // GitHub API・天候API・migrate.html はキャッシュせず素通し
   if (url.hostname === 'api.github.com' || url.hostname.includes('open-meteo')) return;
   if (url.pathname.includes('/migrate.html') || url.pathname.includes('/admin.html')) return;
-  // HTMLとJSはネットワーク優先（更新を取りこぼさない）、失敗時のみキャッシュ
-  const isHtmlOrJs = e.request.destination === 'document' || /\.(html|js)$/i.test(url.pathname);
+  // HTML/JS/JSONはネットワーク優先（更新を取りこぼさない）、失敗時のみキャッシュ
+  // JSON (ics.json, shutoko_graph.json 等のデータファイル) を追加: graph整備の更新を即反映
+  const isHtmlOrJs = e.request.destination === 'document' || /\.(html|js|json)$/i.test(url.pathname);
   if (isHtmlOrJs) {
     e.respondWith(
       fetch(e.request).then(async res => {
