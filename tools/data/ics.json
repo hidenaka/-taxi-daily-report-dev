@@ -4652,6 +4652,102 @@
       },
       "entry_type": "transit_only",
       "boundary_tag": null
+    },
+    {
+      "id": "ebina_jct",
+      "name": "海老名JCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "hachioji_jct",
+      "name": "八王子JCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "tsurugashima_jct",
+      "name": "鶴ヶ島JCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "kuki_shiraoka_jct",
+      "name": "久喜白岡JCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "tsukuba_jct",
+      "name": "つくばJCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "daiei_jct",
+      "name": "大栄JCT",
+      "route": "C3",
+      "route_name": "圏央道",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
     }
   ]
 }

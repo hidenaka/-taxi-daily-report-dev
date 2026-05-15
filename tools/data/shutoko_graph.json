@@ -1,7 +1,7 @@
 {
   "version": 4,
   "generated_at": "2026-04-27",
-  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。 / 2026-05-15: 首都高本線 C2/1/3/4/5 を Wikipedia公式km値で chain整備。 / 2026-05-15: 首都高本線 第2弾 (6/7/9/10/11号) を Wikipedia公式km値で chain整備。 / 2026-05-15: C2東半 (板橋JCT→江北JCT→小菅JCT→堀切JCT→葛西JCT) を整備、 葛西JCT 新規追加、 C2環状を kasai経由で閉じる。 / 2026-05-15: C1北東半 (三宅坂JCT→江戸橋JCT→京橋) を簡略chain で接続、C1全周完成。 / 2026-05-15: takebashi_jct(竹橋JCT) を C1 上に組み込み、 C1北東半 を 三宅坂JCT→竹橋JCT→江戸橋JCT として整備。 / 2026-05-15: 神奈川線群 K1/K3/K5/K6 を Wikipedia公式km値で chain整備。 / 2026-05-15: 旧 shioiri→kukou_chuou 8.5km(approx 代用edge) 削除、 1号羽田線終点(haneda) ↔ K1横羽線起点(daishi_jct) を 1.0km で接続。 / 2026-05-15: K2三ツ沢線 chain整備、K1↔K2接続(金港JCT)、K2↔第三京浜接続(三ツ沢JCT)、K3↔横横道接続(狩場JCT↔狩場IC)。 / 2026-05-15: C2環状南半 (有明JCT→辰巳JCT→葛西JCT) edges追加でC2環状完成。 / 2026-05-15: 7号京葉JCT(keiyo_jct) ↔ 京葉道路篠崎IC(shinozaki) 1.0km route keiyo 接続、 旧 kinshicho→shinozaki 8.1km(代用) を削除。 / 2026-05-15: 東雲JCT(shinonome_jct) ↔ 辰巳JCT(tatsumi_jct) 1.5km route B 接続、10号晴海線 を B線/C2 ネットワークに統合。 / 2026-05-15: 戸越-荏原 分岐構造に修正 (旧 ebara→togoshi 0.1km直列を削除、 togoshi→meguro 2.3km direct edge追加)。",
+  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。 / 2026-05-15: 首都高本線 C2/1/3/4/5 を Wikipedia公式km値で chain整備。 / 2026-05-15: 首都高本線 第2弾 (6/7/9/10/11号) を Wikipedia公式km値で chain整備。 / 2026-05-15: C2東半 (板橋JCT→江北JCT→小菅JCT→堀切JCT→葛西JCT) を整備、 葛西JCT 新規追加、 C2環状を kasai経由で閉じる。 / 2026-05-15: C1北東半 (三宅坂JCT→江戸橋JCT→京橋) を簡略chain で接続、C1全周完成。 / 2026-05-15: takebashi_jct(竹橋JCT) を C1 上に組み込み、 C1北東半 を 三宅坂JCT→竹橋JCT→江戸橋JCT として整備。 / 2026-05-15: 神奈川線群 K1/K3/K5/K6 を Wikipedia公式km値で chain整備。 / 2026-05-15: 旧 shioiri→kukou_chuou 8.5km(approx 代用edge) 削除、 1号羽田線終点(haneda) ↔ K1横羽線起点(daishi_jct) を 1.0km で接続。 / 2026-05-15: K2三ツ沢線 chain整備、K1↔K2接続(金港JCT)、K2↔第三京浜接続(三ツ沢JCT)、K3↔横横道接続(狩場JCT↔狩場IC)。 / 2026-05-15: C2環状南半 (有明JCT→辰巳JCT→葛西JCT) edges追加でC2環状完成。 / 2026-05-15: 7号京葉JCT(keiyo_jct) ↔ 京葉道路篠崎IC(shinozaki) 1.0km route keiyo 接続、 旧 kinshicho→shinozaki 8.1km(代用) を削除。 / 2026-05-15: 東雲JCT(shinonome_jct) ↔ 辰巳JCT(tatsumi_jct) 1.5km route B 接続、10号晴海線 を B線/C2 ネットワークに統合。 / 2026-05-15: 戸越-荏原 分岐構造に修正 (旧 ebara→togoshi 0.1km直列を削除、 togoshi→meguro 2.3km direct edge追加)。 / 2026-05-15: C3圏央道 主要JCT 6つを chain整備 (海老名/八王子/鶴ヶ島/久喜白岡/つくば/大栄)、 既存外側高速ICとの隣接接続も追加。 / 2026-05-15: yokohane_route/wangan_route/hodogaya_route/kitasen_route の 架空baseline (kariba_shutoko/wangan_shutoko) を graph に追加し alias接続 (kariba_jct/daikoku_jct と 0.5km)、 entries chain化。",
   "notes": "approx:true の辺は公式値未確認・推計値。undirected グラフとして使用。JCTノード(*_jct)は通過点として ics.json に entry_type:transit_only で登録、IC選択肢には現れない。",
   "nodes": [
     {
@@ -81,7 +81,8 @@
       "id": "tokyo_ic",
       "routes": [
         "3",
-        "tomei"
+        "tomei",
+        "kitasen_route"
       ]
     },
     {
@@ -317,7 +318,8 @@
       "id": "yokohama_aoba",
       "routes": [
         "K7_hokusei",
-        "tomei"
+        "tomei",
+        "hodogaya_route"
       ]
     },
     {
@@ -353,19 +355,22 @@
     {
       "id": "keihin_kawasaki",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
       "id": "tsuzuki",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
       "id": "kohoku",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
@@ -403,7 +408,8 @@
     {
       "id": "yokohama_machida",
       "routes": [
-        "tomei"
+        "tomei",
+        "kitasen_route"
       ]
     },
     {
@@ -1239,55 +1245,72 @@
     {
       "id": "bessho",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route"
       ]
     },
     {
       "id": "hino",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "konan_dai",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "asahina",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "zushi",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "yokosuka",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "kinugasa",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "sabara",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
       "id": "uraga",
       "routes": [
-        "yokoyoko"
+        "yokoyoko",
+        "yokohane_route",
+        "wangan_route"
       ]
     },
     {
@@ -1299,19 +1322,22 @@
     {
       "id": "imai",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
       "id": "kawakami",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
       "id": "totsuka",
       "routes": [
-        "third_keihin"
+        "third_keihin",
+        "hodogaya_route"
       ]
     },
     {
@@ -1738,6 +1764,56 @@
       "id": "mitsuzawa_jct",
       "routes": [
         "K2"
+      ]
+    },
+    {
+      "id": "ebina_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "hachioji_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "tsurugashima_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "kuki_shiraoka_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "tsukuba_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "daiei_jct",
+      "routes": [
+        "C3"
+      ]
+    },
+    {
+      "id": "kariba_shutoko",
+      "routes": [
+        "yokohane_route",
+        "hodogaya_route"
+      ]
+    },
+    {
+      "id": "wangan_shutoko",
+      "routes": [
+        "wangan_route",
+        "kitasen_route"
       ]
     }
   ],
@@ -3722,6 +3798,96 @@
       "to": "meguro",
       "km": 2.3,
       "route": "2"
+    },
+    {
+      "from": "ebina_jct",
+      "to": "hachioji_jct",
+      "km": 28.8,
+      "route": "C3"
+    },
+    {
+      "from": "hachioji_jct",
+      "to": "tsurugashima_jct",
+      "km": 40.1,
+      "route": "C3"
+    },
+    {
+      "from": "tsurugashima_jct",
+      "to": "kuki_shiraoka_jct",
+      "km": 27.5,
+      "route": "C3"
+    },
+    {
+      "from": "kuki_shiraoka_jct",
+      "to": "tsukuba_jct",
+      "km": 52.4,
+      "route": "C3"
+    },
+    {
+      "from": "tsukuba_jct",
+      "to": "daiei_jct",
+      "km": 39.8,
+      "route": "C3"
+    },
+    {
+      "from": "ebina_jct",
+      "to": "ebina",
+      "km": 1,
+      "route": "tomei"
+    },
+    {
+      "from": "hachioji_jct",
+      "to": "hachioji",
+      "km": 1,
+      "route": "chuo"
+    },
+    {
+      "from": "tsurugashima_jct",
+      "to": "tsurugashima",
+      "km": 1,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kuki_shiraoka_jct",
+      "to": "kuki",
+      "km": 1,
+      "route": "tohoku"
+    },
+    {
+      "from": "kariba_shutoko",
+      "to": "kariba_jct",
+      "km": 0.5,
+      "route": "yokohane_route"
+    },
+    {
+      "from": "wangan_shutoko",
+      "to": "daikoku_jct",
+      "km": 0.5,
+      "route": "wangan_route"
+    },
+    {
+      "from": "kariba_shutoko",
+      "to": "bessho",
+      "km": 2.2,
+      "route": "yokohane_route"
+    },
+    {
+      "from": "wangan_shutoko",
+      "to": "konan_dai",
+      "km": 6.7,
+      "route": "wangan_route"
+    },
+    {
+      "from": "kariba_shutoko",
+      "to": "kawakami",
+      "km": 1.4,
+      "route": "hodogaya_route"
+    },
+    {
+      "from": "wangan_shutoko",
+      "to": "yokohama_machida",
+      "km": 6.4,
+      "route": "kitasen_route"
     }
   ]
 }

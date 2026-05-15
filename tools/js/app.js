@@ -615,8 +615,24 @@ function renderJctDetails(result, entryIc, exitIc) {
   list.innerHTML = '';
 
   const ics = state.data.ics;
+  const graph = state.data.shutokoGraph;
   const findIc = (id) => ics.find(x => x.id === id);
-  // JCT or 始点/終点 のみ表示し、中間出入口ICは省略 (長距離経路時の可読性確保)
+  // edge → route のマップ (双方向)
+  const edgeRouteMap = new Map();
+  for (const e of (graph?.edges ?? [])) {
+    edgeRouteMap.set(`${e.from}|${e.to}`, e.route);
+    edgeRouteMap.set(`${e.to}|${e.from}`, e.route);
+  }
+  const ROUTE_LABEL = {
+    '1':'1号羽田','2':'2号目黒','3':'3号渋谷','4':'4号新宿','5':'5号池袋',
+    '6':'6号向島','7':'7号小松川','9':'9号深川','10':'10号晴海','11':'11号台場',
+    'C1':'C1','C2':'C2','B':'湾岸','Y':'八重洲',
+    'K1':'横羽','K2':'三ツ沢','K3':'狩場','K5':'大黒','K6':'川崎','K7':'北線','K7_hokusei':'北西線',
+    'tomei':'東名','chuo':'中央','kanetsu':'関越','tohoku':'東北','joban':'常磐','keiyo':'京葉',
+    'tokan':'東関東','aqua':'アクア','tateyama':'館山','third_keihin':'第三京浜','yokoyoko':'横横',
+    'yokohane_route':'横羽経由','wangan_route':'湾岸経由','hodogaya_route':'保土ヶ谷BP',
+    'hokuseisen_route':'北西線','kitasen_route':'横浜北線','gaikan':'外環',
+  };
   const keepNode = (id, i, len) => {
     if (i === 0 || i === len - 1) return true;
     const ic = findIc(id);
@@ -633,17 +649,34 @@ function renderJctDetails(result, entryIc, exitIc) {
     span.textContent = ic ? ic.name.replace(/（[^）]*）/g, '').trim() : id;
     return span;
   };
-  const buildArrow = () => {
+  const buildArrow = (routeLabel) => {
     const arrow = document.createElement('span');
-    arrow.className = 'jct-arrow';
-    arrow.textContent = '→';
+    arrow.className = routeLabel ? 'jct-arrow jct-arrow-with-route' : 'jct-arrow';
+    arrow.textContent = routeLabel ? `→[${routeLabel}]→` : '→';
     return arrow;
   };
+  // path の (startIdx, endIdx) 区間の最頻 route を取得 (中間IC省略時の路線判定)
+  const dominantRoute = (path, startIdx, endIdx) => {
+    const counts = new Map();
+    for (let k = startIdx; k < endIdx; k++) {
+      const r = edgeRouteMap.get(`${path[k]}|${path[k+1]}`);
+      if (!r) continue;
+      counts.set(r, (counts.get(r) || 0) + 1);
+    }
+    if (counts.size === 0) return null;
+    let best = null, bestN = -1;
+    for (const [r, n] of counts) { if (n > bestN) { best = r; bestN = n; } }
+    return ROUTE_LABEL[best] || best;
+  };
   const renderFilteredPath = (path) => {
-    const filtered = path.filter((id, i) => keepNode(id, i, path.length));
-    for (let i = 0; i < filtered.length; i++) {
-      list.appendChild(buildNode(filtered[i]));
-      if (i < filtered.length - 1) list.appendChild(buildArrow());
+    // path全長の filtered indices を取る
+    const keep = path.map((id, i) => keepNode(id, i, path.length) ? i : -1).filter(i => i >= 0);
+    for (let i = 0; i < keep.length; i++) {
+      list.appendChild(buildNode(path[keep[i]]));
+      if (i < keep.length - 1) {
+        const label = dominantRoute(path, keep[i], keep[i+1]);
+        list.appendChild(buildArrow(label));
+      }
     }
   };
 
