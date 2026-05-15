@@ -615,60 +615,57 @@ function renderJctDetails(result, entryIc, exitIc) {
   list.innerHTML = '';
 
   const ics = state.data.ics;
-  let hasAnyPath = false;
+  const findIc = (id) => ics.find(x => x.id === id);
+  // JCT or 始点/終点 のみ表示し、中間出入口ICは省略 (長距離経路時の可読性確保)
+  const keepNode = (id, i, len) => {
+    if (i === 0 || i === len - 1) return true;
+    const ic = findIc(id);
+    if (!ic) return false;
+    if (id.includes('jct') || (ic.name || '').includes('JCT')) return true;
+    if (ic.entry_type === 'transit_only' || ic.entry_type === 'jct') return true;
+    return false;
+  };
+  const buildNode = (id) => {
+    const ic = findIc(id);
+    const span = document.createElement('span');
+    const isJct = id.includes('jct') || (ic?.name || '').includes('JCT');
+    span.className = isJct ? 'jct-node jct-is-jct' : 'jct-node jct-is-ic';
+    span.textContent = ic ? ic.name.replace(/（[^）]*）/g, '').trim() : id;
+    return span;
+  };
+  const buildArrow = () => {
+    const arrow = document.createElement('span');
+    arrow.className = 'jct-arrow';
+    arrow.textContent = '→';
+    return arrow;
+  };
+  const renderFilteredPath = (path) => {
+    const filtered = path.filter((id, i) => keepNode(id, i, path.length));
+    for (let i = 0; i < filtered.length; i++) {
+      list.appendChild(buildNode(filtered[i]));
+      if (i < filtered.length - 1) list.appendChild(buildArrow());
+    }
+  };
 
-  // 全セグメントのpathを統合して表示
+  let hasAnyPath = false;
   for (const seg of result.segments) {
     if (seg.path && seg.path.length >= 2) {
       hasAnyPath = true;
-      // セグメント名をヘッダとして表示
       const header = document.createElement('div');
       header.className = 'jct-seg-header';
       header.textContent = `▼ ${seg.name.replace(/（[^）]*）/g, '').trim()}`;
       list.appendChild(header);
-
-      for (let i = 0; i < seg.path.length; i++) {
-        const id = seg.path[i];
-        const ic = ics.find(x => x.id === id);
-        const span = document.createElement('span');
-        const isJct = id.includes('jct') || id.includes('JCT') || (ic?.name || '').includes('JCT');
-        span.className = isJct ? 'jct-node jct-is-jct' : 'jct-node jct-is-ic';
-        span.textContent = ic ? ic.name.replace(/（[^）]*）/g, '').trim() : id;
-        list.appendChild(span);
-        if (i < seg.path.length - 1) {
-          const arrow = document.createElement('span');
-          arrow.className = 'jct-arrow';
-          arrow.textContent = '→';
-          list.appendChild(arrow);
-        }
-      }
+      renderFilteredPath(seg.path);
     }
   }
 
-  // 従来のshutoko pathフォールバック
   if (!hasAnyPath) {
     const shutokoSeg = result.segments.find(s => s.route === 'shutoko');
     const path = shutokoSeg?.path;
     if (!path || path.length < 2) { wrap.hidden = true; return; }
-
     const fullPath = path[0] === entryIc.id ? path.slice() : [entryIc.id, ...path];
     if (fullPath[fullPath.length - 1] !== exitIc.id) fullPath.push(exitIc.id);
-
-    for (let i = 0; i < fullPath.length; i++) {
-      const id = fullPath[i];
-      const ic = ics.find(x => x.id === id);
-      const span = document.createElement('span');
-      const isJct = id.includes('jct') || (ic?.name || '').includes('JCT');
-      span.className = isJct ? 'jct-node jct-is-jct' : 'jct-node jct-is-ic';
-      span.textContent = ic ? ic.name.replace(/（[^）]*）/g, '').trim() : id;
-      list.appendChild(span);
-      if (i < fullPath.length - 1) {
-        const arrow = document.createElement('span');
-        arrow.className = 'jct-arrow';
-        arrow.textContent = '→';
-        list.appendChild(arrow);
-      }
-    }
+    renderFilteredPath(fullPath);
   }
 
   wrap.hidden = false;
