@@ -40,6 +40,16 @@ function getOuterDirectionIds(deduction) {
  *
  * @returns {Array<{id: string, km: number}>}
  */
+// 神奈川3方向ルート (横須賀方面ICから「保土ヶ谷BP経由」「横羽線経由」「湾岸線経由」等
+// 複数の現実的経由ルートが選べる路線群)。これらの direction は架空baseline
+// (kariba_shutoko/wangan_shutoko) を持ち、 物理経路の重複表現のため、 entries (km>0) を
+// 候補に含めても tokyo_ic等の実在baseline IC には影響しない (横須賀方面entriesに無いため)。
+// kitasen_route/hokuseisen_route は実在baseline (tokyo_ic) を持つため entries は除外
+// (tokyo_ic→kitasen_route混入バグ再発防止)。
+const KANAGAWA_BRANCH_ROUTES = new Set([
+  'yokohane_route', 'wangan_route', 'hodogaya_route',
+]);
+
 function getIcMatchedRoutes(ic, deduction) {
   if (!ic) return [];
   const map = new Map();
@@ -52,6 +62,13 @@ function getIcMatchedRoutes(ic, deduction) {
   for (const dir of deduction.directions) {
     if (dir.baseline.ic_id === ic.id && !map.has(dir.id)) {
       map.set(dir.id, 0);
+    }
+    // 神奈川5方向ルートでは entries (km>0) も候補に (複数経由ルートの提示)
+    if (KANAGAWA_BRANCH_ROUTES.has(dir.id)) {
+      const entry = dir.entries.find((e) => e.ic_id === ic.id);
+      if (entry && entry.km > 0 && !map.has(dir.id)) {
+        map.set(dir.id, entry.km);
+      }
     }
   }
 

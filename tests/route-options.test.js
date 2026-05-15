@@ -20,11 +20,17 @@ function isShutokoOnly(ic) {
 }
 
 // 「物理的にそのICが乗っている外側高速」: IC.route 一致 or baseline_of
+// 神奈川3方向ルート (yokohane/wangan/hodogaya) は架空baselineで物理経路の重複表現のため、
+// entries (km>0) も物理所属とみなす (route-options.js の KANAGAWA_BRANCH_ROUTES と同期)
+const KANAGAWA_BRANCH = new Set(['yokohane_route', 'wangan_route', 'hodogaya_route']);
 function getOwnedDirections(ic) {
   const set = new Set();
   if (OUTER_DIRECTION_IDS.has(ic.route)) set.add(ic.route);
   for (const dir of deduction.directions) {
     if (dir.baseline.ic_id === ic.id) set.add(dir.id);
+    if (KANAGAWA_BRANCH.has(dir.id)) {
+      if (dir.entries.some((e) => e.ic_id === ic.id && e.km > 0)) set.add(dir.id);
+    }
   }
   return set;
 }
