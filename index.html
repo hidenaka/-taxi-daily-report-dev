@@ -429,12 +429,14 @@ function renderPayrollBreakdown(result, takeHomeRate = 0.75) {
     const extrasHtml = b.extras.map(e =>
       `<div style="${rowStyle}"><span class="muted">${e.shiftNo}乗務目 (${e.date}): 税抜${formatYen(e.salesExclTax)} × ${pct(e.rate)}</span><span>${formatYen(e.addPay)}</span></div>`
     ).join('');
+    const takeHomeAt11 = b.basePay11 * takeHomeRate;
     body = `
       <div style="${sectionStyle}">
         <div style="font-size:11px;font-weight:600;margin-bottom:4px;">11乗務までの計算</div>
         <div style="${rowStyle}"><span class="muted">1〜11乗務 税抜営収</span><span>${formatYen(b.salesExclTax11)}</span></div>
         <div style="${rowStyle}"><span class="muted">適用歩率(11乗務テーブル)</span><span>${pct(b.rate11)}</span></div>
         <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay11)}</strong></div>
+        <div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">11乗務目までの手取り推定(×${(takeHomeRate*100).toFixed(0)}%)</span><strong style="color:var(--primary);">${formatYen(takeHomeAt11)}</strong></div>
       </div>
       <div style="${sectionStyle}">
         <div style="font-size:11px;font-weight:600;margin-bottom:4px;">12乗務目以降の計算</div>
