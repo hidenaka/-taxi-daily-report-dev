@@ -4460,6 +4460,134 @@
       },
       "entry_type": "transit_only",
       "boundary_tag": null
+    },
+    {
+      "id": "daishi_jct",
+      "name": "大師JCT",
+      "route": "K1",
+      "route_name": "神奈川1号横羽線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "namamugi_jct",
+      "name": "生麦JCT",
+      "route": "K1",
+      "route_name": "神奈川1号横羽線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "ishikawacho_jct",
+      "name": "石川町JCT",
+      "route": "K1",
+      "route_name": "神奈川1号横羽線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "bandobashi",
+      "name": "阪東橋",
+      "route": "K3",
+      "route_name": "神奈川3号狩場線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "hananoki",
+      "name": "花之木",
+      "route": "K3",
+      "route_name": "神奈川3号狩場線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "nagata",
+      "name": "永田",
+      "route": "K3",
+      "route_name": "神奈川3号狩場線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "kariba_jct",
+      "name": "狩場JCT",
+      "route": "K3",
+      "route_name": "神奈川3号狩場線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "tonomachi",
+      "name": "殿町",
+      "route": "K6",
+      "route_name": "神奈川6号川崎線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
     }
   ]
 }

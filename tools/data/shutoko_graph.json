@@ -1,7 +1,7 @@
 {
   "version": 4,
   "generated_at": "2026-04-27",
-  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。 / 2026-05-15: 首都高本線 C2/1/3/4/5 を Wikipedia公式km値で chain整備。 / 2026-05-15: 首都高本線 第2弾 (6/7/9/10/11号) を Wikipedia公式km値で chain整備。 / 2026-05-15: C2東半 (板橋JCT→江北JCT→小菅JCT→堀切JCT→葛西JCT) を整備、 葛西JCT 新規追加、 C2環状を kasai経由で閉じる。 / 2026-05-15: C1北東半 (三宅坂JCT→江戸橋JCT→京橋) を簡略chain で接続、C1全周完成。 / 2026-05-15: takebashi_jct(竹橋JCT) を C1 上に組み込み、 C1北東半 を 三宅坂JCT→竹橋JCT→江戸橋JCT として整備。",
+  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。 / 2026-05-15: 首都高本線 C2/1/3/4/5 を Wikipedia公式km値で chain整備。 / 2026-05-15: 首都高本線 第2弾 (6/7/9/10/11号) を Wikipedia公式km値で chain整備。 / 2026-05-15: C2東半 (板橋JCT→江北JCT→小菅JCT→堀切JCT→葛西JCT) を整備、 葛西JCT 新規追加、 C2環状を kasai経由で閉じる。 / 2026-05-15: C1北東半 (三宅坂JCT→江戸橋JCT→京橋) を簡略chain で接続、C1全周完成。 / 2026-05-15: takebashi_jct(竹橋JCT) を C1 上に組み込み、 C1北東半 を 三宅坂JCT→竹橋JCT→江戸橋JCT として整備。 / 2026-05-15: 神奈川線群 K1/K3/K5/K6 を Wikipedia公式km値で chain整備。 / 2026-05-15: 旧 shioiri→kukou_chuou 8.5km(approx 代用edge) 削除、 1号羽田線終点(haneda) ↔ K1横羽線起点(daishi_jct) を 1.0km で接続。",
   "notes": "approx:true の辺は公式値未確認・推計値。undirected グラフとして使用。JCTノード(*_jct)は通過点として ics.json に entry_type:transit_only で登録、IC選択肢には現れない。",
   "nodes": [
     {
@@ -194,7 +194,8 @@
       "id": "ukishima_jct",
       "routes": [
         "B",
-        "aqua"
+        "aqua",
+        "K6"
       ]
     },
     {
@@ -330,7 +331,8 @@
       "id": "namamugi",
       "routes": [
         "K7",
-        "K5"
+        "K5",
+        "K1"
       ]
     },
     {
@@ -1658,6 +1660,57 @@
         "C2",
         "B"
       ]
+    },
+    {
+      "id": "daishi_jct",
+      "routes": [
+        "K1",
+        "K6"
+      ]
+    },
+    {
+      "id": "namamugi_jct",
+      "routes": [
+        "K1",
+        "K5"
+      ]
+    },
+    {
+      "id": "ishikawacho_jct",
+      "routes": [
+        "K1",
+        "K3"
+      ]
+    },
+    {
+      "id": "bandobashi",
+      "routes": [
+        "K3"
+      ]
+    },
+    {
+      "id": "hananoki",
+      "routes": [
+        "K3"
+      ]
+    },
+    {
+      "id": "nagata",
+      "routes": [
+        "K3"
+      ]
+    },
+    {
+      "id": "kariba_jct",
+      "routes": [
+        "K3"
+      ]
+    },
+    {
+      "id": "tonomachi",
+      "routes": [
+        "K6"
+      ]
     }
   ],
   "edges": [
@@ -1961,13 +2014,6 @@
       "to": "yotsugi",
       "km": 2.1,
       "route": "C2"
-    },
-    {
-      "from": "shioiri",
-      "to": "kukou_chuou",
-      "km": 8.5,
-      "route": "K1",
-      "approx": true
     },
     {
       "from": "yokohama_aoba",
@@ -3522,6 +3568,78 @@
       "to": "edobashi_jct",
       "km": 2.3,
       "route": "C1"
+    },
+    {
+      "from": "daishi_jct",
+      "to": "shioiri",
+      "km": 7.3,
+      "route": "K1"
+    },
+    {
+      "from": "shioiri",
+      "to": "namamugi_jct",
+      "km": 1.1,
+      "route": "K1"
+    },
+    {
+      "from": "namamugi_jct",
+      "to": "namamugi",
+      "km": 0.6,
+      "route": "K1"
+    },
+    {
+      "from": "namamugi",
+      "to": "ishikawacho_jct",
+      "km": 10,
+      "route": "K1"
+    },
+    {
+      "from": "ishikawacho_jct",
+      "to": "bandobashi",
+      "km": 2.2,
+      "route": "K3"
+    },
+    {
+      "from": "bandobashi",
+      "to": "hananoki",
+      "km": 0.6,
+      "route": "K3"
+    },
+    {
+      "from": "hananoki",
+      "to": "nagata",
+      "km": 1.4,
+      "route": "K3"
+    },
+    {
+      "from": "nagata",
+      "to": "kariba_jct",
+      "km": 2.1,
+      "route": "K3"
+    },
+    {
+      "from": "daikoku_jct",
+      "to": "namamugi_jct",
+      "km": 4.6,
+      "route": "K5"
+    },
+    {
+      "from": "ukishima_jct",
+      "to": "tonomachi",
+      "km": 3.5,
+      "route": "K6"
+    },
+    {
+      "from": "tonomachi",
+      "to": "daishi_jct",
+      "km": 2,
+      "route": "K6"
+    },
+    {
+      "from": "haneda",
+      "to": "daishi_jct",
+      "km": 1,
+      "route": "1"
     }
   ]
 }
