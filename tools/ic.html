@@ -81,7 +81,9 @@
     </section>
 
     <section class="route-select">
-      <label>
+      <!-- 経路選択は「ルート比較（上位3候補）」 カードに一本化。
+           sel-outer-route は app.js が内部状態として参照するため要素は残すが hidden。 -->
+      <label hidden>
         <span class="label-text">経路（入口ICから自動選択）</span>
         <select id="sel-outer-route"></select>
       </label>
