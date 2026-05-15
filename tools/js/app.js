@@ -672,6 +672,7 @@ function renderJctDetails(result, entryIc, exitIc) {
   }
 
   wrap.hidden = false;
+  wrap.open = true;
 }
 
 function calculateAllRoutes(entryIc, exitIc) {
