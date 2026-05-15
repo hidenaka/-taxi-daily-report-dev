@@ -403,72 +403,100 @@ function renderPayrollBreakdown(result, takeHomeRate = 0.75) {
   if (result.shiftCount === 0) return '';
 
   const pct = (r) => (r * 100).toFixed(1) + '%';
-  const rowStyle = 'display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:2px 0;';
-  const sectionStyle = 'margin-top:4px;padding:6px 10px;background:#fafafa;border-radius:6px;';
   const takeHome = result.total * takeHomeRate;
+  const takeHomePct = (takeHomeRate * 100).toFixed(0);
+
+  // セクションパレット (左ボーダー + 薄背景 + タイトル色)
+  const palette = {
+    base:    { bg: '#eff6ff', bd: '#3b82f6', title: '#1d4ed8' }, // 青系: 基本給/11乗務まで
+    extra:   { bg: '#fff7ed', bd: '#f97316', title: '#c2410c' }, // 橙系: 12乗務目以降
+    total:   { bg: '#ecfdf5', bd: '#10b981', title: '#047857' }, // 緑系: 合計/手取り
+    plain:   { bg: '#f9fafb', bd: '#9ca3af', title: '#374151' }  // 灰系: その他
+  };
+
+  // セクションHTML生成
+  const sec = (palKey, title, rowsHtml) => {
+    const p = palette[palKey];
+    return `
+      <div style="margin-top:8px;padding:10px 12px;background:${p.bg};border-left:3px solid ${p.bd};border-radius:6px;">
+        ${title ? `<div style="font-size:11px;font-weight:700;color:${p.title};margin-bottom:6px;letter-spacing:0.02em;">${title}</div>` : ''}
+        ${rowsHtml}
+      </div>
+    `;
+  };
+
+  // 1行 (label と value、tone で強調変える)
+  const row = (label, value, tone = 'normal') => {
+    const styles = {
+      normal:    { wrap: '', label: 'color:#6b7280;font-size:11px;', value: 'font-size:12px;color:#111827;font-weight:500;' },
+      strong:    { wrap: 'padding-top:6px;margin-top:6px;border-top:1px dashed rgba(0,0,0,0.15);', label: 'color:#374151;font-size:11px;font-weight:600;', value: 'font-size:14px;color:#111827;font-weight:700;' },
+      highlight: { wrap: 'padding-top:6px;margin-top:6px;border-top:1px dashed rgba(0,0,0,0.15);', label: 'color:#374151;font-size:11px;font-weight:600;', value: 'font-size:16px;color:var(--primary);font-weight:700;' }
+    };
+    const s = styles[tone] || styles.normal;
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:3px 0;${s.wrap}">
+        <span style="${s.label}">${label}</span>
+        <span style="${s.value}">${value}</span>
+      </div>
+    `;
+  };
 
   let body = '';
 
   if (b.mode === 'fixed_rate') {
-    body = `
-      <div style="${sectionStyle}">
-        <div style="${rowStyle}"><span class="muted">月度税抜営収</span><span>${formatYen(b.salesExclTax)}</span></div>
-        <div style="${rowStyle}"><span class="muted">固定歩率</span><span>${pct(b.rate)}</span></div>
-        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay)}</strong></div>
-      </div>
-    `;
+    body += sec('base', '基本給の計算', `
+      ${row('月度税抜営収', formatYen(b.salesExclTax))}
+      ${row('固定歩率', pct(b.rate))}
+      ${row('基本給 = 営収 × 歩率', formatYen(b.basePay), 'strong')}
+    `);
   } else if (b.mode === 'tiered_11_or_less' || b.mode === 'fallback') {
-    body = `
-      <div style="${sectionStyle}">
-        <div style="${rowStyle}"><span class="muted">1〜${result.shiftCount}乗務 税抜営収</span><span>${formatYen(b.salesExclTax)}</span></div>
-        <div style="${rowStyle}"><span class="muted">適用歩率(${b.tierKey || '-'}乗務テーブル)</span><span>${pct(b.rate)}</span></div>
-        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay)}</strong></div>
-      </div>
-    `;
+    body += sec('base', `基本給の計算 (1〜${result.shiftCount}乗務)`, `
+      ${row(`1〜${result.shiftCount}乗務 税抜営収`, formatYen(b.salesExclTax))}
+      ${row(`適用歩率 (${b.tierKey || '-'}乗務テーブル)`, pct(b.rate))}
+      ${row('基本給 = 営収 × 歩率', formatYen(b.basePay), 'strong')}
+    `);
   } else if (b.mode === 'tiered_12_or_more') {
-    const extrasHtml = b.extras.map(e =>
-      `<div style="${rowStyle}"><span class="muted">${e.shiftNo}乗務目 (${e.date}): 税抜${formatYen(e.salesExclTax)} × ${pct(e.rate)}</span><span>${formatYen(e.addPay)}</span></div>`
-    ).join('');
     const takeHomeAt11 = b.basePay11 * takeHomeRate;
-    body = `
-      <div style="${sectionStyle}">
-        <div style="font-size:11px;font-weight:600;margin-bottom:4px;">11乗務までの計算</div>
-        <div style="${rowStyle}"><span class="muted">1〜11乗務 税抜営収</span><span>${formatYen(b.salesExclTax11)}</span></div>
-        <div style="${rowStyle}"><span class="muted">適用歩率(11乗務テーブル)</span><span>${pct(b.rate11)}</span></div>
-        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay11)}</strong></div>
-        <div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">11乗務目までの手取り推定(×${(takeHomeRate*100).toFixed(0)}%)</span><strong style="color:var(--primary);">${formatYen(takeHomeAt11)}</strong></div>
-      </div>
-      <div style="${sectionStyle}">
-        <div style="font-size:11px;font-weight:600;margin-bottom:4px;">12乗務目以降の計算</div>
-        ${extrasHtml}
-        <div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">追加給 合計</span><strong>${formatYen(b.extraTotal)}</strong></div>
-      </div>
-      <div style="${sectionStyle}">
-        <div style="${rowStyle}"><span class="muted">基本給(11乗務まで)</span><span>${formatYen(b.basePay11)}</span></div>
-        <div style="${rowStyle}"><span class="muted">追加給(12乗務目以降)</span><span>${formatYen(b.extraTotal)}</span></div>
-        <div style="${rowStyle}"><span class="muted">合計</span><strong>${formatYen(b.basePay)}</strong></div>
-      </div>
-    `;
+    body += sec('base', '基本給 (1〜11乗務まで)', `
+      ${row('1〜11乗務 税抜営収', formatYen(b.salesExclTax11))}
+      ${row('適用歩率 (11乗務テーブル)', pct(b.rate11))}
+      ${row('基本給 = 営収 × 歩率', formatYen(b.basePay11), 'strong')}
+      ${row(`11乗務目までの手取り推定 (×${takeHomePct}%)`, formatYen(takeHomeAt11), 'highlight')}
+    `);
+
+    const extrasRows = b.extras.map(e =>
+      row(`${e.shiftNo}乗務目 (${e.date}): 税抜 ${formatYen(e.salesExclTax)} × ${pct(e.rate)}`, formatYen(e.addPay))
+    ).join('');
+    body += sec('extra', '追加給 (12乗務目以降)', `
+      ${extrasRows}
+      ${row('追加給 合計', formatYen(b.extraTotal), 'strong')}
+    `);
+
+    body += sec('plain', '基本給+追加給', `
+      ${row('基本給 (11乗務まで)', formatYen(b.basePay11))}
+      ${row('追加給 (12乗務目以降)', formatYen(b.extraTotal))}
+      ${row('合計', formatYen(b.basePay), 'strong')}
+    `);
   }
 
-  const hasIncentiveOrPaidLeave = result.incentive > 0 || result.paidLeaveAmount > 0;
-  let extra = '';
+  // 最終: プレミアム手当 / 有給 / 総支給 / 手取り推定
+  let totalRows = '';
   if (result.incentive > 0) {
-    extra += `<div style="${rowStyle}"><span class="muted">プレミアム手当</span><span>+${formatYen(result.incentive)}</span></div>`;
+    totalRows += row('プレミアム手当', '+' + formatYen(result.incentive));
   }
   if (result.paidLeaveAmount > 0) {
-    extra += `<div style="${rowStyle}"><span class="muted">有給(${result.paidLeaveDays}日)</span><span>+${formatYen(result.paidLeaveAmount)}</span></div>`;
+    totalRows += row(`有給 (${result.paidLeaveDays}日)`, '+' + formatYen(result.paidLeaveAmount));
   }
-  if (hasIncentiveOrPaidLeave) {
-    extra += `<div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">総支給</span><strong>${formatYen(result.total)}</strong></div>`;
-  }
-  extra += `<div style="${rowStyle}${hasIncentiveOrPaidLeave ? '' : ';border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;'}"><span class="muted">手取り推定(×${(takeHomeRate*100).toFixed(0)}%)</span><strong style="color:var(--primary);">${formatYen(takeHome)}</strong></div>`;
-  body += `<div style="${sectionStyle}">${extra}</div>`;
+  totalRows += row('総支給', formatYen(result.total), 'strong');
+  totalRows += row(`手取り推定 (×${takeHomePct}%)`, formatYen(takeHome), 'highlight');
+  body += sec('total', '最終', totalRows);
 
   return `
-    <details style="margin-top:6px;">
-      <summary style="cursor:pointer;font-size:12px;color:var(--primary);user-select:none;">給与計算の内訳を見る</summary>
-      ${body}
+    <details style="margin-top:8px;">
+      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);user-select:none;padding:6px 0;list-style:revert;">給与計算の内訳を見る</summary>
+      <div style="margin-top:2px;">
+        ${body}
+      </div>
     </details>
   `;
 }
