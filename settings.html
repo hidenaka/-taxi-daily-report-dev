@@ -8,6 +8,36 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
+<style>
+  /* 設定画面の入力スタイル(スマホ最適化) */
+  .setting-group { margin-top: 14px; }
+  .setting-group:first-child { margin-top: 0; }
+  .setting-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+  .setting-label .optional { font-size: 10px; font-weight: 500; background: #f3f4f6; color: #6b7280; padding: 1px 6px; border-radius: 10px; margin-left: 6px; vertical-align: 1px; }
+  .setting-input, .setting-select {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 16px;   /* iOSの自動ズーム防止: 16px以上 */
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    color: #111827;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+  }
+  .setting-input:focus, .setting-select:focus { border-color: var(--primary); outline: 2px solid rgba(25,118,210,0.15); }
+  .setting-help { margin-top: 4px; font-size: 11px; color: #6b7280; line-height: 1.45; }
+  /* セクション見出しの強調 */
+  section.card > h3 { font-size: 15px; margin: 0 0 12px; }
+  /* 目標セクションのアクセント */
+  .target-card {
+    border-left: 3px solid #1976d2;
+    background: linear-gradient(to right, #eff6ff 0%, #fff 60%);
+  }
+  .target-card > h3 { color: #1d4ed8; }
+  /* 重要ボタンの最低タップ高 */
+  .btn-large { min-height: 48px; font-size: 14px; }
+</style>
 </head>
 <body>
 <script>
@@ -55,35 +85,62 @@ if (location.hostname.includes('-dev')) {
     <button class="btn" id="switchAccountBtn" style="width:100%;display:none;margin-top:8px;">🔄 アカウントを切り替え</button>
     <div id="switchAccountStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
 
-    <label class="muted" style="margin-top:12px;display:block;">表示名(任意)</label>
-    <input class="input" id="displayNameInput" placeholder="自分">
-    <p class="muted" style="font-size:10px;margin-top:2px;">集計画面の表示用。</p>
+    <div class="setting-group" style="margin-top:14px;">
+      <label class="setting-label" for="displayNameInput">表示名<span class="optional">任意</span></label>
+      <input class="setting-input" id="displayNameInput" placeholder="自分">
+      <p class="setting-help">集計画面の表示用。</p>
+    </div>
   </section>
 
   <section class="card">
-    <h3>デフォルト</h3>
-    <label class="muted">乗務種別</label>
-    <select class="select" id="vehicleTypeSel">
-      <option value="japantaxi">ジャパンタクシー</option>
-      <option value="premium">プレミアム</option>
-    </select>
-    <label class="muted" style="margin-top:8px;display:block;">出庫時刻</label>
-    <input class="input" id="departureInput" type="time" value="07:00">
-    <label class="muted" style="margin-top:8px;display:block;">手取り率（控除後 / 総支給）</label>
-    <input class="input" id="takeHomeRateInput" type="number" step="0.01" min="0.5" max="1" value="0.75">
-    <p class="muted" style="font-size:10px;margin-top:2px;">通常月74〜75%、年末調整月（12月）は還付で約85%。実績ベースで調整可。</p>
-    <label class="muted" style="margin-top:8px;display:block;">手取り目標（円/月度）</label>
-    <input class="input" id="takeHomeTargetInput" type="number" step="10000" min="0" value="500000">
-    <p class="muted" style="font-size:10px;margin-top:2px;">ホームに目標達成可否と残り乗務あたり必要売上が表示されます。</p>
-    <label class="muted" style="margin-top:8px;display:block;">総支給目標（円/月度）— 任意</label>
-    <input class="input" id="grossTargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません">
-    <p class="muted" style="font-size:10px;margin-top:2px;">控除前の総支給ベースの月度目標。0または空欄なら非表示。</p>
-    <label class="muted" style="margin-top:8px;display:block;">11乗務目までの手取り目標（円）— 任意</label>
-    <input class="input" id="takeHomeAt11TargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません">
-    <p class="muted" style="font-size:10px;margin-top:2px;">12-13乗務目特例のある会社向け。11乗務までの手取り目安を別建てで管理する場合に。</p>
-    <label class="muted" style="margin-top:8px;display:block;">有給休暇 1日あたり金額（総支給ベース）</label>
-    <input class="input" id="paidLeaveAmountInput" type="number" step="100" min="0" value="39340">
-    <p class="muted" style="font-size:10px;margin-top:2px;">給与明細の「有給手当」÷有給日数。カレンダーで設定した有給日数×この金額を予測/実績に加算。</p>
+    <h3>基本設定</h3>
+
+    <div class="setting-group">
+      <label class="setting-label" for="vehicleTypeSel">乗務種別</label>
+      <select class="setting-select" id="vehicleTypeSel">
+        <option value="japantaxi">ジャパンタクシー</option>
+        <option value="premium">プレミアム</option>
+      </select>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="departureInput">出庫時刻</label>
+      <input class="setting-input" id="departureInput" type="time" value="07:00">
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="takeHomeRateInput">手取り率(控除後 / 総支給)</label>
+      <input class="setting-input" id="takeHomeRateInput" type="number" step="0.01" min="0.5" max="1" value="0.75" inputmode="decimal">
+      <p class="setting-help">通常月74〜75%、年末調整月(12月)は還付で約85%。実績ベースで調整可。</p>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="paidLeaveAmountInput">有給休暇 1日あたり金額(総支給ベース)</label>
+      <input class="setting-input" id="paidLeaveAmountInput" type="number" step="100" min="0" value="39340" inputmode="numeric">
+      <p class="setting-help">給与明細の「有給手当」÷有給日数。カレンダーで設定した有給日数 × この金額を予測/実績に加算。</p>
+    </div>
+  </section>
+
+  <section class="card target-card">
+    <h3>🎯 目標</h3>
+
+    <div class="setting-group">
+      <label class="setting-label" for="takeHomeTargetInput">手取り目標(円 / 月度)</label>
+      <input class="setting-input" id="takeHomeTargetInput" type="number" step="10000" min="0" value="500000" inputmode="numeric">
+      <p class="setting-help">ホームに目標達成可否と残り乗務あたり必要売上が表示されます。</p>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="grossTargetInput">総支給目標(円 / 月度)<span class="optional">任意</span></label>
+      <input class="setting-input" id="grossTargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません" inputmode="numeric">
+      <p class="setting-help">控除前の総支給ベースの月度目標。0または空欄なら非表示。</p>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="takeHomeAt11TargetInput">11乗務目までの手取り目標(円)<span class="optional">任意</span></label>
+      <input class="setting-input" id="takeHomeAt11TargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません" inputmode="numeric">
+      <p class="setting-help">12-13乗務目特例のある会社向け。11乗務までの手取り目安を別建てで管理する場合に。</p>
+    </div>
   </section>
 
   <section class="card" id="adminToolsSection" style="display:none;">
