@@ -7,6 +7,67 @@ import { buildAdjacency, shortestPath } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
 
+// 全ノードへの最短距離 + prev を計算 (early-break しない Dijkstra)
+function dijkstraAll(adj, start) {
+  const dist = new Map([[start, 0]]);
+  const prev = new Map();
+  const visited = new Set();
+  while (true) {
+    let u = null, ud = Infinity;
+    for (const [id, d] of dist) if (!visited.has(id) && d < ud) { u = id; ud = d; }
+    if (u === null) break;
+    visited.add(u);
+    for (const e of (adj.get(u) || [])) {
+      const nd = ud + e.km;
+      if (nd < (dist.get(e.to) ?? Infinity)) { dist.set(e.to, nd); prev.set(e.to, u); }
+    }
+  }
+  return { dist, prev };
+}
+
+function reconstructTo(prev, from, to) {
+  const path = [to];
+  let cur = to;
+  while (cur !== from) {
+    if (!prev.has(cur)) return null;
+    cur = prev.get(cur);
+    path.unshift(cur);
+  }
+  return path;
+}
+
+// 指定 graph route のedgeを少なくとも1本通る最短経路 (from→viaNode→to の2段階)
+function shortestPathVia(adj, graph, from, to, viaRouteId) {
+  const viaNodes = new Set();
+  for (const e of graph.edges) {
+    if (e.route === viaRouteId) { viaNodes.add(e.from); viaNodes.add(e.to); }
+  }
+  if (viaNodes.size === 0) return null;
+  const fromD = dijkstraAll(adj, from);
+  const toD = dijkstraAll(adj, to);
+  let bestV = null, bestKm = Infinity;
+  for (const v of viaNodes) {
+    const d1 = fromD.dist.get(v), d2 = toD.dist.get(v);
+    if (d1 == null || d2 == null) continue;
+    if (d1 + d2 < bestKm) { bestKm = d1 + d2; bestV = v; }
+  }
+  if (!bestV) return null;
+  const p1 = reconstructTo(fromD.prev, from, bestV);
+  const p2 = reconstructTo(toD.prev, to, bestV);
+  if (!p1 || !p2) return null;
+  const path = [...p1, ...p2.slice().reverse().slice(1)];
+  return { km: bestKm, path };
+}
+
+// outerRoute → graph上の route id (強制経由判定用)
+const OUTER_ROUTE_TO_GRAPH = {
+  yokohane_route: 'K1', wangan_route: 'B', hodogaya_route: 'third_keihin',
+  hokuseisen_route: 'K7_hokusei', kitasen_route: 'K7', yokoyoko: 'yokoyoko',
+  tomei: 'tomei', chuo: 'chuo', kanetsu: 'kanetsu', tohoku: 'tohoku',
+  joban: 'joban', keiyo: 'keiyo', tokan: 'tokan', aqua: 'aqua',
+  tateyama: 'tateyama', third_keihin: 'third_keihin',
+};
+
 const state = {
   data: null,
   selected: {
@@ -683,42 +744,24 @@ function renderJctDetails(result, entryIc, exitIc) {
     }
   };
 
-  // 選択中ルートの segments を順に処理し、各セグメントの実経路 (path) を連結する。
-  // judge.js が path を出さない外側高速セグメントは、 fromName/toName から
-  // graph で区間 Dijkstra を計算して補完。これにより「ルート比較で選んだ経路」 と
-  // 「通過する高速網経路」 が一致する。
+  // 選択中の outerRoute に対応する graph route を「強制経由」 した経路を表示する。
+  // これにより「横羽線経由を選択」 → 経路詳細も横羽線(K1)を実際に通る経路、 と
+  // ルート比較の選択肢と経路詳細が一致する。
   if (graph && !_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
-  const icByName = new Map(ics.map(i => [i.name.replace(/（[^）]*）/g, '').trim(), i.id]));
-  const segPathOf = (seg) => {
-    if (seg.path && seg.path.length >= 2) return seg.path;
-    if (!graph) return null;
-    const fromId = icByName.get((seg.fromName || '').replace(/（[^）]*）/g, '').trim());
-    const toId = icByName.get((seg.toName || '').replace(/（[^）]*）/g, '').trim());
-    if (!fromId || !toId || fromId === toId) return null;
-    const sp = shortestPath(_routeDetailsAdj, fromId, toId);
-    return (sp.path && sp.path.length >= 2) ? sp.path : null;
-  };
-
-  let combined = [];
-  for (const seg of result.segments) {
-    const p = segPathOf(seg);
-    if (!p) continue;
-    if (combined.length === 0) {
-      combined = p.slice();
-    } else if (combined[combined.length - 1] === p[0]) {
-      combined.push(...p.slice(1));
-    } else {
-      combined.push(...p);
-    }
-  }
 
   let hasAnyPath = false;
-  if (combined.length >= 2) {
-    renderFilteredPath(combined);
-    hasAnyPath = true;
-  } else if (graph && entryIc && exitIc) {
-    // セグメント連結で取れない場合のみ、 入口IC→出口IC の全体 Dijkstra
-    const sp = shortestPath(_routeDetailsAdj, entryIc.id, exitIc.id);
+  if (graph && entryIc && exitIc) {
+    const outerRoute = state.selected.outerRoute;
+    const viaGraphRoute = OUTER_ROUTE_TO_GRAPH[outerRoute];
+    let sp = null;
+    if (viaGraphRoute) {
+      // 選択ルートを強制経由した経路
+      sp = shortestPathVia(_routeDetailsAdj, graph, entryIc.id, exitIc.id, viaGraphRoute);
+    }
+    // 強制経由で取れない (= その路線を通る経路が物理的に無い) or outerRoute=none → 通常最短
+    if (!sp || !sp.path || sp.path.length < 2) {
+      sp = shortestPath(_routeDetailsAdj, entryIc.id, exitIc.id);
+    }
     if (sp.path && sp.path.length >= 2) {
       renderFilteredPath(sp.path);
       hasAnyPath = true;
