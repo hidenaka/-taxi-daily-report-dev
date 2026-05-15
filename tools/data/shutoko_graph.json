@@ -1,7 +1,7 @@
 {
   "version": 4,
   "generated_at": "2026-04-27",
-  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。",
+  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。",
   "notes": "approx:true の辺は公式値未確認・推計値。undirected グラフとして使用。JCTノード(*_jct)は通過点として ics.json に entry_type:transit_only で登録、IC選択肢には現れない。",
   "nodes": [
     {
@@ -79,19 +79,23 @@
     {
       "id": "tokyo_ic",
       "routes": [
-        "3"
+        "3",
+        "tomei"
       ]
     },
     {
       "id": "tamagawa_ic",
       "routes": [
-        "dai3_keihin"
+        "dai3_keihin",
+        "yokoyoko",
+        "third_keihin"
       ]
     },
     {
       "id": "takaido",
       "routes": [
-        "4"
+        "4",
+        "chuo"
       ]
     },
     {
@@ -109,7 +113,8 @@
     {
       "id": "nerima",
       "routes": [
-        "5"
+        "5",
+        "kanetsu"
       ]
     },
     {
@@ -129,7 +134,8 @@
       "id": "kawaguchi_jct",
       "routes": [
         "S1",
-        "C2"
+        "C2",
+        "tohoku"
       ]
     },
     {
@@ -142,7 +148,8 @@
       "id": "misato_jct",
       "routes": [
         "6_misato",
-        "C2"
+        "C2",
+        "joban"
       ]
     },
     {
@@ -185,13 +192,15 @@
     {
       "id": "ukishima_jct",
       "routes": [
-        "B"
+        "B",
+        "aqua"
       ]
     },
     {
       "id": "wangan_ichikawa",
       "routes": [
-        "B"
+        "B",
+        "tokan"
       ]
     },
     {
@@ -281,7 +290,8 @@
     {
       "id": "shinozaki",
       "routes": [
-        "7"
+        "7",
+        "keiyo"
       ]
     },
     {
@@ -294,7 +304,8 @@
     {
       "id": "kisarazu_jct",
       "routes": [
-        "aqua"
+        "aqua",
+        "tateyama"
       ]
     },
     {
@@ -375,6 +386,926 @@
       "id": "shibakoen",
       "routes": [
         "C1"
+      ]
+    },
+    {
+      "id": "tomei_kawasaki",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "yokohama_machida",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "ebina",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "atsugi",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "chigasaki_chuo",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "chigasaki_nishi",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "chigasaki_kaigan",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "hiratsuka",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "oiso",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "hadano_nakai",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "ninomiya",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "oi_matsuda",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "odawara_higashi",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "hakoneguchi",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "gotemba",
+      "routes": [
+        "tomei"
+      ]
+    },
+    {
+      "id": "chofu",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "inagi",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "kunitachi_fuchu",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "hachioji",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "aihara",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "hachioji_nishi",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "sagamiko",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "akiruno",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "hinode",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "uenohara",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "ome",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "iruma",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "otsuki",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "katsunuma",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "kawaguchiko",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "ichinomiya_misaka",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "kofu_minami",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "kofu_showa",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "nirasaki",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "sutama",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "kobuchizawa",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "suwa_minami",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "suwa",
+      "routes": [
+        "chuo"
+      ]
+    },
+    {
+      "id": "wakoshi_kita",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "wako_gaikan",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "kawaguchi_nishi",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "oizumi_kanetsu",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "tokorozawa",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "kawagoe",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "tsurugashima",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "kenen_tsurugashima",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "higashimatsuyama",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "sakado",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "kawajima",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "sayama_hidaka",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "ranzan_ogawa",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "okegawa_kitamoto",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "hanazono",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "honjo_kodama",
+      "routes": [
+        "kanetsu"
+      ]
+    },
+    {
+      "id": "kawaguchi_chuo",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "urawa",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "soka_tohoku",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "gaikan_urawa",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "iwatsuki",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "kuki",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "kazo",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "hanyu",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "tatebayashi",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "sano_fujioka",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "tochigi",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "kanuma",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "utsunomiya",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "yaita",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "nishi_nasunoshiobara",
+      "routes": [
+        "tohoku"
+      ]
+    },
+    {
+      "id": "nagareyama",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "soka_joban",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "kawaguchi_higashi",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "kashiwa",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "yanaka_wara",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "yatabe",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "tsukuba_ushiku",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "sakura_tsuchiura",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "tsukuba_chuo",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "ushiku_ami",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "tsuchiura_kita",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "ami_higashi",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "inashiki",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "chiyoda_ishioka",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "mito",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "naka",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "hitachi_minami_ota",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "hitachi_chuo",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "hitachi_kita",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "takahagi",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "kitaibaraki",
+      "routes": [
+        "joban"
+      ]
+    },
+    {
+      "id": "keiyo_ichikawa",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "habara",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "funabashi",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "hanawa",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "makuhari",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "takeishi",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "anagawa",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "chiba_kita",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "kaizuka",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "yotsukaido",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "matsugaoka",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "omiya_togane",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "soga",
+      "routes": [
+        "keiyo",
+        "aqua"
+      ]
+    },
+    {
+      "id": "sakura_tokan",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "takada_togane",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "boso_takada",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "homuda",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "nakano_togane",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "yamada_togane",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "tomisato",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "togane",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "katsura_mobara",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "narita",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "shin_kukou",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "narita_kukou",
+      "routes": [
+        "keiyo",
+        "tokan"
+      ]
+    },
+    {
+      "id": "yatsu_funabashi",
+      "routes": [
+        "tokan"
+      ]
+    },
+    {
+      "id": "wangan_narashino",
+      "routes": [
+        "tokan"
+      ]
+    },
+    {
+      "id": "wangan_chiba",
+      "routes": [
+        "tokan"
+      ]
+    },
+    {
+      "id": "shisui",
+      "routes": [
+        "tokan"
+      ]
+    },
+    {
+      "id": "kisarazu_kaneda",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "sodegaura",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "kisarazu_kita",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "kisarazu_higashi",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "kimitsu",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "kisarazu_minami",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "anegasaki_sodegaura",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "kisarazu_chuo",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "futtsu_chuo",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "ichihara_aqua",
+      "routes": [
+        "aqua"
+      ]
+    },
+    {
+      "id": "futtsu_takeyama",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "futtsu_kanaya",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "kyonan_hota",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "kyonan_tomiyama",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "tomiura",
+      "routes": [
+        "aqua",
+        "tateyama"
+      ]
+    },
+    {
+      "id": "kariba",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "bessho",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "hino",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "konan_dai",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "asahina",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "zushi",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "yokosuka",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "kinugasa",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "sabara",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "uraga",
+      "routes": [
+        "yokoyoko"
+      ]
+    },
+    {
+      "id": "shin_hodogaya_jct",
+      "routes": [
+        "third_keihin"
+      ]
+    },
+    {
+      "id": "imai",
+      "routes": [
+        "third_keihin"
+      ]
+    },
+    {
+      "id": "kawakami",
+      "routes": [
+        "third_keihin"
+      ]
+    },
+    {
+      "id": "totsuka",
+      "routes": [
+        "third_keihin"
       ]
     }
   ],
@@ -806,6 +1737,1002 @@
       "to": "shibaura",
       "km": 2.6,
       "route": "1"
+    },
+    {
+      "from": "tokyo_ic",
+      "to": "tomei_kawasaki",
+      "km": 7.7,
+      "route": "tomei"
+    },
+    {
+      "from": "tomei_kawasaki",
+      "to": "yokohama_aoba",
+      "km": 5.6,
+      "route": "tomei"
+    },
+    {
+      "from": "yokohama_aoba",
+      "to": "yokohama_machida",
+      "km": 6.4,
+      "route": "tomei"
+    },
+    {
+      "from": "yokohama_machida",
+      "to": "ebina",
+      "km": 6.8,
+      "route": "tomei"
+    },
+    {
+      "from": "ebina",
+      "to": "atsugi",
+      "km": 8.5,
+      "route": "tomei"
+    },
+    {
+      "from": "atsugi",
+      "to": "chigasaki_chuo",
+      "km": 0.8,
+      "route": "tomei"
+    },
+    {
+      "from": "chigasaki_chuo",
+      "to": "chigasaki_nishi",
+      "km": 1.8,
+      "route": "tomei"
+    },
+    {
+      "from": "chigasaki_nishi",
+      "to": "chigasaki_kaigan",
+      "km": 1.2,
+      "route": "tomei"
+    },
+    {
+      "from": "chigasaki_kaigan",
+      "to": "hiratsuka",
+      "km": 4.7,
+      "route": "tomei"
+    },
+    {
+      "from": "hiratsuka",
+      "to": "oiso",
+      "km": 6,
+      "route": "tomei"
+    },
+    {
+      "from": "oiso",
+      "to": "hadano_nakai",
+      "km": 0.6,
+      "route": "tomei"
+    },
+    {
+      "from": "hadano_nakai",
+      "to": "ninomiya",
+      "km": 2.9,
+      "route": "tomei"
+    },
+    {
+      "from": "ninomiya",
+      "to": "oi_matsuda",
+      "km": 4.6,
+      "route": "tomei"
+    },
+    {
+      "from": "oi_matsuda",
+      "to": "odawara_higashi",
+      "km": 2.4,
+      "route": "tomei"
+    },
+    {
+      "from": "odawara_higashi",
+      "to": "hakoneguchi",
+      "km": 7.4,
+      "route": "tomei"
+    },
+    {
+      "from": "hakoneguchi",
+      "to": "gotemba",
+      "km": 16.3,
+      "route": "tomei"
+    },
+    {
+      "from": "takaido",
+      "to": "chofu",
+      "km": 7.7,
+      "route": "chuo"
+    },
+    {
+      "from": "chofu",
+      "to": "inagi",
+      "km": 2.3,
+      "route": "chuo"
+    },
+    {
+      "from": "inagi",
+      "to": "kunitachi_fuchu",
+      "km": 7,
+      "route": "chuo"
+    },
+    {
+      "from": "kunitachi_fuchu",
+      "to": "hachioji",
+      "km": 8.8,
+      "route": "chuo"
+    },
+    {
+      "from": "hachioji",
+      "to": "aihara",
+      "km": 3.4,
+      "route": "chuo"
+    },
+    {
+      "from": "aihara",
+      "to": "hachioji_nishi",
+      "km": 11.2,
+      "route": "chuo"
+    },
+    {
+      "from": "hachioji_nishi",
+      "to": "sagamiko",
+      "km": 5,
+      "route": "chuo"
+    },
+    {
+      "from": "sagamiko",
+      "to": "akiruno",
+      "km": 0.2,
+      "route": "chuo"
+    },
+    {
+      "from": "akiruno",
+      "to": "hinode",
+      "km": 2,
+      "route": "chuo"
+    },
+    {
+      "from": "hinode",
+      "to": "uenohara",
+      "km": 2.7,
+      "route": "chuo"
+    },
+    {
+      "from": "uenohara",
+      "to": "ome",
+      "km": 6,
+      "route": "chuo"
+    },
+    {
+      "from": "ome",
+      "to": "iruma",
+      "km": 4.8,
+      "route": "chuo"
+    },
+    {
+      "from": "iruma",
+      "to": "otsuki",
+      "km": 10.3,
+      "route": "chuo"
+    },
+    {
+      "from": "otsuki",
+      "to": "katsunuma",
+      "km": 18.7,
+      "route": "chuo"
+    },
+    {
+      "from": "katsunuma",
+      "to": "kawaguchiko",
+      "km": 3.8,
+      "route": "chuo"
+    },
+    {
+      "from": "kawaguchiko",
+      "to": "ichinomiya_misaka",
+      "km": 2.4,
+      "route": "chuo"
+    },
+    {
+      "from": "ichinomiya_misaka",
+      "to": "kofu_minami",
+      "km": 9.3,
+      "route": "chuo"
+    },
+    {
+      "from": "kofu_minami",
+      "to": "kofu_showa",
+      "km": 7.6,
+      "route": "chuo"
+    },
+    {
+      "from": "kofu_showa",
+      "to": "nirasaki",
+      "km": 11.2,
+      "route": "chuo"
+    },
+    {
+      "from": "nirasaki",
+      "to": "sutama",
+      "km": 7,
+      "route": "chuo"
+    },
+    {
+      "from": "sutama",
+      "to": "kobuchizawa",
+      "km": 16.9,
+      "route": "chuo"
+    },
+    {
+      "from": "kobuchizawa",
+      "to": "suwa_minami",
+      "km": 12.6,
+      "route": "chuo"
+    },
+    {
+      "from": "suwa_minami",
+      "to": "suwa",
+      "km": 11.1,
+      "route": "chuo"
+    },
+    {
+      "from": "nerima",
+      "to": "wakoshi_kita",
+      "km": 3,
+      "route": "kanetsu"
+    },
+    {
+      "from": "wakoshi_kita",
+      "to": "wako_gaikan",
+      "km": 2.1,
+      "route": "kanetsu"
+    },
+    {
+      "from": "wako_gaikan",
+      "to": "kawaguchi_nishi",
+      "km": 0.4,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kawaguchi_nishi",
+      "to": "oizumi_kanetsu",
+      "km": 3,
+      "route": "kanetsu"
+    },
+    {
+      "from": "oizumi_kanetsu",
+      "to": "tokorozawa",
+      "km": 0.9,
+      "route": "kanetsu"
+    },
+    {
+      "from": "tokorozawa",
+      "to": "kawagoe",
+      "km": 11.8,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kawagoe",
+      "to": "tsurugashima",
+      "km": 8.4,
+      "route": "kanetsu"
+    },
+    {
+      "from": "tsurugashima",
+      "to": "kenen_tsurugashima",
+      "km": 8.1,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kenen_tsurugashima",
+      "to": "higashimatsuyama",
+      "km": 1.7,
+      "route": "kanetsu"
+    },
+    {
+      "from": "higashimatsuyama",
+      "to": "sakado",
+      "km": 1.3,
+      "route": "kanetsu"
+    },
+    {
+      "from": "sakado",
+      "to": "kawajima",
+      "km": 2.5,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kawajima",
+      "to": "sayama_hidaka",
+      "km": 1.3,
+      "route": "kanetsu"
+    },
+    {
+      "from": "sayama_hidaka",
+      "to": "ranzan_ogawa",
+      "km": 2.9,
+      "route": "kanetsu"
+    },
+    {
+      "from": "ranzan_ogawa",
+      "to": "okegawa_kitamoto",
+      "km": 1.5,
+      "route": "kanetsu"
+    },
+    {
+      "from": "okegawa_kitamoto",
+      "to": "hanazono",
+      "km": 7.2,
+      "route": "kanetsu"
+    },
+    {
+      "from": "hanazono",
+      "to": "honjo_kodama",
+      "km": 13.5,
+      "route": "kanetsu"
+    },
+    {
+      "from": "kawaguchi_jct",
+      "to": "kawaguchi_chuo",
+      "km": 0.8,
+      "route": "tohoku"
+    },
+    {
+      "from": "kawaguchi_chuo",
+      "to": "urawa",
+      "km": 2.4,
+      "route": "tohoku"
+    },
+    {
+      "from": "urawa",
+      "to": "soka_tohoku",
+      "km": 1.6,
+      "route": "tohoku"
+    },
+    {
+      "from": "soka_tohoku",
+      "to": "gaikan_urawa",
+      "km": 0.5,
+      "route": "tohoku"
+    },
+    {
+      "from": "gaikan_urawa",
+      "to": "iwatsuki",
+      "km": 5.2,
+      "route": "tohoku"
+    },
+    {
+      "from": "iwatsuki",
+      "to": "kuki",
+      "km": 15,
+      "route": "tohoku"
+    },
+    {
+      "from": "kuki",
+      "to": "kazo",
+      "km": 7.9,
+      "route": "tohoku"
+    },
+    {
+      "from": "kazo",
+      "to": "hanyu",
+      "km": 6,
+      "route": "tohoku"
+    },
+    {
+      "from": "hanyu",
+      "to": "tatebayashi",
+      "km": 6.6,
+      "route": "tohoku"
+    },
+    {
+      "from": "tatebayashi",
+      "to": "sano_fujioka",
+      "km": 9,
+      "route": "tohoku"
+    },
+    {
+      "from": "sano_fujioka",
+      "to": "tochigi",
+      "km": 17.7,
+      "route": "tohoku"
+    },
+    {
+      "from": "tochigi",
+      "to": "kanuma",
+      "km": 18.8,
+      "route": "tohoku"
+    },
+    {
+      "from": "kanuma",
+      "to": "utsunomiya",
+      "km": 11.5,
+      "route": "tohoku"
+    },
+    {
+      "from": "utsunomiya",
+      "to": "yaita",
+      "km": 17.2,
+      "route": "tohoku"
+    },
+    {
+      "from": "yaita",
+      "to": "nishi_nasunoshiobara",
+      "km": 18.9,
+      "route": "tohoku"
+    },
+    {
+      "from": "misato_jct",
+      "to": "nagareyama",
+      "km": 6.1,
+      "route": "joban"
+    },
+    {
+      "from": "nagareyama",
+      "to": "soka_joban",
+      "km": 1.1,
+      "route": "joban"
+    },
+    {
+      "from": "soka_joban",
+      "to": "kawaguchi_higashi",
+      "km": 3.4,
+      "route": "joban"
+    },
+    {
+      "from": "kawaguchi_higashi",
+      "to": "kashiwa",
+      "km": 0.2,
+      "route": "joban"
+    },
+    {
+      "from": "kashiwa",
+      "to": "yanaka_wara",
+      "km": 8.3,
+      "route": "joban"
+    },
+    {
+      "from": "yanaka_wara",
+      "to": "yatabe",
+      "km": 11.2,
+      "route": "joban"
+    },
+    {
+      "from": "yatabe",
+      "to": "tsukuba_ushiku",
+      "km": 5.8,
+      "route": "joban"
+    },
+    {
+      "from": "tsukuba_ushiku",
+      "to": "sakura_tsuchiura",
+      "km": 2.6,
+      "route": "joban"
+    },
+    {
+      "from": "sakura_tsuchiura",
+      "to": "tsukuba_chuo",
+      "km": 0.2,
+      "route": "joban"
+    },
+    {
+      "from": "tsukuba_chuo",
+      "to": "ushiku_ami",
+      "km": 3.3,
+      "route": "joban"
+    },
+    {
+      "from": "ushiku_ami",
+      "to": "tsuchiura_kita",
+      "km": 4.4,
+      "route": "joban"
+    },
+    {
+      "from": "tsuchiura_kita",
+      "to": "ami_higashi",
+      "km": 1.5,
+      "route": "joban"
+    },
+    {
+      "from": "ami_higashi",
+      "to": "inashiki",
+      "km": 6,
+      "route": "joban"
+    },
+    {
+      "from": "inashiki",
+      "to": "chiyoda_ishioka",
+      "km": 0.6,
+      "route": "joban"
+    },
+    {
+      "from": "chiyoda_ishioka",
+      "to": "mito",
+      "km": 27.3,
+      "route": "joban"
+    },
+    {
+      "from": "mito",
+      "to": "naka",
+      "km": 11.8,
+      "route": "joban"
+    },
+    {
+      "from": "naka",
+      "to": "hitachi_minami_ota",
+      "km": 11.5,
+      "route": "joban"
+    },
+    {
+      "from": "hitachi_minami_ota",
+      "to": "hitachi_chuo",
+      "km": 12.2,
+      "route": "joban"
+    },
+    {
+      "from": "hitachi_chuo",
+      "to": "hitachi_kita",
+      "km": 6.8,
+      "route": "joban"
+    },
+    {
+      "from": "hitachi_kita",
+      "to": "takahagi",
+      "km": 10.9,
+      "route": "joban"
+    },
+    {
+      "from": "takahagi",
+      "to": "kitaibaraki",
+      "km": 7.2,
+      "route": "joban"
+    },
+    {
+      "from": "shinozaki",
+      "to": "keiyo_ichikawa",
+      "km": 1.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "keiyo_ichikawa",
+      "to": "habara",
+      "km": 3,
+      "route": "keiyo"
+    },
+    {
+      "from": "habara",
+      "to": "funabashi",
+      "km": 0.8,
+      "route": "keiyo"
+    },
+    {
+      "from": "funabashi",
+      "to": "hanawa",
+      "km": 3.6,
+      "route": "keiyo"
+    },
+    {
+      "from": "hanawa",
+      "to": "makuhari",
+      "km": 3.7,
+      "route": "keiyo"
+    },
+    {
+      "from": "makuhari",
+      "to": "takeishi",
+      "km": 2.7,
+      "route": "keiyo"
+    },
+    {
+      "from": "takeishi",
+      "to": "anagawa",
+      "km": 5.9,
+      "route": "keiyo"
+    },
+    {
+      "from": "anagawa",
+      "to": "chiba_kita",
+      "km": 0.2,
+      "route": "keiyo"
+    },
+    {
+      "from": "chiba_kita",
+      "to": "kaizuka",
+      "km": 3.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "kaizuka",
+      "to": "yotsukaido",
+      "km": 2.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "yotsukaido",
+      "to": "matsugaoka",
+      "km": 1.3,
+      "route": "keiyo"
+    },
+    {
+      "from": "matsugaoka",
+      "to": "omiya_togane",
+      "km": 2.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "omiya_togane",
+      "to": "soga",
+      "km": 0.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "soga",
+      "to": "sakura_tokan",
+      "km": 1.4,
+      "route": "keiyo"
+    },
+    {
+      "from": "sakura_tokan",
+      "to": "takada_togane",
+      "km": 2.5,
+      "route": "keiyo"
+    },
+    {
+      "from": "takada_togane",
+      "to": "boso_takada",
+      "km": 0.3,
+      "route": "keiyo"
+    },
+    {
+      "from": "boso_takada",
+      "to": "homuda",
+      "km": 2,
+      "route": "keiyo"
+    },
+    {
+      "from": "homuda",
+      "to": "nakano_togane",
+      "km": 1.6,
+      "route": "keiyo"
+    },
+    {
+      "from": "nakano_togane",
+      "to": "yamada_togane",
+      "km": 2.5,
+      "route": "keiyo"
+    },
+    {
+      "from": "yamada_togane",
+      "to": "tomisato",
+      "km": 0.5,
+      "route": "keiyo"
+    },
+    {
+      "from": "tomisato",
+      "to": "togane",
+      "km": 1.7,
+      "route": "keiyo"
+    },
+    {
+      "from": "togane",
+      "to": "katsura_mobara",
+      "km": 1.8,
+      "route": "keiyo"
+    },
+    {
+      "from": "katsura_mobara",
+      "to": "narita",
+      "km": 1.9,
+      "route": "keiyo"
+    },
+    {
+      "from": "narita",
+      "to": "shin_kukou",
+      "km": 3.9,
+      "route": "keiyo"
+    },
+    {
+      "from": "shin_kukou",
+      "to": "narita_kukou",
+      "km": 0,
+      "route": "keiyo"
+    },
+    {
+      "from": "wangan_ichikawa",
+      "to": "yatsu_funabashi",
+      "km": 4.5,
+      "route": "tokan"
+    },
+    {
+      "from": "yatsu_funabashi",
+      "to": "wangan_narashino",
+      "km": 2.4,
+      "route": "tokan"
+    },
+    {
+      "from": "wangan_narashino",
+      "to": "wangan_chiba",
+      "km": 3.7,
+      "route": "tokan"
+    },
+    {
+      "from": "wangan_chiba",
+      "to": "chiba_kita",
+      "km": 7.2,
+      "route": "tokan"
+    },
+    {
+      "from": "chiba_kita",
+      "to": "yotsukaido",
+      "km": 5.8,
+      "route": "tokan"
+    },
+    {
+      "from": "yotsukaido",
+      "to": "omiya_togane",
+      "km": 4.7,
+      "route": "tokan"
+    },
+    {
+      "from": "omiya_togane",
+      "to": "sakura_tokan",
+      "km": 0.7,
+      "route": "tokan"
+    },
+    {
+      "from": "homuda",
+      "to": "shisui",
+      "km": 1.1,
+      "route": "tokan"
+    },
+    {
+      "from": "shisui",
+      "to": "nakano_togane",
+      "km": 0.5,
+      "route": "tokan"
+    },
+    {
+      "from": "nakano_togane",
+      "to": "tomisato",
+      "km": 2,
+      "route": "tokan"
+    },
+    {
+      "from": "yamada_togane",
+      "to": "togane",
+      "km": 2.2,
+      "route": "tokan"
+    },
+    {
+      "from": "narita",
+      "to": "narita_kukou",
+      "km": 4.9,
+      "route": "tokan"
+    },
+    {
+      "from": "ukishima_jct",
+      "to": "soga",
+      "km": 14,
+      "route": "aqua"
+    },
+    {
+      "from": "soga",
+      "to": "matsugaoka",
+      "km": 0,
+      "route": "aqua"
+    },
+    {
+      "from": "matsugaoka",
+      "to": "kaizuka",
+      "km": 0,
+      "route": "aqua"
+    },
+    {
+      "from": "kaizuka",
+      "to": "anagawa",
+      "km": 0,
+      "route": "aqua"
+    },
+    {
+      "from": "keiyo_ichikawa",
+      "to": "kisarazu_kaneda",
+      "km": 1.1,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_kaneda",
+      "to": "sodegaura",
+      "km": 3.9,
+      "route": "aqua"
+    },
+    {
+      "from": "sodegaura",
+      "to": "kisarazu_jct",
+      "km": 4.7,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_jct",
+      "to": "kisarazu_kita",
+      "km": 1.8,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_kita",
+      "to": "kisarazu_higashi",
+      "km": 3.8,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_higashi",
+      "to": "kimitsu",
+      "km": 2.3,
+      "route": "aqua"
+    },
+    {
+      "from": "kimitsu",
+      "to": "kisarazu_minami",
+      "km": 0.3,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_minami",
+      "to": "anegasaki_sodegaura",
+      "km": 0.6,
+      "route": "aqua"
+    },
+    {
+      "from": "anegasaki_sodegaura",
+      "to": "kisarazu_chuo",
+      "km": 8.3,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_chuo",
+      "to": "futtsu_chuo",
+      "km": 0.1,
+      "route": "aqua"
+    },
+    {
+      "from": "futtsu_chuo",
+      "to": "ichihara_aqua",
+      "km": 1.6,
+      "route": "aqua"
+    },
+    {
+      "from": "ichihara_aqua",
+      "to": "futtsu_takeyama",
+      "km": 5.9,
+      "route": "aqua"
+    },
+    {
+      "from": "futtsu_takeyama",
+      "to": "futtsu_kanaya",
+      "km": 4.1,
+      "route": "aqua"
+    },
+    {
+      "from": "futtsu_kanaya",
+      "to": "kyonan_hota",
+      "km": 3.7,
+      "route": "aqua"
+    },
+    {
+      "from": "kyonan_hota",
+      "to": "kyonan_tomiyama",
+      "km": 3.2,
+      "route": "aqua"
+    },
+    {
+      "from": "kyonan_tomiyama",
+      "to": "tomiura",
+      "km": 8.1,
+      "route": "aqua"
+    },
+    {
+      "from": "kisarazu_jct",
+      "to": "kimitsu",
+      "km": 7.9,
+      "route": "tateyama"
+    },
+    {
+      "from": "kimitsu",
+      "to": "futtsu_chuo",
+      "km": 9.3,
+      "route": "tateyama"
+    },
+    {
+      "from": "futtsu_chuo",
+      "to": "futtsu_takeyama",
+      "km": 7.5,
+      "route": "tateyama"
+    },
+    {
+      "from": "tamagawa_ic",
+      "to": "kariba",
+      "km": 22.4,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "kariba",
+      "to": "bessho",
+      "km": 3.2,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "bessho",
+      "to": "hino",
+      "km": 4.5,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "hino",
+      "to": "konan_dai",
+      "km": 1.6,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "konan_dai",
+      "to": "asahina",
+      "km": 4.2,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "asahina",
+      "to": "zushi",
+      "km": 5.6,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "zushi",
+      "to": "yokosuka",
+      "km": 2.2,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "yokosuka",
+      "to": "kinugasa",
+      "km": 5.3,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "kinugasa",
+      "to": "sabara",
+      "km": 1.8,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "sabara",
+      "to": "uraga",
+      "km": 3.2,
+      "route": "yokoyoko"
+    },
+    {
+      "from": "tsuzuki",
+      "to": "kohoku",
+      "km": 3,
+      "route": "third_keihin"
+    },
+    {
+      "from": "hodogaya",
+      "to": "shin_hodogaya_jct",
+      "km": 4.6,
+      "route": "third_keihin"
+    },
+    {
+      "from": "shin_hodogaya_jct",
+      "to": "imai",
+      "km": 1.3,
+      "route": "third_keihin"
+    },
+    {
+      "from": "imai",
+      "to": "kawakami",
+      "km": 1.4,
+      "route": "third_keihin"
+    },
+    {
+      "from": "kawakami",
+      "to": "totsuka",
+      "km": 2.7,
+      "route": "third_keihin"
     }
   ]
 }
