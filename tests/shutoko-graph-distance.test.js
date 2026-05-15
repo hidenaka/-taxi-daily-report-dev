@@ -102,6 +102,29 @@ test('distance: 練馬IC → 美女木JCT (関越→外環) が 大泉JCT 経由
   const r = shortestPath(adj, 'nerima', 'bijogi_jct');
   console.log(`[kanetsu→gaikan via oizumi_jct] nerima→bijogi_jct: ${r.km}km path: ${r.path.join('→')}`);
   assert.ok(r.path.includes('oizumi_jct'), '大泉JCT経由してない');
-  // Wikipedia: 練馬IC→大泉JCT 0.8km + 大泉JCT→和光IC 3.4km → 美女木JCT(外環) までは推定値
   assert.ok(Math.abs(r.km - 8.5) < 0.5, `${r.km}km, 期待は 8.5km前後`);
+});
+
+test('graph: 浜崎橋JCT + 芝公園 が node 登録されている', () => {
+  for (const id of ['hamazakibashi_jct', 'shibakoen']) {
+    const n = graph.nodes.find((x) => x.id === id);
+    assert.ok(n, `node missing: ${id}`);
+  }
+});
+
+test('distance: 汐留JCT→飯倉 (C1経由) が Wikipedia 公式合計 3.8km と一致', () => {
+  const r = shortestPath(adj, 'shiodome_jct', 'iikura');
+  // 0.9 + 0.9 + 1.4 + 0.6 = 3.8km
+  console.log(`[C1 trunk] shiodome_jct→iikura: ${r.km}km path: ${r.path.join('→')}`);
+  assert.ok(Math.abs(r.km - 3.8) < 0.2, `${r.km}km, Wikipedia 3.8km から乖離`);
+  assert.ok(r.path.includes('hamazakibashi_jct'), '浜崎橋JCT経由してない');
+  assert.ok(r.path.includes('ichinohashi_jct'), '一ノ橋JCT経由してない');
+});
+
+test('distance: shibaura(1号羽田線) → C1 経路が浜崎橋JCT経由', () => {
+  const r = shortestPath(adj, 'shibaura', 'shiodome_jct');
+  console.log(`[1→C1 via hamazakibashi_jct] shibaura→shiodome_jct: ${r.km}km path: ${r.path.join('→')}`);
+  assert.ok(r.path.includes('hamazakibashi_jct'));
+  // 浜崎橋JCT→shibaura 2.6 + 浜崎橋JCT→shiodome_jct 0.9 = 3.5km
+  assert.ok(Math.abs(r.km - 3.5) < 0.5);
 });

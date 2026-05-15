@@ -3564,6 +3564,38 @@
       },
       "entry_type": "transit_only",
       "boundary_tag": null
+    },
+    {
+      "id": "hamazakibashi_jct",
+      "name": "浜崎橋JCT",
+      "route": "C1",
+      "route_name": "都心環状線",
+      "gps": {
+        "lat": 35.6517,
+        "lng": 139.7642
+      },
+      "svg": {
+        "x": 610,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "shibakoen",
+      "name": "芝公園",
+      "route": "C1",
+      "route_name": "都心環状線",
+      "gps": {
+        "lat": 35.6557,
+        "lng": 139.7497
+      },
+      "svg": {
+        "x": 600,
+        "y": 590
+      },
+      "entry_type": "both",
+      "boundary_tag": null
     }
   ]
 }
