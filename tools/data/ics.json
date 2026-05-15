@@ -4108,6 +4108,342 @@
       },
       "entry_type": "both",
       "boundary_tag": null
+    },
+    {
+      "id": "edobashi_jct",
+      "name": "江戸橋JCT",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "hakozaki_jct",
+      "name": "箱崎JCT",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "hamacho",
+      "name": "浜町",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "kiyosubashi",
+      "name": "清洲橋",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "komagata",
+      "name": "駒形",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "mukojima",
+      "name": "向島",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "tsutsumidori",
+      "name": "堤通",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "horikiri_jct",
+      "name": "堀切JCT",
+      "route": "6",
+      "route_name": "6号向島線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "komatsugawa_jct",
+      "name": "小松川JCT",
+      "route": "7",
+      "route_name": "7号小松川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "komatsugawa",
+      "name": "小松川",
+      "route": "7",
+      "route_name": "7号小松川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "ichinoe",
+      "name": "一之江",
+      "route": "7",
+      "route_name": "7号小松川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "keiyo_jct",
+      "name": "京葉JCT",
+      "route": "7",
+      "route_name": "7号小松川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "fukuzumi",
+      "name": "福住",
+      "route": "9",
+      "route_name": "9号深川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "kiba",
+      "name": "木場",
+      "route": "9",
+      "route_name": "9号深川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "shiohama",
+      "name": "塩浜",
+      "route": "9",
+      "route_name": "9号深川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "edagawa",
+      "name": "枝川",
+      "route": "9",
+      "route_name": "9号深川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "tatsumi_jct",
+      "name": "辰巳JCT",
+      "route": "9",
+      "route_name": "9号深川線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "harumi",
+      "name": "晴海",
+      "route": "10",
+      "route_name": "10号晴海線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "toyosu",
+      "name": "豊洲",
+      "route": "10",
+      "route_name": "10号晴海線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "shinonome_jct",
+      "name": "東雲JCT",
+      "route": "10",
+      "route_name": "10号晴海線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "daiba",
+      "name": "台場",
+      "route": "11",
+      "route_name": "11号台場線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
     }
   ]
 }
