@@ -645,12 +645,20 @@ function renderJctDetails(result, entryIc, exitIc) {
     'yokohane_route':'横羽経由','wangan_route':'湾岸経由','hodogaya_route':'保土ヶ谷BP',
     'hokuseisen_route':'北西線','kitasen_route':'横浜北線','gaikan':'外環',
   };
-  const keepNode = (id, i, len) => {
+  const keepNode = (id, i, len, path) => {
     if (i === 0 || i === len - 1) return true;
     const ic = findIc(id);
-    if (!ic) return false;
-    if (id.includes('jct') || (ic.name || '').includes('JCT')) return true;
-    if (ic.entry_type === 'transit_only' || ic.entry_type === 'jct') return true;
+    if (ic) {
+      if (id.includes('jct') || (ic.name || '').includes('JCT')) return true;
+      if (ic.entry_type === 'transit_only' || ic.entry_type === 'jct') return true;
+    }
+    // 路線切り替え点 (前後の edge route が異なるノード) は必ず残す
+    // → 中間IC省略で路線変更地点が消え路線名表示が誤る問題を防ぐ
+    if (path && i > 0 && i < len - 1) {
+      const rPrev = edgeRouteMap.get(`${path[i - 1]}|${path[i]}`);
+      const rNext = edgeRouteMap.get(`${path[i]}|${path[i + 1]}`);
+      if (rPrev && rNext && rPrev !== rNext) return true;
+    }
     return false;
   };
   const buildNode = (id) => {
@@ -681,8 +689,8 @@ function renderJctDetails(result, entryIc, exitIc) {
     return ROUTE_LABEL[best] || best;
   };
   const renderFilteredPath = (path) => {
-    // path全長の filtered indices を取る
-    const keep = path.map((id, i) => keepNode(id, i, path.length) ? i : -1).filter(i => i >= 0);
+    // path全長の filtered indices を取る (路線切替点判定のため path を渡す)
+    const keep = path.map((id, i) => keepNode(id, i, path.length, path) ? i : -1).filter(i => i >= 0);
     for (let i = 0; i < keep.length; i++) {
       list.appendChild(buildNode(path[keep[i]]));
       if (i < keep.length - 1) {
