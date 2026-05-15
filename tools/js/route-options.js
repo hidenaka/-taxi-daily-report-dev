@@ -9,94 +9,57 @@ const HANEDA_KANAGAWA_PRIORITY = [
   'yokoyoko',
   'tomei',
 ];
-const HANEDA_ORIGIN_PRIORITY = [
-  'tomei',
-  'chuo',
-  'kitasen_route',
-  'hokuseisen_route',
-  'wangan_route',
-  'yokohane_route',
-  'hodogaya_route',
-  'third_keihin',
-  'yokoyoko',
-];
-
-const BASELINE_ROUTE_OPTIONS = {
-  tokyo_ic: ['tomei', 'kitasen_route'],
-  takaido: ['chuo'],
-  nerima: ['kanetsu'],
-  kawaguchi_jct: ['tohoku'],
-  misato_jct: ['joban'],
-  shinozaki: ['keiyo'],
-  wangan_ichikawa: ['tokan'],
-  ukishima_jct: ['aqua'],
-  kisarazu_jct: ['tateyama'],
-  tamagawa_ic: ['third_keihin', 'yokoyoko'],
-  kukou_chuou: ['wangan_route', 'kitasen_route', 'hokuseisen_route', 'yokohane_route', 'hodogaya_route'],
-  wangan_kanpachi: ['wangan_route', 'kitasen_route', 'hokuseisen_route', 'yokohane_route', 'hodogaya_route'],
-};
 
 function priorityIndex(list, routeId) {
   const idx = list.indexOf(routeId);
   return idx === -1 ? Number.POSITIVE_INFINITY : idx;
 }
 
-/**
- * ICの分類を判定する。
- * - OUTER_BASELINE: いずれかのdirectionのbaseline（外側高速の起点）
- * - OUTER_TRANSIT: 外側高速のentriesにkm>0で存在（外側高速の途中IC）
- * - CONNECTOR: 外側高速のentriesにkm=0のみ存在（首都高内だが外側高速接続点）
- * - PURE_SHUTOKO: 外側高速のentriesに存在せず、baselineでもない（純粋な首都高内IC）
- */
-function classifyIc(ic, deduction) {
-  if (!ic) return 'PURE_SHUTOKO';
-
-  // 1. OUTER_BASELINE チェック
-  for (const dir of deduction.directions) {
-    if (dir.baseline.ic_id === ic.id) return 'OUTER_BASELINE';
+let outerIdsCache = null;
+let outerIdsCacheKey = null;
+function getOuterDirectionIds(deduction) {
+  if (outerIdsCacheKey !== deduction) {
+    outerIdsCache = new Set(deduction.directions.map((d) => d.id));
+    outerIdsCacheKey = deduction;
   }
-
-  // 2. entriesを走査してkm>0かkm=0かを判定
-  let hasKmGt0 = false;
-  let hasKmZero = false;
-  for (const dir of deduction.directions) {
-    const entry = dir.entries.find((e) => e.ic_id === ic.id);
-    if (entry) {
-      if (entry.km > 0) hasKmGt0 = true;
-      else if (entry.km === 0) hasKmZero = true;
-    }
-  }
-
-  if (hasKmGt0) return 'OUTER_TRANSIT';
-  if (hasKmZero) return 'CONNECTOR';
-  return 'PURE_SHUTOKO';
+  return outerIdsCache;
 }
 
 /**
- * 指定ICにマッチするdirectionとkmを返す。
- * OUTER_BASELINEの場合はBASELINE_ROUTE_OPTIONSから、
- * それ以外はdeduction.directions.entriesから取得。
- * CONNECTOR（km=0）も含む。
+ * 指定ICが物理的に乗っている外側高速 direction の集合を返す。
+ *
+ * 判定ルール（OR）:
+ * 1. ic.route が外側高速 direction id と一致 → そのdirection（主たる物理所属）
+ * 2. dir.baseline.ic_id === ic.id → そのdirection（複数路線の起点ICを許容: 例 tamagawa_ic = third_keihin + yokoyoko）
+ *
+ * dir.entries の登録は **控除計算用メタデータ** として deduction.json に保持されており、
+ * 「そのIC自身が物理的にそのdirection上にある」を意味しないため、UI候補生成からは除外する。
+ * 例: tokyo_ic は kitasen_route の entries に km=13.3 で登録されているが、
+ *     これは「北線経由で来た人が tokyo_ic で控除される距離」を意味する控除メタで、
+ *     tokyo_ic 自体は kitasen_route 上にはない。
+ *
+ * @returns {Array<{id: string, km: number}>}
  */
-function matchedRoutesForIc(ic, deduction) {
-  if (!ic) return null;
+function getIcMatchedRoutes(ic, deduction) {
+  if (!ic) return [];
+  const map = new Map();
+  const outerIds = getOuterDirectionIds(deduction);
 
-  if (BASELINE_ROUTE_OPTIONS[ic.id]) {
-    return BASELINE_ROUTE_OPTIONS[ic.id].map((id, index) => ({ id, km: index }));
+  if (outerIds.has(ic.route)) {
+    map.set(ic.route, 0);
   }
 
-  const matched = [];
   for (const dir of deduction.directions) {
-    const entry = dir.entries.find((e) => e.ic_id === ic.id);
-    if (entry && entry.km >= 0) {
-      matched.push({ id: dir.id, km: entry.km });
+    if (dir.baseline.ic_id === ic.id && !map.has(dir.id)) {
+      map.set(dir.id, 0);
     }
   }
-  return matched.length > 0 ? matched : null;
+
+  return [...map.entries()].map(([id, km]) => ({ id, km }));
 }
 
 /**
- * 出口ICがentriesにkm>0で存在するdirection IDセットを返す。
+ * 出口ICが entries に km>0 で存在する direction IDセットを返す。ソート優先順位の判定に使用。
  */
 function getExitRouteIds(exitIc, deduction) {
   if (!exitIc) return new Set();
@@ -109,9 +72,6 @@ function getExitRouteIds(exitIc, deduction) {
   return ids;
 }
 
-/**
- * ルート候補をソートして返す共通処理。
- */
 function sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, wanganFirst }) {
   matched.sort((a, b) => {
     if (isHanedaBound) {
@@ -119,7 +79,6 @@ function sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, w
       const bp = priorityIndex(HANEDA_KANAGAWA_PRIORITY, b.id);
       if (ap !== bp) return ap - bp;
     } else if (exitRouteIds) {
-      // 出口ICがentriesに存在するdirectionを最優先
       const aInExit = exitRouteIds.has(a.id);
       const bInExit = exitRouteIds.has(b.id);
       if (aInExit !== bInExit) return aInExit ? -1 : 1;
@@ -140,50 +99,34 @@ function sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, w
   return matched.map((m) => m.id);
 }
 
+/**
+ * 入口IC × 出口IC の組み合わせに対し、物理的に意味のある外側高速 direction 候補を返す。
+ *
+ * 候補集合 = (入口ICの所属外側高速) ∪ (出口ICの所属外側高速)
+ * 両方とも空 (両ICが首都高内) → ['none']
+ *
+ * 旧実装の BASELINE_ROUTE_OPTIONS テーブルが入口路線によらず固定値を返していた問題
+ * (例: 東京IC + 空港中央 で kitasen_route が候補に混入) を、所属集合ベースの判定で解消。
+ */
 export function getOuterRouteOptionsForIc({ ic, exitIc = null, deduction }) {
   if (!ic) return ['none'];
 
-  const icClass = classifyIc(ic, deduction);
-  const exitClass = classifyIc(exitIc, deduction);
+  const entryMatched = getIcMatchedRoutes(ic, deduction);
+  const exitMatched = getIcMatchedRoutes(exitIc, deduction);
 
+  const merged = new Map();
+  for (const m of entryMatched) merged.set(m.id, m.km);
+  for (const m of exitMatched) {
+    if (!merged.has(m.id)) merged.set(m.id, m.km);
+  }
+
+  if (merged.size === 0) return ['none'];
+
+  const matched = [...merged.entries()].map(([id, km]) => ({ id, km }));
   const wanganFirst = new Set(['tokan', 'wangan_route', 'aqua']);
   const isHanedaBound = HANEDA_EXIT_IDS.has(exitIc?.id);
   const directRoute = ic.route;
   const exitRouteIds = getExitRouteIds(exitIc, deduction);
 
-  // =========================================
-  // 入口が外側高速IC（BASELINE または TRANSIT）
-  // =========================================
-  // 外側高速から首都高へ入る場合も、外側高速区間の控除計算のため
-  // 入口ICのdirection候補を返す必要がある。
-  if (icClass === 'OUTER_BASELINE' || icClass === 'OUTER_TRANSIT') {
-    let matched = matchedRoutesForIc(ic, deduction);
-    if (matched?.length > 0) {
-      return sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, wanganFirst });
-    }
-
-    return ['none'];
-  }
-
-  // =========================================
-  // 入口が首都高内IC（CONNECTOR または PURE_SHUTOKO）
-  // =========================================
-  if (icClass === 'CONNECTOR' || icClass === 'PURE_SHUTOKO') {
-    // 出口が首都高内（CONNECTOR or PURE_SHUTOKO）→ 首都高内完結
-    if (exitClass === 'CONNECTOR' || exitClass === 'PURE_SHUTOKO') {
-      return ['none'];
-    }
-
-    // 出口が外側高速（BASELINE or TRANSIT）→ 出口ICのdirection候補を返す
-    let matched = matchedRoutesForIc(exitIc, deduction);
-    if (matched?.length > 0) {
-      return sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, wanganFirst });
-    }
-
-    return ['none'];
-  }
-
-  // フォールバック
-  if (ic.boundary_tag === 'gaikan') return ['gaikan_direct'];
-  return ['none'];
+  return sortAndMapRoutes(matched, { isHanedaBound, directRoute, exitRouteIds, wanganFirst });
 }
