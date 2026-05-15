@@ -1,7 +1,7 @@
 {
   "version": 4,
   "generated_at": "2026-04-27",
-  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。",
+  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。",
   "notes": "approx:true の辺は公式値未確認・推計値。undirected グラフとして使用。JCTノード(*_jct)は通過点として ics.json に entry_type:transit_only で登録、IC選択肢には現れない。",
   "nodes": [
     {
@@ -356,6 +356,13 @@
       "routes": [
         "third_keihin"
       ]
+    },
+    {
+      "id": "oizumi_jct",
+      "routes": [
+        "kanetsu",
+        "gaikan"
+      ]
     }
   ],
   "edges": [
@@ -473,12 +480,6 @@
       "km": 0.1,
       "route": "5",
       "note": "一般道接続（システム上の接続点）"
-    },
-    {
-      "from": "nerima",
-      "to": "bijogi_jct",
-      "km": 8.5,
-      "route": "5"
     },
     {
       "from": "kawaguchi_jct",
@@ -768,6 +769,18 @@
       "to": "hodogaya",
       "km": 5.3,
       "route": "third_keihin"
+    },
+    {
+      "from": "nerima",
+      "to": "oizumi_jct",
+      "km": 0.8,
+      "route": "kanetsu"
+    },
+    {
+      "from": "oizumi_jct",
+      "to": "bijogi_jct",
+      "km": 7.7,
+      "route": "gaikan"
     }
   ]
 }
