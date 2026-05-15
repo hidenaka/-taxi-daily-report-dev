@@ -3298,7 +3298,9 @@
         "y": 600
       },
       "entry_type": "both",
-      "boundary_tag": null
+      "boundary_tag": null,
+      "ramp_type": "half_uphill",
+      "ramp_note": "都心方面のみ。北品川四谷線/目黒通りに接続"
     },
     {
       "id": "ebara",
@@ -3314,7 +3316,9 @@
         "y": 600
       },
       "entry_type": "both",
-      "boundary_tag": null
+      "boundary_tag": null,
+      "ramp_type": "half_uphill",
+      "ramp_note": "都心方面のみ。中原街道(都道2号)に接続"
     },
     {
       "id": "togoshi",
@@ -3330,7 +3334,9 @@
         "y": 600
       },
       "entry_type": "both",
-      "boundary_tag": null
+      "boundary_tag": null,
+      "ramp_type": "half_uphill",
+      "ramp_note": "都心方面のみ。国道1号(第二京浜)都心方向に接続"
     },
     {
       "id": "sangenjaya",

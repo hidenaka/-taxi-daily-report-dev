@@ -129,3 +129,13 @@ test('distance: shibaura(1号羽田線) → C1 経路が浜崎橋JCT経由', () 
   // 芝浦→芝浦JCT(1.2) + 芝浦JCT→浜崎橋JCT(0.5) + 浜崎橋JCT→汐留JCT(0.9) = 2.6km
   assert.ok(Math.abs(r.km - 2.6) < 0.5, `${r.km}km, 期待2.6km前後`);
 });
+
+test('ramp_type: 戸越/荏原/目黒 が half_uphill (都心方面のみハーフ)', () => {
+  const icsAll = JSON.parse(readFileSync('tools/data/ics.json', 'utf-8')).ics;
+  for (const id of ['togoshi', 'ebara', 'meguro']) {
+    const ic = icsAll.find((x) => x.id === id);
+    assert.ok(ic, `${id} missing in ics.json`);
+    assert.equal(ic.ramp_type, 'half_uphill', `${id} ramp_type should be half_uphill`);
+    assert.ok(typeof ic.ramp_note === 'string' && ic.ramp_note.length > 0, `${id} ramp_note missing`);
+  }
+});
