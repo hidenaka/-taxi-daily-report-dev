@@ -58,3 +58,34 @@ test('distance: meguro→kukou_chuou が物理的に妥当な範囲 (20-30km)', 
   const r = shortestPath(adj, 'meguro', 'kukou_chuou');
   assert.ok(r.km >= 20 && r.km <= 30, `${r.km}km は範囲外`);
 });
+
+test('graph: 第三京浜の主要IC が node 登録されている', () => {
+  const ids = ['keihin_kawasaki', 'tsuzuki', 'kohoku', 'hodogaya'];
+  for (const id of ids) {
+    const n = graph.nodes.find((x) => x.id === id);
+    assert.ok(n, `node missing: ${id}`);
+  }
+});
+
+test('graph: yokohama_kohoku が 3路線(K7/K7_hokusei/third_keihin) 接続', () => {
+  const n = graph.nodes.find((x) => x.id === 'yokohama_kohoku');
+  for (const r of ['K7', 'K7_hokusei', 'third_keihin']) {
+    assert.ok(n.routes.includes(r), `route ${r} missing on yokohama_kohoku`);
+  }
+});
+
+test('distance: 第三京浜本線 (玉川IC→保土ヶ谷IC) が Wikipedia 公式値と±1km以内で一致', () => {
+  const r = shortestPath(adj, 'tamagawa_ic', 'hodogaya');
+  // Wikipedia: 玉川IC 0.0km → 保土ヶ谷IC 16.0km
+  // 整備値合計: 2.2+5.4+3.1+0+5.3 = 16.0km
+  console.log(`[third_keihin trunk] tamagawa_ic→hodogaya: ${r.km}km`);
+  assert.ok(Math.abs(r.km - 16.0) < 1.0, `${r.km}km は Wikipedia 16.0km から1km以上乖離`);
+});
+
+test('distance: yokohama_aoba → kohoku (北西線→第三京浜) で 横浜港北JCT 経由経路が成立', () => {
+  const r = shortestPath(adj, 'yokohama_aoba', 'kohoku');
+  console.log(`[k7_hokusei→third_keihin via kohoku_jct] yokohama_aoba→kohoku: ${r.km}km path: ${r.path.join('→')}`);
+  assert.ok(r.path.includes('yokohama_kohoku'), '横浜港北JCT経由してない');
+  // 期待: 7.1 (北西線) + 0 (JCT) = 7.1km
+  assert.ok(Math.abs(r.km - 7.1) < 0.5);
+});
