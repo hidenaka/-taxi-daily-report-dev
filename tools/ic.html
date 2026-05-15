@@ -80,10 +80,11 @@
       <datalist id="ic-list-all"></datalist>
     </section>
 
-    <section class="route-select">
-      <!-- 経路選択は「ルート比較（上位3候補）」 カードに一本化。
-           sel-outer-route は app.js が内部状態として参照するため要素は残すが hidden。 -->
-      <label hidden>
+    <!-- 経路選択 (経路セレクト / 外環経由 / 首都高内ルート) は「ルート比較（上位3候補）」
+         カードに一本化。 section全体を hidden にし、 中の要素は app.js が内部状態として
+         参照・更新するため残す (hidden section内なので画面非表示)。 -->
+    <section class="route-select" hidden>
+      <label>
         <span class="label-text">経路（入口ICから自動選択）</span>
         <select id="sel-outer-route"></select>
       </label>
