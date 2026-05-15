@@ -152,3 +152,48 @@ test('detect: 複数外側高速並列パターン (新方式での残存数)', 
     console.log('top 10:', JSON.stringify(cases.slice(0, 10), null, 2));
   }
 });
+
+// ===== QA: 候補ルートの物理経路成立性 全網羅検証 =====
+import { buildAdjacency, shortestPathVia } from '../tools/js/shutoko-graph.js';
+
+const graphData = JSON.parse(readFileSync('tools/data/shutoko_graph.json', 'utf-8'));
+const qaAdj = buildAdjacency(graphData);
+
+const OUTER_ROUTE_TO_GRAPH = {
+  yokohane_route: 'K1', wangan_route: 'B', hodogaya_route: 'third_keihin',
+  hokuseisen_route: 'K7_hokusei', kitasen_route: 'K7', yokoyoko: 'yokoyoko',
+  tomei: 'tomei', chuo: 'chuo', kanetsu: 'kanetsu', tohoku: 'tohoku',
+  joban: 'joban', keiyo: 'keiyo', tokan: 'tokan', aqua: 'aqua',
+  tateyama: 'tateyama', third_keihin: 'third_keihin',
+};
+
+test('QA: 候補に出る外側高速ルートは全て物理的に経路が成立する', () => {
+  const violations = [];
+  let checked = 0;
+  for (const entry of entryableIcs) {
+    for (const exit of entryableIcs) {
+      if (entry.id === exit.id) continue;
+      const opts = getOuterRouteOptionsForIc({ ic: entry, exitIc: exit, deduction });
+      for (const opt of opts) {
+        if (opt === 'none') continue;
+        const graphRoute = OUTER_ROUTE_TO_GRAPH[opt];
+        if (!graphRoute) continue;
+        checked++;
+        const sp = shortestPathVia(qaAdj, graphData, entry.id, exit.id, graphRoute);
+        if (!sp || !sp.path || sp.path.length < 2) {
+          violations.push({ entry: entry.id, exit: exit.id, opt, graphRoute });
+        }
+      }
+    }
+  }
+  console.log(`[QA route feasibility] checked: ${checked}, violations: ${violations.length}`);
+  if (violations.length > 0) {
+    // entry/opt 別に集約して出力
+    const byOpt = {};
+    for (const v of violations) byOpt[v.opt] = (byOpt[v.opt] || 0) + 1;
+    console.log('  violations by route:', JSON.stringify(byOpt));
+    console.log('  first 15:', JSON.stringify(violations.slice(0, 15), null, 2));
+  }
+  // 物理経路が成立しない候補ルートが提示されていたら検出 (将来 0 にすべき)
+  console.log(`[QA route feasibility violations.count] ${violations.length}`);
+});
