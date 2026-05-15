@@ -3,7 +3,7 @@ import { judgeRoute, resolveShutokoStartIcId, lookupDeduction, OUTER_TRUNK_ROUTE
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
-import { buildAdjacency, shortestPath, shortestPathVia } from './shutoko-graph.js';
+import { buildAdjacency, shortestPath, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
 
@@ -727,54 +727,84 @@ function renderJctDetails(result, entryIc, exitIc) {
   wrap.open = true;
 }
 
+// segments から totals を再計算 (judge.js aggregate のローカル版)
+function aggregateLocal(segments, roundTrip) {
+  const r1 = (n) => Math.round(n * 10) / 10;
+  const totalDed = r1(segments.reduce((a, s) => a + s.deductionKm, 0));
+  const totalDist = r1(segments.reduce((a, s) => a + s.distanceKm, 0));
+  const pays = new Set(segments.map((s) => s.pay));
+  const paySummary = pays.size === 1
+    ? (pays.has('company') ? 'all_company' : 'all_self') : 'mixed';
+  return {
+    paySummary,
+    deductionKmOneway: totalDed,
+    deductionKmRoundtrip: roundTrip ? r1(totalDed * 2) : totalDed,
+    distanceKmOneway: totalDist,
+    distanceKmRoundtrip: roundTrip ? r1(totalDist * 2) : totalDist,
+    notes: segments.map((s) => s.note).filter(Boolean),
+  };
+}
+
 function calculateAllRoutes(entryIc, exitIc) {
   const outerOptions = getOuterRouteOptions(entryIc);
   const routes = [];
-  
+  const graph = state.data.shutokoGraph;
+  if (graph && !_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
+  const icByName = new Map(
+    state.data.ics.map((i) => [i.name.replace(/（[^）]*）/g, '').trim(), i.id]));
+
+  // baseResult の「首都高」 セグメントについて graph k-shortest paths を計算し、
+  // 首都高内ルート違いの variant を生成する (常磐道→C2経由 vs C1経由 等)。
+  const addRoute = (baseResult, outerRoute, viaGaikan) => {
+    let variants = [{ result: baseResult, vi: 0 }];
+    const shutokoSeg = baseResult.segments.find((s) => s.route === 'shutoko');
+    if (shutokoSeg && graph) {
+      const fromId = icByName.get((shutokoSeg.fromName || '').replace(/（[^）]*）/g, '').trim());
+      const toId = icByName.get((shutokoSeg.toName || '').replace(/（[^）]*）/g, '').trim());
+      if (fromId && toId && fromId !== toId) {
+        const kPaths = kShortestPaths(_routeDetailsAdj, fromId, toId, 3);
+        if (kPaths.length > 1) {
+          variants = kPaths.map((kp, i) => {
+            const v = JSON.parse(JSON.stringify(baseResult));
+            const vSeg = v.segments.find((s) => s.route === 'shutoko');
+            vSeg.distanceKm = Math.round(kp.km * 10) / 10;
+            vSeg.path = kp.path;
+            v.totals = aggregateLocal(v.segments, true);
+            return { result: v, vi: i };
+          });
+        }
+      }
+    }
+    for (const { result, vi } of variants) {
+      const t = result.totals;
+      routes.push({
+        outerRoute, viaGaikan, variantIndex: vi,
+        routeKey: `${outerRoute}|${viaGaikan}|${vi}`,
+        result,
+        totalDist: t.distanceKmOneway,
+        deduction: t.deductionKmOneway,
+        netDist: t.distanceKmOneway - t.deductionKmOneway,
+      });
+    }
+  };
+
   for (const outerRoute of outerOptions) {
-    // 通常経由
     entryIc._viaGaikan = false;
-    const resultNormal = judgeRoute({
-      outerRoute,
-      entryIc, exitIc,
-      roundTrip: true,
-      shutokoRouteId: state.selected.shutokoRouteId
-    }, state.data);
-    
-    const tNormal = resultNormal.totals;
-    routes.push({
-      outerRoute,
-      viaGaikan: false,
-      result: resultNormal,
-      // スコア：小さい方が良い（昇順ソート用）
-      totalDist: tNormal.distanceKmOneway,
-      deduction: tNormal.deductionKmOneway,
-      netDist: tNormal.distanceKmOneway - tNormal.deductionKmOneway,
-    });
-    
-    // 外環経由（optionalの場合のみ）
+    addRoute(judgeRoute({
+      outerRoute, entryIc, exitIc, roundTrip: true,
+      shutokoRouteId: state.selected.shutokoRouteId,
+    }, state.data), outerRoute, false);
+
     const gaikanConf = state.data.routes.needs_gaikan_transit[outerRoute];
     if (gaikanConf === 'optional') {
       entryIc._viaGaikan = true;
-      const resultGaikan = judgeRoute({
-        outerRoute,
-        entryIc, exitIc,
-        roundTrip: true,
-        shutokoRouteId: state.selected.shutokoRouteId
-      }, state.data);
-      
-      const tGaikan = resultGaikan.totals;
-      routes.push({
-        outerRoute,
-        viaGaikan: true,
-        result: resultGaikan,
-        totalDist: tGaikan.distanceKmOneway,
-        deduction: tGaikan.deductionKmOneway,
-        netDist: tGaikan.distanceKmOneway - tGaikan.deductionKmOneway,
-      });
+      addRoute(judgeRoute({
+        outerRoute, entryIc, exitIc, roundTrip: true,
+        shutokoRouteId: state.selected.shutokoRouteId,
+      }, state.data), outerRoute, true);
     }
   }
-  
+
   return routes;
 }
 
@@ -789,8 +819,9 @@ function update() {
   const allRoutes = calculateAllRoutes(entryIc, exitIc);
   state.allRouteResults = allRoutes;
   
-  // 現在選択中のouterRoute + viaGaikan の結果を表示
-  const current = allRoutes.find(r => r.outerRoute === state.selected.outerRoute && r.viaGaikan === state.selected.viaGaikan) 
+  // 現在選択中の routeKey (outerRoute+viaGaikan+variant) の結果を表示
+  const current = allRoutes.find(r => r.routeKey === state.selected.routeKey)
+    || allRoutes.find(r => r.outerRoute === state.selected.outerRoute && r.viaGaikan === state.selected.viaGaikan)
     || allRoutes.find(r => r.outerRoute === state.selected.outerRoute)
     || allRoutes[0];
   state.lastResult = current.result;
@@ -813,37 +844,40 @@ function renderRouteComparison(allRoutes) {
 
   section.hidden = false;
 
-  // 上位3つを選出（総距離が短い順）
-  const top3 = allRoutes
+  // 上位候補を選出（総距離が短い順、 首都高内ルートvariant含め最大6件）
+  const topRoutes = allRoutes
     .filter(r => r.totalDist > 0)
     .sort((a, b) => a.totalDist - b.totalDist)
-    .slice(0, 3);
+    .slice(0, 6);
 
-  // 現在選択中のouterRoute + viaGaikan が含まれていなければ、先頭を選択
-  const hasCurrent = top3.some(r => r.outerRoute === state.selected.outerRoute && r.viaGaikan === state.selected.viaGaikan);
-  if (!hasCurrent && top3.length > 0) {
-    state.selected.outerRoute = top3[0].outerRoute;
-    state.selected.viaGaikan = top3[0].viaGaikan;
-    document.getElementById('sel-outer-route').value = top3[0].outerRoute;
-    document.getElementById('chk-via-gaikan').checked = top3[0].viaGaikan;
+  // 現在選択中の routeKey が含まれていなければ、先頭を選択
+  const hasCurrent = topRoutes.some(r => r.routeKey === state.selected.routeKey);
+  if (!hasCurrent && topRoutes.length > 0) {
+    state.selected.routeKey = topRoutes[0].routeKey;
+    state.selected.outerRoute = topRoutes[0].outerRoute;
+    state.selected.viaGaikan = topRoutes[0].viaGaikan;
+    document.getElementById('sel-outer-route').value = topRoutes[0].outerRoute;
+    document.getElementById('chk-via-gaikan').checked = topRoutes[0].viaGaikan;
   }
 
-  top3.forEach((route, index) => {
+  topRoutes.forEach((route, index) => {
     const tab = document.createElement('button');
-    const isActive = route.outerRoute === state.selected.outerRoute && route.viaGaikan === state.selected.viaGaikan;
+    const isActive = route.routeKey === state.selected.routeKey;
     tab.className = 'route-tab' + (isActive ? ' active' : '');
     tab.type = 'button';
 
     const label = state.data.routes.labels[route.outerRoute] || route.outerRoute;
     const gaikanLabel = route.viaGaikan ? '（外環経由）' : '';
+    const variantLabel = route.variantIndex > 0 ? `・都心経路${route.variantIndex + 1}` : '';
     tab.innerHTML = `
-      <div class="tab-title">${index + 1}. ${label}${gaikanLabel}</div>
+      <div class="tab-title">${index + 1}. ${label}${gaikanLabel}${variantLabel}</div>
       <div class="tab-dist">総距離 ${route.totalDist.toFixed(1)}km</div>
       <div class="tab-ded">控除 ${route.deduction.toFixed(1)}km</div>
       <div class="tab-net">実質 ${route.netDist.toFixed(1)}km</div>
     `;
 
     tab.addEventListener('click', () => {
+      state.selected.routeKey = route.routeKey;
       state.selected.outerRoute = route.outerRoute;
       state.selected.viaGaikan = route.viaGaikan;
       document.getElementById('sel-outer-route').value = route.outerRoute;

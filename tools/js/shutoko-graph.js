@@ -10,7 +10,8 @@ export function buildAdjacency(graph) {
   return adj;
 }
 
-export function shortestPath(adj, fromId, toId) {
+// banned: Set of "from|to" (無向なので両方向を入れること) — 通行禁止 edge
+export function shortestPath(adj, fromId, toId, banned = null) {
   if (fromId === toId) return { km: 0, path: [fromId] };
   const dist = new Map();
   const prev = new Map();
@@ -28,6 +29,7 @@ export function shortestPath(adj, fromId, toId) {
     visited.add(uId);
     const neighbors = adj.get(uId) || [];
     for (const n of neighbors) {
+      if (banned && banned.has(`${uId}|${n.to}`)) continue;
       const alt = uDist + n.km;
       if (alt < (dist.get(n.to) ?? Infinity)) {
         dist.set(n.to, alt);
@@ -45,6 +47,27 @@ export function shortestPath(adj, fromId, toId) {
     path.unshift(cur);
   }
   return { km: dist.get(toId), path };
+}
+
+// k本の代替経路を返す (最短経路の各edgeを1本ずつ除外して再探索する簡易法)
+// 戻り値: [{ km, path }] 距離昇順、 重複経路は除外
+export function kShortestPaths(adj, fromId, toId, k = 3) {
+  const first = shortestPath(adj, fromId, toId);
+  if (!first.path) return [];
+  const results = [first];
+  const seen = new Set([first.path.join('>')]);
+  const candidates = [];
+  for (let i = 0; i < first.path.length - 1; i++) {
+    const a = first.path[i], b = first.path[i + 1];
+    const banned = new Set([`${a}|${b}`, `${b}|${a}`]);
+    const alt = shortestPath(adj, fromId, toId, banned);
+    if (alt.path) {
+      const key = alt.path.join('>');
+      if (!seen.has(key)) { seen.add(key); candidates.push(alt); }
+    }
+  }
+  candidates.sort((x, y) => x.km - y.km);
+  return [...results, ...candidates].slice(0, k);
 }
 
 // 全ノードへの最短距離 + prev (early-break しない Dijkstra)
