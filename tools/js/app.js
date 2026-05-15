@@ -683,29 +683,43 @@ function renderJctDetails(result, entryIc, exitIc) {
     }
   };
 
-  let hasAnyPath = false;
+  // 選択中ルートの segments を順に処理し、各セグメントの実経路 (path) を連結する。
+  // judge.js が path を出さない外側高速セグメントは、 fromName/toName から
+  // graph で区間 Dijkstra を計算して補完。これにより「ルート比較で選んだ経路」 と
+  // 「通過する高速網経路」 が一致する。
+  if (graph && !_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
+  const icByName = new Map(ics.map(i => [i.name.replace(/（[^）]*）/g, '').trim(), i.id]));
+  const segPathOf = (seg) => {
+    if (seg.path && seg.path.length >= 2) return seg.path;
+    if (!graph) return null;
+    const fromId = icByName.get((seg.fromName || '').replace(/（[^）]*）/g, '').trim());
+    const toId = icByName.get((seg.toName || '').replace(/（[^）]*）/g, '').trim());
+    if (!fromId || !toId || fromId === toId) return null;
+    const sp = shortestPath(_routeDetailsAdj, fromId, toId);
+    return (sp.path && sp.path.length >= 2) ? sp.path : null;
+  };
+
+  let combined = [];
   for (const seg of result.segments) {
-    if (seg.path && seg.path.length >= 2) {
-      hasAnyPath = true;
-      const header = document.createElement('div');
-      header.className = 'jct-seg-header';
-      header.textContent = `▼ ${seg.name.replace(/（[^）]*）/g, '').trim()}`;
-      list.appendChild(header);
-      renderFilteredPath(seg.path);
+    const p = segPathOf(seg);
+    if (!p) continue;
+    if (combined.length === 0) {
+      combined = p.slice();
+    } else if (combined[combined.length - 1] === p[0]) {
+      combined.push(...p.slice(1));
+    } else {
+      combined.push(...p);
     }
   }
 
-  // 全体フォールバック: 常に graph全体で entryIc.id → exitIc.id の Dijkstra path
-  // を計算して「▼ 通過する高速網経路」 として併記
-  // (外側高速セグメントなど judge.js が path を出さないケース対応)
-  if (graph && entryIc && exitIc) {
-    if (!_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
+  let hasAnyPath = false;
+  if (combined.length >= 2) {
+    renderFilteredPath(combined);
+    hasAnyPath = true;
+  } else if (graph && entryIc && exitIc) {
+    // セグメント連結で取れない場合のみ、 入口IC→出口IC の全体 Dijkstra
     const sp = shortestPath(_routeDetailsAdj, entryIc.id, exitIc.id);
     if (sp.path && sp.path.length >= 2) {
-      const sep = document.createElement('div');
-      sep.className = 'jct-seg-header';
-      sep.textContent = `▼ 通過する高速網経路 (graph: ${sp.km.toFixed(1)}km)`;
-      list.appendChild(sep);
       renderFilteredPath(sp.path);
       hasAnyPath = true;
     }
@@ -714,7 +728,7 @@ function renderJctDetails(result, entryIc, exitIc) {
   if (!hasAnyPath) {
     const msg = document.createElement('div');
     msg.className = 'jct-seg-header';
-    msg.textContent = '経路詳細を取得できませんでした (graphに該当IC接続なし)';
+    msg.textContent = '経路詳細を取得できませんでした';
     list.appendChild(msg);
   }
 
