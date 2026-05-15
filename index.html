@@ -225,6 +225,7 @@ async function render() {
       ${actualResult.shiftCount > 0 ? `
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
+      <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税込)</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税抜・1〜${FIRST_N_FOR_RATE}乗務)<span class="badge" style="font-size:9px;background:#e3f2fd;color:#1565c0;">歩率判定</span></div><div><strong>${formatYen(avgFirstNExcl)}</strong>${firstNCount < FIRST_N_FOR_RATE ? ` <span class="muted" style="font-size:10px;">(${firstNCount}/${FIRST_N_FOR_RATE}乗務)</span>` : ''}</div></div>
       ` : ''}
@@ -236,6 +237,7 @@ async function render() {
       <div class="kv"><div>現時点 手取り</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
+      <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税込)</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税抜・1〜${FIRST_N_FOR_RATE}乗務)<span class="badge" style="font-size:9px;background:#e3f2fd;color:#1565c0;">歩率判定</span></div><div><strong>${formatYen(avgFirstNExcl)}</strong>${firstNCount < FIRST_N_FOR_RATE ? ` <span class="muted" style="font-size:10px;">(${firstNCount}/${FIRST_N_FOR_RATE}乗務)</span>` : ''}</div></div>
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
