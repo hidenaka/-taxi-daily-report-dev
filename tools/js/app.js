@@ -753,8 +753,16 @@ function calculateAllRoutes(entryIc, exitIc) {
   const icByName = new Map(
     state.data.ics.map((i) => [i.name.replace(/（[^）]*）/g, '').trim(), i.id]));
 
-  // baseResult の「首都高」 セグメントについて graph k-shortest paths を計算し、
-  // 首都高内ルート違いの variant を生成する (常磐道→C2経由 vs C1経由 等)。
+  // baseResult の「首都高」 セグメントについて、 本質的に異なる現実的ルートを
+  // 複数生成する: k-shortest(最短近傍) + 主要環状/幹線の強制経由 を集め、
+  // ノード共有率(Jaccard)で似すぎ候補を間引いて多様な variant を選ぶ。
+  const MAJOR_VIA = ['C1', 'C2', 'B', '1', '3', '5', '6', '7'];
+  const jaccardOf = (pa, pb) => {
+    const a = new Set(pa), b = new Set(pb);
+    let inter = 0;
+    for (const x of a) if (b.has(x)) inter++;
+    return inter / (a.size + b.size - inter);
+  };
   const addRoute = (baseResult, outerRoute, viaGaikan) => {
     let variants = [{ result: baseResult, vi: 0 }];
     const shutokoSeg = baseResult.segments.find((s) => s.route === 'shutoko');
@@ -762,9 +770,28 @@ function calculateAllRoutes(entryIc, exitIc) {
       const fromId = icByName.get((shutokoSeg.fromName || '').replace(/（[^）]*）/g, '').trim());
       const toId = icByName.get((shutokoSeg.toName || '').replace(/（[^）]*）/g, '').trim());
       if (fromId && toId && fromId !== toId) {
-        const kPaths = kShortestPaths(_routeDetailsAdj, fromId, toId, 3);
-        if (kPaths.length > 1) {
-          variants = kPaths.map((kp, i) => {
+        // 経路プール: k-shortest + 主要環状/幹線の強制経由
+        const pool = [...kShortestPaths(_routeDetailsAdj, fromId, toId, 3)];
+        for (const mr of MAJOR_VIA) {
+          const via = shortestPathVia(_routeDetailsAdj, graph, fromId, toId, mr);
+          if (via && via.path && via.path.length >= 2) pool.push(via);
+        }
+        // 重複除去
+        const seen = new Set();
+        const uniq = [];
+        for (const p of pool) {
+          const key = p.path.join('>');
+          if (!seen.has(key)) { seen.add(key); uniq.push(p); }
+        }
+        // greedy多様性選択: 距離昇順、 既選択と Jaccard<0.65 のものを最大4本
+        uniq.sort((a, b) => a.km - b.km);
+        const chosen = [];
+        for (const p of uniq) {
+          if (chosen.length >= 4) break;
+          if (chosen.every((c) => jaccardOf(c.path, p.path) < 0.65)) chosen.push(p);
+        }
+        if (chosen.length > 1) {
+          variants = chosen.map((kp, i) => {
             const v = JSON.parse(JSON.stringify(baseResult));
             const vSeg = v.segments.find((s) => s.route === 'shutoko');
             vSeg.distanceKm = Math.round(kp.km * 10) / 10;
