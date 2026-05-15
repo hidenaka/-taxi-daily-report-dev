@@ -3,6 +3,9 @@ import { judgeRoute, resolveShutokoStartIcId, lookupDeduction, OUTER_TRUNK_ROUTE
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
+import { buildAdjacency, shortestPath } from './shutoko-graph.js';
+
+let _routeDetailsAdj = null;
 
 const state = {
   data: null,
@@ -692,16 +695,27 @@ function renderJctDetails(result, entryIc, exitIc) {
     }
   }
 
-  if (!hasAnyPath) {
-    const shutokoSeg = result.segments.find(s => s.route === 'shutoko');
-    const path = shutokoSeg?.path;
-    if (!path || path.length < 2) { wrap.hidden = true; return; }
-    const fullPath = path[0] === entryIc.id ? path.slice() : [entryIc.id, ...path];
-    if (fullPath[fullPath.length - 1] !== exitIc.id) fullPath.push(exitIc.id);
-    renderFilteredPath(fullPath);
+  // 全体フォールバック: segments に path が無い、 もしくは入口IC/出口ICが含まれない場合、
+  // graph全体で entryIc.id → exitIc.id の Dijkstra path を計算して表示
+  // (外側高速セグメントなど judge.js が path を出さないケース対応)
+  const segsPathFlat = result.segments.flatMap(s => s.path ?? []);
+  const needFullPath = !segsPathFlat.includes(entryIc.id) || !segsPathFlat.includes(exitIc.id);
+  if (graph && needFullPath) {
+    if (!_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
+    const sp = shortestPath(_routeDetailsAdj, entryIc.id, exitIc.id);
+    if (sp.path && sp.path.length >= 2) {
+      if (hasAnyPath) {
+        const sep = document.createElement('div');
+        sep.className = 'jct-seg-header';
+        sep.textContent = '▼ 全体経路 (graph)';
+        list.appendChild(sep);
+      }
+      renderFilteredPath(sp.path);
+      hasAnyPath = true;
+    }
   }
 
-  wrap.hidden = false;
+  wrap.hidden = !hasAnyPath;
   wrap.open = true;
 }
 
