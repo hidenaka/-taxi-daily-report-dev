@@ -250,11 +250,9 @@ async function render() {
   } else if (isCurrent && rawDrives.length === 0) {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると予想が表示されます</p>`;
   } else {
-    // 未来月度: 目標と予定責任出番を表示
+    // 未来月度: 目標は targetCard 側で一覧表示するので、ここでは概要のみ
     summaryHtml += `
-      <div class="kv"><div>予定責任出番</div><div><strong>${respShifts}</strong>乗務</div></div>
-      <div class="kv"><div>目標手取り</div><div><strong>${formatYen(config.takeHomeTarget || 0)}</strong></div></div>
-      <p class="muted" style="font-size:11px;margin-top:4px;">未来月度です。カレンダーから予定を入れて準備できます。</p>
+      <p class="muted" style="font-size:11px;margin-top:4px;">未来月度</p>
     `;
   }
 
@@ -386,6 +384,11 @@ async function render() {
       <div class="kv"><div>1乗務あたり必要 売上(税抜)</div><div><strong>${formatYen(perShiftSalesExclTax)}</strong></div></div>
       ` : '<p class="muted" style="font-size:11px;margin-top:6px;">責任出番達成済</p>'}
     `;
+    // 追加目標(任意): 総支給、11乗務目までの手取り
+    targetCard.innerHTML += renderSubTargetCards(config, actualResult, predicted, takeHomeRate);
+  } else if (isFuture) {
+    targetCard.style.display = '';
+    targetCard.innerHTML = renderFutureTargetCard(config, takeHomeRate, respShifts);
   } else {
     targetCard.style.display = 'none';
   }
@@ -395,6 +398,93 @@ async function render() {
 
   // 月度日別サマリー表(各日の4時間枠売上含む)
   renderSummaryTable(drives);
+}
+
+// 任意の追加目標カード (総支給、11乗務目までの手取り)
+function renderSubTargetCards(config, actualResult, predicted, takeHomeRate) {
+  const projectedTotal = predicted ? predicted.total : actualResult.total;
+  const items = [];
+
+  if (config.grossTarget > 0) {
+    items.push({
+      label: '総支給 (月度)',
+      target: config.grossTarget,
+      current: actualResult.total,
+      projected: projectedTotal,
+      accent: '#10b981',
+      bg: '#ecfdf5'
+    });
+  }
+
+  if (config.takeHomeAt11Target > 0) {
+    const b = actualResult.breakdown;
+    let current = 0;
+    let projected = 0;
+    if (b && b.mode === 'tiered_12_or_more') {
+      current = b.basePay11 * takeHomeRate;
+      projected = current;
+    } else if (b && (b.mode === 'tiered_11_or_less' || b.mode === 'fallback' || b.mode === 'fixed_rate')) {
+      current = (b.basePay || 0) * takeHomeRate;
+      projected = projectedTotal * takeHomeRate;
+    }
+    items.push({
+      label: '11乗務目までの手取り',
+      target: config.takeHomeAt11Target,
+      current,
+      projected,
+      accent: '#f97316',
+      bg: '#fff7ed'
+    });
+  }
+
+  if (items.length === 0) return '';
+
+  return items.map(it => {
+    const willHit = it.projected >= it.target;
+    const progressPct = Math.min(100, (it.current / it.target) * 100);
+    const projectedPct = Math.min(100, (it.projected / it.target) * 100);
+    const diff = it.projected - it.target;
+    return `
+      <div style="margin-top:12px;padding:10px 12px;background:${it.bg};border-left:3px solid ${it.accent};border-radius:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;">
+          <strong style="font-size:13px;">${it.label}</strong>
+          <span style="color:${willHit ? it.accent : 'var(--orange,#ff9800)'};font-weight:600;font-size:11px;">${willHit ? '達成見込' : '未達見込'}</span>
+        </div>
+        <div style="margin-top:6px;position:relative;height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:${projectedPct}%;background:${willHit ? '#a5d6a7' : '#ffe0b2'};"></div>
+          <div style="position:absolute;left:0;top:0;height:100%;width:${progressPct}%;background:${it.accent};"></div>
+          <div style="position:absolute;width:100%;text-align:center;font-size:9px;line-height:14px;color:#333;font-weight:600;">${progressPct.toFixed(0)}% / 予想${projectedPct.toFixed(0)}%</div>
+        </div>
+        <div class="kv" style="margin-top:6px;font-size:11px;"><div>目標</div><div><strong>${formatYen(it.target)}</strong></div></div>
+        <div class="kv" style="font-size:11px;"><div>現時点</div><div><strong>${formatYen(it.current)}</strong></div></div>
+        <div class="kv" style="font-size:11px;"><div>予想差額</div><div style="color:${willHit ? it.accent : 'var(--orange,#ff9800)'};"><strong>${willHit ? '+' : '−'}${formatYen(Math.abs(diff))}</strong></div></div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 未来月度用 目標カード
+function renderFutureTargetCard(config, takeHomeRate, respShifts) {
+  const items = [];
+  if (config.takeHomeTarget > 0) items.push({ label: '手取り目標 (月度)', value: config.takeHomeTarget, accent: '#1d4ed8' });
+  if (config.grossTarget > 0) items.push({ label: '総支給目標 (月度)', value: config.grossTarget, accent: '#10b981' });
+  if (config.takeHomeAt11Target > 0) items.push({ label: '11乗務目までの手取り目標', value: config.takeHomeAt11Target, accent: '#f97316' });
+
+  if (items.length === 0) return '<p class="muted" style="font-size:11px;">設定画面で目標を設定すると、未来月度でも表示されます。</p>';
+
+  const rows = items.map(it =>
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px dashed #eee;">
+      <span style="font-size:12px;color:#374151;">${it.label}</span>
+      <strong style="font-size:14px;color:${it.accent};">${formatYen(it.value)}</strong>
+    </div>`
+  ).join('');
+
+  return `
+    <div style="margin-bottom:6px;"><strong>来月の目標</strong></div>
+    ${rows}
+    <div class="kv" style="margin-top:8px;"><div>予定責任出番</div><div><strong>${respShifts}</strong>乗務</div></div>
+    <p class="muted" style="font-size:11px;margin-top:6px;">カレンダーから予定を入れて準備できます。</p>
+  `;
 }
 
 function renderPayrollBreakdown(result, takeHomeRate = 0.75) {

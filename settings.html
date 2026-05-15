@@ -75,6 +75,12 @@ if (location.hostname.includes('-dev')) {
     <label class="muted" style="margin-top:8px;display:block;">手取り目標（円/月度）</label>
     <input class="input" id="takeHomeTargetInput" type="number" step="10000" min="0" value="500000">
     <p class="muted" style="font-size:10px;margin-top:2px;">ホームに目標達成可否と残り乗務あたり必要売上が表示されます。</p>
+    <label class="muted" style="margin-top:8px;display:block;">総支給目標（円/月度）— 任意</label>
+    <input class="input" id="grossTargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません">
+    <p class="muted" style="font-size:10px;margin-top:2px;">控除前の総支給ベースの月度目標。0または空欄なら非表示。</p>
+    <label class="muted" style="margin-top:8px;display:block;">11乗務目までの手取り目標（円）— 任意</label>
+    <input class="input" id="takeHomeAt11TargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません">
+    <p class="muted" style="font-size:10px;margin-top:2px;">12-13乗務目特例のある会社向け。11乗務までの手取り目安を別建てで管理する場合に。</p>
     <label class="muted" style="margin-top:8px;display:block;">有給休暇 1日あたり金額（総支給ベース）</label>
     <input class="input" id="paidLeaveAmountInput" type="number" step="100" min="0" value="39340">
     <p class="muted" style="font-size:10px;margin-top:2px;">給与明細の「有給手当」÷有給日数。カレンダーで設定した有給日数×この金額を予測/実績に加算。</p>
@@ -223,6 +229,8 @@ async function loadConfig() {
     document.getElementById('departureInput').value = currentConfig.defaults.departureTime;
     document.getElementById('takeHomeRateInput').value = currentConfig.takeHomeRate ?? 0.75;
     document.getElementById('takeHomeTargetInput').value = currentConfig.takeHomeTarget ?? 500000;
+    document.getElementById('grossTargetInput').value = currentConfig.grossTarget ?? '';
+    document.getElementById('takeHomeAt11TargetInput').value = currentConfig.takeHomeAt11Target ?? '';
     document.getElementById('paidLeaveAmountInput').value = currentConfig.paidLeaveAmount ?? 39340;
     document.getElementById('latInput').value = currentConfig.weatherLocation.lat;
     document.getElementById('lonInput').value = currentConfig.weatherLocation.lon;
@@ -367,6 +375,8 @@ document.getElementById('saveConfigBtn').onclick = async () => {
   currentConfig.defaults.departureTime = document.getElementById('departureInput').value;
   currentConfig.takeHomeRate = parseFloat(document.getElementById('takeHomeRateInput').value);
   currentConfig.takeHomeTarget = parseInt(document.getElementById('takeHomeTargetInput').value);
+  currentConfig.grossTarget = parseInt(document.getElementById('grossTargetInput').value) || 0;
+  currentConfig.takeHomeAt11Target = parseInt(document.getElementById('takeHomeAt11TargetInput').value) || 0;
   currentConfig.paidLeaveAmount = parseInt(document.getElementById('paidLeaveAmountInput').value);
   currentConfig.weatherLocation = {
     lat: parseFloat(document.getElementById('latInput').value),

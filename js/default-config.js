@@ -22,6 +22,8 @@ export const DEFAULT_CONFIG = {
   responsibilityShifts: 11,
   takeHomeRate: 0.75,
   takeHomeTarget: 500000,
+  grossTarget: 0,
+  takeHomeAt11Target: 0,
   paidLeaveAmount: 39340,
   displayName: "",
   rateTable: {
