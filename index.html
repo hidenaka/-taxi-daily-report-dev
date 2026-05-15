@@ -222,7 +222,7 @@ async function render() {
     summaryHtml += `
       <div class="kv"><div>総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
       <div class="kv"><div>手取り推定（×${(takeHomeRate*100).toFixed(0)}%）</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
-      ${renderPayrollBreakdown(actualResult)}
+      ${renderPayrollBreakdown(actualResult, takeHomeRate)}
       ${actualResult.shiftCount > 0 ? `
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
@@ -236,7 +236,7 @@ async function render() {
     summaryHtml += `
       <div class="kv"><div>現時点 総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
       <div class="kv"><div>現時点 手取り</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
-      ${renderPayrollBreakdown(actualResult)}
+      ${renderPayrollBreakdown(actualResult, takeHomeRate)}
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
       <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
@@ -397,7 +397,7 @@ async function render() {
   renderSummaryTable(drives);
 }
 
-function renderPayrollBreakdown(result) {
+function renderPayrollBreakdown(result, takeHomeRate = 0.75) {
   const b = result && result.breakdown;
   if (!b) return '';
   if (result.shiftCount === 0) return '';
@@ -405,6 +405,7 @@ function renderPayrollBreakdown(result) {
   const pct = (r) => (r * 100).toFixed(1) + '%';
   const rowStyle = 'display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:2px 0;';
   const sectionStyle = 'margin-top:4px;padding:6px 10px;background:#fafafa;border-radius:6px;';
+  const takeHome = result.total * takeHomeRate;
 
   let body = '';
 
@@ -448,17 +449,19 @@ function renderPayrollBreakdown(result) {
     `;
   }
 
-  if (result.incentive > 0 || result.paidLeaveAmount > 0) {
-    let extra = '';
-    if (result.incentive > 0) {
-      extra += `<div style="${rowStyle}"><span class="muted">プレミアム手当</span><span>+${formatYen(result.incentive)}</span></div>`;
-    }
-    if (result.paidLeaveAmount > 0) {
-      extra += `<div style="${rowStyle}"><span class="muted">有給(${result.paidLeaveDays}日)</span><span>+${formatYen(result.paidLeaveAmount)}</span></div>`;
-    }
-    extra += `<div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">総支給</span><strong>${formatYen(result.total)}</strong></div>`;
-    body += `<div style="${sectionStyle}">${extra}</div>`;
+  const hasIncentiveOrPaidLeave = result.incentive > 0 || result.paidLeaveAmount > 0;
+  let extra = '';
+  if (result.incentive > 0) {
+    extra += `<div style="${rowStyle}"><span class="muted">プレミアム手当</span><span>+${formatYen(result.incentive)}</span></div>`;
   }
+  if (result.paidLeaveAmount > 0) {
+    extra += `<div style="${rowStyle}"><span class="muted">有給(${result.paidLeaveDays}日)</span><span>+${formatYen(result.paidLeaveAmount)}</span></div>`;
+  }
+  if (hasIncentiveOrPaidLeave) {
+    extra += `<div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">総支給</span><strong>${formatYen(result.total)}</strong></div>`;
+  }
+  extra += `<div style="${rowStyle}${hasIncentiveOrPaidLeave ? '' : ';border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;'}"><span class="muted">手取り推定(×${(takeHomeRate*100).toFixed(0)}%)</span><strong style="color:var(--primary);">${formatYen(takeHome)}</strong></div>`;
+  body += `<div style="${sectionStyle}">${extra}</div>`;
 
   return `
     <details style="margin-top:6px;">
