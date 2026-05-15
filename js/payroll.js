@@ -83,17 +83,33 @@ export function calcBasePay(drives, config, options = {}) {
       basePay: monthly.exclTax * rate,
       rate,
       shiftCount,
-      extraRate: null
+      extraRate: null,
+      breakdown: {
+        mode: 'fixed_rate',
+        salesExclTax: monthly.exclTax,
+        rate,
+        basePay: monthly.exclTax * rate
+      }
     };
   }
 
-  // 変動歩率モード（既存）
+  // 変動歩率モード(既存)
   const rateTable = getRateTable(config);
 
   if (!rateTable) {
     console.warn('calcBasePay: rateTable missing, using fallback');
     const monthly = calcMonthlySales(drives);
-    return { basePay: monthly.exclTax * 0.6, rate: 0.6, shiftCount };
+    return {
+      basePay: monthly.exclTax * 0.6,
+      rate: 0.6,
+      shiftCount,
+      breakdown: {
+        mode: 'fallback',
+        salesExclTax: monthly.exclTax,
+        rate: 0.6,
+        basePay: monthly.exclTax * 0.6
+      }
+    };
   }
 
   if (shiftCount <= 11) {
@@ -106,22 +122,61 @@ export function calcBasePay(drives, config, options = {}) {
       : String(shiftCount);
     const tiers = rateTable[tierKey] || rateTable["11"];
     const rate = findRate(tiers, monthly.exclTax);
-    return { basePay: monthly.exclTax * rate, rate, shiftCount };
+    const basePay = monthly.exclTax * rate;
+    return {
+      basePay,
+      rate,
+      shiftCount,
+      breakdown: {
+        mode: 'tiered_11_or_less',
+        tierKey,
+        salesExclTax: monthly.exclTax,
+        rate,
+        basePay,
+        extras: []
+      }
+    };
   }
 
   // 12乗務以上: 11乗務目までで歩率算出 + 12乗務目以降は固定率
   const drives11 = drives.slice(0, 11);
   const monthly11 = calcMonthlySales(drives11);
   const rate11 = findRate(rateTable["11"], monthly11.exclTax);
-  let basePay = monthly11.exclTax * rate11;
+  const basePay11 = monthly11.exclTax * rate11;
+  let basePay = basePay11;
 
   const extraRate = rateTable["12_13rate"] || 0.62;
-  for (const drive of drives.slice(11)) {
+  const extras = [];
+  for (let i = 11; i < drives.length; i++) {
+    const drive = drives[i];
     const daily = calcDailySales(drive);
-    basePay += daily.exclTax * extraRate;
+    const addPay = daily.exclTax * extraRate;
+    basePay += addPay;
+    extras.push({
+      shiftNo: i + 1,
+      date: drive.date,
+      salesExclTax: daily.exclTax,
+      rate: extraRate,
+      addPay
+    });
   }
 
-  return { basePay, rate: rate11, shiftCount, extraRate };
+  return {
+    basePay,
+    rate: rate11,
+    shiftCount,
+    extraRate,
+    breakdown: {
+      mode: 'tiered_12_or_more',
+      tierKey: '11',
+      salesExclTax11: monthly11.exclTax,
+      rate11,
+      basePay11,
+      extras,
+      extraTotal: basePay - basePay11,
+      basePay
+    }
+  };
 }
 
 export function calcIncentive(drives, config) {

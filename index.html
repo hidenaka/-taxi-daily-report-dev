@@ -222,6 +222,7 @@ async function render() {
     summaryHtml += `
       <div class="kv"><div>総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
       <div class="kv"><div>手取り推定（×${(takeHomeRate*100).toFixed(0)}%）</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
+      ${renderPayrollBreakdown(actualResult)}
       ${actualResult.shiftCount > 0 ? `
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
@@ -235,6 +236,7 @@ async function render() {
     summaryHtml += `
       <div class="kv"><div>現時点 総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
       <div class="kv"><div>現時点 手取り</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
+      ${renderPayrollBreakdown(actualResult)}
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
       <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
@@ -388,6 +390,77 @@ async function render() {
 
   // 月度日別サマリー表(各日の4時間枠売上含む)
   renderSummaryTable(drives);
+}
+
+function renderPayrollBreakdown(result) {
+  const b = result && result.breakdown;
+  if (!b) return '';
+  if (result.shiftCount === 0) return '';
+
+  const pct = (r) => (r * 100).toFixed(1) + '%';
+  const rowStyle = 'display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:2px 0;';
+  const sectionStyle = 'margin-top:4px;padding:6px 10px;background:#fafafa;border-radius:6px;';
+
+  let body = '';
+
+  if (b.mode === 'fixed_rate') {
+    body = `
+      <div style="${sectionStyle}">
+        <div style="${rowStyle}"><span class="muted">月度税抜営収</span><span>${formatYen(b.salesExclTax)}</span></div>
+        <div style="${rowStyle}"><span class="muted">固定歩率</span><span>${pct(b.rate)}</span></div>
+        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay)}</strong></div>
+      </div>
+    `;
+  } else if (b.mode === 'tiered_11_or_less' || b.mode === 'fallback') {
+    body = `
+      <div style="${sectionStyle}">
+        <div style="${rowStyle}"><span class="muted">1〜${result.shiftCount}乗務 税抜営収</span><span>${formatYen(b.salesExclTax)}</span></div>
+        <div style="${rowStyle}"><span class="muted">適用歩率(${b.tierKey || '-'}乗務テーブル)</span><span>${pct(b.rate)}</span></div>
+        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay)}</strong></div>
+      </div>
+    `;
+  } else if (b.mode === 'tiered_12_or_more') {
+    const extrasHtml = b.extras.map(e =>
+      `<div style="${rowStyle}"><span class="muted">${e.shiftNo}乗務目 (${e.date}): 税抜${formatYen(e.salesExclTax)} × ${pct(e.rate)}</span><span>${formatYen(e.addPay)}</span></div>`
+    ).join('');
+    body = `
+      <div style="${sectionStyle}">
+        <div style="font-size:11px;font-weight:600;margin-bottom:4px;">11乗務までの計算</div>
+        <div style="${rowStyle}"><span class="muted">1〜11乗務 税抜営収</span><span>${formatYen(b.salesExclTax11)}</span></div>
+        <div style="${rowStyle}"><span class="muted">適用歩率(11乗務テーブル)</span><span>${pct(b.rate11)}</span></div>
+        <div style="${rowStyle}"><span class="muted">基本給 = 営収 × 歩率</span><strong>${formatYen(b.basePay11)}</strong></div>
+      </div>
+      <div style="${sectionStyle}">
+        <div style="font-size:11px;font-weight:600;margin-bottom:4px;">12乗務目以降の計算</div>
+        ${extrasHtml}
+        <div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">追加給 合計</span><strong>${formatYen(b.extraTotal)}</strong></div>
+      </div>
+      <div style="${sectionStyle}">
+        <div style="${rowStyle}"><span class="muted">基本給(11乗務まで)</span><span>${formatYen(b.basePay11)}</span></div>
+        <div style="${rowStyle}"><span class="muted">追加給(12乗務目以降)</span><span>${formatYen(b.extraTotal)}</span></div>
+        <div style="${rowStyle}"><span class="muted">合計</span><strong>${formatYen(b.basePay)}</strong></div>
+      </div>
+    `;
+  }
+
+  if (result.incentive > 0 || result.paidLeaveAmount > 0) {
+    let extra = '';
+    if (result.incentive > 0) {
+      extra += `<div style="${rowStyle}"><span class="muted">プレミアム手当</span><span>+${formatYen(result.incentive)}</span></div>`;
+    }
+    if (result.paidLeaveAmount > 0) {
+      extra += `<div style="${rowStyle}"><span class="muted">有給(${result.paidLeaveDays}日)</span><span>+${formatYen(result.paidLeaveAmount)}</span></div>`;
+    }
+    extra += `<div style="${rowStyle};border-top:1px dashed #ccc;padding-top:4px;margin-top:4px;"><span class="muted">総支給</span><strong>${formatYen(result.total)}</strong></div>`;
+    body += `<div style="${sectionStyle}">${extra}</div>`;
+  }
+
+  return `
+    <details style="margin-top:6px;">
+      <summary style="cursor:pointer;font-size:12px;color:var(--primary);user-select:none;">給与計算の内訳を見る</summary>
+      ${body}
+    </details>
+  `;
 }
 
 function renderSummaryTable(drives) {
