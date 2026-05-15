@@ -3596,6 +3596,518 @@
       },
       "entry_type": "both",
       "boundary_tag": null
+    },
+    {
+      "id": "nakanwa_ohi_minami",
+      "name": "中環大井南",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "gotanda",
+      "name": "五反田",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "tomigaya",
+      "name": "富ヶ谷",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "hatsudai_minami",
+      "name": "初台南",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "nakano_chojabashi",
+      "name": "中野長者橋",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "nishi_ikebukuro",
+      "name": "西池袋",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "itabashi_jct",
+      "name": "板橋JCT",
+      "route": "C2",
+      "route_name": "中央環状線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "shibaura_jct",
+      "name": "芝浦JCT",
+      "route": "1",
+      "route_name": "1号羽田線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "showajima_jct",
+      "name": "昭和島JCT",
+      "route": "1",
+      "route_name": "1号羽田線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "kuko_nishi",
+      "name": "空港西",
+      "route": "1",
+      "route_name": "1号羽田線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "haneda",
+      "name": "羽田",
+      "route": "1",
+      "route_name": "1号羽田線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "takagicho",
+      "name": "高樹町",
+      "route": "3",
+      "route_name": "3号渋谷線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "shibuya",
+      "name": "渋谷",
+      "route": "3",
+      "route_name": "3号渋谷線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "tamagawa_dori",
+      "name": "玉川通り",
+      "route": "3",
+      "route_name": "3号渋谷線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "ikejiri",
+      "name": "池尻",
+      "route": "3",
+      "route_name": "3号渋谷線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "yoga",
+      "name": "用賀",
+      "route": "3",
+      "route_name": "3号渋谷線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "yoyogi",
+      "name": "代々木",
+      "route": "4",
+      "route_name": "4号新宿線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "shinjuku",
+      "name": "新宿",
+      "route": "4",
+      "route_name": "4号新宿線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "hatsudai",
+      "name": "初台",
+      "route": "4",
+      "route_name": "4号新宿線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "hatagaya",
+      "name": "幡ヶ谷",
+      "route": "4",
+      "route_name": "4号新宿線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "takebashi_jct",
+      "name": "竹橋JCT",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "transit_only",
+      "boundary_tag": null
+    },
+    {
+      "id": "hitotsubashi",
+      "name": "一ツ橋",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "nishi_kanda",
+      "name": "西神田",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "iidabashi",
+      "name": "飯田橋",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "waseda",
+      "name": "早稲田",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "gokokuji",
+      "name": "護国寺",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "higashi_ikebukuro",
+      "name": "東池袋",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "kita_ikebukuro",
+      "name": "北池袋",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "itabashi_honcho",
+      "name": "板橋本町",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "takashimadaira",
+      "name": "高島平",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "toda_minami",
+      "name": "戸田南",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
+    },
+    {
+      "id": "toda",
+      "name": "戸田",
+      "route": "5",
+      "route_name": "5号池袋線",
+      "gps": {
+        "lat": 0,
+        "lng": 0
+      },
+      "svg": {
+        "x": 600,
+        "y": 600
+      },
+      "entry_type": "both",
+      "boundary_tag": null
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "version": 4,
   "generated_at": "2026-04-27",
-  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。",
+  "source": "首都高速道路公式サイト・NEXCO・Wikipedia「首都高速各号線」記載のIC間距離。v3でC2南半(大井JCT・大橋JCT・西新宿JCT)と両国JCT(7号→6号向島→C1経路)を追加。 / 2026-05-15: ichinohashi_jct を追加し、2号目黒線本線をWikipedia公式km値で再構成。旧shibaura→togoshi(代用edge)を削除。 / 2026-05-15: 第三京浜本線(tamagawa_ic→hodogaya) を Wikipedia公式km値で整備。yokohama_kohoku を 3路線接続JCT(K7+K7_hokusei+third_keihin) に拡張。 / 2026-05-15: 大泉JCT を新規node化。旧 nerima→bijogi_jct 8.5km(代用) を 練馬IC→大泉JCT 0.8km(関越) + 大泉JCT→美女木JCT 7.7km(外環) に分割。 / 2026-05-15: C1上の 浜崎橋JCT + 芝公園 を新規追加、C1本線(汐留JCT〜飯倉)を Wikipedia公式km値で再構成。1号羽田線は 浜崎橋JCT→shibaura 2.6km route 1 として正しく接続。 / 2026-05-15: 主要外側高速11路線 (tomei/chuo/kanetsu/tohoku/joban/keiyo/tokan/aqua/tateyama/yokoyoko/third_keihin) の中間IC群を deduction.json entries (km>0) からchain化して graph に一括追加。 / 2026-05-15: 首都高本線 C2/1/3/4/5 を Wikipedia公式km値で chain整備。",
   "notes": "approx:true の辺は公式値未確認・推計値。undirected グラフとして使用。JCTノード(*_jct)は通過点として ics.json に entry_type:transit_only で登録、IC選択肢には現れない。",
   "nodes": [
     {
@@ -263,7 +263,8 @@
       "id": "ohi_jct",
       "routes": [
         "B",
-        "C2"
+        "C2",
+        "1"
       ]
     },
     {
@@ -1307,6 +1308,217 @@
       "routes": [
         "third_keihin"
       ]
+    },
+    {
+      "id": "nakanwa_ohi_minami",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "gotanda",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "tomigaya",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "hatsudai_minami",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "nakano_chojabashi",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "nishi_ikebukuro",
+      "routes": [
+        "C2"
+      ]
+    },
+    {
+      "id": "itabashi_jct",
+      "routes": [
+        "C2",
+        "5"
+      ]
+    },
+    {
+      "id": "shibaura_jct",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "katsushima",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "suzugamori",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "heiwajima",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "showajima_jct",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "kuko_nishi",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "haneda",
+      "routes": [
+        "1"
+      ]
+    },
+    {
+      "id": "takagicho",
+      "routes": [
+        "3"
+      ]
+    },
+    {
+      "id": "shibuya",
+      "routes": [
+        "3"
+      ]
+    },
+    {
+      "id": "tamagawa_dori",
+      "routes": [
+        "3"
+      ]
+    },
+    {
+      "id": "ikejiri",
+      "routes": [
+        "3"
+      ]
+    },
+    {
+      "id": "yoga",
+      "routes": [
+        "3"
+      ]
+    },
+    {
+      "id": "yoyogi",
+      "routes": [
+        "4"
+      ]
+    },
+    {
+      "id": "shinjuku",
+      "routes": [
+        "4"
+      ]
+    },
+    {
+      "id": "hatsudai",
+      "routes": [
+        "4"
+      ]
+    },
+    {
+      "id": "hatagaya",
+      "routes": [
+        "4"
+      ]
+    },
+    {
+      "id": "takebashi_jct",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "hitotsubashi",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "nishi_kanda",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "iidabashi",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "waseda",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "gokokuji",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "higashi_ikebukuro",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "kita_ikebukuro",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "itabashi_honcho",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "takashimadaira",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "toda_minami",
+      "routes": [
+        "5"
+      ]
+    },
+    {
+      "id": "toda",
+      "routes": [
+        "5"
+      ]
     }
   ],
   "edges": [
@@ -1731,12 +1943,6 @@
       "to": "ichinohashi_jct",
       "km": 1.4,
       "route": "C1"
-    },
-    {
-      "from": "hamazakibashi_jct",
-      "to": "shibaura",
-      "km": 2.6,
-      "route": "1"
     },
     {
       "from": "tokyo_ic",
@@ -2733,6 +2939,282 @@
       "to": "totsuka",
       "km": 2.7,
       "route": "third_keihin"
+    },
+    {
+      "from": "ohi_jct",
+      "to": "nakanwa_ohi_minami",
+      "km": 1.2,
+      "route": "C2"
+    },
+    {
+      "from": "nakanwa_ohi_minami",
+      "to": "gotanda",
+      "km": 4.8,
+      "route": "C2"
+    },
+    {
+      "from": "gotanda",
+      "to": "ohashi_jct",
+      "km": 3.4,
+      "route": "C2"
+    },
+    {
+      "from": "ohashi_jct",
+      "to": "tomigaya",
+      "km": 2,
+      "route": "C2"
+    },
+    {
+      "from": "tomigaya",
+      "to": "hatsudai_minami",
+      "km": 0.4,
+      "route": "C2"
+    },
+    {
+      "from": "hatsudai_minami",
+      "to": "nishi_shinjuku_jct",
+      "km": 1.2,
+      "route": "C2"
+    },
+    {
+      "from": "nishi_shinjuku_jct",
+      "to": "nakano_chojabashi",
+      "km": 1.7,
+      "route": "C2"
+    },
+    {
+      "from": "nakano_chojabashi",
+      "to": "nishi_ikebukuro",
+      "km": 3.8,
+      "route": "C2"
+    },
+    {
+      "from": "nishi_ikebukuro",
+      "to": "kumanocho_jct",
+      "km": 1.9,
+      "route": "C2"
+    },
+    {
+      "from": "kumanocho_jct",
+      "to": "itabashi_jct",
+      "km": 1,
+      "route": "C2"
+    },
+    {
+      "from": "hamazakibashi_jct",
+      "to": "shibaura_jct",
+      "km": 0.5,
+      "route": "1"
+    },
+    {
+      "from": "shibaura_jct",
+      "to": "shibaura",
+      "km": 1.2,
+      "route": "1"
+    },
+    {
+      "from": "shibaura",
+      "to": "ohi_jct",
+      "km": 3.8,
+      "route": "1"
+    },
+    {
+      "from": "ohi_jct",
+      "to": "katsushima",
+      "km": 1.4,
+      "route": "1"
+    },
+    {
+      "from": "katsushima",
+      "to": "suzugamori",
+      "km": 0.6,
+      "route": "1"
+    },
+    {
+      "from": "suzugamori",
+      "to": "heiwajima",
+      "km": 1.6,
+      "route": "1"
+    },
+    {
+      "from": "heiwajima",
+      "to": "showajima_jct",
+      "km": 0.6,
+      "route": "1"
+    },
+    {
+      "from": "showajima_jct",
+      "to": "kuko_nishi",
+      "km": 1.6,
+      "route": "1"
+    },
+    {
+      "from": "kuko_nishi",
+      "to": "haneda",
+      "km": 1.2,
+      "route": "1"
+    },
+    {
+      "from": "tanimachi_jct",
+      "to": "takagicho",
+      "km": 1.7,
+      "route": "3"
+    },
+    {
+      "from": "takagicho",
+      "to": "shibuya",
+      "km": 1.5,
+      "route": "3"
+    },
+    {
+      "from": "shibuya",
+      "to": "tamagawa_dori",
+      "km": 1,
+      "route": "3"
+    },
+    {
+      "from": "tamagawa_dori",
+      "to": "ohashi_jct",
+      "km": 0.8,
+      "route": "3"
+    },
+    {
+      "from": "ohashi_jct",
+      "to": "ikejiri",
+      "km": 0.6,
+      "route": "3"
+    },
+    {
+      "from": "ikejiri",
+      "to": "sangenjaya",
+      "km": 0.4,
+      "route": "3"
+    },
+    {
+      "from": "sangenjaya",
+      "to": "yoga",
+      "km": 5.7,
+      "route": "3"
+    },
+    {
+      "from": "gaien",
+      "to": "yoyogi",
+      "km": 2.2,
+      "route": "4"
+    },
+    {
+      "from": "yoyogi",
+      "to": "shinjuku",
+      "km": 0.7,
+      "route": "4"
+    },
+    {
+      "from": "shinjuku",
+      "to": "nishi_shinjuku_jct",
+      "km": 0.3,
+      "route": "4"
+    },
+    {
+      "from": "nishi_shinjuku_jct",
+      "to": "hatsudai",
+      "km": 0.8,
+      "route": "4"
+    },
+    {
+      "from": "hatsudai",
+      "to": "hatagaya",
+      "km": 0.3,
+      "route": "4"
+    },
+    {
+      "from": "hatagaya",
+      "to": "eifuku",
+      "km": 3,
+      "route": "4"
+    },
+    {
+      "from": "takebashi_jct",
+      "to": "hitotsubashi",
+      "km": 0.1,
+      "route": "5"
+    },
+    {
+      "from": "hitotsubashi",
+      "to": "nishi_kanda",
+      "km": 0.5,
+      "route": "5"
+    },
+    {
+      "from": "nishi_kanda",
+      "to": "iidabashi",
+      "km": 1.6,
+      "route": "5"
+    },
+    {
+      "from": "iidabashi",
+      "to": "waseda",
+      "km": 1.2,
+      "route": "5"
+    },
+    {
+      "from": "waseda",
+      "to": "gokokuji",
+      "km": 1.1,
+      "route": "5"
+    },
+    {
+      "from": "gokokuji",
+      "to": "higashi_ikebukuro",
+      "km": 1.4,
+      "route": "5"
+    },
+    {
+      "from": "higashi_ikebukuro",
+      "to": "kita_ikebukuro",
+      "km": 1.6,
+      "route": "5"
+    },
+    {
+      "from": "kita_ikebukuro",
+      "to": "kumanocho_jct",
+      "km": 0.3,
+      "route": "5"
+    },
+    {
+      "from": "itabashi_jct",
+      "to": "itabashi_honcho",
+      "km": 0.6,
+      "route": "5"
+    },
+    {
+      "from": "itabashi_honcho",
+      "to": "nakadai",
+      "km": 3.4,
+      "route": "5"
+    },
+    {
+      "from": "nakadai",
+      "to": "takashimadaira",
+      "km": 5.1,
+      "route": "5"
+    },
+    {
+      "from": "takashimadaira",
+      "to": "toda_minami",
+      "km": 0.8,
+      "route": "5"
+    },
+    {
+      "from": "toda_minami",
+      "to": "toda",
+      "km": 2.2,
+      "route": "5"
+    },
+    {
+      "from": "toda",
+      "to": "bijogi_jct",
+      "km": 0.5,
+      "route": "5"
     }
   ]
 }
