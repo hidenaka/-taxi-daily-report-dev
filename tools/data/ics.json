@@ -1,6 +1,6 @@
 {
- "version": 14,
- "generated_at": "2026-05-16T03:54:09Z",
+ "version": 15,
+ "generated_at": "2026-05-16T04:51:19Z",
  "ics": [
   {
    "id": "kasumigaseki",
@@ -5090,6 +5090,118 @@
    "gps": {
     "lat": 35.392,
     "lng": 139.973
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "sachiura",
+   "name": "幸浦出入口",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.36,
+    "lng": 139.643556
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "sugita",
+   "name": "杉田出入口",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.381834,
+    "lng": 139.627654
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "isogo",
+   "name": "磯子出入口",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.397985,
+    "lng": 139.617639
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "sankeien",
+   "name": "三渓園出入口",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.412778,
+    "lng": 139.663611
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "honmoku_jct",
+   "name": "本牧JCT",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.439167,
+    "lng": 139.667778
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "namiki",
+   "name": "並木IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路金沢支線",
+   "gps": {
+    "lat": 35.361111,
+    "lng": 139.6375
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "kamariya_jct",
+   "name": "釜利谷JCT",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.352917,
+    "lng": 139.596306
    },
    "svg": {
     "x": 600,

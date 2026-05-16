@@ -146,20 +146,26 @@ export function getOuterRouteOptionsForIc({ ic, exitIc = null, deduction }) {
 
   // 羽田(空港中央/湾岸環八)⇔神奈川方面のトリップでは、羽田側ICが終点(deduction km=0)
   // となる経路パターンroute(湾岸線経由/横羽線経由/保土ヶ谷BP経由)を候補に追加する。
-  // 終点ICはentriesに km=0 で登録されており getIcMatchedRoutes の km>0 条件で
-  // 漏れるため、ここで明示的に補う（相手ICが神奈川方面ICのときのみ＝首都高内同士は除外）。
+  // 終点ICはentriesに km=0 で登録されており getIcMatchedRoutes の km>0 条件で漏れるため。
+  // 条件: 羽田側ICがその経路の終点 かつ 相手ICもその経路に物理所属(entries/baseline)。
+  // ＝相手ICが所属しない経路パターンは追加しない（過剰追加の防止）。
   const hanedaIc = HANEDA_EXIT_IDS.has(ic.id)
     ? ic
     : (HANEDA_EXIT_IDS.has(exitIc?.id) ? exitIc : null);
   if (hanedaIc) {
+    const otherIc = hanedaIc === ic ? exitIc : ic;
     const otherMatched = hanedaIc === ic ? exitMatched : entryMatched;
-    if (otherMatched.some((m) => KANAGAWA_FAMILY_ROUTES.has(m.id))) {
-      for (const dir of deduction.directions) {
-        if (KANAGAWA_BRANCH_ROUTES.has(dir.id)
-            && dir.entries.some((e) => e.ic_id === hanedaIc.id && e.km === 0)
-            && !merged.has(dir.id)) {
-          merged.set(dir.id, 0);
-        }
+    // 相手ICが実在の神奈川方面外側高速ICの時のみ発動（羽田IC同士・首都高内同士は除外）
+    const otherIsKanagawa = otherMatched.some((m) => KANAGAWA_FAMILY_ROUTES.has(m.id));
+    if (otherIsKanagawa) for (const dir of deduction.directions) {
+      if (!KANAGAWA_BRANCH_ROUTES.has(dir.id) || merged.has(dir.id)) continue;
+      const hanedaIsEndpoint = dir.entries.some(
+        (e) => e.ic_id === hanedaIc.id && e.km === 0);
+      const otherOnRoute = !!otherIc && (
+        dir.baseline.ic_id === otherIc.id
+        || dir.entries.some((e) => e.ic_id === otherIc.id));
+      if (hanedaIsEndpoint && otherOnRoute) {
+        merged.set(dir.id, 0);
       }
     }
   }
