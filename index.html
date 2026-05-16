@@ -185,7 +185,11 @@ async function render() {
 
   const monthLabel = formatBillingPeriod(viewPeriod);
   const takeHomeRate = config.takeHomeRate ?? 0.75;
-  const respShifts = config.responsibilityShifts;
+  // 予定出番数: カレンダーのシフト予定(expandedDates)の当月度内件数を使う。
+  // 未設定(0件)時のみ責任出番(設定値)にフォールバック。
+  const plannedShifts = (config.shifts.expandedDates || [])
+    .filter(d => d >= range.start && d <= range.end).length;
+  const respShifts = plannedShifts > 0 ? plannedShifts : config.responsibilityShifts;
 
   // 現在月度かつ責任出番未達の段階では、予定責任出番ベース(rateTable["11"]等)で歩率計算
   // 過去月度・確定月度は実shiftCountベース(従来通り)
@@ -195,7 +199,7 @@ async function render() {
 
   let predicted = null;
   if (isCurrent && rawDrives.length > 0 && rawDrives.length < respShifts) {
-    predicted = predictMonthly(rawDrives, config, range.start, range.end);
+    predicted = predictMonthly(rawDrives, config, range.start, range.end, respShifts);
   }
 
   // サマリー
@@ -245,7 +249,7 @@ async function render() {
       <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
       <div class="kv"><div>月度予想 総支給<span class="badge predict">予測</span></div><div><strong>${formatYen(predicted.total)}</strong></div></div>
       <div class="kv"><div>月度予想 手取り</div><div style="color:var(--primary);"><strong>${formatYen(predictedTakeHome)}</strong></div></div>
-      <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 責任出番(${respShifts})</p>
+      <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 予定出番数(${respShifts})</p>
     `;
   } else if (isCurrent && rawDrives.length === 0) {
     summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると予想が表示されます</p>`;
@@ -259,7 +263,8 @@ async function render() {
   // 歩率セクション(現状の歩率 + アップ/ダウン境界)
   if (rawDrives.length > 0 && config.payrollMode !== 'fixed_rate') {
     const rateTable = config.rateTable;
-    const tierKey = String(Math.min(respShifts, 11));
+    // 歩率テーブルのティアは契約上の責任出番で判定する(予定出番数とは別概念)
+    const tierKey = String(Math.min(config.responsibilityShifts, 11));
     const projectionTiers = rateTable && (rateTable[tierKey] || rateTable["11"]);
     if (projectionTiers && projectionTiers.length > 0) {
       const currentSalesExclTax = monthly.exclTax;
@@ -382,7 +387,7 @@ async function render() {
       <div class="kv"><div>残り必要総売上(税抜)</div><div><strong>${formatYen(perShiftSalesExclTax * remainingShifts)}</strong></div></div>
       <div class="kv"><div>1乗務あたり必要 売上(税込)</div><div><strong>${formatYen(perShiftSalesInclTax)}</strong></div></div>
       <div class="kv"><div>1乗務あたり必要 売上(税抜)</div><div><strong>${formatYen(perShiftSalesExclTax)}</strong></div></div>
-      ` : '<p class="muted" style="font-size:11px;margin-top:6px;">責任出番達成済</p>'}
+      ` : '<p class="muted" style="font-size:11px;margin-top:6px;">予定出番達成済</p>'}
     `;
     // 追加目標(任意): 総支給、11乗務目までの手取り
     targetCard.innerHTML += renderSubTargetCards(config, actualResult, predicted, takeHomeRate);
@@ -482,7 +487,7 @@ function renderFutureTargetCard(config, takeHomeRate, respShifts) {
   return `
     <div style="margin-bottom:6px;"><strong>来月の目標</strong></div>
     ${rows}
-    <div class="kv" style="margin-top:8px;"><div>予定責任出番</div><div><strong>${respShifts}</strong>乗務</div></div>
+    <div class="kv" style="margin-top:8px;"><div>予定出番数</div><div><strong>${respShifts}</strong>乗務</div></div>
     <p class="muted" style="font-size:11px;margin-top:6px;">カレンダーから予定を入れて準備できます。</p>
   `;
 }
@@ -887,10 +892,10 @@ async function renderTodayHint() {
 }
 
 
-function predictMonthly(drives, config, periodStart, periodEnd) {
+function predictMonthly(drives, config, periodStart, periodEnd, targetShifts) {
   const monthly = calcMonthlySales(drives);
   const avgDailyInclTax = monthly.inclTax / drives.length;
-  const target = config.responsibilityShifts;
+  const target = targetShifts ?? config.responsibilityShifts;
   const remaining = target - drives.length;
   if (remaining <= 0) return calcTotalPay(drives, config, periodStart, periodEnd);
   // 現在の premium 比率を残乗務に反映 (incentive 予測用)
