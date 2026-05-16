@@ -29,7 +29,8 @@ function getOwnedDirections(ic) {
   for (const dir of deduction.directions) {
     if (dir.baseline.ic_id === ic.id) set.add(dir.id);
     if (KANAGAWA_BRANCH.has(dir.id)) {
-      if (dir.entries.some((e) => e.ic_id === ic.id && e.km > 0)) set.add(dir.id);
+      // km>0=途中IC / km=0=経路終点IC。いずれも物理的にその経路上にある
+      if (dir.entries.some((e) => e.ic_id === ic.id && e.km >= 0)) set.add(dir.id);
     }
   }
   return set;

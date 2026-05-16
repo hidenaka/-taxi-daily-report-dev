@@ -50,6 +50,13 @@ const KANAGAWA_BRANCH_ROUTES = new Set([
   'yokohane_route', 'wangan_route', 'hodogaya_route',
 ]);
 
+// 神奈川・横浜方面に属する外側高速 direction の集合。羽田(空港中央/湾岸環八)⇔神奈川方面
+// トリップの判定に使う（相手ICがこの集合のrouteを所属していれば神奈川方面トリップ）。
+const KANAGAWA_FAMILY_ROUTES = new Set([
+  'third_keihin', 'yokoyoko', 'yokohane_route', 'wangan_route',
+  'hodogaya_route', 'hokuseisen_route', 'kitasen_route',
+]);
+
 function getIcMatchedRoutes(ic, deduction) {
   if (!ic) return [];
   const map = new Map();
@@ -135,6 +142,26 @@ export function getOuterRouteOptionsForIc({ ic, exitIc = null, deduction }) {
   for (const m of entryMatched) merged.set(m.id, m.km);
   for (const m of exitMatched) {
     if (!merged.has(m.id)) merged.set(m.id, m.km);
+  }
+
+  // 羽田(空港中央/湾岸環八)⇔神奈川方面のトリップでは、羽田側ICが終点(deduction km=0)
+  // となる経路パターンroute(湾岸線経由/横羽線経由/保土ヶ谷BP経由)を候補に追加する。
+  // 終点ICはentriesに km=0 で登録されており getIcMatchedRoutes の km>0 条件で
+  // 漏れるため、ここで明示的に補う（相手ICが神奈川方面ICのときのみ＝首都高内同士は除外）。
+  const hanedaIc = HANEDA_EXIT_IDS.has(ic.id)
+    ? ic
+    : (HANEDA_EXIT_IDS.has(exitIc?.id) ? exitIc : null);
+  if (hanedaIc) {
+    const otherMatched = hanedaIc === ic ? exitMatched : entryMatched;
+    if (otherMatched.some((m) => KANAGAWA_FAMILY_ROUTES.has(m.id))) {
+      for (const dir of deduction.directions) {
+        if (KANAGAWA_BRANCH_ROUTES.has(dir.id)
+            && dir.entries.some((e) => e.ic_id === hanedaIc.id && e.km === 0)
+            && !merged.has(dir.id)) {
+          merged.set(dir.id, 0);
+        }
+      }
+    }
   }
 
   if (merged.size === 0) return ['none'];
