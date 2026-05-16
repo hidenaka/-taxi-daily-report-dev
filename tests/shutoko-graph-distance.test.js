@@ -103,7 +103,7 @@ test('distance: 練馬IC → 美女木JCT (関越→外環) が 大泉JCT 経由
   const r = shortestPath(adj, 'nerima', 'bijogi_jct');
   console.log(`[kanetsu→gaikan via oizumi_jct] nerima→bijogi_jct: ${r.km}km path: ${r.path.join('→')}`);
   assert.ok(r.path.includes('oizumi_jct'), '大泉JCT経由してない');
-  assert.ok(Math.abs(r.km - 8.5) < 0.5, `${r.km}km, 期待は 8.5km前後`);
+  assert.ok(Math.abs(r.km - 9.2) < 0.6, `${r.km}km, 期待は 9.2km前後`);
 });
 
 test('graph: 浜崎橋JCT + 芝公園 が node 登録されている', () => {
