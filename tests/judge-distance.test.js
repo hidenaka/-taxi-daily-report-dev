@@ -4,9 +4,10 @@
 // （総距離と経路詳細が単一のグラフ経路から導かれる）。
 import { test, assert } from './run.js';
 import { readFileSync } from 'node:fs';
-import { judgeRoute } from '../tools/js/judge.js';
+import { judgeRoute, OUTER_ROUTE_TO_GRAPH } from '../tools/js/judge.js';
 import { getOuterRouteOptionsForIc } from '../tools/js/route-options.js';
 import { buildAdjacency, shortestPath, shortestPathVia } from '../tools/js/shutoko-graph.js';
+import { haversineKm } from '../tools/js/util.js';
 
 const J = (p) => JSON.parse(readFileSync(p, 'utf-8'));
 const deduction = J('tools/data/deduction.json');
@@ -21,16 +22,8 @@ const byId = new Map(ics.map((i) => [i.id, i]));
 const deps = { deduction, shutokoDist, shutokoRoutes, shutokoGraph, gaikanDist, routes, ics };
 const adj = buildAdjacency(shutokoGraph);
 
-// judge.js / app.js と同期する外側高速→グラフroute対応表
-const OUTER_ROUTE_TO_GRAPH = {
-  yokohane_route: 'K1', wangan_route: 'B', hodogaya_route: 'third_keihin',
-  hokuseisen_route: 'K7_hokusei', kitasen_route: 'K7', yokoyoko: 'yokoyoko',
-  tomei: 'tomei', chuo: 'chuo', kanetsu: 'kanetsu', tohoku: 'tohoku',
-  joban: 'joban', keiyo: 'keiyo', tokan: 'tokan', aqua: 'aqua',
-  tateyama: 'tateyama', third_keihin: 'third_keihin',
-};
-
 // renderJctDetails(app.js) と同じ探索: 強制経由 → ダメなら通常最短
+// OUTER_ROUTE_TO_GRAPH は judge.js から import（定義の二重管理を避ける）
 function graphDist(entryId, exitId, outerRoute) {
   const via = OUTER_ROUTE_TO_GRAPH[outerRoute];
   let sp = via ? shortestPathVia(adj, shutokoGraph, entryId, exitId, via) : null;
@@ -92,4 +85,39 @@ test('総距離=グラフ探索: 横浜方面の代表ペア', () => {
 test('総距離=グラフ探索: 関越方面（外環経由を含む）', () => {
   const v = checkPair('tsurugashima', 'ginza');
   assert.equal(v.length, 0, '総距離が経路と乖離:\n' + v.join('\n'));
+});
+
+// 全方面（東名/中央/関越/東北/常磐/京葉/東関東/アクア/館山/横浜/外環/首都高内）を
+// 網羅し、judgeRoute の総距離が常にグラフ探索距離と一致し、かつ物理的に破綻
+// （総距離 < 直線距離）しないことを保証する。
+test('全エリア網羅: 全 entryable IC×代表出口で総距離=グラフ・物理破綻なし', () => {
+  const exits = ['kukou_chuou', 'ginza', 'tokyo_ic', 'kasumigaseki'];
+  const entryable = ics.filter((i) => i.entry_type === 'both');
+  let checked = 0;
+  const violations = [];
+  for (const entry of entryable) {
+    for (const exitId of exits) {
+      const exit = byId.get(exitId);
+      if (!exit || exit.id === entry.id) continue;
+      const opts = getOuterRouteOptionsForIc({ ic: entry, exitIc: exit, deduction });
+      const straight = (entry.gps && exit.gps) ? haversineKm(entry.gps, exit.gps) : 0;
+      for (const opt of opts) {
+        if (opt === 'none') continue;
+        checked++;
+        const r = judgeRoute(
+          { outerRoute: opt, entryIc: entry, exitIc: exit, roundTrip: false }, deps);
+        const total = r.totals.distanceKmOneway;
+        const sp = graphDist(entry.id, exitId, opt);
+        if (sp.km !== null && Math.abs(total - sp.km) > 1.5) {
+          violations.push(`総距離≠グラフ: ${entry.id}→${exitId} ${opt}: ${total} vs ${sp.km.toFixed(1)}`);
+        }
+        if (straight > 0 && total > 0 && total < straight - 0.5) {
+          violations.push(`直線より短い: ${entry.id}→${exitId} ${opt}: ${total} < ${straight.toFixed(1)}`);
+        }
+      }
+    }
+  }
+  console.log(`[全エリア網羅] ${checked}件チェック, 違反${violations.length}`);
+  if (violations.length) console.log('  ' + violations.slice(0, 10).join('\n  '));
+  assert.equal(violations.length, 0, '総距離の一貫性/物理整合の違反');
 });
