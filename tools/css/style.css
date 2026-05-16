@@ -1,3 +1,6 @@
+/* hidden属性を確実に効かせる (.route-select 等の display指定が UAスタイルを上書きする問題対策) */
+[hidden] { display: none !important; }
+
 :root {
   --bg: #0f1723;
   --surface: #1b2538;
