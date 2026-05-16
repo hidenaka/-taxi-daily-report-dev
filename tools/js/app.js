@@ -1,20 +1,11 @@
 import { loadAllData } from './data-loader.js';
-import { judgeRoute, resolveShutokoStartIcId, lookupDeduction, OUTER_TRUNK_ROUTES } from './judge.js';
+import { judgeRoute } from './judge.js';
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
-import { buildAdjacency, shortestPath, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
+import { buildAdjacency, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
-
-// outerRoute → graph上の route id (強制経由判定用)
-const OUTER_ROUTE_TO_GRAPH = {
-  yokohane_route: 'K1', wangan_route: 'B', hodogaya_route: 'third_keihin',
-  hokuseisen_route: 'K7_hokusei', kitasen_route: 'K7', yokoyoko: 'yokoyoko',
-  tomei: 'tomei', chuo: 'chuo', kanetsu: 'kanetsu', tohoku: 'tohoku',
-  joban: 'joban', keiyo: 'keiyo', tokan: 'tokan', aqua: 'aqua',
-  tateyama: 'tateyama', third_keihin: 'third_keihin',
-};
 
 const state = {
   data: null,
@@ -439,52 +430,11 @@ function updateOuterRouteOptions() {
   }
 }
 
+// 首都高ルート選択UIは廃止。経路はグラフ探索1本で決まり、経路バリエーションは
+// ルート比較タブの「都心経路」variant で提示するため、プルダウンは常に非表示。
 function updateShutokoRouteOptions() {
-  const { ics, deduction, shutokoRoutes, routes } = state.data;
-  const entryIc = ics.find(x => x.id === state.selected.entryIcId);
-  const exitIc  = ics.find(x => x.id === state.selected.exitIcId);
-  if (!entryIc || !exitIc) return;
-
-  const isOuter = OUTER_TRUNK_ROUTES.has(state.selected.outerRoute);
-  const viaGaikan = state.selected.outerRoute === 'gaikan_direct'
-                 || routes.needs_gaikan_transit[state.selected.outerRoute] === true
-                 || (routes.needs_gaikan_transit[state.selected.outerRoute] === 'optional' && state.selected.viaGaikan);
-
-  // reverseOuter: 入口が首都高側・出口が外側高速側の逆区間
-  const entryOuterDed = isOuter ? lookupDeduction(deduction, entryIc.id, state.selected.outerRoute) : null;
-  const exitOuterDed  = isOuter ? lookupDeduction(deduction, exitIc.id, state.selected.outerRoute) : null;
-  const reverseOuter = Boolean(isOuter && !entryOuterDed && exitOuterDed);
-
-  const startIcId = resolveShutokoStartIcId({
-    outerRoute: state.selected.outerRoute,
-    entryIc: reverseOuter ? exitIc : entryIc,
-    deduction,
-    viaGaikan
-  });
-  const endIcId = reverseOuter ? entryIc.id : exitIc.id;
-
-  const pair = shutokoRoutes.pairs.find(p =>
-    (p.from === startIcId && p.to === endIcId) || (p.from === endIcId && p.to === startIcId));
   const label = document.getElementById('label-shutoko-route');
-  const sel   = document.getElementById('sel-shutoko-route');
-  sel.innerHTML = '';
-
-  if (!pair || pair.options.length <= 1) {
-    label.hidden = true;
-    state.selected.shutokoRouteId = null;
-    return;
-  }
-
-  label.hidden = false;
-  for (const opt of pair.options) {
-    const o = document.createElement('option');
-    o.value = opt.id;
-    o.textContent = `${opt.label}（${opt.km}km）`;
-    sel.appendChild(o);
-  }
-  const def = pair.options.find(o => o.default) || pair.options[0];
-  sel.value = def.id;
-  state.selected.shutokoRouteId = def.id;
+  if (label) label.hidden = true;
 }
 
 function wireEvents() {
@@ -574,9 +524,11 @@ function wireEvents() {
   document.getElementById('btn-clear-log').addEventListener('click', clearTodayLog);
 }
 
+// 外環経由は経路探索が自動で最適経路を選ぶため、明示チェックボックスは廃止。
+// 外環を通る経路はルート比較タブの「都心経路」variant で提示される。
 function toggleGaikanCheckbox() {
-  const conf = state.data.routes.needs_gaikan_transit[state.selected.outerRoute];
-  document.getElementById('label-via-gaikan').hidden = (conf !== 'optional');
+  const el = document.getElementById('label-via-gaikan');
+  if (el) el.hidden = true;
 }
 
 function renderRoutePath(result) {
@@ -700,28 +652,12 @@ function renderJctDetails(result, entryIc, exitIc) {
     }
   };
 
-  // 選択中の outerRoute に対応する graph route を「強制経由」 した経路を表示する。
-  // これにより「横羽線経由を選択」 → 経路詳細も横羽線(K1)を実際に通る経路、 と
-  // ルート比較の選択肢と経路詳細が一致する。
-  if (graph && !_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
-
+  // 経路詳細は judgeRoute が確定した経路(result.path)をそのまま描画する。
+  // 総距離・経路詳細・ルート比較タブが単一のグラフ経路から導かれ、必ず一致する。
   let hasAnyPath = false;
-  if (graph && entryIc && exitIc) {
-    const outerRoute = state.selected.outerRoute;
-    const viaGraphRoute = OUTER_ROUTE_TO_GRAPH[outerRoute];
-    let sp = null;
-    if (viaGraphRoute) {
-      // 選択ルートを強制経由した経路
-      sp = shortestPathVia(_routeDetailsAdj, graph, entryIc.id, exitIc.id, viaGraphRoute);
-    }
-    // 強制経由で取れない (= その路線を通る経路が物理的に無い) or outerRoute=none → 通常最短
-    if (!sp || !sp.path || sp.path.length < 2) {
-      sp = shortestPath(_routeDetailsAdj, entryIc.id, exitIc.id);
-    }
-    if (sp.path && sp.path.length >= 2) {
-      renderFilteredPath(sp.path);
-      hasAnyPath = true;
-    }
+  if (result.path && result.path.length >= 2) {
+    renderFilteredPath(result.path);
+    hasAnyPath = true;
   }
 
   if (!hasAnyPath) {
@@ -735,86 +671,62 @@ function renderJctDetails(result, entryIc, exitIc) {
   wrap.open = true;
 }
 
-// segments から totals を再計算 (judge.js aggregate のローカル版)
-function aggregateLocal(segments, roundTrip) {
-  const r1 = (n) => Math.round(n * 10) / 10;
-  const totalDed = r1(segments.reduce((a, s) => a + s.deductionKm, 0));
-  const totalDist = r1(segments.reduce((a, s) => a + s.distanceKm, 0));
-  const pays = new Set(segments.map((s) => s.pay));
-  const paySummary = pays.size === 1
-    ? (pays.has('company') ? 'all_company' : 'all_self') : 'mixed';
-  return {
-    paySummary,
-    deductionKmOneway: totalDed,
-    deductionKmRoundtrip: roundTrip ? r1(totalDed * 2) : totalDed,
-    distanceKmOneway: totalDist,
-    distanceKmRoundtrip: roundTrip ? r1(totalDist * 2) : totalDist,
-    notes: segments.map((s) => s.note).filter(Boolean),
-  };
-}
-
 function calculateAllRoutes(entryIc, exitIc) {
   const outerOptions = getOuterRouteOptions(entryIc);
   const routes = [];
   const graph = state.data.shutokoGraph;
   if (graph && !_routeDetailsAdj) _routeDetailsAdj = buildAdjacency(graph);
-  const icByName = new Map(
-    state.data.ics.map((i) => [i.name.replace(/（[^）]*）/g, '').trim(), i.id]));
 
-  // baseResult の「首都高」 セグメントについて、 本質的に異なる現実的ルートを
-  // 複数生成する: k-shortest(最短近傍) + 主要環状/幹線の強制経由 を集め、
-  // ノード共有率(Jaccard)で似すぎ候補を間引いて多様な variant を選ぶ。
-  const MAJOR_VIA = ['C1', 'C2', 'B', '1', '3', '5', '6', '7'];
+  // judgeRoute は入口IC→出口ICの経路1本を求め path を返す。「都心経路」variant は
+  // k-shortest path + 主要環状/幹線/外環の強制経由を集め、ノード共有率(Jaccard)で
+  // 似すぎ候補を間引いた多様な経路を pathOverride で judgeRoute に通して生成する。
+  const MAJOR_VIA = ['C1', 'C2', 'B', '1', '3', '5', '6', '7', 'gaikan'];
   const jaccardOf = (pa, pb) => {
     const a = new Set(pa), b = new Set(pb);
     let inter = 0;
     for (const x of a) if (b.has(x)) inter++;
     return inter / (a.size + b.size - inter);
   };
-  const addRoute = (baseResult, outerRoute, viaGaikan) => {
-    let variants = [{ result: baseResult, vi: 0 }];
-    const shutokoSeg = baseResult.segments.find((s) => s.route === 'shutoko');
-    if (shutokoSeg && graph) {
-      const fromId = icByName.get((shutokoSeg.fromName || '').replace(/（[^）]*）/g, '').trim());
-      const toId = icByName.get((shutokoSeg.toName || '').replace(/（[^）]*）/g, '').trim());
-      if (fromId && toId && fromId !== toId) {
-        // 経路プール: k-shortest + 主要環状/幹線の強制経由
-        const pool = [...kShortestPaths(_routeDetailsAdj, fromId, toId, 3)];
-        for (const mr of MAJOR_VIA) {
-          const via = shortestPathVia(_routeDetailsAdj, graph, fromId, toId, mr);
-          if (via && via.path && via.path.length >= 2) pool.push(via);
-        }
-        // 重複除去
-        const seen = new Set();
-        const uniq = [];
-        for (const p of pool) {
-          const key = p.path.join('>');
-          if (!seen.has(key)) { seen.add(key); uniq.push(p); }
-        }
-        // greedy多様性選択: 距離昇順、 既選択と Jaccard<0.65 のものを最大4本
-        uniq.sort((a, b) => a.km - b.km);
-        const chosen = [];
-        for (const p of uniq) {
-          if (chosen.length >= 4) break;
-          if (chosen.every((c) => jaccardOf(c.path, p.path) < 0.65)) chosen.push(p);
-        }
-        if (chosen.length > 1) {
-          variants = chosen.map((kp, i) => {
-            const v = JSON.parse(JSON.stringify(baseResult));
-            const vSeg = v.segments.find((s) => s.route === 'shutoko');
-            vSeg.distanceKm = Math.round(kp.km * 10) / 10;
-            vSeg.path = kp.path;
-            v.totals = aggregateLocal(v.segments, true);
-            return { result: v, vi: i };
-          });
-        }
+
+  const addRoute = (outerRoute) => {
+    const base = judgeRoute({ outerRoute, entryIc, exitIc, roundTrip: true }, state.data);
+    let variants = [{ result: base, vi: 0 }];
+
+    if (base.path && base.path.length >= 2 && graph) {
+      // 経路プール: base + k-shortest + 主要環状/幹線/外環の強制経由
+      const pool = [{ km: base.totals.distanceKmOneway, path: base.path }];
+      pool.push(...kShortestPaths(_routeDetailsAdj, entryIc.id, exitIc.id, 3));
+      for (const mr of MAJOR_VIA) {
+        const via = shortestPathVia(_routeDetailsAdj, graph, entryIc.id, exitIc.id, mr);
+        if (via && via.path && via.path.length >= 2) pool.push(via);
+      }
+      // 重複除去（base を先頭に固定）
+      const seen = new Set();
+      const uniq = [];
+      for (const p of pool) {
+        const key = p.path.join('>');
+        if (!seen.has(key)) { seen.add(key); uniq.push(p); }
+      }
+      // greedy多様性選択: base を先頭、残りは距離昇順で Jaccard<0.65 を最大4本
+      const chosen = [uniq[0]];
+      for (const p of uniq.slice(1).sort((a, b) => a.km - b.km)) {
+        if (chosen.length >= 4) break;
+        if (chosen.every((c) => jaccardOf(c.path, p.path) < 0.65)) chosen.push(p);
+      }
+      if (chosen.length > 1) {
+        variants = chosen.map((kp, i) => ({
+          result: i === 0 ? base : judgeRoute(
+            { outerRoute, entryIc, exitIc, roundTrip: true, pathOverride: kp.path }, state.data),
+          vi: i,
+        }));
       }
     }
+
     for (const { result, vi } of variants) {
       const t = result.totals;
       routes.push({
-        outerRoute, viaGaikan, variantIndex: vi,
-        routeKey: `${outerRoute}|${viaGaikan}|${vi}`,
+        outerRoute, viaGaikan: false, variantIndex: vi,
+        routeKey: `${outerRoute}|false|${vi}`,
         result,
         totalDist: t.distanceKmOneway,
         deduction: t.deductionKmOneway,
@@ -824,20 +736,7 @@ function calculateAllRoutes(entryIc, exitIc) {
   };
 
   for (const outerRoute of outerOptions) {
-    entryIc._viaGaikan = false;
-    addRoute(judgeRoute({
-      outerRoute, entryIc, exitIc, roundTrip: true,
-      shutokoRouteId: state.selected.shutokoRouteId,
-    }, state.data), outerRoute, false);
-
-    const gaikanConf = state.data.routes.needs_gaikan_transit[outerRoute];
-    if (gaikanConf === 'optional') {
-      entryIc._viaGaikan = true;
-      addRoute(judgeRoute({
-        outerRoute, entryIc, exitIc, roundTrip: true,
-        shutokoRouteId: state.selected.shutokoRouteId,
-      }, state.data), outerRoute, true);
-    }
+    addRoute(outerRoute);
   }
 
   return routes;
@@ -849,14 +748,11 @@ function update() {
   const exitIc  = icById(state.selected.exitIcId);
   if (!entryIc || !exitIc) return;
 
-  entryIc._viaGaikan = state.selected.viaGaikan;
-
   const allRoutes = calculateAllRoutes(entryIc, exitIc);
   state.allRouteResults = allRoutes;
-  
-  // 現在選択中の routeKey (outerRoute+viaGaikan+variant) の結果を表示
+
+  // 現在選択中の routeKey (outerRoute+variant) の結果を表示
   const current = allRoutes.find(r => r.routeKey === state.selected.routeKey)
-    || allRoutes.find(r => r.outerRoute === state.selected.outerRoute && r.viaGaikan === state.selected.viaGaikan)
     || allRoutes.find(r => r.outerRoute === state.selected.outerRoute)
     || allRoutes[0];
   state.lastResult = current.result;
