@@ -1,6 +1,6 @@
 {
- "version": 10,
- "generated_at": "2026-05-16T03:29:42Z",
+ "version": 11,
+ "generated_at": "2026-05-16T03:38:25Z",
  "ics": [
   {
    "id": "kasumigaseki",
@@ -815,7 +815,7 @@
     "x": 590,
     "y": 350
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null,
    "gaikan_kp": 14.4
   },
@@ -832,7 +832,7 @@
     "x": 0,
     "y": 0
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -848,7 +848,7 @@
     "x": 0,
     "y": 0
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -864,7 +864,7 @@
     "x": 0,
     "y": 0
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -1200,7 +1200,7 @@
     "x": 720,
     "y": 340
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null,
    "gaikan_kp": 21.5
   },
@@ -1761,7 +1761,7 @@
     "x": 620,
     "y": 870
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -1809,7 +1809,7 @@
     "x": 800,
     "y": 930
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -2033,7 +2033,7 @@
     "x": 434,
     "y": 841
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -2289,7 +2289,7 @@
     "x": 0,
     "y": 0
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": "gaikan",
    "gaikan_kp": 7.8
   },
@@ -2306,7 +2306,7 @@
     "x": 0,
     "y": 0
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": "gaikan",
    "gaikan_kp": 0
   },
