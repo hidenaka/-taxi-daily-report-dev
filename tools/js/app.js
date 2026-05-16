@@ -1,5 +1,6 @@
 import { loadAllData } from './data-loader.js';
 import { judgeRoute } from './judge.js';
+import { haversineKm } from './util.js';
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
@@ -742,6 +743,14 @@ function calculateAllRoutes(entryIc, exitIc) {
     addRoute(outerRoute);
   }
 
+  // 直線距離の4倍を超える候補は非現実的な大回り（例: 練馬IC→東京ICで横浜北西線
+  // 経由が73km=直線の5倍で候補に出る等）。最低1件は残しつつ除外する。
+  const straight = (entryIc.gps && exitIc.gps)
+    ? haversineKm(entryIc.gps, exitIc.gps) : 0;
+  if (routes.length > 1 && straight > 5) {
+    const realistic = routes.filter((r) => r.totalDist <= straight * 4);
+    if (realistic.length > 0) return realistic;
+  }
   return routes;
 }
 
