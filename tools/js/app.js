@@ -707,10 +707,13 @@ function calculateAllRoutes(entryIc, exitIc) {
         const key = p.path.join('>');
         if (!seen.has(key)) { seen.add(key); uniq.push(p); }
       }
-      // greedy多様性選択: base を先頭、残りは距離昇順で Jaccard<0.65 を最大4本
+      // greedy多様性選択: base を先頭、残りは距離昇順で Jaccard<0.65 を最大4本。
+      // base の1.8倍超の遠回りvariantは非現実的なので候補から除外する。
+      const baseKm = uniq[0].km;
       const chosen = [uniq[0]];
       for (const p of uniq.slice(1).sort((a, b) => a.km - b.km)) {
         if (chosen.length >= 4) break;
+        if (p.km > baseKm * 1.8) continue;
         if (chosen.every((c) => jaccardOf(c.path, p.path) < 0.65)) chosen.push(p);
       }
       if (chosen.length > 1) {

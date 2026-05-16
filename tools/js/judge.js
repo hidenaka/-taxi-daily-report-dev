@@ -144,22 +144,24 @@ function splitPathToSegments(path, graph, { outerRoute, entryIc, ics }) {
       last.km += info.km;
       last.toId = path[i + 1];
       last.nodes.push(path[i + 1]);
-      last.routeCounts.set(info.route, (last.routeCounts.get(info.route) || 0) + 1);
+      last.routeKm.set(info.route, (last.routeKm.get(info.route) || 0) + info.km);
     } else {
       raw.push({
         category: cat, km: info.km, fromId: path[i], toId: path[i + 1],
         nodes: [path[i], path[i + 1]],
-        routeCounts: new Map([[info.route, 1]]),
+        routeKm: new Map([[info.route, info.km]]),
       });
     }
   }
 
   return raw.map((s) => {
+    // dominant route は走行距離が最大のもの（edge本数でなく距離で判定）
     let domRoute = null;
-    let domN = -1;
-    for (const [r, n] of s.routeCounts) {
-      if (n > domN) { domRoute = r; domN = n; }
+    let domKm = -1;
+    for (const [r, km] of s.routeKm) {
+      if (km > domKm) { domRoute = r; domKm = km; }
     }
+    const distinctRoutes = [...s.routeKm.keys()].filter(Boolean);
     let pay;
     let name;
     let routeId;
@@ -173,7 +175,10 @@ function splitPathToSegments(path, graph, { outerRoute, entryIc, ics }) {
       routeId = 'gaikan';
     } else {
       pay = computeShutokoPay({ outerRoute, entryIc, isOuter });
-      name = domRoute ? `首都高（${ROUTE_LABEL[domRoute] ?? domRoute}）` : '首都高';
+      // 単一路線なら路線名付き、複数路線をまたぐ区間は「首都高」のみ（誤解防止）
+      name = distinctRoutes.length === 1
+        ? `首都高（${ROUTE_LABEL[distinctRoutes[0]] ?? distinctRoutes[0]}）`
+        : '首都高';
       routeId = 'shutoko';
     }
     return {
