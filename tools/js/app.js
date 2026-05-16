@@ -744,11 +744,15 @@ function calculateAllRoutes(entryIc, exitIc) {
   }
 
   // 直線距離の4倍を超える候補は非現実的な大回り（例: 練馬IC→東京ICで横浜北西線
-  // 経由が73km=直線の5倍で候補に出る等）。最低1件は残しつつ除外する。
+  // 経由が73km=直線の5倍）。base(variant0)が大回りの outerRoute は、その variant
+  // も candidate名と実経路が乖離するため丸ごと除外する。最低1件は残す。
   const straight = (entryIc.gps && exitIc.gps)
     ? haversineKm(entryIc.gps, exitIc.gps) : 0;
   if (routes.length > 1 && straight > 5) {
-    const realistic = routes.filter((r) => r.totalDist <= straight * 4);
+    const badOuter = new Set(
+      routes.filter((r) => r.variantIndex === 0 && r.totalDist > straight * 4)
+        .map((r) => r.outerRoute));
+    const realistic = routes.filter((r) => !badOuter.has(r.outerRoute));
     if (realistic.length > 0) return realistic;
   }
   return routes;
