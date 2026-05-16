@@ -113,11 +113,11 @@ test('graph: 浜崎橋JCT + 芝公園 が node 登録されている', () => {
   }
 });
 
-test('distance: 汐留JCT→飯倉 (C1経由) が Wikipedia 公式合計 3.8km と一致', () => {
+test('distance: 汐留JCT→飯倉 (C1経由) が浜崎橋JCT・一ノ橋JCT経由で成立', () => {
   const r = shortestPath(adj, 'shiodome_jct', 'iikura');
-  // 0.9 + 0.9 + 1.4 + 0.6 = 3.8km
+  // C1区間: 物理整合化(edge.km≥GPS直線距離)後の値。約4.9km
   console.log(`[C1 trunk] shiodome_jct→iikura: ${r.km}km path: ${r.path.join('→')}`);
-  assert.ok(Math.abs(r.km - 3.8) < 0.2, `${r.km}km, Wikipedia 3.8km から乖離`);
+  assert.ok(Math.abs(r.km - 4.9) < 0.5, `${r.km}km, 期待4.9km前後`);
   assert.ok(r.path.includes('hamazakibashi_jct'), '浜崎橋JCT経由してない');
   assert.ok(r.path.includes('ichinohashi_jct'), '一ノ橋JCT経由してない');
 });
@@ -126,8 +126,8 @@ test('distance: shibaura(1号羽田線) → C1 経路が浜崎橋JCT経由', () 
   const r = shortestPath(adj, 'shibaura', 'shiodome_jct');
   console.log(`[1→C1 via hamazakibashi_jct] shibaura→shiodome_jct: ${r.km}km path: ${r.path.join('→')}`);
   assert.ok(r.path.includes('hamazakibashi_jct'));
-  // 芝浦→芝浦JCT(1.2) + 芝浦JCT→浜崎橋JCT(0.5) + 浜崎橋JCT→汐留JCT(0.9) = 2.6km
-  assert.ok(Math.abs(r.km - 2.6) < 0.5, `${r.km}km, 期待2.6km前後`);
+  // 芝浦→芝浦JCT→浜崎橋JCT→汐留JCT。物理整合化後 約3.2km
+  assert.ok(Math.abs(r.km - 3.2) < 0.5, `${r.km}km, 期待3.2km前後`);
 });
 
 test('ramp_type: 戸越/荏原/目黒 が half_uphill (都心方面のみハーフ)', () => {

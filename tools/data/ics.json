@@ -1,6 +1,6 @@
 {
- "version": 9,
- "generated_at": "2026-05-16T03:20:35Z",
+ "version": 10,
+ "generated_at": "2026-05-16T03:29:42Z",
  "ics": [
   {
    "id": "kasumigaseki",
@@ -969,8 +969,8 @@
    "route": "4",
    "route_name": "4号新宿線",
    "gps": {
-    "lat": 35.6854,
-    "lng": 139.6906
+    "lat": 35.6835,
+    "lng": 139.6883
    },
    "svg": {
     "x": 0,
