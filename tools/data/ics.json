@@ -1,4759 +1,4759 @@
 {
-  "version": 1,
-  "generated_at": "2026-04-24",
-  "ics": [
-    {
-      "id": "kasumigaseki",
-      "name": "霞ヶ関",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.673,
-        "lng": 139.7495
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tokyo_ic",
-      "name": "東京IC",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.6089,
-        "lng": 139.6374
-      },
-      "svg": {
-        "x": 500,
-        "y": 700
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nakadai",
-      "name": "中台",
-      "route": "5",
-      "route_name": "池袋線",
-      "gps": {
-        "lat": 35.7687,
-        "lng": 139.682
-      },
-      "svg": {
-        "x": 500,
-        "y": 380
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shingo",
-      "name": "新郷",
-      "route": "S1",
-      "route_name": "川口線",
-      "gps": {
-        "lat": 35.7925,
-        "lng": 139.7693
-      },
-      "svg": {
-        "x": 620,
-        "y": 340
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kahei",
-      "name": "加平",
-      "route": "6",
-      "route_name": "三郷線",
-      "gps": {
-        "lat": 35.776,
-        "lng": 139.8245
-      },
-      "svg": {
-        "x": 690,
-        "y": 430
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yotsugi",
-      "name": "四ツ木",
-      "route": "6",
-      "route_name": "向島線",
-      "gps": {
-        "lat": 35.7455,
-        "lng": 139.8395
-      },
-      "svg": {
-        "x": 700,
-        "y": 500
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "maihama",
-      "name": "舞浜",
-      "route": "B",
-      "route_name": "湾岸線",
-      "gps": {
-        "lat": 35.634,
-        "lng": 139.8821
-      },
-      "svg": {
-        "x": 760,
-        "y": 650
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kinshicho",
-      "name": "錦糸町",
-      "route": "7",
-      "route_name": "小松川線",
-      "gps": {
-        "lat": 35.6972,
-        "lng": 139.8135
-      },
-      "svg": {
-        "x": 680,
-        "y": 560
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "eifuku",
-      "name": "永福",
-      "route": "4",
-      "route_name": "新宿線",
-      "gps": {
-        "lat": 35.67,
-        "lng": 139.6492
-      },
-      "svg": {
-        "x": 490,
-        "y": 610
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shioiri",
-      "name": "汐入",
-      "route": "K1",
-      "route_name": "横羽線",
-      "gps": {
-        "lat": 35.531,
-        "lng": 139.6881
-      },
-      "svg": {
-        "x": 530,
-        "y": 900
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "wangan_kanpachi",
-      "name": "湾岸環八",
-      "route": "B",
-      "route_name": "湾岸線",
-      "gps": {
-        "lat": 35.5814,
-        "lng": 139.7569
-      },
-      "svg": {
-        "x": 570,
-        "y": 800
-      },
-      "entry_type": "both",
-      "boundary_tag": "wangan_kanpachi"
-    },
-    {
-      "id": "katsushima",
-      "name": "勝島",
-      "route": "1",
-      "route_name": "羽田線",
-      "gps": {
-        "lat": 35.5901,
-        "lng": 139.7466
-      },
-      "svg": {
-        "x": 555,
-        "y": 790
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "heiwajima",
-      "name": "平和島",
-      "route": "1",
-      "route_name": "羽田線",
-      "gps": {
-        "lat": 35.5795,
-        "lng": 139.7459
-      },
-      "svg": {
-        "x": 555,
-        "y": 815
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "suzugamori",
-      "name": "鈴ヶ森",
-      "route": "1",
-      "route_name": "羽田線",
-      "gps": {
-        "lat": 35.5919,
-        "lng": 139.7377
-      },
-      "svg": {
-        "x": 545,
-        "y": 785
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "ohi",
-      "name": "大井",
-      "route": "B",
-      "route_name": "湾岸線",
-      "gps": {
-        "lat": 35.5844,
-        "lng": 139.7556
-      },
-      "svg": {
-        "x": 565,
-        "y": 805
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "ohi_minami",
-      "name": "大井南",
-      "route": "B",
-      "route_name": "湾岸線",
-      "gps": {
-        "lat": 35.5783,
-        "lng": 139.7669
-      },
-      "svg": {
-        "x": 580,
-        "y": 815
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kukou_chuou",
-      "name": "空港中央",
-      "route": "B",
-      "route_name": "湾岸線",
-      "gps": {
-        "lat": 35.5497,
-        "lng": 139.7842
-      },
-      "svg": {
-        "x": 630,
-        "y": 870
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tomei_kawasaki",
-      "name": "東名川崎",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.5676,
-        "lng": 139.6194
-      },
-      "svg": {
-        "x": 480,
-        "y": 770
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yokohama_aoba",
-      "name": "横浜青葉",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.5333,
-        "lng": 139.495
-      },
-      "svg": {
-        "x": 360,
-        "y": 820
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yokohama_machida",
-      "name": "横浜町田",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.5212,
-        "lng": 139.4413
-      },
-      "svg": {
-        "x": 310,
-        "y": 840
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ebina",
-      "name": "海老名",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.4564,
-        "lng": 139.395
-      },
-      "svg": {
-        "x": 260,
-        "y": 880
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "atsugi",
-      "name": "厚木",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.4361,
-        "lng": 139.3106
-      },
-      "svg": {
-        "x": 200,
-        "y": 900
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hadano_nakai",
-      "name": "秦野中井",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.3803,
-        "lng": 139.2008
-      },
-      "svg": {
-        "x": 130,
-        "y": 930
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "oi_matsuda",
-      "name": "大井松田",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.3361,
-        "lng": 139.1544
-      },
-      "svg": {
-        "x": 100,
-        "y": 950
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "gotemba",
-      "name": "御殿場",
-      "route": "tomei",
-      "route_name": "東名高速",
-      "gps": {
-        "lat": 35.2872,
-        "lng": 138.935
-      },
-      "svg": {
-        "x": 30,
-        "y": 980
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "takaido",
-      "name": "高井戸IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6711,
-        "lng": 139.6169
-      },
-      "svg": {
-        "x": 460,
-        "y": 610
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "chofu",
-      "name": "調布IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6503,
-        "lng": 139.5612
-      },
-      "svg": {
-        "x": 410,
-        "y": 630
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "inagi",
-      "name": "稲城IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6308,
-        "lng": 139.5136
-      },
-      "svg": {
-        "x": 380,
-        "y": 650
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kunitachi_fuchu",
-      "name": "国立府中IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6581,
-        "lng": 139.4669
-      },
-      "svg": {
-        "x": 340,
-        "y": 620
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hachioji",
-      "name": "八王子IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6403,
-        "lng": 139.3756
-      },
-      "svg": {
-        "x": 280,
-        "y": 630
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sagamiko",
-      "name": "相模湖IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.5986,
-        "lng": 139.1736
-      },
-      "svg": {
-        "x": 170,
-        "y": 660
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "uenohara",
-      "name": "上野原IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6286,
-        "lng": 139.1103
-      },
-      "svg": {
-        "x": 140,
-        "y": 640
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "otsuki",
-      "name": "大月IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.5994,
-        "lng": 138.9408
-      },
-      "svg": {
-        "x": 80,
-        "y": 660
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "katsunuma",
-      "name": "勝沼IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6647,
-        "lng": 138.7358
-      },
-      "svg": {
-        "x": 30,
-        "y": 610
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ichinomiya_misaka",
-      "name": "一宮御坂IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6403,
-        "lng": 138.6783
-      },
-      "svg": {
-        "x": 20,
-        "y": 630
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kofu_minami",
-      "name": "甲府南IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.5964,
-        "lng": 138.5578
-      },
-      "svg": {
-        "x": 15,
-        "y": 660
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kofu_showa",
-      "name": "甲府昭和IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.6264,
-        "lng": 138.5167
-      },
-      "svg": {
-        "x": 10,
-        "y": 640
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "nirasaki",
-      "name": "韮崎IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.7117,
-        "lng": 138.4533
-      },
-      "svg": {
-        "x": 10,
-        "y": 590
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sutama",
-      "name": "須玉IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.7767,
-        "lng": 138.4047
-      },
-      "svg": {
-        "x": 10,
-        "y": 560
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kobuchizawa",
-      "name": "小淵沢IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.875,
-        "lng": 138.3167
-      },
-      "svg": {
-        "x": 10,
-        "y": 510
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "suwa_minami",
-      "name": "諏訪南IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 35.9572,
-        "lng": 138.2567
-      },
-      "svg": {
-        "x": 10,
-        "y": 470
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "suwa",
-      "name": "諏訪IC",
-      "route": "chuo",
-      "route_name": "中央道",
-      "gps": {
-        "lat": 36.0333,
-        "lng": 138.1131
-      },
-      "svg": {
-        "x": 10,
-        "y": 440
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "nerima",
-      "name": "練馬IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 35.745,
-        "lng": 139.6356
-      },
-      "svg": {
-        "x": 490,
-        "y": 490
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tokorozawa",
-      "name": "所沢IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 35.7928,
-        "lng": 139.4903
-      },
-      "svg": {
-        "x": 380,
-        "y": 460
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawagoe",
-      "name": "川越IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 35.905,
-        "lng": 139.485
-      },
-      "svg": {
-        "x": 380,
-        "y": 390
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tsurugashima",
-      "name": "鶴ヶ島IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 35.9375,
-        "lng": 139.3972
-      },
-      "svg": {
-        "x": 340,
-        "y": 370
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "higashimatsuyama",
-      "name": "東松山IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 36.0328,
-        "lng": 139.3878
-      },
-      "svg": {
-        "x": 340,
-        "y": 330
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ranzan_ogawa",
-      "name": "嵐山小川IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 36.0931,
-        "lng": 139.3233
-      },
-      "svg": {
-        "x": 310,
-        "y": 300
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hanazono",
-      "name": "花園IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 36.1533,
-        "lng": 139.2539
-      },
-      "svg": {
-        "x": 280,
-        "y": 270
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "honjo_kodama",
-      "name": "本庄児玉IC",
-      "route": "kanetsu",
-      "route_name": "関越道",
-      "gps": {
-        "lat": 36.2269,
-        "lng": 139.1761
-      },
-      "svg": {
-        "x": 250,
-        "y": 240
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawaguchi_jct",
-      "name": "川口JCT",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 35.8117,
-        "lng": 139.7317
-      },
-      "svg": {
-        "x": 590,
-        "y": 350
-      },
-      "entry_type": "both",
-      "boundary_tag": null,
-      "gaikan_kp": 14.4
-    },
-    {
-      "id": "kohoku_jct",
-      "name": "江北JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 35.7733,
-        "lng": 139.7772
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kumanocho_jct",
-      "name": "熊野町JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 35.76,
-        "lng": 139.7072
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kosuge_jct",
-      "name": "小菅JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 35.7511,
-        "lng": 139.8169
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shiodome_jct",
-      "name": "汐留JCT",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.665,
-        "lng": 139.76
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ariake_jct",
-      "name": "有明JCT",
-      "route": "11",
-      "route_name": "11号台場線",
-      "gps": {
-        "lat": 35.63,
-        "lng": 139.79
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "tanimachi_jct",
-      "name": "谷町JCT",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.668,
-        "lng": 139.7424
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "miyakezaka_jct",
-      "name": "三宅坂JCT",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.679,
-        "lng": 139.746
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ohi_jct",
-      "name": "大井JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 35.5836,
-        "lng": 139.7494
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ohashi_jct",
-      "name": "大橋JCT",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 35.65,
-        "lng": 139.69
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "nishi_shinjuku_jct",
-      "name": "西新宿JCT",
-      "route": "4",
-      "route_name": "4号新宿線",
-      "gps": {
-        "lat": 35.69,
-        "lng": 139.69
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ryogoku_jct",
-      "name": "両国JCT",
-      "route": "6_mukojima",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 35.6967,
-        "lng": 139.7956
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "urawa",
-      "name": "浦和IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 35.8358,
-        "lng": 139.6544
-      },
-      "svg": {
-        "x": 540,
-        "y": 340
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "iwatsuki",
-      "name": "岩槻IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 35.945,
-        "lng": 139.6983
-      },
-      "svg": {
-        "x": 570,
-        "y": 290
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kuki",
-      "name": "久喜IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.0603,
-        "lng": 139.6594
-      },
-      "svg": {
-        "x": 560,
-        "y": 250
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kazo",
-      "name": "加須IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.1281,
-        "lng": 139.6025
-      },
-      "svg": {
-        "x": 540,
-        "y": 220
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hanyu",
-      "name": "羽生IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.1758,
-        "lng": 139.5614
-      },
-      "svg": {
-        "x": 520,
-        "y": 200
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tatebayashi",
-      "name": "館林IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.2417,
-        "lng": 139.5439
-      },
-      "svg": {
-        "x": 510,
-        "y": 175
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sano_fujioka",
-      "name": "佐野藤岡IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.3147,
-        "lng": 139.4778
-      },
-      "svg": {
-        "x": 490,
-        "y": 145
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tochigi",
-      "name": "栃木IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.3831,
-        "lng": 139.7214
-      },
-      "svg": {
-        "x": 570,
-        "y": 120
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kanuma",
-      "name": "鹿沼IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.5528,
-        "lng": 139.7272
-      },
-      "svg": {
-        "x": 570,
-        "y": 70
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "utsunomiya",
-      "name": "宇都宮IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.6139,
-        "lng": 139.8483
-      },
-      "svg": {
-        "x": 610,
-        "y": 50
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yaita",
-      "name": "矢板IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.8064,
-        "lng": 139.9203
-      },
-      "svg": {
-        "x": 630,
-        "y": 30
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "nishi_nasunoshiobara",
-      "name": "西那須野塩原IC",
-      "route": "tohoku",
-      "route_name": "東北道",
-      "gps": {
-        "lat": 36.9289,
-        "lng": 139.9744
-      },
-      "svg": {
-        "x": 650,
-        "y": 15
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "misato_jct",
-      "name": "三郷JCT",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 35.8356,
-        "lng": 139.8589
-      },
-      "svg": {
-        "x": 720,
-        "y": 340
-      },
-      "entry_type": "both",
-      "boundary_tag": null,
-      "gaikan_kp": 21.5
-    },
-    {
-      "id": "nagareyama",
-      "name": "流山IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 35.855,
-        "lng": 139.9011
-      },
-      "svg": {
-        "x": 750,
-        "y": 330
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kashiwa",
-      "name": "柏IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 35.8719,
-        "lng": 139.9453
-      },
-      "svg": {
-        "x": 770,
-        "y": 320
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yanaka_wara",
-      "name": "谷和原IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 35.9572,
-        "lng": 139.9836
-      },
-      "svg": {
-        "x": 790,
-        "y": 290
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yatabe",
-      "name": "谷田部IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 35.9953,
-        "lng": 140.0697
-      },
-      "svg": {
-        "x": 820,
-        "y": 275
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sakura_tsuchiura",
-      "name": "桜土浦IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.0547,
-        "lng": 140.1344
-      },
-      "svg": {
-        "x": 840,
-        "y": 255
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tsuchiura_kita",
-      "name": "土浦北IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.0881,
-        "lng": 140.1633
-      },
-      "svg": {
-        "x": 850,
-        "y": 245
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "mito",
-      "name": "水戸IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.3317,
-        "lng": 140.4333
-      },
-      "svg": {
-        "x": 910,
-        "y": 175
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "naka",
-      "name": "那珂IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.47,
-        "lng": 140.4869
-      },
-      "svg": {
-        "x": 920,
-        "y": 140
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hitachi_minami_ota",
-      "name": "日立南太田IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.5422,
-        "lng": 140.5594
-      },
-      "svg": {
-        "x": 940,
-        "y": 120
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hitachi_chuo",
-      "name": "日立中央IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.6492,
-        "lng": 140.6311
-      },
-      "svg": {
-        "x": 960,
-        "y": 90
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hitachi_kita",
-      "name": "日立北IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.7133,
-        "lng": 140.6869
-      },
-      "svg": {
-        "x": 970,
-        "y": 70
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "takahagi",
-      "name": "高萩IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.7253,
-        "lng": 140.7181
-      },
-      "svg": {
-        "x": 975,
-        "y": 65
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kitaibaraki",
-      "name": "北茨城IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.8019,
-        "lng": 140.7578
-      },
-      "svg": {
-        "x": 980,
-        "y": 45
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shinozaki",
-      "name": "篠崎IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6983,
-        "lng": 139.9103
-      },
-      "svg": {
-        "x": 760,
-        "y": 570
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "keiyo_ichikawa",
-      "name": "京葉市川IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.7192,
-        "lng": 139.9267
-      },
-      "svg": {
-        "x": 770,
-        "y": 560
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "habara",
-      "name": "原木IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.7078,
-        "lng": 139.9636
-      },
-      "svg": {
-        "x": 790,
-        "y": 565
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "funabashi",
-      "name": "船橋IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6975,
-        "lng": 139.9939
-      },
-      "svg": {
-        "x": 800,
-        "y": 570
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hanawa",
-      "name": "花輪IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.7117,
-        "lng": 140.0422
-      },
-      "svg": {
-        "x": 820,
-        "y": 565
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "makuhari",
-      "name": "幕張IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6636,
-        "lng": 140.0561
-      },
-      "svg": {
-        "x": 830,
-        "y": 590
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "takeishi",
-      "name": "武石IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6525,
-        "lng": 140.0811
-      },
-      "svg": {
-        "x": 840,
-        "y": 595
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "anagawa",
-      "name": "穴川IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6269,
-        "lng": 140.1217
-      },
-      "svg": {
-        "x": 860,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kaizuka",
-      "name": "貝塚IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.6033,
-        "lng": 140.1522
-      },
-      "svg": {
-        "x": 870,
-        "y": 610
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "matsugaoka",
-      "name": "松ヶ丘IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.5872,
-        "lng": 140.1736
-      },
-      "svg": {
-        "x": 880,
-        "y": 620
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "soga",
-      "name": "蘇我IC",
-      "route": "keiyo",
-      "route_name": "京葉道路",
-      "gps": {
-        "lat": 35.5678,
-        "lng": 140.1481
-      },
-      "svg": {
-        "x": 875,
-        "y": 635
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "wangan_ichikawa",
-      "name": "湾岸市川IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6631,
-        "lng": 139.9761
-      },
-      "svg": {
-        "x": 800,
-        "y": 590
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "yatsu_funabashi",
-      "name": "谷津船橋IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6711,
-        "lng": 140.0139
-      },
-      "svg": {
-        "x": 810,
-        "y": 585
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "wangan_narashino",
-      "name": "湾岸習志野IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6683,
-        "lng": 140.0325
-      },
-      "svg": {
-        "x": 820,
-        "y": 585
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "wangan_chiba",
-      "name": "湾岸千葉IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6528,
-        "lng": 140.0742
-      },
-      "svg": {
-        "x": 835,
-        "y": 590
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "chiba_kita",
-      "name": "千葉北IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6928,
-        "lng": 140.1369
-      },
-      "svg": {
-        "x": 855,
-        "y": 575
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yotsukaido",
-      "name": "四街道IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.6636,
-        "lng": 140.1736
-      },
-      "svg": {
-        "x": 870,
-        "y": 580
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sakura_tokan",
-      "name": "佐倉IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7125,
-        "lng": 140.2256
-      },
-      "svg": {
-        "x": 885,
-        "y": 565
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shisui",
-      "name": "酒々井IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7381,
-        "lng": 140.2781
-      },
-      "svg": {
-        "x": 895,
-        "y": 555
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tomisato",
-      "name": "富里IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7406,
-        "lng": 140.3019
-      },
-      "svg": {
-        "x": 900,
-        "y": 555
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "narita",
-      "name": "成田IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7631,
-        "lng": 140.3644
-      },
-      "svg": {
-        "x": 915,
-        "y": 548
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ukishima_jct",
-      "name": "浮島JCT",
-      "route": "aqua",
-      "route_name": "東京湾アクアライン",
-      "gps": {
-        "lat": 35.5467,
-        "lng": 139.7597
-      },
-      "svg": {
-        "x": 620,
-        "y": 870
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kisarazu_kaneda",
-      "name": "木更津金田IC",
-      "route": "aqua",
-      "route_name": "東京湾アクアライン",
-      "gps": {
-        "lat": 35.5014,
-        "lng": 139.9261
-      },
-      "svg": {
-        "x": 760,
-        "y": 900
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sodegaura",
-      "name": "袖ケ浦IC",
-      "route": "aqua",
-      "route_name": "東京湾アクアライン",
-      "gps": {
-        "lat": 35.4669,
-        "lng": 139.9719
-      },
-      "svg": {
-        "x": 790,
-        "y": 920
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kisarazu_jct",
-      "name": "木更津JCT",
-      "route": "aqua",
-      "route_name": "東京湾アクアライン",
-      "gps": {
-        "lat": 35.4483,
-        "lng": 139.985
-      },
-      "svg": {
-        "x": 800,
-        "y": 930
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kimitsu",
-      "name": "君津IC",
-      "route": "tateyama",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.3747,
-        "lng": 139.9731
-      },
-      "svg": {
-        "x": 800,
-        "y": 960
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "futtsu_chuo",
-      "name": "富津中央IC",
-      "route": "tateyama",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.3008,
-        "lng": 139.9156
-      },
-      "svg": {
-        "x": 780,
-        "y": 990
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "futtsu_takeyama",
-      "name": "富津竹岡IC",
-      "route": "tateyama",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.2372,
-        "lng": 139.8781
-      },
-      "svg": {
-        "x": 760,
-        "y": 1010
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "futtsu_kanaya",
-      "name": "富津金谷IC",
-      "route": "tateyama",
-      "route_name": "富津館山道路",
-      "gps": {
-        "lat": 35.1978,
-        "lng": 139.8317
-      },
-      "svg": {
-        "x": 745,
-        "y": 1025
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kyonan_hota",
-      "name": "鋸南保田IC",
-      "route": "tateyama",
-      "route_name": "富津館山道路",
-      "gps": {
-        "lat": 35.1389,
-        "lng": 139.7819
-      },
-      "svg": {
-        "x": 730,
-        "y": 1045
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kyonan_tomiyama",
-      "name": "鋸南富山IC",
-      "route": "tateyama",
-      "route_name": "富津館山道路",
-      "gps": {
-        "lat": 35.1056,
-        "lng": 139.7561
-      },
-      "svg": {
-        "x": 720,
-        "y": 1055
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tomiura",
-      "name": "富浦IC",
-      "route": "tateyama",
-      "route_name": "富津館山道路",
-      "gps": {
-        "lat": 34.9836,
-        "lng": 139.6983
-      },
-      "svg": {
-        "x": 700,
-        "y": 1080
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tamagawa_ic",
-      "name": "玉川IC",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.5942,
-        "lng": 139.6261
-      },
-      "svg": {
-        "x": 475,
-        "y": 760
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "yokohama_kohoku_jct",
-      "name": "横浜港北JCT",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.5145,
-        "lng": 139.6085
-      },
-      "svg": {
-        "x": 460,
-        "y": 830
-      },
-      "entry_type": "jct",
-      "boundary_tag": null
-    },
-    {
-      "id": "keihin_kawasaki",
-      "name": "京浜川崎IC",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.5783,
-        "lng": 139.6114
-      },
-      "svg": {
-        "x": 465,
-        "y": 775
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tsuzuki",
-      "name": "都筑IC",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.5339,
-        "lng": 139.5836
-      },
-      "svg": {
-        "x": 440,
-        "y": 800
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kohoku",
-      "name": "港北IC",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.5192,
-        "lng": 139.5589
-      },
-      "svg": {
-        "x": 425,
-        "y": 810
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hodogaya",
-      "name": "保土ヶ谷IC",
-      "route": "third_keihin",
-      "route_name": "第三京浜",
-      "gps": {
-        "lat": 35.48,
-        "lng": 139.5831
-      },
-      "svg": {
-        "x": 435,
-        "y": 837
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shin_hodogaya_jct",
-      "name": "新保土ヶ谷JCT",
-      "route": "third_keihin",
-      "route_name": "横浜新道",
-      "gps": {
-        "lat": 35.473,
-        "lng": 139.581
-      },
-      "svg": {
-        "x": 434,
-        "y": 841
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "imai",
-      "name": "今井IC",
-      "route": "third_keihin",
-      "route_name": "横浜新道",
-      "gps": {
-        "lat": 35.465,
-        "lng": 139.578
-      },
-      "svg": {
-        "x": 432,
-        "y": 845
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawakami",
-      "name": "川上IC",
-      "route": "third_keihin",
-      "route_name": "横浜新道",
-      "gps": {
-        "lat": 35.455,
-        "lng": 139.576
-      },
-      "svg": {
-        "x": 431,
-        "y": 850
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "totsuka",
-      "name": "戸塚IC",
-      "route": "third_keihin",
-      "route_name": "横浜新道",
-      "gps": {
-        "lat": 35.4011,
-        "lng": 139.5356
-      },
-      "svg": {
-        "x": 405,
-        "y": 875
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kariba",
-      "name": "狩場IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.4508,
-        "lng": 139.5764
-      },
-      "svg": {
-        "x": 430,
-        "y": 855
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "bessho",
-      "name": "別所IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.42,
-        "lng": 139.5828
-      },
-      "svg": {
-        "x": 432,
-        "y": 870
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hino",
-      "name": "日野IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.3819,
-        "lng": 139.5708
-      },
-      "svg": {
-        "x": 425,
-        "y": 890
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "konan_dai",
-      "name": "港南台IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.3822,
-        "lng": 139.5958
-      },
-      "svg": {
-        "x": 435,
-        "y": 890
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "asahina",
-      "name": "朝比奈IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.3656,
-        "lng": 139.6036
-      },
-      "svg": {
-        "x": 440,
-        "y": 898
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "zushi",
-      "name": "逗子IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.2969,
-        "lng": 139.5814
-      },
-      "svg": {
-        "x": 430,
-        "y": 930
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yokosuka",
-      "name": "横須賀IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.2778,
-        "lng": 139.6317
-      },
-      "svg": {
-        "x": 450,
-        "y": 940
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kinugasa",
-      "name": "衣笠IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.2528,
-        "lng": 139.6469
-      },
-      "svg": {
-        "x": 460,
-        "y": 950
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sabara",
-      "name": "佐原IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.2361,
-        "lng": 139.6617
-      },
-      "svg": {
-        "x": 465,
-        "y": 958
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "uraga",
-      "name": "浦賀IC",
-      "route": "yokoyoko",
-      "route_name": "横浜横須賀道路",
-      "gps": {
-        "lat": 35.2183,
-        "lng": 139.7056
-      },
-      "svg": {
-        "x": 480,
-        "y": 965
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kariba_shutoko",
-      "name": "首都高狩場線（基準）",
-      "route": "yokohane_route",
-      "route_name": "首都高速神奈川線",
-      "gps": {
-        "lat": 35.447,
-        "lng": 139.574
-      },
-      "svg": {
-        "x": 428,
-        "y": 857
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "wangan_shutoko",
-      "name": "首都高湾岸線（基準）",
-      "route": "wangan_route",
-      "route_name": "首都高速湾岸線",
-      "gps": {
-        "lat": 35.39,
-        "lng": 139.63
-      },
-      "svg": {
-        "x": 455,
-        "y": 885
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "bijogi_jct",
-      "name": "美女木JCT",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.8017,
-        "lng": 139.6435
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": "gaikan",
-      "gaikan_kp": 7.8
-    },
-    {
-      "id": "oizumi_jct",
-      "name": "大泉JCT",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.7654,
-        "lng": 139.6142
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": "gaikan",
-      "gaikan_kp": 0
-    },
-    {
-      "id": "oizumi",
-      "name": "大泉IC（外環）",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.7579,
-        "lng": 139.5867
-      },
-      "svg": {
-        "x": 0,
-        "y": 0
-      },
-      "entry_type": "both",
-      "boundary_tag": "gaikan",
-      "gaikan_kp": 0
-    },
-    {
-      "id": "kasai",
-      "name": "葛西IC",
-      "route": "B",
-      "route_name": "首都高湾岸線",
-      "gps": {
-        "lat": 35.6509,
-        "lng": 139.8724
-      },
-      "svg": {
-        "x": 740,
-        "y": 640
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hiratsuka",
-      "name": "平塚IC",
-      "route": "tomei",
-      "route_name": "小田原厚木道路",
-      "gps": {
-        "lat": 35.327,
-        "lng": 139.32
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "oiso",
-      "name": "大磯IC",
-      "route": "tomei",
-      "route_name": "小田原厚木道路",
-      "gps": {
-        "lat": 35.319,
-        "lng": 139.314
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ninomiya",
-      "name": "二宮IC",
-      "route": "tomei",
-      "route_name": "小田原厚木道路",
-      "gps": {
-        "lat": 35.308,
-        "lng": 139.245
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "odawara_higashi",
-      "name": "小田原東IC",
-      "route": "tomei",
-      "route_name": "小田原厚木道路",
-      "gps": {
-        "lat": 35.27,
-        "lng": 139.182
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hakoneguchi",
-      "name": "箱根口IC",
-      "route": "tomei",
-      "route_name": "西湘バイパス",
-      "gps": {
-        "lat": 35.258,
-        "lng": 139.133
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawaguchiko",
-      "name": "河口湖IC",
-      "route": "chuo",
-      "route_name": "富士五湖道路",
-      "gps": {
-        "lat": 35.5117,
-        "lng": 138.7711
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hachioji_nishi",
-      "name": "八王子西IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.6603,
-        "lng": 139.3194
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "akiruno",
-      "name": "あきる野IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.7333,
-        "lng": 139.3078
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "hinode",
-      "name": "日の出IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.7608,
-        "lng": 139.2669
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ome",
-      "name": "青梅IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.8,
-        "lng": 139.2483
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "iruma",
-      "name": "入間IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.8381,
-        "lng": 139.3272
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "aihara",
-      "name": "相原IC",
-      "route": "chuo",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.5725,
-        "lng": 139.3386
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "wakoshi_kita",
-      "name": "和光北IC",
-      "route": "kanetsu",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.7967,
-        "lng": 139.6083
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 3
-    },
-    {
-      "id": "wako_gaikan",
-      "name": "和光IC（外環）",
-      "route": "kanetsu",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.7833,
-        "lng": 139.5917
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 5.5
-    },
-    {
-      "id": "oizumi_kanetsu",
-      "name": "大泉IC（関越）",
-      "route": "kanetsu",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.76,
-        "lng": 139.57
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 0.5
-    },
-    {
-      "id": "kawaguchi_nishi",
-      "name": "川口西IC",
-      "route": "kanetsu",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.825,
-        "lng": 139.69
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 13
-    },
-    {
-      "id": "kenen_tsurugashima",
-      "name": "圏央鶴ヶ島IC",
-      "route": "kanetsu",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.925,
-        "lng": 139.37
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sayama_hidaka",
-      "name": "狭山日高IC",
-      "route": "kanetsu",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.89,
-        "lng": 139.3333
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "sakado",
-      "name": "坂戸IC",
-      "route": "kanetsu",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.9567,
-        "lng": 139.4017
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawajima",
-      "name": "川島IC",
-      "route": "kanetsu",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.9944,
-        "lng": 139.4783
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "okegawa_kitamoto",
-      "name": "桶川北本IC",
-      "route": "kanetsu",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 36.0044,
-        "lng": 139.52
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kawaguchi_chuo",
-      "name": "川口中央IC",
-      "route": "tohoku",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.815,
-        "lng": 139.7433
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 12.7
-    },
-    {
-      "id": "gaikan_urawa",
-      "name": "外環浦和IC",
-      "route": "tohoku",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.84,
-        "lng": 139.6883
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 13.5
-    },
-    {
-      "id": "soka_tohoku",
-      "name": "草加IC（東北外環）",
-      "route": "tohoku",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.8283,
-        "lng": 139.8
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 17.5
-    },
-    {
-      "id": "soka_joban",
-      "name": "草加IC（常磐外環）",
-      "route": "joban",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.8217,
-        "lng": 139.8133
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 17.5
-    },
-    {
-      "id": "kawaguchi_higashi",
-      "name": "川口東IC",
-      "route": "joban",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.8217,
-        "lng": 139.775
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 16.5
-    },
-    {
-      "id": "tsukuba_ushiku",
-      "name": "つくば牛久IC",
-      "route": "joban",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 36.0117,
-        "lng": 140.15
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ushiku_ami",
-      "name": "牛久阿見IC",
-      "route": "joban",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.9817,
-        "lng": 140.2017
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ami_higashi",
-      "name": "阿見東IC",
-      "route": "joban",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.96,
-        "lng": 140.235
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "inashiki",
-      "name": "稲敷IC",
-      "route": "joban",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.95,
-        "lng": 140.3067
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "tsukuba_chuo",
-      "name": "つくば中央IC",
-      "route": "joban",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 36.0133,
-        "lng": 140.1017
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "chiyoda_ishioka",
-      "name": "千代田石岡IC",
-      "route": "joban",
-      "route_name": "常磐道",
-      "gps": {
-        "lat": 36.19,
-        "lng": 140.2967
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kisarazu_minami",
-      "name": "木更津南IC",
-      "route": "aqua",
-      "route_name": "館山道（16号線経由）",
-      "gps": {
-        "lat": 35.3833,
-        "lng": 139.9133
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kisarazu_chuo",
-      "name": "木更津中央IC",
-      "route": "aqua",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.415,
-        "lng": 139.9367
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kisarazu_kita",
-      "name": "木更津北IC",
-      "route": "aqua",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.4483,
-        "lng": 139.9717
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "anegasaki_sodegaura",
-      "name": "姉崎袖ケ浦IC",
-      "route": "aqua",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.4283,
-        "lng": 140.005
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "ichihara_aqua",
-      "name": "市原IC（アクア側）",
-      "route": "aqua",
-      "route_name": "館山道",
-      "gps": {
-        "lat": 35.4667,
-        "lng": 140.06
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "kisarazu_higashi",
-      "name": "木更津東IC",
-      "route": "aqua",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 35.4433,
-        "lng": 139.925
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "narita_kukou",
-      "name": "成田空港IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7681,
-        "lng": 140.3867
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "shin_kukou",
-      "name": "新空港IC",
-      "route": "tokan",
-      "route_name": "東関東道",
-      "gps": {
-        "lat": 35.7716,
-        "lng": 140.3936
-      },
-      "svg": {
-        "x": 1000,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "aliases": [
-        "成田空港",
-        "成田"
-      ]
-    },
-    {
-      "id": "omiya_togane",
-      "name": "大宮IC（東金）",
-      "route": "keiyo",
-      "route_name": "東金有料道路",
-      "gps": {
-        "lat": 35.56,
-        "lng": 140.2617
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "takada_togane",
-      "name": "高田IC（東金）",
-      "route": "keiyo",
-      "route_name": "東金有料道路",
-      "gps": {
-        "lat": 35.5417,
-        "lng": 140.3133
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "nakano_togane",
-      "name": "中野IC（東金）",
-      "route": "keiyo",
-      "route_name": "東金有料道路",
-      "gps": {
-        "lat": 35.53,
-        "lng": 140.3617
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "yamada_togane",
-      "name": "山田IC（東金）",
-      "route": "keiyo",
-      "route_name": "東金有料道路",
-      "gps": {
-        "lat": 35.5133,
-        "lng": 140.3917
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "togane",
-      "name": "東金IC",
-      "route": "keiyo",
-      "route_name": "東金有料道路",
-      "gps": {
-        "lat": 35.5317,
-        "lng": 140.375
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "boso_takada",
-      "name": "房総高田IC",
-      "route": "keiyo",
-      "route_name": "外房有料道路",
-      "gps": {
-        "lat": 35.4883,
-        "lng": 140.2933
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "homuda",
-      "name": "誉田IC",
-      "route": "keiyo",
-      "route_name": "外房有料道路",
-      "gps": {
-        "lat": 35.4733,
-        "lng": 140.3317
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "katsura_mobara",
-      "name": "桂IC（茂原）",
-      "route": "keiyo",
-      "route_name": "外房有料道路",
-      "gps": {
-        "lat": 35.4367,
-        "lng": 140.3833
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "chigasaki_chuo",
-      "name": "茅ヶ崎中央IC",
-      "route": "tomei",
-      "route_name": "新湘南バイパス",
-      "gps": {
-        "lat": 35.3317,
-        "lng": 139.4183
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "chigasaki_nishi",
-      "name": "茅ヶ崎西IC",
-      "route": "tomei",
-      "route_name": "新湘南バイパス",
-      "gps": {
-        "lat": 35.3283,
-        "lng": 139.4017
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "chigasaki_kaigan",
-      "name": "茅ヶ崎海岸IC",
-      "route": "tomei",
-      "route_name": "新湘南バイパス",
-      "gps": {
-        "lat": 35.3267,
-        "lng": 139.3933
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry"
-    },
-    {
-      "id": "gaien",
-      "name": "外苑",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6731,
-        "lng": 139.7183
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "iikura",
-      "name": "飯倉",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6617,
-        "lng": 139.7433
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kanda_bashi",
-      "name": "神田橋",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6889,
-        "lng": 139.7717
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hakozaki",
-      "name": "箱崎",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.68,
-        "lng": 139.7917
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "ginza",
-      "name": "銀座",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6717,
-        "lng": 139.7683
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kyobashi",
-      "name": "京橋",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6783,
-        "lng": 139.7767
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shibaura",
-      "name": "芝浦",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6467,
-        "lng": 139.75
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "meguro",
-      "name": "目黒",
-      "route": "2",
-      "route_name": "目黒線",
-      "gps": {
-        "lat": 35.6333,
-        "lng": 139.7183
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null,
-      "ramp_type": "half_uphill",
-      "ramp_note": "都心方面のみ。北品川四谷線/目黒通りに接続"
-    },
-    {
-      "id": "ebara",
-      "name": "荏原",
-      "route": "2",
-      "route_name": "目黒線",
-      "gps": {
-        "lat": 35.62,
-        "lng": 139.7117
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null,
-      "ramp_type": "half_uphill",
-      "ramp_note": "都心方面のみ。中原街道(都道2号)に接続"
-    },
-    {
-      "id": "togoshi",
-      "name": "戸越",
-      "route": "2",
-      "route_name": "目黒線",
-      "gps": {
-        "lat": 35.6117,
-        "lng": 139.7183
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null,
-      "ramp_type": "half_uphill",
-      "ramp_note": "都心方面のみ。国道1号(第二京浜)都心方向に接続"
-    },
-    {
-      "id": "sangenjaya",
-      "name": "三軒茶屋",
-      "route": "3",
-      "route_name": "渋谷線",
-      "gps": {
-        "lat": 35.6433,
-        "lng": 139.6717
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "toda_nishi",
-      "name": "戸田西IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.812,
-        "lng": 139.685
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 9.5
-    },
-    {
-      "id": "toda_higashi",
-      "name": "戸田東IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.808,
-        "lng": 139.7
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 11
-    },
-    {
-      "id": "gaikan_misato_nishi",
-      "name": "外環三郷西IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.838,
-        "lng": 139.857
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 19.5
-    },
-    {
-      "id": "misato_minami",
-      "name": "三郷南IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.814,
-        "lng": 139.892
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 23
-    },
-    {
-      "id": "matsudo_gaikan",
-      "name": "松戸IC（外環）",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.764,
-        "lng": 139.927
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 29
-    },
-    {
-      "id": "ichikawa_kita",
-      "name": "市川北IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.748,
-        "lng": 139.929
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 31.5
-    },
-    {
-      "id": "ichikawa_chuo",
-      "name": "市川中央IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.733,
-        "lng": 139.931
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 33
-    },
-    {
-      "id": "ichikawa_minami",
-      "name": "市川南IC",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.715,
-        "lng": 139.928
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": "company_pay_entry",
-      "gaikan_kp": 34.5
-    },
-    {
-      "id": "takaya_jct",
-      "name": "高谷JCT",
-      "route": "gaikan",
-      "route_name": "東京外環自動車道",
-      "gps": {
-        "lat": 35.706,
-        "lng": 139.928
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "jct",
-      "boundary_tag": "gaikan",
-      "gaikan_kp": 35.5
-    },
-    {
-      "id": "yokohama_kohoku",
-      "name": "横浜港北",
-      "route": "K7",
-      "route_name": "横浜北線",
-      "gps": {
-        "lat": 35.545,
-        "lng": 139.62
-      },
-      "svg": {
-        "x": 450,
-        "y": 900
-      },
-      "entry_type": "jct",
-      "boundary_tag": null
-    },
-    {
-      "id": "namamugi",
-      "name": "生麦",
-      "route": "K7",
-      "route_name": "横浜北線",
-      "gps": {
-        "lat": 35.515,
-        "lng": 139.665
-      },
-      "svg": {
-        "x": 480,
-        "y": 920
-      },
-      "entry_type": "jct",
-      "boundary_tag": null
-    },
-    {
-      "id": "daikoku_jct",
-      "name": "大黒JCT",
-      "route": "K5",
-      "route_name": "大黒線",
-      "gps": {
-        "lat": 35.462,
-        "lng": 139.679
-      },
-      "svg": {
-        "x": 500,
-        "y": 940
-      },
-      "entry_type": "jct",
-      "boundary_tag": null
-    },
-    {
-      "id": "ichinohashi_jct",
-      "name": "一ノ橋JCT",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6555,
-        "lng": 139.7378
-      },
-      "svg": {
-        "x": 580,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "hamazakibashi_jct",
-      "name": "浜崎橋JCT",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6517,
-        "lng": 139.7642
-      },
-      "svg": {
-        "x": 610,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "shibakoen",
-      "name": "芝公園",
-      "route": "C1",
-      "route_name": "都心環状線",
-      "gps": {
-        "lat": 35.6557,
-        "lng": 139.7497
-      },
-      "svg": {
-        "x": 600,
-        "y": 590
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nakanwa_ohi_minami",
-      "name": "中環大井南",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "gotanda",
-      "name": "五反田",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tomigaya",
-      "name": "富ヶ谷",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hatsudai_minami",
-      "name": "初台南",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nakano_chojabashi",
-      "name": "中野長者橋",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nishi_ikebukuro",
-      "name": "西池袋",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "itabashi_jct",
-      "name": "板橋JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "shibaura_jct",
-      "name": "芝浦JCT",
-      "route": "1",
-      "route_name": "1号羽田線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "showajima_jct",
-      "name": "昭和島JCT",
-      "route": "1",
-      "route_name": "1号羽田線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "kuko_nishi",
-      "name": "空港西",
-      "route": "1",
-      "route_name": "1号羽田線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "haneda",
-      "name": "羽田",
-      "route": "1",
-      "route_name": "1号羽田線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "takagicho",
-      "name": "高樹町",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shibuya",
-      "name": "渋谷",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tamagawa_dori",
-      "name": "玉川通り",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "ikejiri",
-      "name": "池尻",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "yoga",
-      "name": "用賀",
-      "route": "3",
-      "route_name": "3号渋谷線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "yoyogi",
-      "name": "代々木",
-      "route": "4",
-      "route_name": "4号新宿線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shinjuku",
-      "name": "新宿",
-      "route": "4",
-      "route_name": "4号新宿線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hatsudai",
-      "name": "初台",
-      "route": "4",
-      "route_name": "4号新宿線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hatagaya",
-      "name": "幡ヶ谷",
-      "route": "4",
-      "route_name": "4号新宿線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "takebashi_jct",
-      "name": "竹橋JCT",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "hitotsubashi",
-      "name": "一ツ橋",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nishi_kanda",
-      "name": "西神田",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "iidabashi",
-      "name": "飯田橋",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "waseda",
-      "name": "早稲田",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "gokokuji",
-      "name": "護国寺",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "higashi_ikebukuro",
-      "name": "東池袋",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kita_ikebukuro",
-      "name": "北池袋",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "itabashi_honcho",
-      "name": "板橋本町",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "takashimadaira",
-      "name": "高島平",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "toda_minami",
-      "name": "戸田南",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "toda",
-      "name": "戸田",
-      "route": "5",
-      "route_name": "5号池袋線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "edobashi_jct",
-      "name": "江戸橋JCT",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "hakozaki_jct",
-      "name": "箱崎JCT",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "hamacho",
-      "name": "浜町",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kiyosubashi",
-      "name": "清洲橋",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "komagata",
-      "name": "駒形",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "mukojima",
-      "name": "向島",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tsutsumidori",
-      "name": "堤通",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "horikiri_jct",
-      "name": "堀切JCT",
-      "route": "6",
-      "route_name": "6号向島線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "komatsugawa_jct",
-      "name": "小松川JCT",
-      "route": "7",
-      "route_name": "7号小松川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "komatsugawa",
-      "name": "小松川",
-      "route": "7",
-      "route_name": "7号小松川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "ichinoe",
-      "name": "一之江",
-      "route": "7",
-      "route_name": "7号小松川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "keiyo_jct",
-      "name": "京葉JCT",
-      "route": "7",
-      "route_name": "7号小松川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "fukuzumi",
-      "name": "福住",
-      "route": "9",
-      "route_name": "9号深川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kiba",
-      "name": "木場",
-      "route": "9",
-      "route_name": "9号深川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shiohama",
-      "name": "塩浜",
-      "route": "9",
-      "route_name": "9号深川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "edagawa",
-      "name": "枝川",
-      "route": "9",
-      "route_name": "9号深川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "tatsumi_jct",
-      "name": "辰巳JCT",
-      "route": "9",
-      "route_name": "9号深川線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "harumi",
-      "name": "晴海",
-      "route": "10",
-      "route_name": "10号晴海線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "toyosu",
-      "name": "豊洲",
-      "route": "10",
-      "route_name": "10号晴海線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "shinonome_jct",
-      "name": "東雲JCT",
-      "route": "10",
-      "route_name": "10号晴海線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "daiba",
-      "name": "台場",
-      "route": "11",
-      "route_name": "11号台場線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kasai_jct",
-      "name": "葛西JCT",
-      "route": "C2",
-      "route_name": "中央環状線",
-      "gps": {
-        "lat": 35.65,
-        "lng": 139.86
-      },
-      "svg": {
-        "x": 700,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "daishi_jct",
-      "name": "大師JCT",
-      "route": "K1",
-      "route_name": "神奈川1号横羽線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "namamugi_jct",
-      "name": "生麦JCT",
-      "route": "K1",
-      "route_name": "神奈川1号横羽線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ishikawacho_jct",
-      "name": "石川町JCT",
-      "route": "K1",
-      "route_name": "神奈川1号横羽線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "bandobashi",
-      "name": "阪東橋",
-      "route": "K3",
-      "route_name": "神奈川3号狩場線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "hananoki",
-      "name": "花之木",
-      "route": "K3",
-      "route_name": "神奈川3号狩場線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "nagata",
-      "name": "永田",
-      "route": "K3",
-      "route_name": "神奈川3号狩場線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kariba_jct",
-      "name": "狩場JCT",
-      "route": "K3",
-      "route_name": "神奈川3号狩場線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "tonomachi",
-      "name": "殿町",
-      "route": "K6",
-      "route_name": "神奈川6号川崎線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "kinko_jct",
-      "name": "金港JCT",
-      "route": "K2",
-      "route_name": "神奈川2号三ツ沢線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "yokohama_eki_nishi",
-      "name": "横浜駅西口",
-      "route": "K2",
-      "route_name": "神奈川2号三ツ沢線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "mitsuzawa",
-      "name": "三ツ沢",
-      "route": "K2",
-      "route_name": "神奈川2号三ツ沢線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "both",
-      "boundary_tag": null
-    },
-    {
-      "id": "mitsuzawa_jct",
-      "name": "三ツ沢JCT",
-      "route": "K2",
-      "route_name": "神奈川2号三ツ沢線",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "ebina_jct",
-      "name": "海老名JCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "hachioji_jct",
-      "name": "八王子JCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "tsurugashima_jct",
-      "name": "鶴ヶ島JCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "kuki_shiraoka_jct",
-      "name": "久喜白岡JCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "tsukuba_jct",
-      "name": "つくばJCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    },
-    {
-      "id": "daiei_jct",
-      "name": "大栄JCT",
-      "route": "C3",
-      "route_name": "圏央道",
-      "gps": {
-        "lat": 0,
-        "lng": 0
-      },
-      "svg": {
-        "x": 600,
-        "y": 600
-      },
-      "entry_type": "transit_only",
-      "boundary_tag": null
-    }
-  ]
+ "version": 2,
+ "generated_at": "2026-05-16T00:50:07Z",
+ "ics": [
+  {
+   "id": "kasumigaseki",
+   "name": "霞ヶ関",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.673,
+    "lng": 139.7495
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tokyo_ic",
+   "name": "東京IC",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.6089,
+    "lng": 139.6374
+   },
+   "svg": {
+    "x": 500,
+    "y": 700
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nakadai",
+   "name": "中台",
+   "route": "5",
+   "route_name": "池袋線",
+   "gps": {
+    "lat": 35.7687,
+    "lng": 139.682
+   },
+   "svg": {
+    "x": 500,
+    "y": 380
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shingo",
+   "name": "新郷",
+   "route": "S1",
+   "route_name": "川口線",
+   "gps": {
+    "lat": 35.7925,
+    "lng": 139.7693
+   },
+   "svg": {
+    "x": 620,
+    "y": 340
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kahei",
+   "name": "加平",
+   "route": "6",
+   "route_name": "三郷線",
+   "gps": {
+    "lat": 35.776,
+    "lng": 139.8245
+   },
+   "svg": {
+    "x": 690,
+    "y": 430
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yotsugi",
+   "name": "四ツ木",
+   "route": "6",
+   "route_name": "向島線",
+   "gps": {
+    "lat": 35.7455,
+    "lng": 139.8395
+   },
+   "svg": {
+    "x": 700,
+    "y": 500
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "maihama",
+   "name": "舞浜",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.634,
+    "lng": 139.8821
+   },
+   "svg": {
+    "x": 760,
+    "y": 650
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kinshicho",
+   "name": "錦糸町",
+   "route": "7",
+   "route_name": "小松川線",
+   "gps": {
+    "lat": 35.6972,
+    "lng": 139.8135
+   },
+   "svg": {
+    "x": 680,
+    "y": 560
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "eifuku",
+   "name": "永福",
+   "route": "4",
+   "route_name": "新宿線",
+   "gps": {
+    "lat": 35.67,
+    "lng": 139.6492
+   },
+   "svg": {
+    "x": 490,
+    "y": 610
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shioiri",
+   "name": "汐入",
+   "route": "K1",
+   "route_name": "横羽線",
+   "gps": {
+    "lat": 35.531,
+    "lng": 139.6881
+   },
+   "svg": {
+    "x": 530,
+    "y": 900
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "wangan_kanpachi",
+   "name": "湾岸環八",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.5814,
+    "lng": 139.7569
+   },
+   "svg": {
+    "x": 570,
+    "y": 800
+   },
+   "entry_type": "both",
+   "boundary_tag": "wangan_kanpachi"
+  },
+  {
+   "id": "katsushima",
+   "name": "勝島",
+   "route": "1",
+   "route_name": "羽田線",
+   "gps": {
+    "lat": 35.5901,
+    "lng": 139.7466
+   },
+   "svg": {
+    "x": 555,
+    "y": 790
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "heiwajima",
+   "name": "平和島",
+   "route": "1",
+   "route_name": "羽田線",
+   "gps": {
+    "lat": 35.5795,
+    "lng": 139.7459
+   },
+   "svg": {
+    "x": 555,
+    "y": 815
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "suzugamori",
+   "name": "鈴ヶ森",
+   "route": "1",
+   "route_name": "羽田線",
+   "gps": {
+    "lat": 35.5919,
+    "lng": 139.7377
+   },
+   "svg": {
+    "x": 545,
+    "y": 785
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "ohi",
+   "name": "大井",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.5844,
+    "lng": 139.7556
+   },
+   "svg": {
+    "x": 565,
+    "y": 805
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "ohi_minami",
+   "name": "大井南",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.5783,
+    "lng": 139.7669
+   },
+   "svg": {
+    "x": 580,
+    "y": 815
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kukou_chuou",
+   "name": "空港中央",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.5497,
+    "lng": 139.7842
+   },
+   "svg": {
+    "x": 630,
+    "y": 870
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tomei_kawasaki",
+   "name": "東名川崎",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.5676,
+    "lng": 139.6194
+   },
+   "svg": {
+    "x": 480,
+    "y": 770
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yokohama_aoba",
+   "name": "横浜青葉",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.5333,
+    "lng": 139.495
+   },
+   "svg": {
+    "x": 360,
+    "y": 820
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yokohama_machida",
+   "name": "横浜町田",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.5212,
+    "lng": 139.4413
+   },
+   "svg": {
+    "x": 310,
+    "y": 840
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ebina",
+   "name": "海老名",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.4564,
+    "lng": 139.395
+   },
+   "svg": {
+    "x": 260,
+    "y": 880
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "atsugi",
+   "name": "厚木",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.4361,
+    "lng": 139.3106
+   },
+   "svg": {
+    "x": 200,
+    "y": 900
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hadano_nakai",
+   "name": "秦野中井",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.3803,
+    "lng": 139.2008
+   },
+   "svg": {
+    "x": 130,
+    "y": 930
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "oi_matsuda",
+   "name": "大井松田",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.3361,
+    "lng": 139.1544
+   },
+   "svg": {
+    "x": 100,
+    "y": 950
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "gotemba",
+   "name": "御殿場",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.2872,
+    "lng": 138.935
+   },
+   "svg": {
+    "x": 30,
+    "y": 980
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "takaido",
+   "name": "高井戸IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6711,
+    "lng": 139.6169
+   },
+   "svg": {
+    "x": 460,
+    "y": 610
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "chofu",
+   "name": "調布IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6503,
+    "lng": 139.5612
+   },
+   "svg": {
+    "x": 410,
+    "y": 630
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "inagi",
+   "name": "稲城IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6308,
+    "lng": 139.5136
+   },
+   "svg": {
+    "x": 380,
+    "y": 650
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kunitachi_fuchu",
+   "name": "国立府中IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6581,
+    "lng": 139.4669
+   },
+   "svg": {
+    "x": 340,
+    "y": 620
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hachioji",
+   "name": "八王子IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6403,
+    "lng": 139.3756
+   },
+   "svg": {
+    "x": 280,
+    "y": 630
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sagamiko",
+   "name": "相模湖IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.5986,
+    "lng": 139.1736
+   },
+   "svg": {
+    "x": 170,
+    "y": 660
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "uenohara",
+   "name": "上野原IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6286,
+    "lng": 139.1103
+   },
+   "svg": {
+    "x": 140,
+    "y": 640
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "otsuki",
+   "name": "大月IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.5994,
+    "lng": 138.9408
+   },
+   "svg": {
+    "x": 80,
+    "y": 660
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "katsunuma",
+   "name": "勝沼IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6647,
+    "lng": 138.7358
+   },
+   "svg": {
+    "x": 30,
+    "y": 610
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ichinomiya_misaka",
+   "name": "一宮御坂IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6403,
+    "lng": 138.6783
+   },
+   "svg": {
+    "x": 20,
+    "y": 630
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kofu_minami",
+   "name": "甲府南IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.5964,
+    "lng": 138.5578
+   },
+   "svg": {
+    "x": 15,
+    "y": 660
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kofu_showa",
+   "name": "甲府昭和IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.6264,
+    "lng": 138.5167
+   },
+   "svg": {
+    "x": 10,
+    "y": 640
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "nirasaki",
+   "name": "韮崎IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.7117,
+    "lng": 138.4533
+   },
+   "svg": {
+    "x": 10,
+    "y": 590
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sutama",
+   "name": "須玉IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.7767,
+    "lng": 138.4047
+   },
+   "svg": {
+    "x": 10,
+    "y": 560
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kobuchizawa",
+   "name": "小淵沢IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.875,
+    "lng": 138.3167
+   },
+   "svg": {
+    "x": 10,
+    "y": 510
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "suwa_minami",
+   "name": "諏訪南IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.9572,
+    "lng": 138.2567
+   },
+   "svg": {
+    "x": 10,
+    "y": 470
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "suwa",
+   "name": "諏訪IC",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 36.0333,
+    "lng": 138.1131
+   },
+   "svg": {
+    "x": 10,
+    "y": 440
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "nerima",
+   "name": "練馬IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.745,
+    "lng": 139.6356
+   },
+   "svg": {
+    "x": 490,
+    "y": 490
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tokorozawa",
+   "name": "所沢IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.7928,
+    "lng": 139.4903
+   },
+   "svg": {
+    "x": 380,
+    "y": 460
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawagoe",
+   "name": "川越IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.905,
+    "lng": 139.485
+   },
+   "svg": {
+    "x": 380,
+    "y": 390
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tsurugashima",
+   "name": "鶴ヶ島IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.9375,
+    "lng": 139.3972
+   },
+   "svg": {
+    "x": 340,
+    "y": 370
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "higashimatsuyama",
+   "name": "東松山IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 36.0328,
+    "lng": 139.3878
+   },
+   "svg": {
+    "x": 340,
+    "y": 330
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ranzan_ogawa",
+   "name": "嵐山小川IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 36.0931,
+    "lng": 139.3233
+   },
+   "svg": {
+    "x": 310,
+    "y": 300
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hanazono",
+   "name": "花園IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 36.1533,
+    "lng": 139.2539
+   },
+   "svg": {
+    "x": 280,
+    "y": 270
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "honjo_kodama",
+   "name": "本庄児玉IC",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 36.2269,
+    "lng": 139.1761
+   },
+   "svg": {
+    "x": 250,
+    "y": 240
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawaguchi_jct",
+   "name": "川口JCT",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 35.8117,
+    "lng": 139.7317
+   },
+   "svg": {
+    "x": 590,
+    "y": 350
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "gaikan_kp": 14.4
+  },
+  {
+   "id": "kohoku_jct",
+   "name": "江北JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 35.7733,
+    "lng": 139.7772
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kumanocho_jct",
+   "name": "熊野町JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 35.76,
+    "lng": 139.7072
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kosuge_jct",
+   "name": "小菅JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 35.7511,
+    "lng": 139.8169
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shiodome_jct",
+   "name": "汐留JCT",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.665,
+    "lng": 139.76
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ariake_jct",
+   "name": "有明JCT",
+   "route": "11",
+   "route_name": "11号台場線",
+   "gps": {
+    "lat": 35.63,
+    "lng": 139.79
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "tanimachi_jct",
+   "name": "谷町JCT",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.668,
+    "lng": 139.7424
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "miyakezaka_jct",
+   "name": "三宅坂JCT",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.679,
+    "lng": 139.746
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ohi_jct",
+   "name": "大井JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 35.5836,
+    "lng": 139.7494
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ohashi_jct",
+   "name": "大橋JCT",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 35.65,
+    "lng": 139.69
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "nishi_shinjuku_jct",
+   "name": "西新宿JCT",
+   "route": "4",
+   "route_name": "4号新宿線",
+   "gps": {
+    "lat": 35.69,
+    "lng": 139.69
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ryogoku_jct",
+   "name": "両国JCT",
+   "route": "6_mukojima",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 35.6967,
+    "lng": 139.7956
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "urawa",
+   "name": "浦和IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 35.8358,
+    "lng": 139.6544
+   },
+   "svg": {
+    "x": 540,
+    "y": 340
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "iwatsuki",
+   "name": "岩槻IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 35.945,
+    "lng": 139.6983
+   },
+   "svg": {
+    "x": 570,
+    "y": 290
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kuki",
+   "name": "久喜IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.0603,
+    "lng": 139.6594
+   },
+   "svg": {
+    "x": 560,
+    "y": 250
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kazo",
+   "name": "加須IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.1281,
+    "lng": 139.6025
+   },
+   "svg": {
+    "x": 540,
+    "y": 220
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hanyu",
+   "name": "羽生IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.1758,
+    "lng": 139.5614
+   },
+   "svg": {
+    "x": 520,
+    "y": 200
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tatebayashi",
+   "name": "館林IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.2417,
+    "lng": 139.5439
+   },
+   "svg": {
+    "x": 510,
+    "y": 175
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sano_fujioka",
+   "name": "佐野藤岡IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.3147,
+    "lng": 139.4778
+   },
+   "svg": {
+    "x": 490,
+    "y": 145
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tochigi",
+   "name": "栃木IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.3831,
+    "lng": 139.7214
+   },
+   "svg": {
+    "x": 570,
+    "y": 120
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kanuma",
+   "name": "鹿沼IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.5528,
+    "lng": 139.7272
+   },
+   "svg": {
+    "x": 570,
+    "y": 70
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "utsunomiya",
+   "name": "宇都宮IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.6139,
+    "lng": 139.8483
+   },
+   "svg": {
+    "x": 610,
+    "y": 50
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yaita",
+   "name": "矢板IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.8064,
+    "lng": 139.9203
+   },
+   "svg": {
+    "x": 630,
+    "y": 30
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "nishi_nasunoshiobara",
+   "name": "西那須野塩原IC",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 36.9289,
+    "lng": 139.9744
+   },
+   "svg": {
+    "x": 650,
+    "y": 15
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "misato_jct",
+   "name": "三郷JCT",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.8356,
+    "lng": 139.8589
+   },
+   "svg": {
+    "x": 720,
+    "y": 340
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "gaikan_kp": 21.5
+  },
+  {
+   "id": "nagareyama",
+   "name": "流山IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.855,
+    "lng": 139.9011
+   },
+   "svg": {
+    "x": 750,
+    "y": 330
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kashiwa",
+   "name": "柏IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.8719,
+    "lng": 139.9453
+   },
+   "svg": {
+    "x": 770,
+    "y": 320
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yanaka_wara",
+   "name": "谷和原IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.9572,
+    "lng": 139.9836
+   },
+   "svg": {
+    "x": 790,
+    "y": 290
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yatabe",
+   "name": "谷田部IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.9953,
+    "lng": 140.0697
+   },
+   "svg": {
+    "x": 820,
+    "y": 275
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sakura_tsuchiura",
+   "name": "桜土浦IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.0547,
+    "lng": 140.1344
+   },
+   "svg": {
+    "x": 840,
+    "y": 255
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tsuchiura_kita",
+   "name": "土浦北IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.0881,
+    "lng": 140.1633
+   },
+   "svg": {
+    "x": 850,
+    "y": 245
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "mito",
+   "name": "水戸IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.3317,
+    "lng": 140.4333
+   },
+   "svg": {
+    "x": 910,
+    "y": 175
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "naka",
+   "name": "那珂IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.47,
+    "lng": 140.4869
+   },
+   "svg": {
+    "x": 920,
+    "y": 140
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hitachi_minami_ota",
+   "name": "日立南太田IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.5422,
+    "lng": 140.5594
+   },
+   "svg": {
+    "x": 940,
+    "y": 120
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hitachi_chuo",
+   "name": "日立中央IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.6492,
+    "lng": 140.6311
+   },
+   "svg": {
+    "x": 960,
+    "y": 90
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hitachi_kita",
+   "name": "日立北IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.7133,
+    "lng": 140.6869
+   },
+   "svg": {
+    "x": 970,
+    "y": 70
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "takahagi",
+   "name": "高萩IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.7253,
+    "lng": 140.7181
+   },
+   "svg": {
+    "x": 975,
+    "y": 65
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kitaibaraki",
+   "name": "北茨城IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.8019,
+    "lng": 140.7578
+   },
+   "svg": {
+    "x": 980,
+    "y": 45
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shinozaki",
+   "name": "篠崎IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.705628,
+    "lng": 139.909675
+   },
+   "svg": {
+    "x": 760,
+    "y": 570
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "keiyo_ichikawa",
+   "name": "京葉市川IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.709644,
+    "lng": 139.926575
+   },
+   "svg": {
+    "x": 770,
+    "y": 560
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "habara",
+   "name": "原木IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.703267,
+    "lng": 139.952708
+   },
+   "svg": {
+    "x": 790,
+    "y": 565
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "funabashi",
+   "name": "船橋IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.69925,
+    "lng": 139.966567
+   },
+   "svg": {
+    "x": 800,
+    "y": 570
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hanawa",
+   "name": "花輪IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.686481,
+    "lng": 140.000308
+   },
+   "svg": {
+    "x": 820,
+    "y": 565
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "makuhari",
+   "name": "幕張IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.669525,
+    "lng": 140.034356
+   },
+   "svg": {
+    "x": 830,
+    "y": 590
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "takeishi",
+   "name": "武石IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.669744,
+    "lng": 140.064503
+   },
+   "svg": {
+    "x": 840,
+    "y": 595
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "anagawa",
+   "name": "穴川IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.63645,
+    "lng": 140.12072
+   },
+   "svg": {
+    "x": 860,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kaizuka",
+   "name": "貝塚IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.616745,
+    "lng": 140.138808
+   },
+   "svg": {
+    "x": 870,
+    "y": 610
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "matsugaoka",
+   "name": "松ヶ丘IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.593015,
+    "lng": 140.147319
+   },
+   "svg": {
+    "x": 880,
+    "y": 620
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "soga",
+   "name": "蘇我IC",
+   "route": "keiyo",
+   "route_name": "京葉道路",
+   "gps": {
+    "lat": 35.566114,
+    "lng": 140.137953
+   },
+   "svg": {
+    "x": 875,
+    "y": 635
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "wangan_ichikawa",
+   "name": "湾岸市川IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6631,
+    "lng": 139.9761
+   },
+   "svg": {
+    "x": 800,
+    "y": 590
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "yatsu_funabashi",
+   "name": "谷津船橋IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6711,
+    "lng": 140.0139
+   },
+   "svg": {
+    "x": 810,
+    "y": 585
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "wangan_narashino",
+   "name": "湾岸習志野IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6683,
+    "lng": 140.0325
+   },
+   "svg": {
+    "x": 820,
+    "y": 585
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "wangan_chiba",
+   "name": "湾岸千葉IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6528,
+    "lng": 140.0742
+   },
+   "svg": {
+    "x": 835,
+    "y": 590
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "chiba_kita",
+   "name": "千葉北IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6928,
+    "lng": 140.1369
+   },
+   "svg": {
+    "x": 855,
+    "y": 575
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yotsukaido",
+   "name": "四街道IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.6636,
+    "lng": 140.1736
+   },
+   "svg": {
+    "x": 870,
+    "y": 580
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sakura_tokan",
+   "name": "佐倉IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7125,
+    "lng": 140.2256
+   },
+   "svg": {
+    "x": 885,
+    "y": 565
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shisui",
+   "name": "酒々井IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7381,
+    "lng": 140.2781
+   },
+   "svg": {
+    "x": 895,
+    "y": 555
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tomisato",
+   "name": "富里IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7406,
+    "lng": 140.3019
+   },
+   "svg": {
+    "x": 900,
+    "y": 555
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "narita",
+   "name": "成田IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7631,
+    "lng": 140.3644
+   },
+   "svg": {
+    "x": 915,
+    "y": 548
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ukishima_jct",
+   "name": "浮島JCT",
+   "route": "aqua",
+   "route_name": "東京湾アクアライン",
+   "gps": {
+    "lat": 35.5467,
+    "lng": 139.7597
+   },
+   "svg": {
+    "x": 620,
+    "y": 870
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kisarazu_kaneda",
+   "name": "木更津金田IC",
+   "route": "aqua",
+   "route_name": "東京湾アクアライン",
+   "gps": {
+    "lat": 35.5014,
+    "lng": 139.9261
+   },
+   "svg": {
+    "x": 760,
+    "y": 900
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sodegaura",
+   "name": "袖ケ浦IC",
+   "route": "aqua",
+   "route_name": "東京湾アクアライン",
+   "gps": {
+    "lat": 35.4669,
+    "lng": 139.9719
+   },
+   "svg": {
+    "x": 790,
+    "y": 920
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kisarazu_jct",
+   "name": "木更津JCT",
+   "route": "aqua",
+   "route_name": "東京湾アクアライン",
+   "gps": {
+    "lat": 35.4483,
+    "lng": 139.985
+   },
+   "svg": {
+    "x": 800,
+    "y": 930
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kimitsu",
+   "name": "君津IC",
+   "route": "tateyama",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.3747,
+    "lng": 139.9731
+   },
+   "svg": {
+    "x": 800,
+    "y": 960
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "futtsu_chuo",
+   "name": "富津中央IC",
+   "route": "tateyama",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.3008,
+    "lng": 139.9156
+   },
+   "svg": {
+    "x": 780,
+    "y": 990
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "futtsu_takeyama",
+   "name": "富津竹岡IC",
+   "route": "tateyama",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.2372,
+    "lng": 139.8781
+   },
+   "svg": {
+    "x": 760,
+    "y": 1010
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "futtsu_kanaya",
+   "name": "富津金谷IC",
+   "route": "tateyama",
+   "route_name": "富津館山道路",
+   "gps": {
+    "lat": 35.1978,
+    "lng": 139.8317
+   },
+   "svg": {
+    "x": 745,
+    "y": 1025
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kyonan_hota",
+   "name": "鋸南保田IC",
+   "route": "tateyama",
+   "route_name": "富津館山道路",
+   "gps": {
+    "lat": 35.1389,
+    "lng": 139.7819
+   },
+   "svg": {
+    "x": 730,
+    "y": 1045
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kyonan_tomiyama",
+   "name": "鋸南富山IC",
+   "route": "tateyama",
+   "route_name": "富津館山道路",
+   "gps": {
+    "lat": 35.1056,
+    "lng": 139.7561
+   },
+   "svg": {
+    "x": 720,
+    "y": 1055
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tomiura",
+   "name": "富浦IC",
+   "route": "tateyama",
+   "route_name": "富津館山道路",
+   "gps": {
+    "lat": 34.9836,
+    "lng": 139.6983
+   },
+   "svg": {
+    "x": 700,
+    "y": 1080
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tamagawa_ic",
+   "name": "玉川IC",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.5942,
+    "lng": 139.6261
+   },
+   "svg": {
+    "x": 475,
+    "y": 760
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "yokohama_kohoku_jct",
+   "name": "横浜港北JCT",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.5145,
+    "lng": 139.6085
+   },
+   "svg": {
+    "x": 460,
+    "y": 830
+   },
+   "entry_type": "jct",
+   "boundary_tag": null
+  },
+  {
+   "id": "keihin_kawasaki",
+   "name": "京浜川崎IC",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.5783,
+    "lng": 139.6114
+   },
+   "svg": {
+    "x": 465,
+    "y": 775
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tsuzuki",
+   "name": "都筑IC",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.5339,
+    "lng": 139.5836
+   },
+   "svg": {
+    "x": 440,
+    "y": 800
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kohoku",
+   "name": "港北IC",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.5192,
+    "lng": 139.5589
+   },
+   "svg": {
+    "x": 425,
+    "y": 810
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hodogaya",
+   "name": "保土ヶ谷IC",
+   "route": "third_keihin",
+   "route_name": "第三京浜",
+   "gps": {
+    "lat": 35.48,
+    "lng": 139.5831
+   },
+   "svg": {
+    "x": 435,
+    "y": 837
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shin_hodogaya_jct",
+   "name": "新保土ヶ谷JCT",
+   "route": "third_keihin",
+   "route_name": "横浜新道",
+   "gps": {
+    "lat": 35.473,
+    "lng": 139.581
+   },
+   "svg": {
+    "x": 434,
+    "y": 841
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "imai",
+   "name": "今井IC",
+   "route": "third_keihin",
+   "route_name": "横浜新道",
+   "gps": {
+    "lat": 35.465,
+    "lng": 139.578
+   },
+   "svg": {
+    "x": 432,
+    "y": 845
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawakami",
+   "name": "川上IC",
+   "route": "third_keihin",
+   "route_name": "横浜新道",
+   "gps": {
+    "lat": 35.455,
+    "lng": 139.576
+   },
+   "svg": {
+    "x": 431,
+    "y": 850
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "totsuka",
+   "name": "戸塚IC",
+   "route": "third_keihin",
+   "route_name": "横浜新道",
+   "gps": {
+    "lat": 35.4011,
+    "lng": 139.5356
+   },
+   "svg": {
+    "x": 405,
+    "y": 875
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kariba",
+   "name": "狩場IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.4508,
+    "lng": 139.5764
+   },
+   "svg": {
+    "x": 430,
+    "y": 855
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "bessho",
+   "name": "別所IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.42,
+    "lng": 139.5828
+   },
+   "svg": {
+    "x": 432,
+    "y": 870
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hino",
+   "name": "日野IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.3819,
+    "lng": 139.5708
+   },
+   "svg": {
+    "x": 425,
+    "y": 890
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "konan_dai",
+   "name": "港南台IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.3822,
+    "lng": 139.5958
+   },
+   "svg": {
+    "x": 435,
+    "y": 890
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "asahina",
+   "name": "朝比奈IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.3656,
+    "lng": 139.6036
+   },
+   "svg": {
+    "x": 440,
+    "y": 898
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "zushi",
+   "name": "逗子IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.2969,
+    "lng": 139.5814
+   },
+   "svg": {
+    "x": 430,
+    "y": 930
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yokosuka",
+   "name": "横須賀IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.2778,
+    "lng": 139.6317
+   },
+   "svg": {
+    "x": 450,
+    "y": 940
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kinugasa",
+   "name": "衣笠IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.2528,
+    "lng": 139.6469
+   },
+   "svg": {
+    "x": 460,
+    "y": 950
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sabara",
+   "name": "佐原IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.2361,
+    "lng": 139.6617
+   },
+   "svg": {
+    "x": 465,
+    "y": 958
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "uraga",
+   "name": "浦賀IC",
+   "route": "yokoyoko",
+   "route_name": "横浜横須賀道路",
+   "gps": {
+    "lat": 35.2183,
+    "lng": 139.7056
+   },
+   "svg": {
+    "x": 480,
+    "y": 965
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kariba_shutoko",
+   "name": "首都高狩場線（基準）",
+   "route": "yokohane_route",
+   "route_name": "首都高速神奈川線",
+   "gps": {
+    "lat": 35.447,
+    "lng": 139.574
+   },
+   "svg": {
+    "x": 428,
+    "y": 857
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "wangan_shutoko",
+   "name": "首都高湾岸線（基準）",
+   "route": "wangan_route",
+   "route_name": "首都高速湾岸線",
+   "gps": {
+    "lat": 35.39,
+    "lng": 139.63
+   },
+   "svg": {
+    "x": 455,
+    "y": 885
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "bijogi_jct",
+   "name": "美女木JCT",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.8017,
+    "lng": 139.6435
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": "gaikan",
+   "gaikan_kp": 7.8
+  },
+  {
+   "id": "oizumi_jct",
+   "name": "大泉JCT",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.7654,
+    "lng": 139.6142
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": "gaikan",
+   "gaikan_kp": 0
+  },
+  {
+   "id": "oizumi",
+   "name": "大泉IC（外環）",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.7579,
+    "lng": 139.5867
+   },
+   "svg": {
+    "x": 0,
+    "y": 0
+   },
+   "entry_type": "both",
+   "boundary_tag": "gaikan",
+   "gaikan_kp": 0
+  },
+  {
+   "id": "kasai",
+   "name": "葛西IC",
+   "route": "B",
+   "route_name": "首都高湾岸線",
+   "gps": {
+    "lat": 35.6509,
+    "lng": 139.8724
+   },
+   "svg": {
+    "x": 740,
+    "y": 640
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hiratsuka",
+   "name": "平塚IC",
+   "route": "tomei",
+   "route_name": "小田原厚木道路",
+   "gps": {
+    "lat": 35.327,
+    "lng": 139.32
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "oiso",
+   "name": "大磯IC",
+   "route": "tomei",
+   "route_name": "小田原厚木道路",
+   "gps": {
+    "lat": 35.319,
+    "lng": 139.314
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ninomiya",
+   "name": "二宮IC",
+   "route": "tomei",
+   "route_name": "小田原厚木道路",
+   "gps": {
+    "lat": 35.308,
+    "lng": 139.245
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "odawara_higashi",
+   "name": "小田原東IC",
+   "route": "tomei",
+   "route_name": "小田原厚木道路",
+   "gps": {
+    "lat": 35.27,
+    "lng": 139.182
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hakoneguchi",
+   "name": "箱根口IC",
+   "route": "tomei",
+   "route_name": "西湘バイパス",
+   "gps": {
+    "lat": 35.258,
+    "lng": 139.133
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawaguchiko",
+   "name": "河口湖IC",
+   "route": "chuo",
+   "route_name": "富士五湖道路",
+   "gps": {
+    "lat": 35.5117,
+    "lng": 138.7711
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hachioji_nishi",
+   "name": "八王子西IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.6603,
+    "lng": 139.3194
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "akiruno",
+   "name": "あきる野IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.7333,
+    "lng": 139.3078
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "hinode",
+   "name": "日の出IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.7608,
+    "lng": 139.2669
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ome",
+   "name": "青梅IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.8,
+    "lng": 139.2483
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "iruma",
+   "name": "入間IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.8381,
+    "lng": 139.3272
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "aihara",
+   "name": "相原IC",
+   "route": "chuo",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.5725,
+    "lng": 139.3386
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "wakoshi_kita",
+   "name": "和光北IC",
+   "route": "kanetsu",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.7967,
+    "lng": 139.6083
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 3
+  },
+  {
+   "id": "wako_gaikan",
+   "name": "和光IC（外環）",
+   "route": "kanetsu",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.7833,
+    "lng": 139.5917
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 5.5
+  },
+  {
+   "id": "oizumi_kanetsu",
+   "name": "大泉IC（関越）",
+   "route": "kanetsu",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.76,
+    "lng": 139.57
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 0.5
+  },
+  {
+   "id": "kawaguchi_nishi",
+   "name": "川口西IC",
+   "route": "kanetsu",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.825,
+    "lng": 139.69
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 13
+  },
+  {
+   "id": "kenen_tsurugashima",
+   "name": "圏央鶴ヶ島IC",
+   "route": "kanetsu",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.925,
+    "lng": 139.37
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sayama_hidaka",
+   "name": "狭山日高IC",
+   "route": "kanetsu",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.89,
+    "lng": 139.3333
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "sakado",
+   "name": "坂戸IC",
+   "route": "kanetsu",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.9567,
+    "lng": 139.4017
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawajima",
+   "name": "川島IC",
+   "route": "kanetsu",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.9944,
+    "lng": 139.4783
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "okegawa_kitamoto",
+   "name": "桶川北本IC",
+   "route": "kanetsu",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 36.0044,
+    "lng": 139.52
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kawaguchi_chuo",
+   "name": "川口中央IC",
+   "route": "tohoku",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.815,
+    "lng": 139.7433
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 12.7
+  },
+  {
+   "id": "gaikan_urawa",
+   "name": "外環浦和IC",
+   "route": "tohoku",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.84,
+    "lng": 139.6883
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 13.5
+  },
+  {
+   "id": "soka_tohoku",
+   "name": "草加IC（東北外環）",
+   "route": "tohoku",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.8283,
+    "lng": 139.8
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 17.5
+  },
+  {
+   "id": "soka_joban",
+   "name": "草加IC（常磐外環）",
+   "route": "joban",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.8217,
+    "lng": 139.8133
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 17.5
+  },
+  {
+   "id": "kawaguchi_higashi",
+   "name": "川口東IC",
+   "route": "joban",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.8217,
+    "lng": 139.775
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 16.5
+  },
+  {
+   "id": "tsukuba_ushiku",
+   "name": "つくば牛久IC",
+   "route": "joban",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 36.0117,
+    "lng": 140.15
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ushiku_ami",
+   "name": "牛久阿見IC",
+   "route": "joban",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.9817,
+    "lng": 140.2017
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ami_higashi",
+   "name": "阿見東IC",
+   "route": "joban",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.96,
+    "lng": 140.235
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "inashiki",
+   "name": "稲敷IC",
+   "route": "joban",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.95,
+    "lng": 140.3067
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "tsukuba_chuo",
+   "name": "つくば中央IC",
+   "route": "joban",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 36.0133,
+    "lng": 140.1017
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "chiyoda_ishioka",
+   "name": "千代田石岡IC",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.19,
+    "lng": 140.2967
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kisarazu_minami",
+   "name": "木更津南IC",
+   "route": "aqua",
+   "route_name": "館山道（16号線経由）",
+   "gps": {
+    "lat": 35.3833,
+    "lng": 139.9133
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kisarazu_chuo",
+   "name": "木更津中央IC",
+   "route": "aqua",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.415,
+    "lng": 139.9367
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kisarazu_kita",
+   "name": "木更津北IC",
+   "route": "aqua",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.4483,
+    "lng": 139.9717
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "anegasaki_sodegaura",
+   "name": "姉崎袖ケ浦IC",
+   "route": "aqua",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.4283,
+    "lng": 140.005
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "ichihara_aqua",
+   "name": "市原IC（アクア側）",
+   "route": "aqua",
+   "route_name": "館山道",
+   "gps": {
+    "lat": 35.4667,
+    "lng": 140.06
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "kisarazu_higashi",
+   "name": "木更津東IC",
+   "route": "aqua",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 35.4433,
+    "lng": 139.925
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "narita_kukou",
+   "name": "成田空港IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7681,
+    "lng": 140.3867
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "shin_kukou",
+   "name": "新空港IC",
+   "route": "tokan",
+   "route_name": "東関東道",
+   "gps": {
+    "lat": 35.7716,
+    "lng": 140.3936
+   },
+   "svg": {
+    "x": 1000,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "aliases": [
+    "成田空港",
+    "成田"
+   ]
+  },
+  {
+   "id": "omiya_togane",
+   "name": "大宮IC（東金）",
+   "route": "keiyo",
+   "route_name": "東金有料道路",
+   "gps": {
+    "lat": 35.593646,
+    "lng": 140.185785
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "takada_togane",
+   "name": "高田IC（東金）",
+   "route": "keiyo",
+   "route_name": "東金有料道路",
+   "gps": {
+    "lat": 35.582065,
+    "lng": 140.226375
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "nakano_togane",
+   "name": "中野IC（東金）",
+   "route": "keiyo",
+   "route_name": "東金有料道路",
+   "gps": {
+    "lat": 35.571567,
+    "lng": 140.263181
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "yamada_togane",
+   "name": "山田IC（東金）",
+   "route": "keiyo",
+   "route_name": "東金有料道路",
+   "gps": {
+    "lat": 35.570842,
+    "lng": 140.289767
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "togane",
+   "name": "東金IC",
+   "route": "keiyo",
+   "route_name": "東金有料道路",
+   "gps": {
+    "lat": 35.574525,
+    "lng": 140.315817
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "boso_takada",
+   "name": "房総高田IC",
+   "route": "keiyo",
+   "route_name": "外房有料道路",
+   "gps": {
+    "lat": 35.545735,
+    "lng": 140.176475
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "homuda",
+   "name": "誉田IC",
+   "route": "keiyo",
+   "route_name": "外房有料道路",
+   "gps": {
+    "lat": 35.536082,
+    "lng": 140.194802
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "katsura_mobara",
+   "name": "桂IC（茂原）",
+   "route": "keiyo",
+   "route_name": "外房有料道路",
+   "gps": {
+    "lat": 35.497,
+    "lng": 140.269
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "chigasaki_chuo",
+   "name": "茅ヶ崎中央IC",
+   "route": "tomei",
+   "route_name": "新湘南バイパス",
+   "gps": {
+    "lat": 35.3317,
+    "lng": 139.4183
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "chigasaki_nishi",
+   "name": "茅ヶ崎西IC",
+   "route": "tomei",
+   "route_name": "新湘南バイパス",
+   "gps": {
+    "lat": 35.3283,
+    "lng": 139.4017
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "chigasaki_kaigan",
+   "name": "茅ヶ崎海岸IC",
+   "route": "tomei",
+   "route_name": "新湘南バイパス",
+   "gps": {
+    "lat": 35.3267,
+    "lng": 139.3933
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry"
+  },
+  {
+   "id": "gaien",
+   "name": "外苑",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6731,
+    "lng": 139.7183
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "iikura",
+   "name": "飯倉",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6617,
+    "lng": 139.7433
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kanda_bashi",
+   "name": "神田橋",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6889,
+    "lng": 139.7717
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hakozaki",
+   "name": "箱崎",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.68,
+    "lng": 139.7917
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "ginza",
+   "name": "銀座",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6717,
+    "lng": 139.7683
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kyobashi",
+   "name": "京橋",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6783,
+    "lng": 139.7767
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shibaura",
+   "name": "芝浦",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6467,
+    "lng": 139.75
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "meguro",
+   "name": "目黒",
+   "route": "2",
+   "route_name": "目黒線",
+   "gps": {
+    "lat": 35.6333,
+    "lng": 139.7183
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_type": "half_uphill",
+   "ramp_note": "都心方面のみ。北品川四谷線/目黒通りに接続"
+  },
+  {
+   "id": "ebara",
+   "name": "荏原",
+   "route": "2",
+   "route_name": "目黒線",
+   "gps": {
+    "lat": 35.62,
+    "lng": 139.7117
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_type": "half_uphill",
+   "ramp_note": "都心方面のみ。中原街道(都道2号)に接続"
+  },
+  {
+   "id": "togoshi",
+   "name": "戸越",
+   "route": "2",
+   "route_name": "目黒線",
+   "gps": {
+    "lat": 35.6117,
+    "lng": 139.7183
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_type": "half_uphill",
+   "ramp_note": "都心方面のみ。国道1号(第二京浜)都心方向に接続"
+  },
+  {
+   "id": "sangenjaya",
+   "name": "三軒茶屋",
+   "route": "3",
+   "route_name": "渋谷線",
+   "gps": {
+    "lat": 35.6433,
+    "lng": 139.6717
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "toda_nishi",
+   "name": "戸田西IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.812,
+    "lng": 139.685
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 9.5
+  },
+  {
+   "id": "toda_higashi",
+   "name": "戸田東IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.808,
+    "lng": 139.7
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 11
+  },
+  {
+   "id": "gaikan_misato_nishi",
+   "name": "外環三郷西IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.838,
+    "lng": 139.857
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 19.5
+  },
+  {
+   "id": "misato_minami",
+   "name": "三郷南IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.814,
+    "lng": 139.892
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 23
+  },
+  {
+   "id": "matsudo_gaikan",
+   "name": "松戸IC（外環）",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.764,
+    "lng": 139.927
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 29
+  },
+  {
+   "id": "ichikawa_kita",
+   "name": "市川北IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.748,
+    "lng": 139.929
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 31.5
+  },
+  {
+   "id": "ichikawa_chuo",
+   "name": "市川中央IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.733,
+    "lng": 139.931
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 33
+  },
+  {
+   "id": "ichikawa_minami",
+   "name": "市川南IC",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.715,
+    "lng": 139.928
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": "company_pay_entry",
+   "gaikan_kp": 34.5
+  },
+  {
+   "id": "takaya_jct",
+   "name": "高谷JCT",
+   "route": "gaikan",
+   "route_name": "東京外環自動車道",
+   "gps": {
+    "lat": 35.706,
+    "lng": 139.928
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "jct",
+   "boundary_tag": "gaikan",
+   "gaikan_kp": 35.5
+  },
+  {
+   "id": "yokohama_kohoku",
+   "name": "横浜港北",
+   "route": "K7",
+   "route_name": "横浜北線",
+   "gps": {
+    "lat": 35.545,
+    "lng": 139.62
+   },
+   "svg": {
+    "x": 450,
+    "y": 900
+   },
+   "entry_type": "jct",
+   "boundary_tag": null
+  },
+  {
+   "id": "namamugi",
+   "name": "生麦",
+   "route": "K7",
+   "route_name": "横浜北線",
+   "gps": {
+    "lat": 35.515,
+    "lng": 139.665
+   },
+   "svg": {
+    "x": 480,
+    "y": 920
+   },
+   "entry_type": "jct",
+   "boundary_tag": null
+  },
+  {
+   "id": "daikoku_jct",
+   "name": "大黒JCT",
+   "route": "K5",
+   "route_name": "大黒線",
+   "gps": {
+    "lat": 35.462,
+    "lng": 139.679
+   },
+   "svg": {
+    "x": 500,
+    "y": 940
+   },
+   "entry_type": "jct",
+   "boundary_tag": null
+  },
+  {
+   "id": "ichinohashi_jct",
+   "name": "一ノ橋JCT",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6555,
+    "lng": 139.7378
+   },
+   "svg": {
+    "x": 580,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "hamazakibashi_jct",
+   "name": "浜崎橋JCT",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6517,
+    "lng": 139.7642
+   },
+   "svg": {
+    "x": 610,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "shibakoen",
+   "name": "芝公園",
+   "route": "C1",
+   "route_name": "都心環状線",
+   "gps": {
+    "lat": 35.6557,
+    "lng": 139.7497
+   },
+   "svg": {
+    "x": 600,
+    "y": 590
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nakanwa_ohi_minami",
+   "name": "中環大井南",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "gotanda",
+   "name": "五反田",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tomigaya",
+   "name": "富ヶ谷",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hatsudai_minami",
+   "name": "初台南",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nakano_chojabashi",
+   "name": "中野長者橋",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nishi_ikebukuro",
+   "name": "西池袋",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "itabashi_jct",
+   "name": "板橋JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "shibaura_jct",
+   "name": "芝浦JCT",
+   "route": "1",
+   "route_name": "1号羽田線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "showajima_jct",
+   "name": "昭和島JCT",
+   "route": "1",
+   "route_name": "1号羽田線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "kuko_nishi",
+   "name": "空港西",
+   "route": "1",
+   "route_name": "1号羽田線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "haneda",
+   "name": "羽田",
+   "route": "1",
+   "route_name": "1号羽田線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "takagicho",
+   "name": "高樹町",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shibuya",
+   "name": "渋谷",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tamagawa_dori",
+   "name": "玉川通り",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "ikejiri",
+   "name": "池尻",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "yoga",
+   "name": "用賀",
+   "route": "3",
+   "route_name": "3号渋谷線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "yoyogi",
+   "name": "代々木",
+   "route": "4",
+   "route_name": "4号新宿線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shinjuku",
+   "name": "新宿",
+   "route": "4",
+   "route_name": "4号新宿線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hatsudai",
+   "name": "初台",
+   "route": "4",
+   "route_name": "4号新宿線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hatagaya",
+   "name": "幡ヶ谷",
+   "route": "4",
+   "route_name": "4号新宿線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "takebashi_jct",
+   "name": "竹橋JCT",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "hitotsubashi",
+   "name": "一ツ橋",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nishi_kanda",
+   "name": "西神田",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "iidabashi",
+   "name": "飯田橋",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "waseda",
+   "name": "早稲田",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "gokokuji",
+   "name": "護国寺",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "higashi_ikebukuro",
+   "name": "東池袋",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kita_ikebukuro",
+   "name": "北池袋",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "itabashi_honcho",
+   "name": "板橋本町",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "takashimadaira",
+   "name": "高島平",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "toda_minami",
+   "name": "戸田南",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "toda",
+   "name": "戸田",
+   "route": "5",
+   "route_name": "5号池袋線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "edobashi_jct",
+   "name": "江戸橋JCT",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "hakozaki_jct",
+   "name": "箱崎JCT",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "hamacho",
+   "name": "浜町",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kiyosubashi",
+   "name": "清洲橋",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "komagata",
+   "name": "駒形",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "mukojima",
+   "name": "向島",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tsutsumidori",
+   "name": "堤通",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "horikiri_jct",
+   "name": "堀切JCT",
+   "route": "6",
+   "route_name": "6号向島線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "komatsugawa_jct",
+   "name": "小松川JCT",
+   "route": "7",
+   "route_name": "7号小松川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "komatsugawa",
+   "name": "小松川",
+   "route": "7",
+   "route_name": "7号小松川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "ichinoe",
+   "name": "一之江",
+   "route": "7",
+   "route_name": "7号小松川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "keiyo_jct",
+   "name": "京葉JCT",
+   "route": "7",
+   "route_name": "7号小松川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "fukuzumi",
+   "name": "福住",
+   "route": "9",
+   "route_name": "9号深川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kiba",
+   "name": "木場",
+   "route": "9",
+   "route_name": "9号深川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shiohama",
+   "name": "塩浜",
+   "route": "9",
+   "route_name": "9号深川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "edagawa",
+   "name": "枝川",
+   "route": "9",
+   "route_name": "9号深川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "tatsumi_jct",
+   "name": "辰巳JCT",
+   "route": "9",
+   "route_name": "9号深川線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "harumi",
+   "name": "晴海",
+   "route": "10",
+   "route_name": "10号晴海線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "toyosu",
+   "name": "豊洲",
+   "route": "10",
+   "route_name": "10号晴海線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "shinonome_jct",
+   "name": "東雲JCT",
+   "route": "10",
+   "route_name": "10号晴海線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "daiba",
+   "name": "台場",
+   "route": "11",
+   "route_name": "11号台場線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kasai_jct",
+   "name": "葛西JCT",
+   "route": "C2",
+   "route_name": "中央環状線",
+   "gps": {
+    "lat": 35.65,
+    "lng": 139.86
+   },
+   "svg": {
+    "x": 700,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "daishi_jct",
+   "name": "大師JCT",
+   "route": "K1",
+   "route_name": "神奈川1号横羽線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "namamugi_jct",
+   "name": "生麦JCT",
+   "route": "K1",
+   "route_name": "神奈川1号横羽線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ishikawacho_jct",
+   "name": "石川町JCT",
+   "route": "K1",
+   "route_name": "神奈川1号横羽線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "bandobashi",
+   "name": "阪東橋",
+   "route": "K3",
+   "route_name": "神奈川3号狩場線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "hananoki",
+   "name": "花之木",
+   "route": "K3",
+   "route_name": "神奈川3号狩場線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "nagata",
+   "name": "永田",
+   "route": "K3",
+   "route_name": "神奈川3号狩場線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kariba_jct",
+   "name": "狩場JCT",
+   "route": "K3",
+   "route_name": "神奈川3号狩場線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "tonomachi",
+   "name": "殿町",
+   "route": "K6",
+   "route_name": "神奈川6号川崎線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "kinko_jct",
+   "name": "金港JCT",
+   "route": "K2",
+   "route_name": "神奈川2号三ツ沢線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "yokohama_eki_nishi",
+   "name": "横浜駅西口",
+   "route": "K2",
+   "route_name": "神奈川2号三ツ沢線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "mitsuzawa",
+   "name": "三ツ沢",
+   "route": "K2",
+   "route_name": "神奈川2号三ツ沢線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null
+  },
+  {
+   "id": "mitsuzawa_jct",
+   "name": "三ツ沢JCT",
+   "route": "K2",
+   "route_name": "神奈川2号三ツ沢線",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "ebina_jct",
+   "name": "海老名JCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "hachioji_jct",
+   "name": "八王子JCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "tsurugashima_jct",
+   "name": "鶴ヶ島JCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "kuki_shiraoka_jct",
+   "name": "久喜白岡JCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "tsukuba_jct",
+   "name": "つくばJCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  },
+  {
+   "id": "daiei_jct",
+   "name": "大栄JCT",
+   "route": "C3",
+   "route_name": "圏央道",
+   "gps": {
+    "lat": 0,
+    "lng": 0
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "transit_only",
+   "boundary_tag": null
+  }
+ ]
 }
