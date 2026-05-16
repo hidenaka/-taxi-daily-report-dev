@@ -1,6 +1,6 @@
 {
- "version": 15,
- "generated_at": "2026-05-16T04:51:19Z",
+ "version": 16,
+ "generated_at": "2026-05-16T05:00:55Z",
  "ics": [
   {
    "id": "kasumigaseki",
@@ -5111,8 +5111,10 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線終点の出入口。空港中央・大黒ふ頭方面のみ"
   },
   {
    "id": "sugita",
@@ -5127,8 +5129,9 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "isogo",
@@ -5143,8 +5146,10 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "空港中央・大黒ふ頭方面のみの出入口。入口ETC専用"
   },
   {
    "id": "sankeien",
@@ -5159,8 +5164,10 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "幸浦・杉田方面のみの出入口。入口ETC専用"
   },
   {
    "id": "honmoku_jct",
@@ -5191,8 +5198,10 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "横浜横須賀道路金沢支線。釜利谷方面のみのハーフIC"
   },
   {
    "id": "kamariya_jct",
