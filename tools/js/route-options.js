@@ -170,6 +170,18 @@ export function getOuterRouteOptionsForIc({ ic, exitIc = null, deduction }) {
     }
   }
 
+  // 羽田(空港中央/湾岸環八)方面トリップでは、baseline系の素ルート(yokoyoko/third_keihin)は
+  // 玉川IC方面への大回りを意味し非現実的（控除が玉川IC基準で過大になり経路と乖離する）。
+  // 実経路パターン(KANAGAWA_BRANCH: 湾岸線経由/横羽線経由/保土ヶ谷BP経由)が候補にあれば、
+  // 素ルートは除外する。例: 横須賀IC→空港中央 の「玉川経由(控除43.7km)」を抑制。
+  if (HANEDA_EXIT_IDS.has(exitIc?.id) || HANEDA_EXIT_IDS.has(ic.id)) {
+    const hasBranch = [...merged.keys()].some((id) => KANAGAWA_BRANCH_ROUTES.has(id));
+    if (hasBranch) {
+      merged.delete('yokoyoko');
+      merged.delete('third_keihin');
+    }
+  }
+
   if (merged.size === 0) return ['none'];
 
   const matched = [...merged.entries()].map(([id, km]) => ({ id, km }));
