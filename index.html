@@ -95,7 +95,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
@@ -353,14 +353,23 @@ async function render() {
   const targetCard = document.getElementById('targetCard');
   if (isCurrent && config.takeHomeTarget) {
     const target = config.takeHomeTarget;
-    const requiredTotal = target / takeHomeRate;
-    const remaining = Math.max(0, requiredTotal - actualResult.total);
     const remainingShifts = Math.max(0, respShifts - actualResult.shiftCount);
-    const monthlySales = calcMonthlySales(rawDrives);
-    const avgRate = (actualResult.shiftCount > 0 && monthlySales.exclTax > 0) ? (actualResult.basePay / monthlySales.exclTax) : 0.65;
-    const perShiftPayRequired = remainingShifts > 0 ? remaining / remainingShifts : 0;
-    const perShiftSalesExclTax = avgRate > 0 ? perShiftPayRequired / avgRate : 0;
-    const perShiftSalesInclTax = perShiftSalesExclTax * 1.1;
+    // 残り乗務の車種内訳: カレンダーの予定車種(plannedVehicles)から、
+    // まだ乗務していない予定日の車種を拾う。件数がずれても残り乗務数に合わせて補正。
+    const drivenDates = new Set(rawDrives.map(d => d.date));
+    const remainingPlannedDates = (config.shifts.expandedDates || [])
+      .filter(d => d >= range.start && d <= range.end && !drivenDates.has(d));
+    const premiumPlanned = remainingPlannedDates
+      .filter(d => (config.shifts.plannedVehicles || {})[d] === 'premium').length;
+    const premiumRemaining = Math.min(premiumPlanned, remainingShifts);
+    const remainingShiftList = Array.from({ length: remainingShifts }, (_, i) => ({
+      vehicleType: i < premiumRemaining ? 'premium' : 'japantaxi'
+    }));
+    // 段階歩率(1〜11乗務目)・12乗務目固定率・プレミアムインセンティブを反映した必要売上
+    const perShiftSalesInclTax = requiredUniformSales(
+      rawDrives, remainingShiftList, config, range.start, range.end, target, takeHomeRate
+    );
+    const perShiftSalesExclTax = perShiftSalesInclTax / 1.1;
     const projectedTakeHome = (predicted ? predicted.total : actualResult.total) * takeHomeRate;
     const willHit = projectedTakeHome >= target;
     // 進捗バー: 現在の手取り / 目標

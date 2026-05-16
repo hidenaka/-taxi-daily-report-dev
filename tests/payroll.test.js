@@ -1,5 +1,6 @@
 import { test, assert } from './run.js';
-import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay } from '../js/payroll.js';
+import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay, requiredUniformSales } from '../js/payroll.js';
+import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 test('calcDailySales: trips のキャンセル除いた合計（税込）', () => {
   const drive = {
@@ -114,4 +115,46 @@ test('calcTotalPay: basePay + incentive', () => {
   assert.equal(Math.round(result.basePay), 755700);
   assert.equal(result.incentive, 0);
   assert.equal(Math.round(result.total), 755700);
+});
+
+test('requiredUniformSales: 残り乗務0なら0を返す', () => {
+  assert.equal(
+    requiredUniformSales([], [], DEFAULT_CONFIG, '2026-05-01', '2026-05-31', 500000, 0.75),
+    0
+  );
+});
+
+test('requiredUniformSales: 既に達成済みなら0を返す', () => {
+  // 11乗務×税込30万 = 十分な売上 → 目標1万は達成済み
+  const drives = Array.from({ length: 11 }, (_, i) => ({
+    trips: [{ amount: 300000, isCancel: false }], vehicleType: 'japantaxi', date: '2026-05-' + String(i + 1).padStart(2, '0')
+  }));
+  assert.equal(
+    requiredUniformSales(drives, [{ vehicleType: 'japantaxi' }], DEFAULT_CONFIG, '2026-05-01', '2026-05-31', 10000, 0.75),
+    0
+  );
+});
+
+test('requiredUniformSales: 段階歩率を反映し、逆算結果で目標手取りちょうどになる', () => {
+  const target = 500000, takeHomeRate = 0.75;
+  const remaining = Array.from({ length: 12 }, () => ({ vehicleType: 'japantaxi' }));
+  const x = requiredUniformSales([], remaining, DEFAULT_CONFIG, '2026-05-01', '2026-05-31', target, takeHomeRate);
+  // x(税込)を12乗務に適用 → 手取りが target に一致(1円未満精度)
+  const drives = remaining.map((s, i) => ({
+    trips: [{ amount: x, isCancel: false }], vehicleType: s.vehicleType, date: '_t' + i
+  }));
+  const takeHome = calcTotalPay(drives, DEFAULT_CONFIG, '2026-05-01', '2026-05-31').total * takeHomeRate;
+  assert.ok(Math.abs(takeHome - target) < 1, `takeHome=${takeHome} should ≈ ${target}`);
+  // 一律0.65割り戻しの旧推定(税込¥94,017)より少ない必要売上になる
+  assert.ok(x < 94017, `x=${x} should be below the old flat-rate estimate 94017`);
+});
+
+test('requiredUniformSales: プレミアム車のインセンティブを考慮する(必要売上が下がる)', () => {
+  const target = 500000, takeHomeRate = 0.75;
+  const allJt = Array.from({ length: 12 }, () => ({ vehicleType: 'japantaxi' }));
+  const allPremium = Array.from({ length: 12 }, () => ({ vehicleType: 'premium' }));
+  const xJt = requiredUniformSales([], allJt, DEFAULT_CONFIG, '2026-05-01', '2026-05-31', target, takeHomeRate);
+  const xPremium = requiredUniformSales([], allPremium, DEFAULT_CONFIG, '2026-05-01', '2026-05-31', target, takeHomeRate);
+  // プレミアムは1乗務+2,000円のインセンティブが付くため、必要売上はJTより少なくて済む
+  assert.ok(xPremium < xJt, `xPremium=${xPremium} should be < xJt=${xJt}`);
 });
