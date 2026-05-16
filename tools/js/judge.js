@@ -83,7 +83,7 @@ function findSplitPoint(entryIcId, outerRoute, deduction, ics, shutokoGraph) {
     if (e.ic_id === dir.baseline.ic_id) {
       return { icId: e.ic_id, name: e.name, km: e.km, entry: e };
     }
-    if (ic && (ic.entry_type === 'jct' || ic.boundary_tag === 'gaikan')) {
+    if (ic && (ic.is_split_point || ic.boundary_tag === 'gaikan')) {
       return { icId: e.ic_id, name: e.name, km: e.km, entry: e };
     }
     // 首都高の路線を持つノード（東名→北西線接続点など）も分割点とする

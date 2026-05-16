@@ -1,6 +1,6 @@
 {
- "version": 11,
- "generated_at": "2026-05-16T03:38:25Z",
+ "version": 14,
+ "generated_at": "2026-05-16T03:54:09Z",
  "ics": [
   {
    "id": "kasumigaseki",
@@ -16,7 +16,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "tokyo_ic",
@@ -32,7 +33,8 @@
     "y": 700
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "nakadai",
@@ -48,7 +50,9 @@
     "y": 380
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "5号池袋線。上り（竹橋JCT・銀座方面）のみのハーフIC"
   },
   {
    "id": "shingo",
@@ -64,7 +68,8 @@
     "y": 340
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kahei",
@@ -80,7 +85,8 @@
     "y": 430
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yotsugi",
@@ -96,7 +102,8 @@
     "y": 500
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "maihama",
@@ -112,7 +119,9 @@
     "y": 650
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "舞浜入口のみ。東行き（銀座・小菅方面）入口専用で出口なし"
   },
   {
    "id": "kinshicho",
@@ -128,7 +137,8 @@
     "y": 560
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "eifuku",
@@ -144,7 +154,8 @@
     "y": 610
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "shioiri",
@@ -160,7 +171,9 @@
     "y": 900
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "横羽線。羽田・銀座方面（上り）のみのハーフIC。横浜公園・三浦方面に出入口なし"
   },
   {
    "id": "wangan_kanpachi",
@@ -176,7 +189,9 @@
     "y": 800
    },
    "entry_type": "both",
-   "boundary_tag": "wangan_kanpachi"
+   "boundary_tag": "wangan_kanpachi",
+   "ramp_access": "half",
+   "ramp_note": "西行き（大黒・本牧ふ頭＝横浜方面）側のみの出入口。入口ETC専用"
   },
   {
    "id": "katsushima",
@@ -192,7 +207,9 @@
     "y": 790
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "羽田・横浜方面（下り側）のみの出入口。銀座・都心方面に出入口なし"
   },
   {
    "id": "heiwajima",
@@ -208,7 +225,8 @@
     "y": 815
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "suzugamori",
@@ -224,7 +242,9 @@
     "y": 785
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "浜崎橋JCT・銀座方面（上り側）のみの出入口。羽田・横浜方面に出入口なし"
   },
   {
    "id": "ohi",
@@ -240,7 +260,9 @@
     "y": 805
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "東行き（浦安・東関道方面）側のみの出入口。入口ETC専用"
   },
   {
    "id": "ohi_minami",
@@ -256,7 +278,9 @@
     "y": 815
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "出口主体のハーフIC（西行き入口は2019年廃止）(要確認)"
   },
   {
    "id": "kukou_chuou",
@@ -272,7 +296,8 @@
     "y": 870
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "tomei_kawasaki",
@@ -288,7 +313,8 @@
     "y": 770
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yokohama_aoba",
@@ -304,7 +330,8 @@
     "y": 820
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yokohama_machida",
@@ -320,7 +347,8 @@
     "y": 840
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ebina",
@@ -336,7 +364,8 @@
     "y": 880
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "atsugi",
@@ -352,7 +381,8 @@
     "y": 900
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hadano_nakai",
@@ -368,7 +398,8 @@
     "y": 930
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "oi_matsuda",
@@ -384,7 +415,8 @@
     "y": 950
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "gotemba",
@@ -400,7 +432,8 @@
     "y": 980
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "takaido",
@@ -416,7 +449,9 @@
     "y": 610
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "中央道。八王子方面からの出口のみ（下り入口・上り出口なし）"
   },
   {
    "id": "chofu",
@@ -432,7 +467,8 @@
     "y": 630
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "inagi",
@@ -448,7 +484,8 @@
     "y": 650
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kunitachi_fuchu",
@@ -464,7 +501,8 @@
     "y": 620
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hachioji",
@@ -480,7 +518,8 @@
     "y": 630
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sagamiko",
@@ -496,7 +535,8 @@
     "y": 660
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "uenohara",
@@ -512,7 +552,8 @@
     "y": 640
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "otsuki",
@@ -528,7 +569,8 @@
     "y": 660
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "katsunuma",
@@ -544,7 +586,8 @@
     "y": 610
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ichinomiya_misaka",
@@ -560,7 +603,8 @@
     "y": 630
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kofu_minami",
@@ -576,7 +620,8 @@
     "y": 660
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kofu_showa",
@@ -592,7 +637,8 @@
     "y": 640
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "nirasaki",
@@ -608,7 +654,8 @@
     "y": 590
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sutama",
@@ -624,7 +671,8 @@
     "y": 560
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kobuchizawa",
@@ -640,7 +688,8 @@
     "y": 510
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "suwa_minami",
@@ -656,7 +705,8 @@
     "y": 470
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "suwa",
@@ -672,7 +722,8 @@
     "y": 440
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "nerima",
@@ -688,7 +739,8 @@
     "y": 490
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "tokorozawa",
@@ -704,7 +756,8 @@
     "y": 460
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kawagoe",
@@ -720,7 +773,8 @@
     "y": 390
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tsurugashima",
@@ -736,7 +790,8 @@
     "y": 370
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "higashimatsuyama",
@@ -752,7 +807,8 @@
     "y": 330
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ranzan_ogawa",
@@ -768,7 +824,8 @@
     "y": 300
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hanazono",
@@ -784,7 +841,8 @@
     "y": 270
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "honjo_kodama",
@@ -800,7 +858,8 @@
     "y": 240
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kawaguchi_jct",
@@ -1009,7 +1068,8 @@
     "y": 340
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "iwatsuki",
@@ -1025,7 +1085,8 @@
     "y": 290
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kuki",
@@ -1041,7 +1102,8 @@
     "y": 250
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kazo",
@@ -1057,7 +1119,8 @@
     "y": 220
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hanyu",
@@ -1073,7 +1136,8 @@
     "y": 200
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tatebayashi",
@@ -1089,7 +1153,8 @@
     "y": 175
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sano_fujioka",
@@ -1105,7 +1170,8 @@
     "y": 145
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tochigi",
@@ -1121,7 +1187,8 @@
     "y": 120
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kanuma",
@@ -1137,7 +1204,8 @@
     "y": 70
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "utsunomiya",
@@ -1153,7 +1221,8 @@
     "y": 50
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yaita",
@@ -1169,7 +1238,8 @@
     "y": 30
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "nishi_nasunoshiobara",
@@ -1185,7 +1255,8 @@
     "y": 15
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "misato_jct",
@@ -1218,7 +1289,8 @@
     "y": 330
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kashiwa",
@@ -1234,7 +1306,8 @@
     "y": 320
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yanaka_wara",
@@ -1250,7 +1323,8 @@
     "y": 290
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yatabe",
@@ -1266,7 +1340,8 @@
     "y": 275
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sakura_tsuchiura",
@@ -1282,7 +1357,8 @@
     "y": 255
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tsuchiura_kita",
@@ -1298,7 +1374,8 @@
     "y": 245
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "mito",
@@ -1314,7 +1391,8 @@
     "y": 175
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "naka",
@@ -1330,7 +1408,8 @@
     "y": 140
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hitachi_minami_ota",
@@ -1346,7 +1425,8 @@
     "y": 120
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hitachi_chuo",
@@ -1362,7 +1442,8 @@
     "y": 90
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hitachi_kita",
@@ -1378,7 +1459,8 @@
     "y": 70
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "takahagi",
@@ -1394,7 +1476,8 @@
     "y": 65
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kitaibaraki",
@@ -1410,7 +1493,8 @@
     "y": 45
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "shinozaki",
@@ -1426,7 +1510,9 @@
     "y": 570
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "京葉道路。千葉方面のみのハーフIC。東京方面に出入口なし"
   },
   {
    "id": "keiyo_ichikawa",
@@ -1442,7 +1528,8 @@
     "y": 560
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "habara",
@@ -1458,7 +1545,8 @@
     "y": 565
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "funabashi",
@@ -1474,7 +1562,9 @@
     "y": 570
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "京葉道路。スリークォーターIC。上り（東京方面）出口がない"
   },
   {
    "id": "hanawa",
@@ -1490,7 +1580,9 @@
     "y": 565
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "京葉道路。スリークォーターIC。上り（東京方面）出口がない"
   },
   {
    "id": "makuhari",
@@ -1506,7 +1598,8 @@
     "y": 590
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "takeishi",
@@ -1522,7 +1615,8 @@
     "y": 595
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "anagawa",
@@ -1538,7 +1632,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kaizuka",
@@ -1554,7 +1649,9 @@
     "y": 610
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "京葉道路。船橋方面のみのハーフIC"
   },
   {
    "id": "matsugaoka",
@@ -1570,7 +1667,8 @@
     "y": 620
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "soga",
@@ -1586,7 +1684,8 @@
     "y": 635
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "wangan_ichikawa",
@@ -1602,7 +1701,8 @@
     "y": 590
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "yatsu_funabashi",
@@ -1618,7 +1718,8 @@
     "y": 585
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "wangan_narashino",
@@ -1634,7 +1735,9 @@
     "y": 585
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "東関東道。上り（市川方面）入口・下り（成田方面）出口のみ"
   },
   {
    "id": "wangan_chiba",
@@ -1650,7 +1753,9 @@
     "y": 590
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "東関東道。成田方面のみのハーフIC"
   },
   {
    "id": "chiba_kita",
@@ -1666,7 +1771,8 @@
     "y": 575
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yotsukaido",
@@ -1682,7 +1788,8 @@
     "y": 580
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sakura_tokan",
@@ -1698,7 +1805,8 @@
     "y": 565
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "shisui",
@@ -1714,7 +1822,8 @@
     "y": 555
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tomisato",
@@ -1730,7 +1839,8 @@
     "y": 555
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "narita",
@@ -1746,7 +1856,8 @@
     "y": 548
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ukishima_jct",
@@ -1778,7 +1889,8 @@
     "y": 900
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sodegaura",
@@ -1794,7 +1906,8 @@
     "y": 920
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kisarazu_jct",
@@ -1826,7 +1939,8 @@
     "y": 960
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "futtsu_chuo",
@@ -1842,7 +1956,8 @@
     "y": 990
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "futtsu_takeyama",
@@ -1858,7 +1973,8 @@
     "y": 1010
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "futtsu_kanaya",
@@ -1874,7 +1990,8 @@
     "y": 1025
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kyonan_hota",
@@ -1890,7 +2007,8 @@
     "y": 1045
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kyonan_tomiyama",
@@ -1906,7 +2024,8 @@
     "y": 1055
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tomiura",
@@ -1922,7 +2041,8 @@
     "y": 1080
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tamagawa_ic",
@@ -1938,7 +2058,8 @@
     "y": 760
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "yokohama_kohoku_jct",
@@ -1953,8 +2074,9 @@
     "x": 460,
     "y": 830
    },
-   "entry_type": "jct",
-   "boundary_tag": null
+   "entry_type": "transit_only",
+   "boundary_tag": null,
+   "is_split_point": true
   },
   {
    "id": "keihin_kawasaki",
@@ -1970,7 +2092,8 @@
     "y": 775
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tsuzuki",
@@ -1986,7 +2109,8 @@
     "y": 800
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kohoku",
@@ -2002,7 +2126,8 @@
     "y": 810
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hodogaya",
@@ -2018,7 +2143,8 @@
     "y": 837
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "shin_hodogaya_jct",
@@ -2050,7 +2176,9 @@
     "y": 845
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "横浜新道。上り戸塚方面と磯子方面の相互接続なし(要確認)"
   },
   {
    "id": "kawakami",
@@ -2066,7 +2194,8 @@
     "y": 850
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "totsuka",
@@ -2082,7 +2211,8 @@
     "y": 875
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kariba",
@@ -2098,7 +2228,8 @@
     "y": 855
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "bessho",
@@ -2114,7 +2245,8 @@
     "y": 870
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hino",
@@ -2130,7 +2262,8 @@
     "y": 890
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "konan_dai",
@@ -2146,7 +2279,8 @@
     "y": 890
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "asahina",
@@ -2162,7 +2296,8 @@
     "y": 898
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "zushi",
@@ -2178,7 +2313,8 @@
     "y": 930
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yokosuka",
@@ -2194,7 +2330,8 @@
     "y": 940
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kinugasa",
@@ -2210,7 +2347,8 @@
     "y": 950
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sabara",
@@ -2226,7 +2364,9 @@
     "y": 958
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "横浜横須賀道路。狩場（横浜）方面のみのハーフIC。馬堀海岸方面に出入口なし"
   },
   {
    "id": "uraga",
@@ -2242,7 +2382,9 @@
     "y": 965
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "横浜横須賀道路。狩場（横浜）方面のみのハーフIC。馬堀海岸方面に出入口なし"
   },
   {
    "id": "kariba_shutoko",
@@ -2257,7 +2399,7 @@
     "x": 428,
     "y": 857
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -2273,7 +2415,7 @@
     "x": 455,
     "y": 885
    },
-   "entry_type": "both",
+   "entry_type": "transit_only",
    "boundary_tag": null
   },
   {
@@ -2325,7 +2467,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "gaikan",
-   "gaikan_kp": 0
+   "gaikan_kp": 0,
+   "ramp_access": "full"
   },
   {
    "id": "kasai",
@@ -2341,7 +2484,8 @@
     "y": 640
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "hiratsuka",
@@ -2357,7 +2501,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "oiso",
@@ -2373,7 +2518,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ninomiya",
@@ -2389,7 +2535,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "小田原厚木道路。厚木方面のみのハーフIC"
   },
   {
    "id": "odawara_higashi",
@@ -2405,7 +2553,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "小田原厚木道路。箱根（小田原）方面のみのハーフIC"
   },
   {
    "id": "hakoneguchi",
@@ -2421,7 +2571,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kawaguchiko",
@@ -2437,7 +2588,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hachioji_nishi",
@@ -2453,7 +2605,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "akiruno",
@@ -2469,7 +2622,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "hinode",
@@ -2485,7 +2639,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ome",
@@ -2501,7 +2656,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "iruma",
@@ -2517,7 +2673,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "aihara",
@@ -2533,7 +2690,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "wakoshi_kita",
@@ -2550,7 +2708,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 3
+   "gaikan_kp": 3,
+   "ramp_access": "full"
   },
   {
    "id": "wako_gaikan",
@@ -2567,7 +2726,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 5.5
+   "gaikan_kp": 5.5,
+   "ramp_access": "full"
   },
   {
    "id": "oizumi_kanetsu",
@@ -2584,7 +2744,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 0.5
+   "gaikan_kp": 0.5,
+   "ramp_access": "full"
   },
   {
    "id": "kawaguchi_nishi",
@@ -2601,7 +2762,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 13
+   "gaikan_kp": 13,
+   "ramp_access": "full"
   },
   {
    "id": "kenen_tsurugashima",
@@ -2617,7 +2779,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sayama_hidaka",
@@ -2633,7 +2796,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "sakado",
@@ -2649,7 +2813,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kawajima",
@@ -2665,7 +2830,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "okegawa_kitamoto",
@@ -2681,7 +2847,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kawaguchi_chuo",
@@ -2698,7 +2865,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 12.7
+   "gaikan_kp": 12.7,
+   "ramp_access": "full"
   },
   {
    "id": "gaikan_urawa",
@@ -2715,7 +2883,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 13.5
+   "gaikan_kp": 13.5,
+   "ramp_access": "full"
   },
   {
    "id": "soka_tohoku",
@@ -2732,7 +2901,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 17.5
+   "gaikan_kp": 17.5,
+   "ramp_access": "full"
   },
   {
    "id": "soka_joban",
@@ -2749,7 +2919,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 17.5
+   "gaikan_kp": 17.5,
+   "ramp_access": "full"
   },
   {
    "id": "kawaguchi_higashi",
@@ -2766,7 +2937,8 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 16.5
+   "gaikan_kp": 16.5,
+   "ramp_access": "full"
   },
   {
    "id": "tsukuba_ushiku",
@@ -2782,7 +2954,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ushiku_ami",
@@ -2798,7 +2971,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ami_higashi",
@@ -2814,7 +2988,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "inashiki",
@@ -2830,7 +3005,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "tsukuba_chuo",
@@ -2846,7 +3022,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "chiyoda_ishioka",
@@ -2862,7 +3039,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kisarazu_minami",
@@ -2878,7 +3056,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kisarazu_chuo",
@@ -2894,7 +3073,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kisarazu_kita",
@@ -2910,7 +3090,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "anegasaki_sodegaura",
@@ -2926,7 +3107,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "ichihara_aqua",
@@ -2942,7 +3124,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "kisarazu_higashi",
@@ -2958,7 +3141,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "narita_kukou",
@@ -2974,7 +3158,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "shin_kukou",
@@ -2994,7 +3179,9 @@
    "aliases": [
     "成田空港",
     "成田"
-   ]
+   ],
+   "ramp_access": "full",
+   "ramp_note": "新空港自動車道終点IC(要確認)"
   },
   {
    "id": "omiya_togane",
@@ -3010,7 +3197,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "takada_togane",
@@ -3026,7 +3214,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "nakano_togane",
@@ -3042,7 +3231,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "yamada_togane",
@@ -3058,7 +3248,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "千葉東金道路。千葉東方面のみのハーフIC(要確認)"
   },
   {
    "id": "togane",
@@ -3074,7 +3266,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "boso_takada",
@@ -3090,7 +3283,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "homuda",
@@ -3106,7 +3300,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "katsura_mobara",
@@ -3122,7 +3317,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "full"
   },
   {
    "id": "chigasaki_chuo",
@@ -3138,7 +3334,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "新湘南バイパス。藤沢方面のみのハーフIC"
   },
   {
    "id": "chigasaki_nishi",
@@ -3154,7 +3352,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "新湘南バイパス。藤沢方面のみのハーフIC"
   },
   {
    "id": "chigasaki_kaigan",
@@ -3170,7 +3370,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": "company_pay_entry"
+   "boundary_tag": "company_pay_entry",
+   "ramp_access": "half",
+   "ramp_note": "新湘南バイパス。藤沢方面のみのハーフIC"
   },
   {
    "id": "gaien",
@@ -3186,7 +3388,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "iikura",
@@ -3202,7 +3405,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "一ノ橋JCT方面（外回り側）のみの出入口。内回り側に出入口なし"
   },
   {
    "id": "kanda_bashi",
@@ -3218,7 +3423,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "hakozaki",
@@ -3234,7 +3440,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full",
+   "ramp_note": "箱崎ロータリー経由で6号向島線・9号深川線・C1各方面に接続"
   },
   {
    "id": "ginza",
@@ -3250,7 +3458,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "kyobashi",
@@ -3266,7 +3475,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "浜崎橋JCT方面（外回り側）のみの出入口。神田橋・江戸橋方面に出入口なし"
   },
   {
    "id": "shibaura",
@@ -3282,7 +3493,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "meguro",
@@ -3299,8 +3511,8 @@
    },
    "entry_type": "both",
    "boundary_tag": null,
-   "ramp_type": "half_uphill",
-   "ramp_note": "都心方面のみ。北品川四谷線/目黒通りに接続"
+   "ramp_note": "一ノ橋JCT・銀座方面（上り側）のみのハーフIC。荏原方面に出入口なし",
+   "ramp_access": "half"
   },
   {
    "id": "ebara",
@@ -3317,8 +3529,8 @@
    },
    "entry_type": "both",
    "boundary_tag": null,
-   "ramp_type": "half_uphill",
-   "ramp_note": "都心方面のみ。中原街道(都道2号)に接続"
+   "ramp_note": "一ノ橋JCT・銀座方面（上り側）のみのハーフIC。下り方向に出入口なし",
+   "ramp_access": "half"
   },
   {
    "id": "togoshi",
@@ -3335,8 +3547,8 @@
    },
    "entry_type": "both",
    "boundary_tag": null,
-   "ramp_type": "half_uphill",
-   "ramp_note": "都心方面のみ。国道1号(第二京浜)都心方向に接続"
+   "ramp_note": "2号目黒線終点。一ノ橋JCT・銀座方面（上り側）のみのハーフIC",
+   "ramp_access": "half"
   },
   {
    "id": "sangenjaya",
@@ -3352,7 +3564,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "谷町JCT・都心方面（上り側）のみの出入口。用賀・東名方面に出入口なし"
   },
   {
    "id": "toda_nishi",
@@ -3369,7 +3583,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 9.5
+   "gaikan_kp": 9.5,
+   "ramp_access": "half",
+   "ramp_note": "外環道。大泉JCT方面への入口・出口のみ。高谷方面に出入口なし"
   },
   {
    "id": "toda_higashi",
@@ -3386,7 +3602,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 11
+   "gaikan_kp": 11,
+   "ramp_access": "half",
+   "ramp_note": "外環道。高谷JCT方面への入口・出口のみ。大泉方面に出入口なし"
   },
   {
    "id": "gaikan_misato_nishi",
@@ -3403,7 +3621,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 19.5
+   "gaikan_kp": 19.5,
+   "ramp_access": "half",
+   "ramp_note": "外環道。大泉JCT方面への入口・出口のみ。高谷方面に出入口なし"
   },
   {
    "id": "misato_minami",
@@ -3420,7 +3640,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 23
+   "gaikan_kp": 23,
+   "ramp_access": "half",
+   "ramp_note": "外環道。大泉JCT方面への入口・出口のみ。高谷方面に出入口なし"
   },
   {
    "id": "matsudo_gaikan",
@@ -3437,7 +3659,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 29
+   "gaikan_kp": 29,
+   "ramp_access": "half",
+   "ramp_note": "外環道。高谷JCT方面への入口・出口のみ。大泉方面に出入口なし"
   },
   {
    "id": "ichikawa_kita",
@@ -3454,7 +3678,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 31.5
+   "gaikan_kp": 31.5,
+   "ramp_access": "half",
+   "ramp_note": "外環道。大泉JCT方面への入口・出口のみ。高谷方面に出入口なし"
   },
   {
    "id": "ichikawa_chuo",
@@ -3471,7 +3697,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 33
+   "gaikan_kp": 33,
+   "ramp_access": "half",
+   "ramp_note": "外環道。高谷JCT方面への入口・出口のみ。大泉方面に出入口なし"
   },
   {
    "id": "ichikawa_minami",
@@ -3488,7 +3716,9 @@
    },
    "entry_type": "both",
    "boundary_tag": "company_pay_entry",
-   "gaikan_kp": 34.5
+   "gaikan_kp": 34.5,
+   "ramp_access": "half",
+   "ramp_note": "外環道。大泉JCT方面への入口・出口のみ。高谷JCT方面に出入口なし"
   },
   {
    "id": "takaya_jct",
@@ -3503,9 +3733,10 @@
     "x": 600,
     "y": 600
    },
-   "entry_type": "jct",
+   "entry_type": "transit_only",
    "boundary_tag": "gaikan",
-   "gaikan_kp": 35.5
+   "gaikan_kp": 35.5,
+   "is_split_point": true
   },
   {
    "id": "yokohama_kohoku",
@@ -3520,8 +3751,9 @@
     "x": 450,
     "y": 900
    },
-   "entry_type": "jct",
-   "boundary_tag": null
+   "entry_type": "transit_only",
+   "boundary_tag": null,
+   "is_split_point": true
   },
   {
    "id": "namamugi",
@@ -3536,8 +3768,11 @@
     "x": 480,
     "y": 920
    },
-   "entry_type": "jct",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": true,
+   "ramp_access": "half",
+   "ramp_note": "横羽線。横浜公園・横浜新道方面のみのハーフIC"
   },
   {
    "id": "daikoku_jct",
@@ -3552,8 +3787,9 @@
     "x": 500,
     "y": 940
    },
-   "entry_type": "jct",
-   "boundary_tag": null
+   "entry_type": "transit_only",
+   "boundary_tag": null,
+   "is_split_point": true
   },
   {
    "id": "ichinohashi_jct",
@@ -3601,7 +3837,8 @@
     "y": 590
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "nakanwa_ohi_minami",
@@ -3617,7 +3854,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2内回り（大橋方面）入口・外回り（大井JCT方面）出口のみ。入口ETC専用"
   },
   {
    "id": "gotanda",
@@ -3633,7 +3872,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2内回り（大橋方面）入口・外回り（西新宿方面）出口のみ。入口ETC専用"
   },
   {
    "id": "tomigaya",
@@ -3649,7 +3890,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2外回り（西新宿方面）入口・内回り（大橋方面）出口のみ。入口ETC専用"
   },
   {
    "id": "hatsudai_minami",
@@ -3665,7 +3908,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2内回り（大橋方面）入口・外回り（西新宿方面）出口のみ。入口ETC専用"
   },
   {
    "id": "nakano_chojabashi",
@@ -3681,7 +3926,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2外回り（大宮方面）入口・内回り（大橋方面）出口のみ。入口ETC専用"
   },
   {
    "id": "nishi_ikebukuro",
@@ -3697,7 +3944,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "C2外回り（大宮方面）入口・内回り（大橋方面）出口のみ。入口ETC専用"
   },
   {
    "id": "itabashi_jct",
@@ -3761,7 +4010,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "昭和島JCT・銀座方面（上り側）のみの出入口。入口ETC専用。空港・羽田方面に出入口なし"
   },
   {
    "id": "haneda",
@@ -3777,7 +4028,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "takagicho",
@@ -3793,7 +4045,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "谷町JCT・都心方面（上り側）のみの出入口。入口ETC専用。用賀方面に出入口なし"
   },
   {
    "id": "shibuya",
@@ -3809,7 +4063,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "tamagawa_dori",
@@ -3825,7 +4080,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "玉川通り（国道246号）沿いの出入口。3号渋谷線の渋谷以外は全てハーフIC（都心方面のみと推定）(要確認)"
   },
   {
    "id": "ikejiri",
@@ -3841,7 +4098,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "用賀・東名方面（下り側）のみの出入口。入口ETC専用。谷町JCT・都心方面に出入口なし"
   },
   {
    "id": "yoga",
@@ -3857,7 +4116,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "都心環状線・谷町方面（上り側）のみの出入口。東名高速方面に出入口なし"
   },
   {
    "id": "yoyogi",
@@ -3873,7 +4134,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（三宅坂・都心環状線方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "shinjuku",
@@ -3889,7 +4152,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "入口は上り（三宅坂方面）のみ。出口は上下両方（スリークォーターIC、下り入口なし）"
   },
   {
    "id": "hatsudai",
@@ -3905,7 +4170,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "下り（高井戸・中央道方面）の入口・出口のみ。上り方向は利用不可"
   },
   {
    "id": "hatagaya",
@@ -3921,7 +4188,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（三宅坂・都心環状線方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "takebashi_jct",
@@ -3953,7 +4222,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "下り（北池袋・美女木方面）の入口・出口のみ。上り（都心方面）は利用不可"
   },
   {
    "id": "nishi_kanda",
@@ -3969,7 +4240,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "iidabashi",
@@ -3985,7 +4258,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "下り（池袋・大宮方面）の入口・出口のみ。上り方向は利用不可"
   },
   {
    "id": "waseda",
@@ -4001,7 +4276,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）からの出口のみ。入口なし"
   },
   {
    "id": "gokokuji",
@@ -4017,7 +4294,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "higashi_ikebukuro",
@@ -4033,7 +4312,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "kita_ikebukuro",
@@ -4049,7 +4329,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "itabashi_honcho",
@@ -4065,7 +4347,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "takashimadaira",
@@ -4081,7 +4364,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）の入口・出口のみ。下り方向は利用不可"
   },
   {
    "id": "toda_minami",
@@ -4097,7 +4382,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（竹橋JCT・銀座方面）の入口・出口のみ。下り（美女木・大宮方面）は利用不可"
   },
   {
    "id": "toda",
@@ -4113,7 +4400,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "下り（美女木JCT・新都心・外環方面）の入口・出口のみ。上り方向は利用不可"
   },
   {
    "id": "edobashi_jct",
@@ -4161,7 +4450,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full",
+   "ramp_note": "箱崎ロータリー経由のフルIC"
   },
   {
    "id": "kiyosubashi",
@@ -4177,7 +4468,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "出口のみ（箱崎ロータリー経由）。流入は浜町入口を利用"
   },
   {
    "id": "komagata",
@@ -4193,7 +4486,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（両国JCT・都心方面）入口と下り（向島・三郷方面）出口のみ"
   },
   {
    "id": "mukojima",
@@ -4209,7 +4504,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "tsutsumidori",
@@ -4225,7 +4521,8 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "full"
   },
   {
    "id": "horikiri_jct",
@@ -4273,7 +4570,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（両国JCT・都心方面）の入口・出口のみ。下り（千葉方面）は利用不可"
   },
   {
    "id": "ichinoe",
@@ -4289,7 +4588,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "上り（両国JCT・都心方面）の入口・出口のみ。下り（千葉方面）は利用不可"
   },
   {
    "id": "keiyo_jct",
@@ -4321,7 +4622,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線（辰巳）方面側のみの出入口。箱崎方面に出入口なし。入口ETC専用"
   },
   {
    "id": "kiba",
@@ -4337,7 +4640,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "箱崎方面側のみの出入口。湾岸線（辰巳）方面に出入口なし。入口ETC専用"
   },
   {
    "id": "shiohama",
@@ -4353,7 +4658,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "塩浜入口のみ。湾岸線（辰巳）方面への入口専用で出口なし"
   },
   {
    "id": "edagawa",
@@ -4369,7 +4676,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "枝川出口のみ。湾岸線（辰巳）方面からの出口専用で入口なし"
   },
   {
    "id": "tatsumi_jct",
@@ -4401,7 +4710,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線（東雲）方面側のみの出入口。入口ETC専用"
   },
   {
    "id": "toyosu",
@@ -4417,7 +4728,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線（東雲）方面側のみの出入口。入口ETC専用"
   },
   {
    "id": "shinonome_jct",
@@ -4449,7 +4762,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "新宿・銀座方面（芝浦JCT＝羽田線方向）側のみの出入口。有明JCT方向に出入口なし"
   },
   {
    "id": "kasai_jct",
@@ -4529,7 +4844,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "狩場線。永田・横浜横須賀道路方面のみのハーフIC"
   },
   {
    "id": "hananoki",
@@ -4545,7 +4862,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "狩場線。湾岸線・羽田方面のみのハーフIC。入口ETC専用"
   },
   {
    "id": "nagata",
@@ -4561,7 +4880,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "狩場線。湾岸線・羽田方面のみのハーフIC。入口ETC専用"
   },
   {
    "id": "kariba_jct",
@@ -4593,7 +4914,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "川崎線。湾岸線・アクアライン方面のみのハーフIC。入口ETC専用"
   },
   {
    "id": "kinko_jct",
@@ -4625,7 +4948,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "三ツ沢線。新山下・羽田方面（横羽線方向）のみのハーフIC"
   },
   {
    "id": "mitsuzawa",
@@ -4641,7 +4966,9 @@
     "y": 600
    },
    "entry_type": "both",
-   "boundary_tag": null
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "三ツ沢線。新山下・羽田方面（横羽線方向）のみのハーフIC"
   },
   {
    "id": "mitsuzawa_jct",

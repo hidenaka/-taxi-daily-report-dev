@@ -650,7 +650,7 @@ function renderJctDetails(result, entryIc, exitIc) {
     const ic = findIc(id);
     if (ic) {
       if (id.includes('jct') || (ic.name || '').includes('JCT')) return true;
-      if (ic.entry_type === 'transit_only' || ic.entry_type === 'jct') return true;
+      if (ic.entry_type === 'transit_only' || ic.is_split_point) return true;
     }
     // 路線切り替え点 (前後の edge route が異なるノード) は必ず残す
     // → 中間IC省略で路線変更地点が消え路線名表示が誤る問題を防ぐ

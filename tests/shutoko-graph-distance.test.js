@@ -130,12 +130,30 @@ test('distance: shibaura(1号羽田線) → C1 経路が浜崎橋JCT経由', () 
   assert.ok(Math.abs(r.km - 3.2) < 0.5, `${r.km}km, 期待3.2km前後`);
 });
 
-test('ramp_type: 戸越/荏原/目黒 が half_uphill (都心方面のみハーフ)', () => {
+test('ramp_access: 戸越/荏原/目黒 が half (都心方面のみハーフIC)', () => {
   const icsAll = JSON.parse(readFileSync('tools/data/ics.json', 'utf-8')).ics;
   for (const id of ['togoshi', 'ebara', 'meguro']) {
     const ic = icsAll.find((x) => x.id === id);
     assert.ok(ic, `${id} missing in ics.json`);
-    assert.equal(ic.ramp_type, 'half_uphill', `${id} ramp_type should be half_uphill`);
+    assert.equal(ic.ramp_access, 'half', `${id} ramp_access should be half`);
     assert.ok(typeof ic.ramp_note === 'string' && ic.ramp_note.length > 0, `${id} ramp_note missing`);
+  }
+});
+
+test('ramp_access: 全 entry_type=both IC が ramp_access を持つ', () => {
+  const icsAll = JSON.parse(readFileSync('tools/data/ics.json', 'utf-8')).ics;
+  for (const ic of icsAll) {
+    if (ic.entry_type === 'both') {
+      assert.ok(ic.ramp_access === 'full' || ic.ramp_access === 'half',
+        `${ic.id} は ramp_access(full/half) を持つべき`);
+    }
+  }
+});
+
+test('entry_type: jct値は廃止され both/transit_only のみ', () => {
+  const icsAll = JSON.parse(readFileSync('tools/data/ics.json', 'utf-8')).ics;
+  for (const ic of icsAll) {
+    assert.ok(ic.entry_type === 'both' || ic.entry_type === 'transit_only',
+      `${ic.id} entry_type は both/transit_only のみ (実際: ${ic.entry_type})`);
   }
 });
