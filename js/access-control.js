@@ -1,5 +1,7 @@
 // js/access-control.js — 課金状態に応じた機能アクセス制御(純関数)
 
+import { readSubCache, clearSubCache, isSubCacheFresh } from './sub-cache.js';
+
 export const FEATURES = ['core', 'analysis', 'export'];
 
 export function isValidFeature(feature) {
@@ -67,15 +69,67 @@ function revealAfterCheck() {
   document.body.style.pointerEvents = 'auto';
 }
 
+// localStorage から userId を読む（Firebase SDK をロードせずに取得するため）。
+function readUserId() {
+  try { return localStorage.getItem('taxi_user_id'); } catch { return null; }
+}
+
+// バックグラウンド再検証で失効を検出した時、現ページ上部に告知バナーを出す。
+// 作業中の突然のリダイレクトを避け、次のページ遷移で確実に弾く（キャッシュは破棄済み）。
+function showRevalidationBanner(redirectUrl) {
+  if (!document.body || document.getElementById('access-revalidation-banner')) return;
+  const bar = document.createElement('div');
+  bar.id = 'access-revalidation-banner';
+  bar.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;'
+    + 'background:#c0392b;color:#fff;padding:10px 14px;font-size:13px;'
+    + 'text-align:center;line-height:1.5;';
+  bar.innerHTML = 'ご利用状態が変わりました。続行するにはお手続きが必要です　'
+    + `<a href="${redirectUrl}" style="color:#fff;font-weight:bold;">お手続きへ</a>`;
+  document.body.prepend(bar);
+}
+
+// 楽観表示の裏で最新のサブスク状態を取り直し、失効していれば是正する。
+function revalidateInBackground(feature, redirectUrl) {
+  import('./subscription-state.js')
+    .then(({ getSubscription }) => getSubscription()) // 成功時にキャッシュも更新される
+    .then((sub) => {
+      if (!canAccess(feature, sub)) {
+        clearSubCache(); // 次の遷移で確実にブロッキング検証＝リダイレクトされる
+        showRevalidationBanner(redirectUrl);
+      }
+    })
+    .catch((e) => {
+      // 再検証失敗（オフライン等）はキャッシュ表示のまま据え置く（即追い出さない）
+      console.warn('enforceAccess: background revalidation failed', e);
+    });
+}
+
 // 各ページの先頭で呼ぶ。アクセス不可なら subscribe.html にリダイレクト。
 // 戻り値: アクセス可なら true、リダイレクトした場合は false (このあとの処理は止めるべき)
+//
+// セッションキャッシュがあれば Firebase に触れず即座に表示し（楽観表示）、
+// バックグラウンドで再検証する。ツール間の切り替えが高速になる。
 export async function enforceAccess(feature, options = {}) {
   const redirectUrl = options.redirect || 'subscribe.html';
   hideUntilCheck();
+
+  // --- セッションキャッシュ判定（ヒット時は Firebase をロードしない）---
+  const cached = readSubCache();
+  if (isSubCacheFresh(cached, Date.now()) && cached.userId === readUserId()) {
+    if (canAccess(feature, cached.sub)) {
+      revealAfterCheck();
+      revalidateInBackground(feature, redirectUrl);
+      return true;
+    }
+    location.replace(redirectUrl);
+    return false;
+  }
+
+  // --- キャッシュミス（無し/期限切れ/userId不一致）: ブロッキング検証 ---
   const { getSubscription } = await import('./subscription-state.js');
   let sub = null;
   try {
-    sub = await getSubscription();
+    sub = await getSubscription(); // 内部でキャッシュも更新される
   } catch (e) {
     console.error('enforceAccess: failed to load subscription', e);
     // 取得失敗時は安全側に倒してリダイレクト(body は隠したまま)

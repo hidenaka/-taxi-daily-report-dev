@@ -1,6 +1,8 @@
 // js/subscription-state.js — サブスクリプション状態管理
 // 純関数(テスト対象) + Firestore アダプタ
 
+import { writeSubCache, clearSubCache } from './sub-cache.js';
+
 // ============================================================
 // 定数
 // ============================================================
@@ -161,9 +163,13 @@ export async function getSubscription() {
   const { db, userId, fs } = await loadFirebase();
   const ref = fs.doc(db, 'subscriptions', userId);
   const snap = await fs.getDoc(ref);
-  if (snap.exists()) return snap.data();
-  if (isGrandfathered(userId)) return buildGrandfatheredSubscription(userId);
-  return null;
+  let sub;
+  if (snap.exists()) sub = snap.data();
+  else if (isGrandfathered(userId)) sub = buildGrandfatheredSubscription(userId);
+  else sub = null;
+  // 次回のページ遷移で enforceAccess が Firebase に触れず即判定できるようキャッシュする
+  writeSubCache(userId, sub);
+  return sub;
 }
 
 export async function recordAgreementAndSubscribe(versions) {
@@ -189,6 +195,7 @@ export async function recordAgreementAndSubscribe(versions) {
     updatedAt: now,
   };
   await fs.setDoc(ref, payload);
+  clearSubCache(); // 申込直後に古い状態を表示しないようキャッシュ破棄
   return payload;
 }
 
@@ -213,5 +220,6 @@ export async function cancelSubscription(reason) {
     createdAt: baseData.createdAt || now,
     updatedAt: now,
   });
+  clearSubCache(); // 退会直後に古い状態を表示しないようキャッシュ破棄
   return true;
 }

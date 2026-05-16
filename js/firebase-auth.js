@@ -9,6 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { DEFAULT_CONFIG } from './default-config.js';
+import { clearSubCache } from './sub-cache.js';
 
 let currentUser = null;
 let currentUserId = null;
@@ -147,6 +148,7 @@ export async function logout() {
   currentUserId = null;
   authInitPromise = null;
   localStorage.removeItem('taxi_user_id');
+  clearSubCache();
 }
 
 // Get current user ID
@@ -165,6 +167,7 @@ export async function setUserId(newId) {
     updatedAt: new Date().toISOString()
   }, { merge: true });
   localStorage.setItem('taxi_user_id', newId);
+  clearSubCache(); // アカウント切替: 前ユーザーのサブスク状態を破棄
   return true;
 }
 
