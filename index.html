@@ -77,8 +77,8 @@ if (location.hostname.includes('-dev')) {
 </script>
 <div id="onboardBanner" style="display:none;padding:12px 14px;background:#fff7e6;border-bottom:1px solid #ffd591;color:#7c4a00;font-size:13px;">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <span id="onboardBannerMsg" style="flex:1;min-width:200px;">サービスのご利用にはお申し込みが必要です。</span>
-    <a href="subscribe.html" id="onboardBannerCta" style="display:inline-block;padding:6px 14px;background:#d97706;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;">お申し込みへ →</a>
+    <span id="onboardBannerMsg" style="flex:1;min-width:200px;">ご利用には、組合・法人を通じた登録が必要です。</span>
+    <a href="subscribe.html" id="onboardBannerCta" style="display:inline-block;padding:6px 14px;background:#d97706;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;">ご利用案内 →</a>
   </div>
 </div>
 <main style="padding:14px;">
@@ -123,7 +123,7 @@ if (autoConfigured) {
 document.getElementById('navHost').innerHTML = renderBottomNav('home');
 renderLegalFooter();
 
-// 申込誘導バナー: subscription state に応じて表示制御
+// 利用案内バナー: subscription state に応じて表示制御
 async function initOnboardBanner() {
   try {
     const sub = await getSubscription();
@@ -132,17 +132,14 @@ async function initOnboardBanner() {
     const cta = document.getElementById('onboardBannerCta');
     if (!banner) return;
 
-    if (!sub) {
-      // 未申込
-      msg.textContent = 'サービスのご利用にはお申し込みが必要です。';
-      cta.textContent = 'お申し込みへ →';
-      banner.style.display = '';
-    } else if (sub.status === 'pending') {
-      msg.textContent = 'お申し込みありがとうございます。決済手続きをお進めください。';
-      cta.textContent = '続きへ →';
+    if (!sub || sub.status === 'pending') {
+      // 未登録（組合・法人を通じた登録が必要）
+      msg.textContent = 'ご利用には、組合・法人を通じた登録が必要です。';
+      cta.textContent = 'ご利用案内 →';
+      cta.style.display = '';
       banner.style.display = '';
     } else if (isCanceledOrUnpaid(sub)) {
-      msg.textContent = `現在の状態: ${formatStatus(sub.status)}。再度のお申し込みはお問い合わせください。`;
+      msg.textContent = '現在ご利用いただけない状態です。再開は組合・法人のご担当者にご確認ください。';
       cta.style.display = 'none';
       banner.style.display = '';
     }
