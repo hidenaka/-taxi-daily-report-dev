@@ -137,9 +137,15 @@ if (location.hostname.includes('-dev')) {
     </div>
 
     <div class="setting-group">
-      <label class="setting-label" for="takeHomeAt11TargetInput">11乗務目までの手取り目標(円)<span class="optional">任意</span></label>
+      <label class="setting-label" for="takeHomeAt11TargetInput">11出番までの手取り目標(円)<span class="optional">任意</span></label>
       <input class="setting-input" id="takeHomeAt11TargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません" inputmode="numeric">
-      <p class="setting-help">12-13乗務目特例のある会社向け。11乗務までの手取り目安を別建てで管理する場合に。</p>
+      <p class="setting-help">段階歩率で計算される1〜11出番分の手取り目標。</p>
+    </div>
+
+    <div class="setting-group">
+      <label class="setting-label" for="takeHomeAfter11TargetInput">12出番目以降の手取り目標(円・積み増し分)<span class="optional">任意</span></label>
+      <input class="setting-input" id="takeHomeAfter11TargetInput" type="number" step="10000" min="0" placeholder="未設定なら表示されません" inputmode="numeric">
+      <p class="setting-help">固定率で計算される12出番目以降の積み増し分の手取り目標。両方を設定するとホームに合計目標も表示されます。</p>
     </div>
   </section>
 
@@ -288,6 +294,7 @@ async function loadConfig() {
     document.getElementById('takeHomeTargetInput').value = currentConfig.takeHomeTarget ?? 500000;
     document.getElementById('grossTargetInput').value = currentConfig.grossTarget ?? '';
     document.getElementById('takeHomeAt11TargetInput').value = currentConfig.takeHomeAt11Target ?? '';
+    document.getElementById('takeHomeAfter11TargetInput').value = currentConfig.takeHomeAfter11Target ?? '';
     document.getElementById('paidLeaveAmountInput').value = currentConfig.paidLeaveAmount ?? 39340;
     document.getElementById('latInput').value = currentConfig.weatherLocation.lat;
     document.getElementById('lonInput').value = currentConfig.weatherLocation.lon;
@@ -434,6 +441,7 @@ document.getElementById('saveConfigBtn').onclick = async () => {
   currentConfig.takeHomeTarget = parseInt(document.getElementById('takeHomeTargetInput').value);
   currentConfig.grossTarget = parseInt(document.getElementById('grossTargetInput').value) || 0;
   currentConfig.takeHomeAt11Target = parseInt(document.getElementById('takeHomeAt11TargetInput').value) || 0;
+  currentConfig.takeHomeAfter11Target = parseInt(document.getElementById('takeHomeAfter11TargetInput').value) || 0;
   currentConfig.paidLeaveAmount = parseInt(document.getElementById('paidLeaveAmountInput').value);
   currentConfig.weatherLocation = {
     lat: parseFloat(document.getElementById('latInput').value),

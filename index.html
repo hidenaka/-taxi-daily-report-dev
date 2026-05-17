@@ -427,30 +427,43 @@ function renderSubTargetCards(config, actualResult, predicted, takeHomeRate) {
     });
   }
 
+  // 11出番までの手取り (段階歩率分)。実績・予想とも basePay ベースで算出
   if (config.takeHomeAt11Target > 0) {
-    const b = actualResult.breakdown;
-    let current = 0;
-    let projected = 0;
-    if (b && b.mode === 'tiered_12_or_more') {
-      current = b.basePay11 * takeHomeRate;
-      projected = current;
-    } else if (b && (b.mode === 'tiered_11_or_less' || b.mode === 'fallback' || b.mode === 'fixed_rate')) {
-      current = (b.basePay || 0) * takeHomeRate;
-      projected = projectedTotal * takeHomeRate;
-    }
+    const ab = actualResult.breakdown;
+    const pb = predicted && predicted.breakdown;
+    const base11Pay = bd => !bd ? 0 : (bd.mode === 'tiered_12_or_more' ? (bd.basePay11 || 0) : (bd.basePay || 0));
     items.push({
-      label: '11乗務目までの手取り',
+      label: '11出番までの手取り',
       target: config.takeHomeAt11Target,
-      current,
-      projected,
+      current: base11Pay(ab) * takeHomeRate,
+      projected: (pb ? base11Pay(pb) : base11Pay(ab)) * takeHomeRate,
       accent: '#f97316',
       bg: '#fff7ed'
     });
   }
 
+  // 12出番目以降の手取り (固定率の積み増し分)。12出番以上に到達する月のみ表示
+  if (config.takeHomeAfter11Target > 0) {
+    const ab = actualResult.breakdown;
+    const pb = predicted && predicted.breakdown;
+    const actualReaches = !!(ab && ab.mode === 'tiered_12_or_more');
+    const projReaches = !!(pb && pb.mode === 'tiered_12_or_more');
+    if (actualReaches || projReaches) {
+      const current = actualReaches ? (ab.extraTotal || 0) * takeHomeRate : 0;
+      items.push({
+        label: '12出番目以降の手取り (積み増し)',
+        target: config.takeHomeAfter11Target,
+        current,
+        projected: projReaches ? (pb.extraTotal || 0) * takeHomeRate : current,
+        accent: '#8b5cf6',
+        bg: '#f5f3ff'
+      });
+    }
+  }
+
   if (items.length === 0) return '';
 
-  return items.map(it => {
+  let html = items.map(it => {
     const willHit = it.projected >= it.target;
     const progressPct = Math.min(100, (it.current / it.target) * 100);
     const projectedPct = Math.min(100, (it.projected / it.target) * 100);
@@ -472,6 +485,20 @@ function renderSubTargetCards(config, actualResult, predicted, takeHomeRate) {
       </div>
     `;
   }).join('');
+
+  // 11出番まで + 12出番目以降 の両方を表示した場合は合計目標を出す
+  const has11 = items.some(it => it.label === '11出番までの手取り');
+  const hasAfter11 = items.some(it => it.label === '12出番目以降の手取り (積み増し)');
+  if (has11 && hasAfter11) {
+    const totalTarget = config.takeHomeAt11Target + config.takeHomeAfter11Target;
+    html += `
+      <div style="margin-top:8px;padding:8px 12px;text-align:right;font-size:12px;color:#374151;border-top:1px dashed #ddd;">
+        合計目標 <strong style="font-size:14px;">${formatYen(totalTarget)}</strong>
+      </div>
+    `;
+  }
+
+  return html;
 }
 
 // 未来月度用 目標カード
@@ -479,7 +506,8 @@ function renderFutureTargetCard(config, takeHomeRate, respShifts) {
   const items = [];
   if (config.takeHomeTarget > 0) items.push({ label: '手取り目標 (月度)', value: config.takeHomeTarget, accent: '#1d4ed8' });
   if (config.grossTarget > 0) items.push({ label: '総支給目標 (月度)', value: config.grossTarget, accent: '#10b981' });
-  if (config.takeHomeAt11Target > 0) items.push({ label: '11乗務目までの手取り目標', value: config.takeHomeAt11Target, accent: '#f97316' });
+  if (config.takeHomeAt11Target > 0) items.push({ label: '11出番までの手取り目標', value: config.takeHomeAt11Target, accent: '#f97316' });
+  if (config.takeHomeAfter11Target > 0) items.push({ label: '12出番目以降の手取り目標 (積み増し)', value: config.takeHomeAfter11Target, accent: '#8b5cf6' });
 
   if (items.length === 0) return '<p class="muted" style="font-size:11px;">設定画面で目標を設定すると、未来月度でも表示されます。</p>';
 
