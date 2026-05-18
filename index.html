@@ -54,6 +54,21 @@
 .period-table th.lbl, .period-table td.lbl { text-align: left; color: var(--muted); }
 .period-table tr.total { background: #f5f5f5; font-weight: 600; }
 .period-table tr.total td { border-top: 2px solid #ddd; }
+/* ホーム: 実績/目標カードの見出し＋折りたたみ */
+.hero-block { padding: 2px 0; }
+.hero-label { font-size: 11px; color: #6b7280; }
+.hero-value { font-size: 32px; font-weight: 800; color: var(--primary); line-height: 1.15; margin: 1px 0; }
+.hero-sub { font-size: 12px; color: #555; }
+.mid-row { margin-top: 10px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.mid-row .mid-label { font-size: 11px; color: #6b7280; }
+.mid-row .mid-value { font-size: 19px; font-weight: 800; color: var(--primary); }
+.headline-status { font-size: 20px; font-weight: 800; margin: 2px 0 4px; }
+details.fold { border-top: 1px solid #f0f0f0; }
+details.fold > summary { cursor: pointer; font-size: 13px; color: var(--primary); font-weight: 600; padding: 9px 2px; user-select: none; list-style: none; display: flex; align-items: center; gap: 6px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary::before { content: '▸'; font-size: 10px; transition: transform .15s; }
+details.fold[open] > summary::before { transform: rotate(90deg); }
+details.fold > .fold-body { padding: 2px 0 8px; }
 </style>
 </head>
 <body>
@@ -166,6 +181,20 @@ async function load() {
   await render();
 }
 
+// 折りたたみセクション。中身が空なら何も出さない
+function foldSection(id, title, innerHtml) {
+  if (!innerHtml || !innerHtml.trim()) return '';
+  return `<details class="fold" data-fold="${id}"><summary>${title}</summary><div class="fold-body">${innerHtml}</div></details>`;
+}
+// 折りたたみの開閉状態を localStorage に記憶
+function wireFolds() {
+  document.querySelectorAll('details.fold[data-fold]').forEach(d => {
+    const key = 'homefold:' + d.dataset.fold;
+    if (localStorage.getItem(key) === '1') d.open = true;
+    d.addEventListener('toggle', () => localStorage.setItem(key, d.open ? '1' : '0'));
+  });
+}
+
 async function render() {
   const rawDrives = await getDrivesForMonth(viewPeriod);
   rawDrives.sort((a, b) => a.date.localeCompare(b.date));
@@ -206,7 +235,6 @@ async function render() {
       <strong>${monthLabel}</strong>
       <button id="nextBtn">翌月度 ›</button>
     </div>
-    <div class="kv"><div>乗務数${isPast ? '（実績）' : ''}</div><div><strong>${actualResult.shiftCount}</strong>${isCurrent || isFuture ? ` / ${respShifts}` : ''}乗務${actualResult.paidLeaveDays > 0 ? ` <span class="badge" style="background:#ce93d8;color:#fff;">有給${actualResult.paidLeaveDays}日</span>` : ''}</div></div>
   `;
 
   // 月度合計営収+1乗務平均(税込、実績ベース) — 給与関連は車種混在の合算
@@ -219,41 +247,57 @@ async function render() {
   const firstNCount = sortedForRate.length;
   const avgFirstNExcl = firstNCount > 0 ? firstNExcl / firstNCount : 0;
 
-  if (isPast || rawDrives.length >= respShifts) {
-    summaryHtml += `
-      <div class="kv"><div>総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
-      <div class="kv"><div>手取り推定（×${(takeHomeRate*100).toFixed(0)}%）</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
-      ${renderPayrollBreakdown(actualResult, takeHomeRate)}
-      ${actualResult.shiftCount > 0 ? `
-      <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
+  // ヒーロー見出し用の共通パーツ
+  const paidBadge = actualResult.paidLeaveDays > 0
+    ? ` <span class="badge" style="background:#ce93d8;color:#fff;">有給${actualResult.paidLeaveDays}日</span>` : '';
+  const shiftCountText = `${actualResult.shiftCount}${isCurrent || isFuture ? ` / ${respShifts}` : ''} 出番${paidBadge}`;
+  // 折りたたみ「営収・1出番平均」の行（実績あり時のみ）
+  const salesRows = actualResult.shiftCount > 0 ? `
       <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
       <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税込)</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税抜・1〜${FIRST_N_FOR_RATE}乗務)<span class="badge" style="font-size:9px;background:#e3f2fd;color:#1565c0;">歩率判定</span></div><div><strong>${formatYen(avgFirstNExcl)}</strong>${firstNCount < FIRST_N_FOR_RATE ? ` <span class="muted" style="font-size:10px;">(${firstNCount}/${FIRST_N_FOR_RATE}乗務)</span>` : ''}</div></div>
-      ` : ''}
+  ` : '';
+
+  if (isPast || rawDrives.length >= respShifts) {
+    summaryHtml += `
+      <div class="hero-block">
+        <div class="hero-label">${isPast ? '手取り（確定）' : '現時点 手取り'}　<span style="color:#9ca3af;">${shiftCountText}</span></div>
+        <div class="hero-value">${formatYen(actualTakeHome)}</div>
+        <div class="hero-sub">総支給 ${formatYen(actualResult.total)}</div>
+      </div>
     `;
+    summaryHtml += foldSection('payroll', '給与の内訳', renderPayrollBreakdown(actualResult, takeHomeRate));
+    summaryHtml += foldSection('sales', '営収・1出番平均', salesRows);
   } else if (isCurrent && predicted) {
     const predictedTakeHome = predicted.total * takeHomeRate;
     summaryHtml += `
-      <div class="kv"><div>現時点 総支給<span class="badge actual">実績</span></div><div><strong>${formatYen(actualResult.total)}</strong></div></div>
-      <div class="kv"><div>現時点 手取り</div><div style="color:var(--primary);"><strong>${formatYen(actualTakeHome)}</strong></div></div>
-      ${renderPayrollBreakdown(actualResult, takeHomeRate)}
-      <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
-      <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
-      <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
-      <div class="kv"><div>1乗務平均 営収(税込)</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
-      <div class="kv"><div>1乗務平均 営収(税抜・1〜${FIRST_N_FOR_RATE}乗務)<span class="badge" style="font-size:9px;background:#e3f2fd;color:#1565c0;">歩率判定</span></div><div><strong>${formatYen(avgFirstNExcl)}</strong>${firstNCount < FIRST_N_FOR_RATE ? ` <span class="muted" style="font-size:10px;">(${firstNCount}/${FIRST_N_FOR_RATE}乗務)</span>` : ''}</div></div>
-      <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
-      <div class="kv"><div>月度予想 総支給<span class="badge predict">予測</span></div><div><strong>${formatYen(predicted.total)}</strong></div></div>
-      <div class="kv"><div>月度予想 手取り</div><div style="color:var(--primary);"><strong>${formatYen(predictedTakeHome)}</strong></div></div>
-      <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 予定出番数(${respShifts})</p>
+      <div class="hero-block">
+        <div class="hero-label">現時点 手取り　<span style="color:#9ca3af;">${shiftCountText}</span></div>
+        <div class="hero-value">${formatYen(actualTakeHome)}</div>
+        <div class="hero-sub">総支給 ${formatYen(actualResult.total)}</div>
+      </div>
+      <div class="mid-row">
+        <span class="mid-label">月度予想 手取り</span>
+        <span class="mid-value">${formatYen(predictedTakeHome)}</span>
+        <span class="badge predict">予測</span>
+      </div>
     `;
+    summaryHtml += foldSection('payroll', '給与の内訳', renderPayrollBreakdown(actualResult, takeHomeRate));
+    summaryHtml += foldSection('sales', '営収・1出番平均', salesRows + `
+      <div class="kv" style="margin-top:6px;padding-top:6px;border-top:1px dashed #eee;"><div>月度予想 総支給<span class="badge predict">予測</span></div><div><strong>${formatYen(predicted.total)}</strong></div></div>
+      <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 予定出番数(${respShifts})</p>
+    `);
   } else if (isCurrent && rawDrives.length === 0) {
-    summaryHtml += `<p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると予想が表示されます</p>`;
-  } else {
-    // 未来月度: 目標は targetCard 側で一覧表示するので、ここでは概要のみ
     summaryHtml += `
-      <p class="muted" style="font-size:11px;margin-top:4px;">未来月度</p>
+      <div class="hero-block"><div class="hero-label">出番 0 / ${respShifts}</div></div>
+      <p class="muted" style="font-size:11px;margin-top:4px;">乗務を入力すると、ここに実績と月度予想が表示されます</p>
+    `;
+  } else {
+    // 未来月度: 目標は targetCard 側で一覧表示
+    summaryHtml += `
+      <div class="hero-block"><div class="hero-label">未来月度　<span style="color:#9ca3af;">予定 ${respShifts} 出番</span></div></div>
+      <p class="muted" style="font-size:11px;margin-top:4px;">カレンダーから予定を入れて準備できます</p>
     `;
   }
 
@@ -277,8 +321,7 @@ async function render() {
         const badgeLabel = isLocked ? '確定' : '暫定';
 
         let buritsuHtml = `
-          <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
-          <div class="kv"><div>歩率<span class="badge" style="font-size:9px;background:${badgeBg};color:${badgeFg};margin-left:4px;">${badgeLabel}</span></div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
+          <div class="kv"><div>現在の歩率</div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
         `;
 
         if (!isLocked && remainingShifts > 0) {
@@ -337,7 +380,7 @@ async function render() {
             `;
           }
         }
-        summaryHtml += buritsuHtml;
+        summaryHtml += foldSection('rate', `歩率と上げ／下げの境界 <span class="badge" style="font-size:9px;background:${badgeBg};color:${badgeFg};">${badgeLabel} ${(displayRate*100).toFixed(1)}%</span>`, buritsuHtml);
       }
     }
   }
@@ -373,36 +416,38 @@ async function render() {
     const progressPct = Math.min(100, (actualTakeHome / target) * 100);
     const projectedPct = Math.min(100, (projectedTakeHome / target) * 100);
     targetCard.style.display = '';
+    const targetDiff = projectedTakeHome - target;
     targetCard.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:baseline;">
-        <strong>手取り目標</strong>
-        <span style="color:${willHit ? 'var(--primary)' : 'var(--orange,#ff9800)'};font-weight:600;">${willHit ? '達成見込' : '未達見込'}</span>
-      </div>
-      <div style="margin-top:8px;position:relative;height:18px;background:#f0f0f0;border-radius:9px;overflow:hidden;">
+      <div class="hero-label">手取り目標　<span style="color:#9ca3af;">${formatYen(target)}</span></div>
+      <div class="headline-status" style="color:${willHit ? 'var(--primary)' : 'var(--orange,#ff9800)'};">${willHit ? '達成見込' : '未達見込'}</div>
+      <div style="position:relative;height:18px;background:#f0f0f0;border-radius:9px;overflow:hidden;">
         <div style="position:absolute;left:0;top:0;height:100%;width:${projectedPct}%;background:${willHit ? '#a5d6a7' : '#ffe0b2'};"></div>
         <div style="position:absolute;left:0;top:0;height:100%;width:${progressPct}%;background:var(--primary);"></div>
-        <div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#333;font-weight:600;">${progressPct.toFixed(0)}% / 予想${projectedPct.toFixed(0)}%</div>
+        <div style="position:absolute;width:100%;text-align:center;font-size:10px;line-height:18px;color:#333;font-weight:600;">実績${progressPct.toFixed(0)}% / 予想${projectedPct.toFixed(0)}%</div>
       </div>
-      <div class="kv" style="margin-top:8px;"><div>目標</div><div><strong>${formatYen(target)}</strong></div></div>
-      <div class="kv"><div>現時点 手取り</div><div><strong>${formatYen(actualTakeHome)}</strong></div></div>
-      <div class="kv"><div>予想差額</div><div style="color:${willHit ? 'var(--primary)' : 'var(--orange,#ff9800)'};"><strong>${willHit ? '+' : '−'}${formatYen(Math.abs(projectedTakeHome - target))}</strong></div></div>
-      ${remainingShifts > 0 ? `
-      <hr style="border:none;border-top:1px dashed #ddd;margin:6px 0;">
+      <div class="hero-sub" style="margin-top:6px;">${willHit
+        ? `予想は目標を <strong style="color:var(--primary);">${formatYen(targetDiff)}</strong> 上回る見込み`
+        : `目標まで あと <strong style="color:var(--orange,#ff9800);">${formatYen(-targetDiff)}</strong>`}</div>
+    `;
+    const needRows = remainingShifts > 0 ? `
       <div class="kv"><div>残り乗務</div><div><strong>${remainingShifts}乗務</strong></div></div>
       <div class="kv"><div>残り必要総売上(税込)</div><div><strong>${formatYen(perShiftSalesInclTax * remainingShifts)}</strong></div></div>
       <div class="kv"><div>残り必要総売上(税抜)</div><div><strong>${formatYen(perShiftSalesExclTax * remainingShifts)}</strong></div></div>
       <div class="kv"><div>1乗務あたり必要 売上(税込)</div><div><strong>${formatYen(perShiftSalesInclTax)}</strong></div></div>
       <div class="kv"><div>1乗務あたり必要 売上(税抜)</div><div><strong>${formatYen(perShiftSalesExclTax)}</strong></div></div>
-      ` : '<p class="muted" style="font-size:11px;margin-top:6px;">予定出番達成済</p>'}
-    `;
-    // 追加目標(任意): 総支給、11乗務目までの手取り
-    targetCard.innerHTML += renderSubTargetCards(config, actualResult, predicted, takeHomeRate);
+    ` : '';
+    targetCard.innerHTML += foldSection('target-need', `あと必要な売上${remainingShifts > 0 ? `（残り${remainingShifts}乗務）` : ''}`, needRows);
+    targetCard.innerHTML += foldSection('target-detail', '目標の細目', renderSubTargetCards(config, actualResult, predicted, takeHomeRate));
+    if (remainingShifts === 0) targetCard.innerHTML += '<p class="muted" style="font-size:11px;margin-top:6px;">予定出番達成済</p>';
   } else if (isFuture) {
     targetCard.style.display = '';
     targetCard.innerHTML = renderFutureTargetCard(config, takeHomeRate, respShifts);
   } else {
     targetCard.style.display = 'none';
   }
+
+  // 折りたたみの開閉状態を復元・記憶
+  wireFolds();
 
   // カレンダー
   renderCalendar(drives, range);
@@ -620,14 +665,7 @@ function renderPayrollBreakdown(result, takeHomeRate = 0.75) {
   totalRows += row(`手取り推定 (×${takeHomePct}%)`, formatYen(takeHome), 'highlight');
   body += sec('total', '最終', totalRows);
 
-  return `
-    <details style="margin-top:8px;">
-      <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--primary);user-select:none;padding:6px 0;list-style:revert;">給与計算の内訳を見る</summary>
-      <div style="margin-top:2px;">
-        ${body}
-      </div>
-    </details>
-  `;
+  return body;
 }
 
 function renderSummaryTable(drives) {
