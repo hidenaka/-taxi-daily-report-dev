@@ -1,4 +1,5 @@
-const CACHE_NAME = 'taxi-daily-v139';
+const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
+const CACHE_NAME = CACHE_PREFIX + 'v140';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -63,7 +64,11 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+    // このアプリ自身(taxi-daily-)の旧版キャッシュのみ削除。
+    // 同一オリジンの他アプリ（タイマー等）のキャッシュには絶対に触れない。
+    caches.keys().then(keys => Promise.all(
+      keys.filter(k => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME).map(k => caches.delete(k))
+    ))
   );
   self.clients.claim();
 });
