@@ -16,6 +16,29 @@ const DICT_BASE = "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-
 
 let service = null;
 
+// ── 推論テンソルの解放（iOS Safari メモリリーク対策） ──────────
+// ppu-paddle-ocr は session.run の出力テンソルを dispose しない。per-box 認識は
+// 1帯あたり数十回 inference を回すため、出力テンソルが抱える onnxruntime-web の
+// WASMメモリが解放されず積み上がり、複数帯の処理でiOS Safariのメモリ上限を
+// 超える（「1帯目は成功・2帯目で落ちる」症状の原因）。
+// recognitor.runInference をラップし、次の inference 直前に前回の出力を dispose
+// することで、未解放の出力テンソルを常に1個以下に抑える。
+function patchTensorDisposal(servicePart) {
+  if (!servicePart || typeof servicePart.runInference !== "function") return;
+  const original = servicePart.runInference.bind(servicePart);
+  let previous = null;
+  servicePart.runInference = async (...args) => {
+    if (previous && typeof previous.dispose === "function") {
+      try { previous.dispose(); } catch (_) {}
+    }
+    previous = null;
+    const out = await original(...args);
+    // recognition は出力テンソルを返す（dispose可）。detection は .data を返すため対象外。
+    if (out && typeof out.dispose === "function") previous = out;
+    return out;
+  };
+}
+
 /**
  * PP-OCRサービスを初期化（モデルをfetchしロード）。初回は時間がかかる。
  * 2回目以降は同一インスタンスを返す。
@@ -32,6 +55,8 @@ export async function initOcr() {
     detection: { maxSideLength: 1600, minimumAreaThreshold: 20 },
   });
   await svc.initialize();
+  // 出力テンソルの解放漏れ対策（複数帯処理でのWASMメモリ蓄積を防ぐ）。
+  patchTensorDisposal(svc.recognitor);
   service = svc;
   return service;
 }

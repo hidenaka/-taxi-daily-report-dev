@@ -12087,6 +12087,23 @@ var PaddleOcrService = class extends BasePaddleOcrService {
 var MODEL_BASE = "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main";
 var DICT_BASE = "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main";
 var service = null;
+function patchTensorDisposal(servicePart) {
+  if (!servicePart || typeof servicePart.runInference !== "function") return;
+  const original = servicePart.runInference.bind(servicePart);
+  let previous = null;
+  servicePart.runInference = async (...args) => {
+    if (previous && typeof previous.dispose === "function") {
+      try {
+        previous.dispose();
+      } catch (_) {
+      }
+    }
+    previous = null;
+    const out = await original(...args);
+    if (out && typeof out.dispose === "function") previous = out;
+    return out;
+  };
+}
 async function initOcr() {
   if (service) return service;
   const svc = new PaddleOcrService({
@@ -12099,6 +12116,7 @@ async function initOcr() {
     detection: { maxSideLength: 1600, minimumAreaThreshold: 20 }
   });
   await svc.initialize();
+  patchTensorDisposal(svc.recognitor);
   service = svc;
   return service;
 }
