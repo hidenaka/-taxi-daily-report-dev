@@ -1,6 +1,7 @@
-// 形式判別: 1行目（ヘッダー）にカンマがあれば CSV (Gemini)、それ以外はタブ (Claude)
+// 形式判別: 最初の非空行（ヘッダー）にカンマがあれば CSV (Gemini)、それ以外はタブ (Claude)
+// 先頭に空行があっても誤判定しないよう、空でない最初の行で判定する
 export function detectFormat(text) {
-  const firstLine = text.split('\n')[0] || '';
+  const firstLine = text.split('\n').find(l => l.trim() !== '') || '';
   return firstLine.includes(',') ? 'gemini' : 'claude';
 }
 
@@ -142,8 +143,8 @@ export function parseFormattedReport(text) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (SEP_REGEX.test(line)) { dataStart = i + 1; break; }
-    // : または ： (全角) を許容
-    const m = line.match(/^(日付|車種|出庫|帰庫)\s*[:：]\s*(.*)$/);
+    // : または ： (全角) を許容。先頭の # > * - 等のマークダウン装飾も許容
+    const m = line.match(/^[#>*\s-]*(日付|車種|出庫|帰庫)\s*[:：]\s*(.*)$/);
     if (m) { header[m[1]] = m[2].trim(); lastHeaderIdx = i; }
   }
   // 区切り線が見つからなくても、ヘッダー4行が揃っていれば直後を data とみなす

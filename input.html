@@ -278,8 +278,8 @@ document.getElementById('parseBtn').onclick = () => {
   const text = document.getElementById('rawTextInput').value;
   if (!text.trim()) return;
   try {
-    // フォーマット済みテキスト(先頭4行ヘッダー)を自動判別
-    const isFormatted = /^(日付|車種|出庫|帰庫)\s*[::]/m.test(text.split('\n').slice(0, 6).join('\n'));
+    // フォーマット済みテキスト(先頭4行ヘッダー)を自動判別。先頭の # 等の装飾も許容
+    const isFormatted = /^[#>*\s-]*(日付|車種|出庫|帰庫)\s*[::]/m.test(text.split('\n').slice(0, 8).join('\n'));
     if (isFormatted) {
       parsed = parseFormattedReport(text);
       // ヘッダーから自動入力
@@ -315,8 +315,8 @@ function renderPreview() {
     ...(parsed.rests || []).map((r, i) => ({...r, _kind: 'rest', _idx: i}))
   ];
   allRows.sort((a, b) => {
-    const ta = a.boardTime || a.startTime;
-    const tb = b.boardTime || b.startTime;
+    const ta = a.boardTime || a.startTime || '';
+    const tb = b.boardTime || b.startTime || '';
     return ta.localeCompare(tb);
   });
 
