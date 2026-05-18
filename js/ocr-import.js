@@ -43,7 +43,9 @@ function diag(stage, extra) {
       JSON.stringify({ stage, extra: extra || null, at: Date.now() })
     );
   } catch (_) {}
-  if (STAGE_LABEL[stage]) statusEl.textContent = STAGE_LABEL[stage];
+  if (STAGE_LABEL[stage]) {
+    statusEl.textContent = STAGE_LABEL[stage] + (extra ? ` (${extra})` : "");
+  }
 }
 
 // 前回の解析が完了しなかった（＝クラッシュした可能性）場合、停止段階を表示する。
@@ -53,10 +55,12 @@ function diag(stage, extra) {
     if (!raw) return;
     const d = JSON.parse(raw);
     if (!d || d.stage === "done") return;
+    const stageText =
+      (STAGE_LABEL[d.stage] || d.stage) + (d.extra ? ` (${d.extra})` : "");
     const msg =
       d.stage === "error"
         ? "前回はエラーで停止しました：" + (d.extra || "")
-        : "前回の解析は「" + (STAGE_LABEL[d.stage] || d.stage) + "」の段階で中断しました。";
+        : "前回の解析は「" + stageText + "」の段階で中断しました。";
     statusEl.innerHTML =
       '<div style="background:#fff3e0;border:1px solid #ffb74d;padding:8px 10px;' +
       'border-radius:6px;font-size:12px;line-height:1.5;">' +

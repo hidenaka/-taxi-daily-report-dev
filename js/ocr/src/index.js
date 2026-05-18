@@ -40,7 +40,7 @@ async function toCanvas(src) {
  * @returns {Promise<{text:string, boxes:Array<{text:string,bbox:number[],confidence:number}>, rows:Array<Object>}>}
  */
 export async function recognizeReport(imageSource, onStage) {
-  const report = (s) => { if (typeof onStage === "function") onStage(s); };
+  const report = (...a) => { if (typeof onStage === "function") onStage(...a); };
   const canvas = await toCanvas(imageSource);
   report("preprocess");
   const preprocessed = await preprocessImage(canvas);
