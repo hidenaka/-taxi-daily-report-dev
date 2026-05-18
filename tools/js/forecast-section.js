@@ -66,6 +66,17 @@ export async function loadEnsemble(fetchFn = fetch) {
   }
 }
 
+// 出庫実績 JSON を取得する。失敗は例外を投げず { data, error } で返す。
+export async function loadActuals(fetchFn = fetch) {
+  try {
+    const res = await fetchFn('data/stall-actuals.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { data: await res.json(), error: null };
+  } catch (e) {
+    return { data: null, error: e.message };
+  }
+}
+
 // 15分ビン配列を HTML テーブルに描画する。
 function renderTable(bins) {
   if (bins.length === 0) return '<p class="fc-empty">予測データなし</p>';
@@ -76,6 +87,20 @@ function renderTable(bins) {
     </tr>`).join('');
   return `<table class="fc-table">
     <thead><tr><th>時間帯</th><th>乗1</th><th>乗2</th><th>乗3</th><th>乗4</th><th>計</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// 出庫実績スロット配列を HTML テーブルに描画する。
+// 実績はトラッカー合算値のため乗り場別内訳は持たず、スロット合計のみ。
+export function renderActualsTable(slots) {
+  if (!slots || slots.length === 0) return '<p class="fc-empty">実績データなし</p>';
+  const rows = slots.map(s => `<tr>
+      <td class="fc-time">${s.slotStart}-${s.slotEnd}</td>
+      <td class="fc-total">${s.total}</td>
+    </tr>`).join('');
+  return `<table class="fc-table">
+    <thead><tr><th>時間帯</th><th>出庫台数</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }

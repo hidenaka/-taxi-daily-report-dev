@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { aggregateTo15min, loadEnsemble, isStale } from '../tools/js/forecast-section.js';
+import { aggregateTo15min, loadEnsemble, isStale, loadActuals, renderActualsTable } from '../tools/js/forecast-section.js';
 
 // --- aggregateTo15min: 5分スロット → 15分ビン合算 ---
 
@@ -109,4 +109,49 @@ test('isStale: 未設定・解釈不能な値は true（取得できていない
   assert.equal(isStale('', now, 60), true);
   assert.equal(isStale(undefined, now, 60), true);
   assert.equal(isStale('not-a-date', now, 60), true);
+});
+
+// --- loadActuals: stall-actuals.json の取得 ---
+
+test('loadActuals: 成功でデータを返し error は null', async () => {
+  const calls = [];
+  const fetchFn = stubFetch({ 'data/stall-actuals.json': { body: { slots: [] } } }, calls);
+  const r = await loadActuals(fetchFn);
+  assert.deepEqual(r.data, { slots: [] });
+  assert.equal(r.error, null);
+  assert.ok(calls.length === 1 && calls[0].path === 'data/stall-actuals.json'
+    && calls[0].options && calls[0].options.cache === 'no-store',
+    'fetch には data/stall-actuals.json と cache:no-store を渡すこと');
+});
+
+test('loadActuals: 404 は error に記録し例外を投げない', async () => {
+  const fetchFn = stubFetch({ 'data/stall-actuals.json': { status: 404 } });
+  const r = await loadActuals(fetchFn);
+  assert.equal(r.data, null);
+  assert.equal(r.error, 'HTTP 404');
+});
+
+test('loadActuals: fetch 例外も error に記録し例外を投げない', async () => {
+  const fetchFn = stubFetch({});
+  const r = await loadActuals(fetchFn);
+  assert.equal(r.data, null);
+  assert.equal(r.error, 'network error');
+});
+
+// --- renderActualsTable: 実績スロットのテーブル描画 ---
+
+test('renderActualsTable: スロットを時刻＋台数の表にする', () => {
+  const html = renderActualsTable([
+    { slotStart: '18:00', slotEnd: '18:15', total: 5 },
+    { slotStart: '18:15', slotEnd: '18:30', total: 12 },
+  ]);
+  assert.ok(html.includes('18:00-18:15'), '時間帯ラベルを含む');
+  assert.ok(html.includes('>5<'), '台数 5 を含む');
+  assert.ok(html.includes('>12<'), '台数 12 を含む');
+  assert.ok(html.includes('<table'), 'table 要素で描画する');
+});
+
+test('renderActualsTable: 空配列はデータなし表示', () => {
+  const html = renderActualsTable([]);
+  assert.ok(html.includes('実績データなし'));
 });
