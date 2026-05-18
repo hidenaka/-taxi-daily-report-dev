@@ -2,8 +2,9 @@ import { test, assert } from './run.js';
 import { loadForecastData } from '../tools/js/forecast-section.js';
 
 // path -> { body } | { status } のマップで fetch をスタブする
-function stubFetch(map) {
-  return async (path) => {
+function stubFetch(map, calls) {
+  return async (path, options) => {
+    if (calls) calls.push({ path, options });
     const entry = map[path];
     if (!entry) throw new Error('network error');
     if (entry.status && entry.status !== 200) return { ok: false, status: entry.status };
@@ -12,16 +13,18 @@ function stubFetch(map) {
 }
 
 test('loadForecastData: 3種すべて成功で全データを返す', async () => {
+  const calls = [];
   const fetchFn = stubFetch({
     'data/stall-ensemble.json': { body: { a: 1 } },
     'data/stall-forecast.json': { body: { b: 2 } },
     'data/stall-pattern-match.json': { body: { c: 3 } },
-  });
+  }, calls);
   const r = await loadForecastData(fetchFn);
   assert.deepEqual(r.ensemble, { a: 1 });
   assert.deepEqual(r.forecast, { b: 2 });
   assert.deepEqual(r.patternMatch, { c: 3 });
   assert.deepEqual(r.errors, {});
+  assert.ok(calls.length === 3 && calls.every(c => c.options && c.options.cache === 'no-store'), 'fetch には cache:no-store を渡すこと');
 });
 
 test('loadForecastData: 404 は errors に記録し例外を投げない', async () => {

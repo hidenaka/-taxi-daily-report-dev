@@ -37,8 +37,8 @@ export async function initForecastSection() {
     renderEnsemble(ensembleMetaEl, ensembleTableEl, data.ensemble);
     renderThroughputBanner(bannerEl, data.ensemble);
   } else {
-    ensembleMetaEl.textContent = `統合予測データの読み込みに失敗: ${data.errors.ensemble}`;
-    ensembleTableEl.innerHTML = '';
+    if (ensembleMetaEl) ensembleMetaEl.textContent = `統合予測データの読み込みに失敗: ${data.errors.ensemble}`;
+    if (ensembleTableEl) ensembleTableEl.innerHTML = '';
   }
 
   const metaEl = document.getElementById('forecast-meta');
@@ -47,8 +47,8 @@ export async function initForecastSection() {
     renderForecastMeta(metaEl, data.forecast);
     renderForecastTable(tableEl, data.forecast);
   } else {
-    metaEl.textContent = `予測データの読み込みに失敗: ${data.errors.forecast}`;
-    tableEl.innerHTML = '';
+    if (metaEl) metaEl.textContent = `予測データの読み込みに失敗: ${data.errors.forecast}`;
+    if (tableEl) tableEl.innerHTML = '';
   }
 
   const patternMetaEl = document.getElementById('pattern-meta');
@@ -59,8 +59,8 @@ export async function initForecastSection() {
     renderSimilarDays(similarDaysEl, data.patternMatch);
     renderHistoricalCurve(curveEl, data.patternMatch);
   } else {
-    patternMetaEl.textContent = `類似日マッチングデータの読み込みに失敗: ${data.errors.patternMatch}`;
-    similarDaysEl.innerHTML = '';
-    curveEl.innerHTML = '';
+    if (patternMetaEl) patternMetaEl.textContent = `類似日マッチングデータの読み込みに失敗: ${data.errors.patternMatch}`;
+    if (similarDaysEl) similarDaysEl.innerHTML = '';
+    if (curveEl) curveEl.innerHTML = '';
   }
 }
