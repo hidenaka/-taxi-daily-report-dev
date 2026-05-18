@@ -179,7 +179,8 @@ export async function adminSaveConfigForUser(targetUserId, config) {
 
 // ========== COMPANIES (admin) ==========
 
-// Admin: 全会社プロファイルを取得（id 付き配列）
+// Admin: 全会社プロファイルを取得（id 付き配列）。
+// 失敗時は例外を投げる（呼び出し側 UI が catch して読み込み失敗を表示するため、ここで握りつぶさない）。
 export async function adminListCompanies() {
   await waitForAuth();
   const snap = await getDocs(collection(db, 'companies'));
