@@ -1,5 +1,6 @@
 import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, classifyStaleness, sortFlightsByTime } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderStaleBanner } from './arrivals-render.js';
+import { initForecastSection } from './forecast-section.js';
 
 const TAB_TERMINALS = {
   'T1': ['T1'],
@@ -104,4 +105,5 @@ setupReload();
 setupDetailToggle();
 setupHeatmapModeToggle();
 refresh();
+initForecastSection();
 setInterval(refresh, 60000);
