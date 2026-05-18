@@ -93,16 +93,16 @@ function renderTable(bins) {
   </table>`;
 }
 
-// 出庫実績スロット配列を HTML テーブルに描画する。
-// 実績はトラッカー合算値のため乗り場別内訳は持たず、スロット合計のみ。
+// 出庫実績スロット配列を HTML テーブルに描画する（乗り場別＋合計）。
 export function renderActualsTable(slots) {
   if (!slots || slots.length === 0) return '<p class="fc-empty">実績データなし</p>';
   const rows = slots.map(s => `<tr>
       <td class="fc-time">${s.slotStart}-${s.slotEnd}</td>
+      <td>${s.stall1}</td><td>${s.stall2}</td><td>${s.stall3}</td><td>${s.stall4}</td>
       <td class="fc-total">${s.total}</td>
     </tr>`).join('');
   return `<table class="fc-table">
-    <thead><tr><th>時間帯</th><th>出庫台数</th></tr></thead>
+    <thead><tr><th>時間帯</th><th>乗1</th><th>乗2</th><th>乗3</th><th>乗4</th><th>計</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }

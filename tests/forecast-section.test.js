@@ -144,18 +144,16 @@ test('loadActuals: fetch 例外も error に記録し例外を投げない', asy
 
 // --- renderActualsTable: 実績スロットのテーブル描画 ---
 
-test('renderActualsTable: スロットを時刻＋台数の表にする', () => {
+test('renderActualsTable: 乗り場別スロットを時刻＋乗1-4＋計の表にする', () => {
   const html = renderActualsTable([
-    { slotStart: '18:00', slotEnd: '18:15', total: 5 },
-    { slotStart: '18:15', slotEnd: '18:30', total: 12 },
+    { slotStart: '18:00', slotEnd: '18:15', stall1: 2, stall2: 1, stall3: 0, stall4: 2, total: 5 },
   ]);
   assert.ok(html.includes('18:00-18:15'), '時間帯ラベルを含む');
-  assert.ok(html.includes('>5<'), '台数 5 を含む');
-  assert.ok(html.includes('>12<'), '台数 12 を含む');
   assert.ok(html.includes('<table'), 'table 要素で描画する');
+  assert.ok(html.includes('>5<'), '合計 5 を含む');
+  assert.ok(html.includes('乗1') && html.includes('乗4'), '乗り場別の見出しを含む');
 });
 
 test('renderActualsTable: 空配列はデータなし表示', () => {
-  const html = renderActualsTable([]);
-  assert.ok(html.includes('実績データなし'));
+  assert.ok(renderActualsTable([]).includes('実績データなし'));
 });
