@@ -2,6 +2,15 @@
 
 const SLUG_RE = /^[a-z][a-z0-9_]*$/;
 
+const NUMBER_LABELS = {
+  takeHomeRate: '手取り率',
+  responsibilityShifts: '責任出番数',
+  paidLeaveAmount: '有給休暇1日金額',
+  fixedRate: '固定率',
+  thresholdSalesExclTax: 'インセンティブ閾値売上',
+  amountPerShift: 'インセンティブ額',
+};
+
 // 数値フォーム値を number 化。空文字・非数値は NaN を返す。
 function num(v) {
   if (v === '' || v === null || v === undefined) return NaN;
@@ -33,7 +42,7 @@ export function buildCompanyDoc(form) {
   };
   for (const [k, v] of Object.entries(numbers)) {
     if (!Number.isFinite(v)) {
-      return { error: `数値項目「${k}」が未入力または不正です` };
+      return { error: `数値項目「${NUMBER_LABELS[k]}」が未入力または不正です` };
     }
   }
   if (!form.rateTable || typeof form.rateTable !== 'object') {
