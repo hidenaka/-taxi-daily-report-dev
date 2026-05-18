@@ -12,48 +12,6 @@ var __export = (target, all) => {
 };
 var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-// js/ocr/src/preprocess.js
-function orient(canvas) {
-  if (canvas.width <= canvas.height) return canvas;
-  const off = document.createElement("canvas");
-  off.width = canvas.height;
-  off.height = canvas.width;
-  const ctx = off.getContext("2d");
-  ctx.translate(0, off.height);
-  ctx.rotate(-Math.PI / 2);
-  ctx.drawImage(canvas, 0, 0);
-  return off;
-}
-function grayscaleResize(canvas) {
-  const MAX_AREA = 16e6;
-  let targetW = 3200;
-  let h = Math.round(canvas.height * (targetW / canvas.width));
-  if (targetW * h > MAX_AREA) {
-    targetW = Math.floor(Math.sqrt(MAX_AREA * canvas.width / canvas.height));
-    h = Math.round(canvas.height * (targetW / canvas.width));
-  }
-  const off = document.createElement("canvas");
-  off.width = targetW;
-  off.height = h;
-  const ctx = off.getContext("2d", { willReadFrequently: true });
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(canvas, 0, 0, targetW, h);
-  const img = ctx.getImageData(0, 0, targetW, h);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2] | 0;
-    d[i] = g;
-    d[i + 1] = g;
-    d[i + 2] = g;
-  }
-  ctx.putImageData(img, 0, 0);
-  return off;
-}
-async function preprocessImage(canvas) {
-  return grayscaleResize(orient(canvas));
-}
-
 // node_modules/ppu-paddle-ocr/constants.js
 var DEFAULT_DEBUGGING_OPTIONS = { verbose: false, debug: false, debugFolder: "out" };
 var DEFAULT_DETECTION_OPTIONS = { mean: [0.485, 0.456, 0.406], stdDeviation: [0.229, 0.224, 0.225], maxSideLength: 640, minimumAreaThreshold: 50, paddingVertical: 0.4, paddingHorizontal: 0.6 };
@@ -12120,90 +12078,76 @@ async function initOcr() {
   service = svc;
   return service;
 }
-var STRIP_HEIGHT = 1200;
-var STRIP_OVERLAP = 320;
-var SINGLE_STRIP_MAX = 2200;
-var EDGE_MARGIN = 8;
-var DEDUPE_IOU = 0.5;
-function planStrips(height) {
-  if (height <= SINGLE_STRIP_MAX) return [{ y0: 0, y1: height }];
-  const advance = STRIP_HEIGHT - STRIP_OVERLAP;
-  const strips = [];
-  for (let y0 = 0; y0 < height; y0 += advance) {
-    const y1 = Math.min(height, y0 + STRIP_HEIGHT);
-    strips.push({ y0, y1 });
-    if (y1 >= height) break;
+async function toCanvas(src) {
+  if (typeof HTMLCanvasElement !== "undefined" && src instanceof HTMLCanvasElement) return src;
+  let bitmap;
+  if (typeof ImageBitmap !== "undefined" && src instanceof ImageBitmap) {
+    bitmap = src;
+  } else if (src instanceof Blob) {
+    bitmap = await createImageBitmap(src);
+  } else if (typeof HTMLImageElement !== "undefined" && src instanceof HTMLImageElement) {
+    bitmap = await createImageBitmap(src);
+  } else {
+    throw new Error("\u5BFE\u5FDC\u3057\u3066\u3044\u306A\u3044\u753B\u50CF\u30BD\u30FC\u30B9\u3067\u3059\uFF08File/Blob/HTMLImageElement/HTMLCanvasElement/ImageBitmap\uFF09");
   }
-  return strips;
+  const canvas = document.createElement("canvas");
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  canvas.getContext("2d").drawImage(bitmap, 0, 0);
+  return canvas;
 }
-function cropStrip(canvas, y0, y1) {
-  const h = y1 - y0;
-  const c = document.createElement("canvas");
-  c.width = canvas.width;
-  c.height = h;
-  c.getContext("2d").drawImage(canvas, 0, y0, canvas.width, h, 0, 0, canvas.width, h);
-  return c;
-}
-function iou(a, b) {
-  const x1 = Math.max(a.x, b.x);
-  const y1 = Math.max(a.y, b.y);
-  const x2 = Math.min(a.x + a.w, b.x + b.w);
-  const y2 = Math.min(a.y + a.h, b.y + b.h);
-  const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
-  if (inter <= 0) return 0;
-  return inter / (a.w * a.h + b.w * b.h - inter);
-}
-function dedupeBoxes(boxes) {
-  const sorted = boxes.slice().sort((p, q) => q.confidence - p.confidence);
-  const kept = [];
-  for (const b of sorted) {
-    if (kept.some((k2) => iou(k2, b) > DEDUPE_IOU)) continue;
-    kept.push(b);
-  }
-  return kept;
-}
-async function runOcr(canvas, onStage) {
-  const report = (...a) => {
-    if (typeof onStage === "function") onStage(...a);
-  };
-  report("model-load");
+async function recognizeStrip(imageSource) {
+  const canvas = await toCanvas(imageSource);
   const svc = await initOcr();
-  const strips = planStrips(canvas.height);
-  const recOpts = { flatten: true, noCache: true, strategy: "per-box" };
-  const collected = [];
-  const texts = [];
-  for (let i = 0; i < strips.length; i++) {
-    report("recognize", `${i + 1}/${strips.length}`);
-    const { y0, y1 } = strips[i];
-    const stripH = y1 - y0;
-    const strip = cropStrip(canvas, y0, y1);
-    const result = await svc.recognize(strip, recOpts);
-    texts.push(result.text || "");
-    for (const r of result.results || []) {
-      const top = r.box.y;
-      const bottom = r.box.y + r.box.height;
-      if (i > 0 && top <= EDGE_MARGIN) continue;
-      if (i < strips.length - 1 && bottom >= stripH - EDGE_MARGIN) continue;
-      collected.push({
-        text: r.text,
-        x: r.box.x,
-        y: r.box.y + y0,
-        // 帯ローカル座標 → 画像全体の座標へ
-        w: r.box.width,
-        h: r.box.height,
-        confidence: r.confidence
-      });
-    }
-    strip.width = 0;
-    strip.height = 0;
-    await new Promise((res) => setTimeout(res, 30));
-  }
-  const boxes = dedupeBoxes(collected).map((b) => ({
-    text: b.text,
-    bbox: [b.x, b.y, b.x + b.w, b.y + b.h],
-    confidence: b.confidence
+  const result = await svc.recognize(canvas, { flatten: true, noCache: true, strategy: "per-box" });
+  const boxes = (result.results || []).map((r) => ({
+    text: r.text,
+    bbox: [r.box.x, r.box.y, r.box.x + r.box.width, r.box.y + r.box.height],
+    confidence: r.confidence
   }));
-  return { text: texts.join("\n"), boxes };
+  return { boxes };
+}
+
+// js/ocr/src/preprocess.js
+function orient(canvas) {
+  if (canvas.width <= canvas.height) return canvas;
+  const off = document.createElement("canvas");
+  off.width = canvas.height;
+  off.height = canvas.width;
+  const ctx = off.getContext("2d");
+  ctx.translate(0, off.height);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(canvas, 0, 0);
+  return off;
+}
+function grayscaleResize(canvas) {
+  const MAX_AREA = 16e6;
+  let targetW = 3200;
+  let h = Math.round(canvas.height * (targetW / canvas.width));
+  if (targetW * h > MAX_AREA) {
+    targetW = Math.floor(Math.sqrt(MAX_AREA * canvas.width / canvas.height));
+    h = Math.round(canvas.height * (targetW / canvas.width));
+  }
+  const off = document.createElement("canvas");
+  off.width = targetW;
+  off.height = h;
+  const ctx = off.getContext("2d", { willReadFrequently: true });
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, 0, 0, targetW, h);
+  const img = ctx.getImageData(0, 0, targetW, h);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2] | 0;
+    d[i] = g;
+    d[i + 1] = g;
+    d[i + 2] = g;
+  }
+  ctx.putImageData(img, 0, 0);
+  return off;
+}
+async function preprocessImage(canvas) {
+  return grayscaleResize(orient(canvas));
 }
 
 // js/ocr/src/kanji-normalize.js
@@ -15134,6 +15078,60 @@ async function checkBlur(canvas, threshold = 6) {
   return { variance, blurry: variance < threshold };
 }
 
+// js/ocr/src/strips.js
+var STRIP_HEIGHT = 1200;
+var STRIP_OVERLAP = 320;
+var SINGLE_STRIP_MAX = 2200;
+var EDGE_MARGIN = 8;
+var DEDUPE_IOU = 0.5;
+function planStrips(height) {
+  if (height <= SINGLE_STRIP_MAX) return [{ y0: 0, y1: height }];
+  const advance = STRIP_HEIGHT - STRIP_OVERLAP;
+  const strips = [];
+  for (let y0 = 0; y0 < height; y0 += advance) {
+    const y1 = Math.min(height, y0 + STRIP_HEIGHT);
+    strips.push({ y0, y1 });
+    if (y1 >= height) break;
+  }
+  return strips;
+}
+function iou(a, b) {
+  const x1 = Math.max(a[0], b[0]);
+  const y1 = Math.max(a[1], b[1]);
+  const x2 = Math.min(a[2], b[2]);
+  const y2 = Math.min(a[3], b[3]);
+  const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  if (inter <= 0) return 0;
+  const areaA = (a[2] - a[0]) * (a[3] - a[1]);
+  const areaB = (b[2] - b[0]) * (b[3] - b[1]);
+  return inter / (areaA + areaB - inter);
+}
+function mergeStripResults(stripResults) {
+  const collected = [];
+  for (const strip of stripResults) {
+    const { y0, y1, index, total, boxes } = strip;
+    const stripH = y1 - y0;
+    for (const b of boxes || []) {
+      const top = b.bbox[1];
+      const bottom = b.bbox[3];
+      if (index > 0 && top <= EDGE_MARGIN) continue;
+      if (index < total - 1 && bottom >= stripH - EDGE_MARGIN) continue;
+      collected.push({
+        text: b.text,
+        bbox: [b.bbox[0], b.bbox[1] + y0, b.bbox[2], b.bbox[3] + y0],
+        confidence: b.confidence
+      });
+    }
+  }
+  const sorted = collected.slice().sort((p, q) => q.confidence - p.confidence);
+  const kept = [];
+  for (const b of sorted) {
+    if (kept.some((k2) => iou(k2.bbox, b.bbox) > DEDUPE_IOU)) continue;
+    kept.push(b);
+  }
+  return kept;
+}
+
 // js/ocr/src/to-drive.js
 var REST_NO = /[休保㈱]/;
 function parseNoInt(noStr) {
@@ -15193,39 +15191,20 @@ function rowsToDrive(rows) {
 }
 
 // js/ocr/src/index.js
-async function toCanvas(src) {
-  if (typeof HTMLCanvasElement !== "undefined" && src instanceof HTMLCanvasElement) return src;
-  let bitmap;
-  if (src instanceof Blob) {
-    bitmap = await createImageBitmap(src);
-  } else if (typeof HTMLImageElement !== "undefined" && src instanceof HTMLImageElement) {
-    bitmap = await createImageBitmap(src);
-  } else if (typeof ImageBitmap !== "undefined" && src instanceof ImageBitmap) {
-    bitmap = src;
-  } else {
-    throw new Error("\u5BFE\u5FDC\u3057\u3066\u3044\u306A\u3044\u753B\u50CF\u30BD\u30FC\u30B9\u3067\u3059\uFF08File/Blob/HTMLImageElement/HTMLCanvasElement/ImageBitmap\uFF09");
-  }
-  const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  canvas.getContext("2d").drawImage(bitmap, 0, 0);
-  return canvas;
-}
-async function recognizeReport(imageSource, onStage) {
-  const report = (...a) => {
-    if (typeof onStage === "function") onStage(...a);
-  };
+async function recognizeReport(imageSource) {
   const canvas = await toCanvas(imageSource);
-  report("preprocess");
   const preprocessed = await preprocessImage(canvas);
-  const ocr = await runOcr(preprocessed, report);
-  report("reconstruct");
-  const { rows } = reconstructRows(ocr);
-  return { ...ocr, rows };
+  const { boxes } = await recognizeStrip(preprocessed);
+  const { rows } = reconstructRows({ text: "", boxes });
+  return { boxes, rows };
 }
 export {
   checkBlur,
+  mergeStripResults,
+  planStrips,
+  preprocessImage,
   recognizeReport,
+  recognizeStrip,
   reconstructRows,
   rowsToDrive
 };

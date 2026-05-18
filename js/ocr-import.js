@@ -194,6 +194,57 @@ importBtn.addEventListener("click", () => {
   location.href = "input.html";
 });
 
+// 帯画像1枚を、使い捨てiframe（ocr-worker.html）でOCRする。
+// iframe生成 → 準備完了を待つ → 帯画像を転送 → box受領 → iframe破棄。
+// iframeを破棄すると realm ごと解放されるため、onnxruntime のWASMメモリが
+// 帯をまたいで蓄積しない（iOS Safari の連続処理クラッシュ対策の核心）。
+function ocrStripInIframe(bitmap, index, total) {
+  return new Promise((resolve, reject) => {
+    const iframe = document.createElement("iframe");
+    iframe.setAttribute("aria-hidden", "true");
+    iframe.style.cssText =
+      "position:absolute;left:-9999px;width:0;height:0;border:0;visibility:hidden;";
+    let settled = false;
+
+    const cleanup = () => {
+      window.removeEventListener("message", onMessage);
+      clearTimeout(timer);
+      iframe.remove(); // realm ごと破棄 → onnxruntime のWASMメモリを解放
+    };
+    const onMessage = (ev) => {
+      if (ev.origin !== location.origin || ev.source !== iframe.contentWindow) return;
+      const m = ev.data || {};
+      if (m.type === "ocr-ready") {
+        // 帯画像を転送（transfer）。親側の bitmap は neuter され二重保持を避ける。
+        iframe.contentWindow.postMessage(
+          { type: "ocr-strip", index, bitmap },
+          location.origin,
+          [bitmap]
+        );
+      } else if (m.type === "ocr-result" && m.index === index) {
+        settled = true;
+        cleanup();
+        resolve(m.boxes || []);
+      } else if (m.type === "ocr-error" && m.index === index) {
+        settled = true;
+        cleanup();
+        reject(new Error(m.error || "OCRに失敗しました"));
+      }
+    };
+    // 帯のOCRが時間内に終わらない（iframeのクラッシュ等）場合の保険。
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error(`文字認識 ${index + 1}/${total} が時間内に終わりませんでした`));
+    }, 180000);
+
+    window.addEventListener("message", onMessage);
+    iframe.src = "ocr-worker.html";
+    document.body.appendChild(iframe);
+  });
+}
+
 input.addEventListener("change", async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -207,25 +258,51 @@ input.addEventListener("change", async (e) => {
 
   try {
     diag("bundle");
-    const { recognizeReport, checkBlur, rowsToDrive } = await loadOcr();
+    const ocr = await loadOcr();
 
     diag("blur");
-    const canvas = await fileToCanvas(file);
-
-    const blur = await checkBlur(canvas);
+    const rawCanvas = await fileToCanvas(file);
+    const blur = await ocr.checkBlur(rawCanvas);
     if (blur.blurry) {
       diag("done");
       statusEl.textContent = "写真が不鮮明です。明るい場所で、営業明細の全体が入るように撮り直してください。";
       return;
     }
 
-    // recognizeReport が各段階（preprocess/model-load/recognize/reconstruct）を
-    // diag に通知する。クラッシュしてもどこまで進んだかが localStorage に残る。
-    const result = await recognizeReport(canvas, diag);
-    diag("done");
-    window.__ocrImportResult = result;
+    diag("preprocess");
+    const pre = await ocr.preprocessImage(rawCanvas);
+    rawCanvas.width = 0; // 生画像canvasを解放
+    rawCanvas.height = 0;
+    const preW = pre.width;
+    const preH = pre.height;
+    // 前処理済み画像はBlob（PNG・圧縮）で保持し、巨大なcanvas（数十MB）は
+    // すぐ解放する。親ページのメモリを軽く保ち、iframe側に余地を残すため。
+    const preBlob = await new Promise((res) => pre.toBlob(res, "image/png"));
+    pre.width = 0;
+    pre.height = 0;
+    if (!preBlob) throw new Error("画像の前処理に失敗しました");
 
-    const { trips, rests } = rowsToDrive(result.rows);
+    // 画像を縦の帯に分割し、帯ごとに使い捨てiframeでOCRする。
+    // 各帯のOCRが終わるたびにiframeを破棄し、メモリを帯ごとにリセットする。
+    const strips = ocr.planStrips(preH);
+    const stripResults = [];
+    for (let i = 0; i < strips.length; i++) {
+      diag("recognize", `${i + 1}/${strips.length}`);
+      const { y0, y1 } = strips[i];
+      const bitmap = await createImageBitmap(preBlob, 0, y0, preW, y1 - y0);
+      const boxes = await ocrStripInIframe(bitmap, i, strips.length);
+      stripResults.push({ y0, y1, index: i, total: strips.length, boxes });
+      // 破棄したiframeのメモリ解放をブラウザに行わせる猶予。
+      await new Promise((r) => setTimeout(r, 150));
+    }
+
+    diag("reconstruct");
+    const merged = ocr.mergeStripResults(stripResults);
+    const { rows } = ocr.reconstructRows({ text: "", boxes: merged });
+    diag("done");
+    window.__ocrImportResult = { boxes: merged, rows };
+
+    const { trips, rests } = ocr.rowsToDrive(rows);
     if (trips.length === 0 && rests.length === 0) {
       // OCRは走ったが明細行を1つも復元できなかった → 空の表を出さず撮り直しを促す
       statusEl.textContent = "明細を読み取れませんでした。明るい場所で、営業明細の全体が入るように撮り直してください。";

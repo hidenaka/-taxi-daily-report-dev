@@ -1,51 +1,32 @@
 // js/ocr/src/index.js
-// 端末内OCRのエントリ。画像 → 前処理 → PP-OCR → グリッド復元 → {text, boxes, rows}。
+// 端末内OCRバンドルの公開API。
+//
+// iframe隔離方式の組み立て（ocr-import.js が親ページで実行）:
+//   preprocessImage → planStrips → 各帯を使い捨てiframeで recognizeStrip
+//   → mergeStripResults → reconstructRows → rowsToDrive
+// iframe（ocr-worker）側は recognizeStrip のみ使う。
+import { toCanvas, recognizeStrip } from "./ocr-engine.js";
 import { preprocessImage } from "./preprocess.js";
-import { runOcr } from "./ocr-engine.js";
 import { reconstructRows } from "./template-reconstruct.js";
 
+export { preprocessImage } from "./preprocess.js";
 export { checkBlur } from "./quality.js";
+export { recognizeStrip } from "./ocr-engine.js";
+export { planStrips, mergeStripResults } from "./strips.js";
 export { reconstructRows } from "./template-reconstruct.js";
 export { rowsToDrive } from "./to-drive.js";
 
-// 各種の画像ソースを HTMLCanvasElement に正規化する。
-async function toCanvas(src) {
-  if (typeof HTMLCanvasElement !== "undefined" && src instanceof HTMLCanvasElement) return src;
-
-  let bitmap;
-  if (src instanceof Blob) {
-    bitmap = await createImageBitmap(src); // File は Blob のサブクラス
-  } else if (typeof HTMLImageElement !== "undefined" && src instanceof HTMLImageElement) {
-    bitmap = await createImageBitmap(src);
-  } else if (typeof ImageBitmap !== "undefined" && src instanceof ImageBitmap) {
-    bitmap = src;
-  } else {
-    throw new Error("対応していない画像ソースです（File/Blob/HTMLImageElement/HTMLCanvasElement/ImageBitmap）");
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  canvas.getContext("2d").drawImage(bitmap, 0, 0);
-  return canvas;
-}
-
 /**
- * 営業明細の画像を端末内でOCRし、明細行を構造データに復元する。
- * `rows` はグリッド復元の結果（明細行の構造データ）。
- * `text`/`boxes` は後方互換のためそのまま維持する。
+ * 営業明細の画像を端末内でOCRし、明細行を構造データに復元する（単発版・分割なし）。
+ * メモリに余裕のあるPC等の検証用（ocr-test.html）。iPhone等は ocr-import.js が
+ * iframe隔離方式で帯分割実行するため、この関数は通らない。
  * @param {File|Blob|HTMLImageElement|HTMLCanvasElement|ImageBitmap} imageSource
- * @param {(stage:string)=>void} [onStage] 各処理段階の開始を通知する（"preprocess"
- *   /"model-load"/"recognize"/"reconstruct"）。クラッシュ箇所の特定に使う。
- * @returns {Promise<{text:string, boxes:Array<{text:string,bbox:number[],confidence:number}>, rows:Array<Object>}>}
+ * @returns {Promise<{boxes:Array<Object>, rows:Array<Object>}>}
  */
-export async function recognizeReport(imageSource, onStage) {
-  const report = (...a) => { if (typeof onStage === "function") onStage(...a); };
+export async function recognizeReport(imageSource) {
   const canvas = await toCanvas(imageSource);
-  report("preprocess");
   const preprocessed = await preprocessImage(canvas);
-  const ocr = await runOcr(preprocessed, report);
-  report("reconstruct");
-  const { rows } = reconstructRows(ocr);
-  return { ...ocr, rows };
+  const { boxes } = await recognizeStrip(preprocessed);
+  const { rows } = reconstructRows({ text: "", boxes });
+  return { boxes, rows };
 }
