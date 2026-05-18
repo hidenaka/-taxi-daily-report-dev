@@ -92,8 +92,9 @@ if (location.hostname.includes('-dev')) {
 </script>
 <div id="onboardBanner" style="display:none;padding:12px 14px;background:#fff7e6;border-bottom:1px solid #ffd591;color:#7c4a00;font-size:13px;">
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <span id="onboardBannerMsg" style="flex:1;min-width:200px;">ご利用には、組合・法人を通じた登録が必要です。</span>
-    <a href="subscribe.html" id="onboardBannerCta" style="display:inline-block;padding:6px 14px;background:#d97706;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;">ご利用案内 →</a>
+    <span id="onboardBannerMsg" style="flex:1;min-width:180px;"></span>
+    <a href="subscribe.html" id="onboardCtaPrimary" style="display:none;padding:6px 14px;background:#d97706;color:#fff;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;"></a>
+    <a href="login.html" id="onboardCtaLogin" style="display:none;padding:6px 14px;background:#fff;color:#d97706;border:1px solid #d97706;text-decoration:none;border-radius:6px;font-weight:600;font-size:12px;white-space:nowrap;">ログイン</a>
   </div>
 </div>
 <main style="padding:14px;">
@@ -115,6 +116,7 @@ import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZ
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
+import { isEmailAuth } from './js/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles } from './js/planned-shifts.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
@@ -144,18 +146,24 @@ async function initOnboardBanner() {
     const sub = await getSubscription();
     const banner = document.getElementById('onboardBanner');
     const msg = document.getElementById('onboardBannerMsg');
-    const cta = document.getElementById('onboardBannerCta');
+    const ctaPrimary = document.getElementById('onboardCtaPrimary');
+    const ctaLogin = document.getElementById('onboardCtaLogin');
     if (!banner) return;
 
     if (!sub || sub.status === 'pending') {
-      // 未登録（組合・法人を通じた登録が必要）
-      msg.textContent = 'ご利用には、組合・法人を通じた登録が必要です。';
-      cta.textContent = 'ご利用案内 →';
-      cta.style.display = '';
+      // 未申込 → 申込導線。匿名なら復帰用のログイン導線も出す
+      msg.textContent = (sub && sub.status === 'pending')
+        ? 'お申し込み手続きが途中です。続きから進められます。'
+        : 'キャビスの全機能は初月無料でお試しいただけます。';
+      ctaPrimary.textContent = '初月無料で申し込む →';
+      ctaPrimary.style.display = '';
+      if (!isEmailAuth()) ctaLogin.style.display = '';
       banner.style.display = '';
     } else if (isCanceledOrUnpaid(sub)) {
-      msg.textContent = '現在ご利用いただけない状態です。再開は組合・法人のご担当者にご確認ください。';
-      cta.style.display = 'none';
+      // 退会・未払い → いつでも自己再開できる（Stripeで再申込）
+      msg.textContent = '現在ご利用が停止しています。いつでも再開できます。';
+      ctaPrimary.textContent = 'ご利用を再開する →';
+      ctaPrimary.style.display = '';
       banner.style.display = '';
     }
     // active / trial / past_due / grandfathered → バナー非表示(初期状態のまま)

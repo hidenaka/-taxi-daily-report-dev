@@ -442,10 +442,10 @@ document.getElementById('loginBtn').onclick = async () => {
   }
 };
 
-// ログアウト（メール認証 → 匿名）
+// ログアウト → ログイン画面へ（復帰しやすいよう login.html に誘導）
 document.getElementById('logoutBtn').onclick = async () => {
   await logout();
-  location.reload();
+  location.href = 'login.html';
 };
 
 document.getElementById('saveConfigBtn').onclick = async () => {
