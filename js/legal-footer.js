@@ -17,7 +17,7 @@ export function renderLegalFooter() {
       <span class="legal-footer-sep">|</span>
       <a href="legal/privacy.html">プライバシーポリシー</a>
     </div>
-    <div class="legal-footer-copyright">© 2026 Cabis</div>
+    <div class="legal-footer-copyright">© 2026 タクシードライバー支援アプリ Cabis</div>
   `;
 
   // bottom-nav の真上に挿入。bottom-nav が無いページは末尾に追加
