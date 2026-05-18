@@ -1,6 +1,6 @@
 {
-  "name": "タクシー乗務ツール",
-  "short_name": "乗務",
+  "name": "Cabis ツール",
+  "short_name": "ツール",
   "description": "乗務タイマー + IC判定 (控除距離・会社負担判定)",
   "start_url": "./",
   "scope": "./",
