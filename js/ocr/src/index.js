@@ -2,10 +2,10 @@
 // 端末内OCRのエントリ。画像 → 前処理 → PP-OCR → グリッド復元 → {text, boxes, rows}。
 import { preprocessImage } from "./preprocess.js";
 import { runOcr } from "./ocr-engine.js";
-import { reconstructRows } from "./grid-reconstruct.js";
+import { reconstructRows } from "./template-reconstruct.js";
 
 export { checkBlur } from "./quality.js";
-export { reconstructRows } from "./grid-reconstruct.js";
+export { reconstructRows } from "./template-reconstruct.js";
 export { rowsToDrive } from "./to-drive.js";
 
 // 各種の画像ソースを HTMLCanvasElement に正規化する。

@@ -1,10 +1,12 @@
 // js/ocr/src/ocr-engine.js
-// PP-OCR（ppu-paddle-ocr web版）のラッパ。検出 PP-OCRv5・認識 japan PP-OCRv3。
-// 設定は ocr-spike/run-paddle.mjs（Node検証済み）と同一。
+// PP-OCR（ppu-paddle-ocr web版）のラッパ。検出・認識ともに基盤 PP-OCRv5。
+// 設定は ocr-spike/run-paddle-v5.mjs（Node検証済み）と同一。
 // 注: ppu-paddle-ocr の web ビルドは画像処理に canvas-native を使う（OpenCV不要）。
 import { PaddleOcrService } from "ppu-paddle-ocr/web";
 
-// 日本語認識モデルは現状 PP-OCRv3 のみ公開（v5未公開）。検出はv5。
+// 認識は基盤 PP-OCRv5 mobile（多言語＝日本語＋数字を高精度に読む）。検出もv5。
+// v5は日本語を簡体字字形で出すことがあるため、grid-reconstruct 側で
+// kanji-normalize による日本語常用漢字への正規化を行う。
 const MODEL_BASE = "https://media.githubusercontent.com/media/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main";
 const DICT_BASE = "https://raw.githubusercontent.com/PT-Perkasa-Pilar-Utama/ppu-paddle-ocr-models/main";
 
@@ -19,8 +21,8 @@ export async function initOcr() {
   const svc = new PaddleOcrService({
     model: {
       detection: `${MODEL_BASE}/detection/PP-OCRv5_mobile_det_infer.onnx`,
-      recognition: `${MODEL_BASE}/recognition/multi/japan/v3/japan_PP-OCRv3_mobile_rec_infer.onnx`,
-      charactersDictionary: `${DICT_BASE}/recognition/multi/japan/v3/japan_dict.txt`,
+      recognition: `${MODEL_BASE}/recognition/PP-OCRv5_mobile_rec_infer.onnx`,
+      charactersDictionary: `${DICT_BASE}/recognition/ppocrv5_dict.txt`,
     },
     // 明細表の小さい数字を拾うため検出解像度を上げる（Phase 0/1A検証で確定）。
     detection: { maxSideLength: 1600, minimumAreaThreshold: 20 },
