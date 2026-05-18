@@ -129,6 +129,7 @@ export async function createUserWithCredentials(userId, password) {
     // これがないと Firestore Rules で userConfigs/{userId} への書き込みが拒否される
     await setDoc(doc(db, 'users', result.user.uid), {
       userId,
+      companyId: localStorage.getItem('taxi_pending_company') || null,
       createdAt: new Date().toISOString(),
       isAnonymous: false
     });
