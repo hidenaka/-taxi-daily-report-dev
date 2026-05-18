@@ -157,3 +157,8 @@ test('renderActualsTable: 乗り場別スロットを時刻＋乗1-4＋計の表
 test('renderActualsTable: 空配列はデータなし表示', () => {
   assert.ok(renderActualsTable([]).includes('実績データなし'));
 });
+
+test('renderActualsTable: stallフィールド欠落スロットは undefined を描画しない', () => {
+  const html = renderActualsTable([{ slotStart: '18:00', slotEnd: '18:15', total: 0 }]);
+  assert.ok(!html.includes('undefined'), 'stallフィールドが欠落しても undefined を出力しない');
+});

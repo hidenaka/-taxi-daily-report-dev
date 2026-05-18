@@ -98,8 +98,8 @@ export function renderActualsTable(slots) {
   if (!slots || slots.length === 0) return '<p class="fc-empty">実績データなし</p>';
   const rows = slots.map(s => `<tr>
       <td class="fc-time">${s.slotStart}-${s.slotEnd}</td>
-      <td>${s.stall1}</td><td>${s.stall2}</td><td>${s.stall3}</td><td>${s.stall4}</td>
-      <td class="fc-total">${s.total}</td>
+      <td>${s.stall1 ?? 0}</td><td>${s.stall2 ?? 0}</td><td>${s.stall3 ?? 0}</td><td>${s.stall4 ?? 0}</td>
+      <td class="fc-total">${s.total ?? 0}</td>
     </tr>`).join('');
   return `<table class="fc-table">
     <thead><tr><th>時間帯</th><th>乗1</th><th>乗2</th><th>乗3</th><th>乗4</th><th>計</th></tr></thead>
