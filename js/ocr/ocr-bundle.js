@@ -12102,8 +12102,13 @@ async function initOcr() {
   service = svc;
   return service;
 }
-async function runOcr(canvas) {
+async function runOcr(canvas, onStage) {
+  const report = (s) => {
+    if (typeof onStage === "function") onStage(s);
+  };
+  report("model-load");
   const svc = await initOcr();
+  report("recognize");
   const result = await svc.recognize(canvas, { flatten: true, noCache: true, strategy: "per-box" });
   const boxes = (result.results || []).map((r) => ({
     text: r.text,
@@ -15118,10 +15123,15 @@ async function toCanvas(src) {
   canvas.getContext("2d").drawImage(bitmap, 0, 0);
   return canvas;
 }
-async function recognizeReport(imageSource) {
+async function recognizeReport(imageSource, onStage) {
+  const report = (s) => {
+    if (typeof onStage === "function") onStage(s);
+  };
   const canvas = await toCanvas(imageSource);
+  report("preprocess");
   const preprocessed = await preprocessImage(canvas);
-  const ocr = await runOcr(preprocessed);
+  const ocr = await runOcr(preprocessed, report);
+  report("reconstruct");
   const { rows } = reconstructRows(ocr);
   return { ...ocr, rows };
 }

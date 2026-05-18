@@ -35,11 +35,15 @@ export async function initOcr() {
 /**
  * 前処理済みcanvasをOCRする。
  * @param {HTMLCanvasElement|OffscreenCanvas} canvas
+ * @param {(stage:string)=>void} [onStage] "model-load"/"recognize" の開始を通知する。
  * @returns {Promise<{text:string, boxes:Array<{text:string,bbox:number[],confidence:number}>}>}
  */
-export async function runOcr(canvas) {
+export async function runOcr(canvas, onStage) {
+  const report = (s) => { if (typeof onStage === "function") onStage(s); };
+  report("model-load");
   const svc = await initOcr();
   // per-box: 検出ボックスを1つずつ認識（密な表ではper-lineより適切）。
+  report("recognize");
   const result = await svc.recognize(canvas, { flatten: true, noCache: true, strategy: "per-box" });
   const boxes = (result.results || []).map((r) => ({
     text: r.text,

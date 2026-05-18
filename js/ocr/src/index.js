@@ -35,12 +35,17 @@ async function toCanvas(src) {
  * `rows` はグリッド復元の結果（明細行の構造データ）。
  * `text`/`boxes` は後方互換のためそのまま維持する。
  * @param {File|Blob|HTMLImageElement|HTMLCanvasElement|ImageBitmap} imageSource
+ * @param {(stage:string)=>void} [onStage] 各処理段階の開始を通知する（"preprocess"
+ *   /"model-load"/"recognize"/"reconstruct"）。クラッシュ箇所の特定に使う。
  * @returns {Promise<{text:string, boxes:Array<{text:string,bbox:number[],confidence:number}>, rows:Array<Object>}>}
  */
-export async function recognizeReport(imageSource) {
+export async function recognizeReport(imageSource, onStage) {
+  const report = (s) => { if (typeof onStage === "function") onStage(s); };
   const canvas = await toCanvas(imageSource);
+  report("preprocess");
   const preprocessed = await preprocessImage(canvas);
-  const ocr = await runOcr(preprocessed);
+  const ocr = await runOcr(preprocessed, report);
+  report("reconstruct");
   const { rows } = reconstructRows(ocr);
   return { ...ocr, rows };
 }

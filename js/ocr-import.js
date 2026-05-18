@@ -23,6 +23,48 @@ const importBtn = document.getElementById("importBtn");
 // 現在レビュー中のデータ（編集はこのオブジェクトに即時反映される）。
 let reviewData = null;
 
+// ── 解析の進捗ダイアグ ───────────────────────────────────────────
+// iOS Safari はメモリ不足だとタブごとクラッシュし JS エラーを捕捉できない。
+// そこで各処理段階を localStorage に逐次保存し、リロード後に「どこまで
+// 進んで落ちたか」を確認できるようにする（クラッシュ箇所の特定用）。
+const DIAG_KEY = "ocrDiag";
+const STAGE_LABEL = {
+  bundle: "解析エンジンを読み込み中…",
+  blur: "画像を確認中…",
+  preprocess: "画像を前処理中…",
+  "model-load": "OCRモデルを読み込み中…（初回はダウンロードに時間がかかります）",
+  recognize: "文字を検出・認識中…",
+  reconstruct: "表を組み立て中…",
+};
+function diag(stage, extra) {
+  try {
+    localStorage.setItem(
+      DIAG_KEY,
+      JSON.stringify({ stage, extra: extra || null, at: Date.now() })
+    );
+  } catch (_) {}
+  if (STAGE_LABEL[stage]) statusEl.textContent = STAGE_LABEL[stage];
+}
+
+// 前回の解析が完了しなかった（＝クラッシュした可能性）場合、停止段階を表示する。
+(function showPriorDiag() {
+  try {
+    const raw = localStorage.getItem(DIAG_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || d.stage === "done") return;
+    const msg =
+      d.stage === "error"
+        ? "前回はエラーで停止しました：" + (d.extra || "")
+        : "前回の解析は「" + (STAGE_LABEL[d.stage] || d.stage) + "」の段階で中断しました。";
+    statusEl.innerHTML =
+      '<div style="background:#fff3e0;border:1px solid #ffb74d;padding:8px 10px;' +
+      'border-radius:6px;font-size:12px;line-height:1.5;">' +
+      msg +
+      "<br>もう一度「画像を選ぶ」から試してください。</div>";
+  } catch (_) {}
+})();
+
 // 選択ファイルを canvas に描画する。
 async function fileToCanvas(file) {
   const bitmap = await createImageBitmap(file);
@@ -160,20 +202,23 @@ input.addEventListener("change", async (e) => {
   window.__ocrImportDone = false;
 
   try {
-    statusEl.textContent = "解析エンジンを準備中…";
+    diag("bundle");
     const { recognizeReport, checkBlur, rowsToDrive } = await loadOcr();
 
-    statusEl.textContent = "画像を確認中…";
+    diag("blur");
     const canvas = await fileToCanvas(file);
 
     const blur = await checkBlur(canvas);
     if (blur.blurry) {
+      diag("done");
       statusEl.textContent = "写真が不鮮明です。明るい場所で、営業明細の全体が入るように撮り直してください。";
       return;
     }
 
-    statusEl.textContent = "解析中…（初回はモデルのダウンロードで時間がかかります）";
-    const result = await recognizeReport(canvas);
+    // recognizeReport が各段階（preprocess/model-load/recognize/reconstruct）を
+    // diag に通知する。クラッシュしてもどこまで進んだかが localStorage に残る。
+    const result = await recognizeReport(canvas, diag);
+    diag("done");
     window.__ocrImportResult = result;
 
     const { trips, rests } = rowsToDrive(result.rows);
@@ -187,6 +232,7 @@ input.addEventListener("change", async (e) => {
     renderReview(trips, rests);
   } catch (err) {
     window.__ocrImportError = String((err && err.stack) || err);
+    diag("error", (err && err.message) || String(err));
     statusEl.textContent = "エラー: " + ((err && err.message) || err);
   } finally {
     window.__ocrImportDone = true;
