@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>写真から取り込み — タクシー日報分析</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/ocr-import.css">
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+// 開発環境バッジ（他ページと同じ）
+if (location.hostname.includes('-dev')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.textContent = '🚧 開発環境';
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:#fff;padding:4px 8px;font-size:11px;text-align:center;font-weight:600;z-index:9999;';
+    document.body.appendChild(badge);
+  });
+}
+</script>
+<main style="padding:14px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
+    <h1 style="margin:0;flex:1;">写真から取り込み</h1>
+    <a class="btn" href="input.html" style="background:var(--gray);color:#333;font-size:12px;padding:6px 12px;text-decoration:none;">戻る</a>
+  </div>
+
+  <section class="card">
+    <p class="muted" style="margin-top:0;">営業明細の写真を選んでください（撮影・フォトライブラリのどちらでも）。処理は端末内で完結し、画像はどこにも送信しません。</p>
+    <label class="btn" id="pickLabel">
+      画像を選ぶ
+      <input type="file" id="imageInput" accept="image/*" hidden>
+    </label>
+    <p class="muted" style="font-size:11px;margin-bottom:0;">明るい場所で、営業明細の全体が入るように撮ってください。</p>
+  </section>
+
+  <section class="card">
+    <div id="ocrStatus" class="muted">画像を選択してください</div>
+    <div id="ocrReview"></div>
+    <button class="btn btn-block" id="importBtn" style="display:none;margin-top:10px;font-size:15px;padding:12px;">日報に取り込む</button>
+  </section>
+</main>
+<script type="module" src="js/ocr-import.js"></script>
+</body>
+</html>

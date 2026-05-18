@@ -1,10 +1,11 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v141';
+const CACHE_NAME = CACHE_PREFIX + 'v142';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
   './index.html',
   './input.html',
+  './ocr-import.html',
   './detail.html',
   './calendar.html',
   './review.html',
@@ -29,6 +30,11 @@ const STATIC_FILES = [
   './js/subscription-state.js',
   './js/access-control.js',
   './js/planned-shifts.js',
+  './js/ocr-import.js',
+  './css/ocr-import.css',
+  // 注: js/ocr/ocr-bundle.js (約11MB) は install を重くしないためここに含めない。
+  //     fetch ハンドラ（キャッシュ優先SWR）が cache-miss 時にネットワーク取得＋cache.put するため、
+  //     初回取得後はキャッシュに乗りオフライン可。
   './js/default-config.js',
   './js/firebase-init.js',
   './js/firebase-auth.js',

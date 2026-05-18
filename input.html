@@ -48,9 +48,10 @@ if (location.hostname.includes('-dev')) {
   <section class="card">
     <label class="muted">日報テキストを貼付（Claude/Gemini/フォーマット済み 自動判別）</label>
     <textarea id="rawTextInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:11px;"></textarea>
-    <div style="display:flex;gap:8px;margin-top:6px;">
+    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
       <button class="btn" id="parseBtn">テキストを読み込む</button>
       <button class="btn" id="copyPromptBtn" style="background:var(--muted);">プロンプトをコピー</button>
+      <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;">写真から取り込み</a>
     </div>
   </section>
 
@@ -197,6 +198,36 @@ async function init() {
   }
   document.getElementById('dateInput').value = candidate;
   document.getElementById('dateHint').textContent = `自動判定: ${candidate}（変更可）`;
+
+  // 写真から取り込み（ocr-import.html）由来のデータがあれば取り込む。
+  // 通常の貼付→parse→save の流れは壊さない（データが無ければ従来どおり）。
+  applyOcrImport();
+}
+
+// sessionStorage 経由で渡された OCR 取り込みデータを parsed に流し込む。
+function applyOcrImport() {
+  let raw;
+  try { raw = sessionStorage.getItem('ocrImport'); }
+  catch (e) { return; }
+  if (!raw) return;
+  sessionStorage.removeItem('ocrImport'); // 1回限り
+  let data;
+  try { data = JSON.parse(raw); }
+  catch (e) { return; }
+  if (!data || !Array.isArray(data.trips)) return;
+
+  parsed = {
+    trips: data.trips,
+    rests: Array.isArray(data.rests) ? data.rests : [],
+    returnTime: null,
+    format: 'ocr'
+  };
+  renderPreview();
+
+  const hint = document.getElementById('dateHint');
+  hint.innerHTML = '📷 写真から取り込んだ内容です。確認・修正して保存してください。' +
+    `<br>自動判定: ${document.getElementById('dateInput').value}（変更可）`;
+  hint.style.color = '#1565c0';
 }
 
 const GEMINI_PROMPT = `この画面を開いて　プロンプトをコピーしてgemini上でユーザーアップロードした複数のタクシー日報分析写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。

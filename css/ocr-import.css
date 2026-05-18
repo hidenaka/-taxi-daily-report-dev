@@ -1,0 +1,68 @@
+/* css/ocr-import.css — 写真から取り込み画面 */
+
+#pickLabel {
+  display: inline-block;
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+
+/* === レビュー表（input.html の .preview-table に準拠） === */
+.review-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.review-table th,
+.review-table td {
+  padding: 4px 5px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.review-table th {
+  font-size: 11px;
+  color: var(--muted, #888);
+  white-space: nowrap;
+}
+
+.review-table tr.rest {
+  color: var(--muted, #888);
+  background: #fafafa;
+}
+
+.review-table tr.cancel {
+  color: var(--orange, #e67e22);
+}
+
+.review-table input {
+  width: 100%;
+  border: 1px solid transparent;
+  padding: 3px 4px;
+  font-size: 12px;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.review-table input:focus {
+  outline: none;
+  border-color: #bbb;
+  background: #fff;
+}
+
+/* 低信頼セル: 薄い警告色でハイライト */
+.review-table .low-confidence input {
+  background: #fff4d6;
+  border-color: #f0c040;
+}
+
+.review-hint {
+  font-size: 11px;
+  color: var(--muted, #888);
+  margin: 6px 0 0;
+}
+
+.review-wrap {
+  overflow-x: auto;
+}
