@@ -1,6 +1,6 @@
 // Firestore Storage - Replaces GitHub-based storage
 import { db } from './firebase-init.js';
-import { getUserId, waitForAuth, setUserId as fbSetUserId } from './firebase-auth.js';
+import { getUserId, waitForAuth, setUserId as fbSetUserId, getCurrentUser } from './firebase-auth.js';
 import { DEFAULT_USER_ID, isValidUserId, normalizeUserId } from './userid.js';
 import { getBillingPeriodRange } from './app.js';
 import { DEFAULT_CONFIG } from './default-config.js';
@@ -112,16 +112,38 @@ export async function getConfig() {
   const userId = getUserId();
   const ref = doc(db, 'userConfigs', userId);
   const snap = await getDoc(ref);
+  let userConfig;
   if (!snap.exists()) {
     // 初回: DEFAULT_CONFIG をコピーして保存
-    const defaultConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
-    defaultConfig.payrollMode = 'step_rate';
-    defaultConfig.fixedRate = 0.55;
-    defaultConfig.privacy = { shareDataWithOthers: true };
-    await setDoc(ref, defaultConfig);
-    return defaultConfig;
+    userConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    userConfig.payrollMode = 'step_rate';
+    userConfig.fixedRate = 0.55;
+    userConfig.privacy = { shareDataWithOthers: true };
+    await setDoc(ref, userConfig);
+  } else {
+    userConfig = snap.data();
   }
-  return snap.data();
+  // 会社プロファイルがあればマージ（会社レベル項目は会社優先）
+  const companyProfile = await loadCompanyProfile();
+  const { mergeCompanyConfig } = await import('./company-config.js');
+  return mergeCompanyConfig(companyProfile, userConfig);
+}
+
+// 現ユーザーの companyId から会社プロファイルを読む。無ければ null。
+async function loadCompanyProfile() {
+  try {
+    const uid = (typeof getCurrentUser === 'function' && getCurrentUser())
+      ? getCurrentUser().uid : null;
+    if (!uid) return null;
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    const companyId = userDoc.exists() ? userDoc.data().companyId : null;
+    if (!companyId) return null;
+    const cSnap = await getDoc(doc(db, 'companies', companyId));
+    return cSnap.exists() ? cSnap.data() : null;
+  } catch (e) {
+    console.warn('loadCompanyProfile failed:', e);
+    return null; // 失敗時は会社マージ無し＝従来挙動
+  }
 }
 
 export async function saveConfig(config) {
