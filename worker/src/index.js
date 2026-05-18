@@ -62,6 +62,7 @@ async function handleCreateCheckout(request, env) {
   const body = await request.json().catch(() => ({}));
   const userId = String(body.userId || '').trim();
   const couponCode = String(body.couponCode || '').trim();
+  const agreement = body.agreement || {};
 
   if (!USER_ID_RE.test(userId)) {
     return json(env, { error: 'invalid_user' }, 400);
@@ -92,8 +93,33 @@ async function handleCreateCheckout(request, env) {
     params.discounts = [{ promotion_code: promo.id }];
   }
 
+  // 同意記録 + status=pending を Firestore に書く。クライアントは firestore.rules
+  // で subscriptions を書けないため、サーバー(Worker)が代行する。
+  await recordAgreement(env, userId, agreement);
+
   const session = await stripe(env, 'POST', '/checkout/sessions', params);
   return json(env, { url: session.url });
+}
+
+// 申込時の同意記録と status=pending を subscriptions/{userId} に書き込む。
+// updateMask 付き PATCH なので stripe* 等の既存フィールドは保持される。
+async function recordAgreement(env, userId, agreement) {
+  const token = await getAccessToken(env);
+  const existing = await firestoreGet(env, token, 'subscriptions/' + userId);
+  const createdAt = (existing && existing.fields && existing.fields.createdAt
+    && existing.fields.createdAt.stringValue) || new Date().toISOString();
+  const now = new Date().toISOString();
+  await firestorePatch(env, token, 'subscriptions/' + userId, {
+    status: 'pending',
+    planId: null,
+    agreedTermsAt: now,
+    agreedTermsVersion: (agreement && agreement.termsVersion) || null,
+    agreedPrivacyAt: now,
+    agreedPrivacyVersion: (agreement && agreement.privacyVersion) || null,
+    agreedTokuteishouAt: now,
+    createdAt,
+    updatedAt: now,
+  });
 }
 
 // 退会: Stripe サブスクリプションを「期間末解約」に設定する。
