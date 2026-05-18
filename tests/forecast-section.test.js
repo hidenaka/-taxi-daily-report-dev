@@ -42,13 +42,17 @@ test('aggregateTo15min: total は乗り場の合計で再計算する', () => {
   assert.equal(bins[0].total, 10);
 });
 
-test('aggregateTo15min: ビンは時刻昇順に並ぶ', () => {
+test('aggregateTo15min: 入力スロット順を保つ（日跨ぎ 23時台→0時台でも順序が崩れない）', () => {
+  // 予測スロットは時系列順に並んだ配列。23:50→0:05 のように日付をまたいでも、
+  // 出力ビンは入力の時系列順を保つ（時分だけでソートして 0:00 を先頭に出さない）。
   const slots = [
-    { slotStart: '12:30', stall1: 1, stall2: 0, stall3: 0, stall4: 0, total: 1 },
-    { slotStart: '11:00', stall1: 2, stall2: 0, stall3: 0, stall4: 0, total: 2 },
+    { slotStart: '23:50', stall1: 1, stall2: 0, stall3: 0, stall4: 0, total: 1 },
+    { slotStart: '23:55', stall1: 1, stall2: 0, stall3: 0, stall4: 0, total: 1 },
+    { slotStart: '0:00', stall1: 1, stall2: 0, stall3: 0, stall4: 0, total: 1 },
+    { slotStart: '0:05', stall1: 1, stall2: 0, stall3: 0, stall4: 0, total: 1 },
   ];
   const bins = aggregateTo15min(slots);
-  assert.deepEqual(bins.map(b => b.label), ['11:00-11:15', '12:30-12:45']);
+  assert.deepEqual(bins.map(b => b.label), ['23:45-0:00', '0:00-0:15']);
 });
 
 test('aggregateTo15min: 空配列・undefined は空配列を返す', () => {

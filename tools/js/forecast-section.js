@@ -32,6 +32,9 @@ export function isStale(generatedAt, now, maxMinutes) {
 }
 
 // 5分スロット配列を15分ビンに合算する。
+// 入力 slots は時系列順の配列（予測の発生順）。出力ビンもその順序を保つ
+// ＝ Map の挿入順をそのまま使う。時分だけでソートすると日跨ぎ（23時台→0時台）で
+// 0:00 が先頭に来てしまうため、ソートしない。
 // 出力ビン: { label: "H:MM-H:MM", stall1..stall4, total }（total は乗り場合計で再計算）
 export function aggregateTo15min(slots) {
   const bins = new Map();
@@ -44,7 +47,6 @@ export function aggregateTo15min(slots) {
     for (const k of STALL_KEYS) b[k] += s[k] || 0;
   }
   return [...bins.values()]
-    .sort((a, b) => a.binStart - b.binStart)
     .map(b => ({
       label: `${toHHMM(b.binStart)}-${toHHMM(b.binStart + 15)}`,
       stall1: b.stall1,
