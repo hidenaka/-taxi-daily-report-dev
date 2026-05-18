@@ -201,9 +201,6 @@ export function renderFlightList(container, flights) {
                     : f.reachTier === 'low'  ? '🟡'
                     : f.reachTier === 'none' ? '🔴'
                     : '';
-    const taxiPax = (f.estimatedTaxiPax !== null && f.estimatedTaxiPax !== undefined)
-      ? `タクシー候補~${f.estimatedTaxiPax}`
-      : '';
     const delayBoostBadge = (f.taxiDelayBoost && f.taxiDelayBoost > 1.0)
       ? ` <span class="delay-boost">遅延+深夜</span>`
       : '';
@@ -220,7 +217,6 @@ export function renderFlightList(container, flights) {
       </div>
       <div class="flight-line2">
         <span class="pax">${pax}</span>
-        <span class="taxi-pax">${taxiPax}</span>
         <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span>
       </div>
     `;
