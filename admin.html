@@ -816,15 +816,15 @@ async function loadAdminConfig() {
     document.getElementById('adminPaidLeaveAmount').value = adminCurrentConfig.paidLeaveAmount ?? 39340;
     document.getElementById('adminDisplayName').value = adminCurrentConfig.displayName || '';
     
-    renderAdminRateTable(adminCurrentConfig.rateTable);
+    renderRateTable(adminCurrentConfig.rateTable, 'adminRateTableEditor', 'adminRate1213');
   } catch (e) {
     status.textContent = '✗ 読み込み失敗: ' + e.message;
     status.style.color = '#d32f2f';
   }
 }
 
-function renderAdminRateTable(rt) {
-  const host = document.getElementById('adminRateTableEditor');
+function renderRateTable(rt, hostId, rate1213Id) {
+  const host = document.getElementById(hostId);
   if (!rt) { host.innerHTML = '<p class="muted">レートテーブルデータがありません</p>'; return; }
   host.innerHTML = '';
   for (const shifts of ['11','10','9','8','7','6','5','4']) {
@@ -842,8 +842,21 @@ function renderAdminRateTable(rt) {
     host.appendChild(div);
   }
   const rateDiv = document.createElement('div');
-  rateDiv.innerHTML = `<strong>12-13乗務率</strong> <input class="input" id="adminRate1213" type="number" step="0.01" value="${rt['12_13rate']}" style="width:100px;">`;
+  rateDiv.innerHTML = `<strong>12-13乗務率</strong> <input class="input" id="${rate1213Id}" type="number" step="0.01" value="${rt['12_13rate']}" style="width:100px;">`;
   host.appendChild(rateDiv);
+}
+
+// レートテーブル編集UIから rateTable オブジェクトを組み立てる
+function collectRateTable(hostId, rate1213Id) {
+  const rt = {};
+  document.querySelectorAll(`#${hostId} input[data-shifts]`).forEach(inp => {
+    const s = inp.dataset.shifts; const i = parseInt(inp.dataset.idx); const k = inp.dataset.key;
+    if (!rt[s]) rt[s] = [];
+    if (!rt[s][i]) rt[s][i] = {};
+    rt[s][i][k] = parseFloat(inp.value);
+  });
+  rt['12_13rate'] = parseFloat(document.getElementById(rate1213Id).value);
+  return rt;
 }
 
 document.getElementById('loadAdminConfigBtn').onclick = loadAdminConfig;
@@ -863,14 +876,7 @@ document.getElementById('saveAdminConfigBtn').onclick = async () => {
     adminCurrentConfig.takeHomeTarget = parseInt(document.getElementById('adminTakeHomeTarget').value);
     adminCurrentConfig.paidLeaveAmount = parseInt(document.getElementById('adminPaidLeaveAmount').value);
     
-    if (!adminCurrentConfig.rateTable) adminCurrentConfig.rateTable = {};
-    document.querySelectorAll('#adminRateTableEditor input[data-shifts]').forEach(inp => {
-      const s = inp.dataset.shifts; const i = parseInt(inp.dataset.idx); const k = inp.dataset.key;
-      if (!adminCurrentConfig.rateTable[s]) adminCurrentConfig.rateTable[s] = [];
-      if (!adminCurrentConfig.rateTable[s][i]) adminCurrentConfig.rateTable[s][i] = {};
-      adminCurrentConfig.rateTable[s][i][k] = parseFloat(inp.value);
-    });
-    adminCurrentConfig.rateTable['12_13rate'] = parseFloat(document.getElementById('adminRate1213').value);
+    adminCurrentConfig.rateTable = collectRateTable('adminRateTableEditor', 'adminRate1213');
     adminCurrentConfig.lastUpdated = new Date().toISOString();
     
     await adminSaveConfigForUser(adminTargetUserId, adminCurrentConfig);
