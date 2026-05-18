@@ -1,4 +1,8 @@
-name: Sync Arrivals & Forecast from taxi-ic-helper
+name: Sync taxi data to dev & prod
+
+# taxi-ic-helper が出力する arrivals.json / stall-ensemble.json を、
+# dev リポジトリ(自身)と prod リポジトリの両方の tools/data/ へ反映する。
+# prod への push は既存の PROD_DEPLOY_TOKEN を流用する（新規 PAT 不要）。
 
 on:
   schedule:
@@ -12,47 +16,58 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repo
-        uses: actions/checkout@v4
-        with:
-          path: dest
-
       - name: Checkout taxi-ic-helper (data source)
         uses: actions/checkout@v4
         with:
           repository: hidenaka/taxi-ic-helper
           path: src
 
-      - name: Copy data files
-        run: |
-          mkdir -p dest/tools/data
-          for f in arrivals.json stall-ensemble.json; do
-            cp "src/data/$f" "dest/tools/data/$f"
-          done
+      - name: Checkout dev repo
+        uses: actions/checkout@v4
+        with:
+          path: dev
 
-      - name: Commit if changed
-        working-directory: dest
+      - name: Checkout prod repo
+        uses: actions/checkout@v4
+        with:
+          repository: hidenaka/taxi-daily-report
+          token: ${{ secrets.PROD_DEPLOY_TOKEN }}
+          path: prod
+
+      - name: Publish data to dev & prod
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          FILES="tools/data/arrivals.json tools/data/stall-ensemble.json"
-          for i in 1 2 3; do
-            if [ -z "$(git status --porcelain $FILES)" ]; then
-              echo "No change. Skipping commit."
-              exit 0
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          SRC="$GITHUB_WORKSPACE/src/data"
+          FILES="arrivals.json stall-ensemble.json"
+
+          publish() {
+            local dir="$1"
+            cd "$GITHUB_WORKSPACE/$dir"
+            mkdir -p tools/data
+            for f in $FILES; do cp "$SRC/$f" "tools/data/$f"; done
+            if [ -z "$(git status --porcelain tools/data)" ]; then
+              echo "$dir: no change"
+              return 0
             fi
-            git add $FILES
-            git commit -m "chore(data): sync from taxi-ic-helper $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" || true
-            if git push; then
-              exit 0
-            fi
-            echo "push failed (attempt $i): refresh and re-copy"
-            git fetch origin main
-            git reset --hard origin/main
-            for f in arrivals.json stall-ensemble.json; do
-              cp "../src/data/$f" "tools/data/$f"
+            for i in 1 2 3; do
+              git add tools/data
+              git commit -m "chore(data): sync taxi data $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" || true
+              if git push; then
+                echo "$dir: pushed"
+                return 0
+              fi
+              echo "$dir: push failed (attempt $i), refresh and re-copy"
+              git fetch origin main
+              git reset --hard origin/main
+              for f in $FILES; do cp "$SRC/$f" "tools/data/$f"; done
+              sleep $((i * 3))
             done
-            sleep $((i * 3))
-          done
-          echo "push failed after 3 retries"
-          exit 1
+            echo "$dir: push failed after 3 retries"
+            return 1
+          }
+
+          rc=0
+          publish dev  || rc=1
+          publish prod || rc=1
+          exit $rc

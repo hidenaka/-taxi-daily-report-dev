@@ -4,9 +4,10 @@
 
 const STALL_KEYS = ['stall1', 'stall2', 'stall3', 'stall4'];
 
-// 予測データが古い(=供給が止まっている)とみなす閾値。供給元は数分ごとに更新されるため、
+// 予測データが古い(=供給が止まっている)とみなす閾値。
+// 配信は定期同期(最大で数十分のラグ)なので、通常運用のラグでは誤検知しない 120 分に設定。
 // これより古ければ Mac mini 観測の停止や配信不通の可能性が高い。
-const STALE_MINUTES = 60;
+const STALE_MINUTES = 120;
 
 // "HH:MM" → 分
 function toMinutes(hhmm) {
