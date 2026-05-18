@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-05-17T10:51:00+09:00",
+  "trendFactor": 1.1668484187568156,
+  "trendWindow": {
+    "actual": 64,
+    "expected": 11.200000000000001,
+    "ticks": 12,
+    "source": "track",
+    "k": 4.897196261682243
+  },
+  "baselineSampleCount": 768,
+  "slots": [
+    {
+      "slotStart": "10:55",
+      "slotEnd": "11:00",
+      "flightFactor": 1.3333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:00",
+      "slotEnd": "11:05",
+      "flightFactor": 1.8666666666666667,
+      "stall1": 10,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 5,
+      "total": 15
+    },
+    {
+      "slotStart": "11:05",
+      "slotEnd": "11:10",
+      "flightFactor": 1.8666666666666667,
+      "stall1": 5,
+      "stall2": 5,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 10
+    },
+    {
+      "slotStart": "11:10",
+      "slotEnd": "11:15",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:15",
+      "slotEnd": "11:20",
+      "flightFactor": 1.3333333333333333,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 10,
+      "total": 15
+    },
+    {
+      "slotStart": "11:20",
+      "slotEnd": "11:25",
+      "flightFactor": 1.3333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:25",
+      "slotEnd": "11:30",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:30",
+      "slotEnd": "11:35",
+      "flightFactor": 1.0666666666666667,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:35",
+      "slotEnd": "11:40",
+      "flightFactor": 1.3333333333333333,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 5
+    },
+    {
+      "slotStart": "11:40",
+      "slotEnd": "11:45",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 5
+    },
+    {
+      "slotStart": "11:45",
+      "slotEnd": "11:50",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:50",
+      "slotEnd": "11:55",
+      "flightFactor": 0.3,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "11:55",
+      "slotEnd": "12:00",
+      "flightFactor": 1.0666666666666667,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 5
+    },
+    {
+      "slotStart": "12:00",
+      "slotEnd": "12:05",
+      "flightFactor": 1.6,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 5,
+      "total": 5
+    },
+    {
+      "slotStart": "12:05",
+      "slotEnd": "12:10",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "12:10",
+      "slotEnd": "12:15",
+      "flightFactor": 0.3,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 5
+    },
+    {
+      "slotStart": "12:15",
+      "slotEnd": "12:20",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "12:20",
+      "slotEnd": "12:25",
+      "flightFactor": 1.0666666666666667,
+      "stall1": 5,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 5
+    },
+    {
+      "slotStart": "12:25",
+      "slotEnd": "12:30",
+      "flightFactor": 1.8666666666666667,
+      "stall1": 5,
+      "stall2": 5,
+      "stall3": 5,
+      "stall4": 0,
+      "total": 15
+    },
+    {
+      "slotStart": "12:30",
+      "slotEnd": "12:35",
+      "flightFactor": 0.5333333333333333,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "12:35",
+      "slotEnd": "12:40",
+      "flightFactor": 1.0666666666666667,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "12:40",
+      "slotEnd": "12:45",
+      "flightFactor": 0.3,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 0,
+      "stall4": 0,
+      "total": 0
+    },
+    {
+      "slotStart": "12:45",
+      "slotEnd": "12:50",
+      "flightFactor": 1.8666666666666667,
+      "stall1": 0,
+      "stall2": 0,
+      "stall3": 5,
+      "stall4": 10,
+      "total": 15
+    },
+    {
+      "slotStart": "12:50",
+      "slotEnd": "12:55",
+      "flightFactor": 1.3333333333333333,
+      "stall1": 5,
+      "stall2": 10,
+      "stall3": 5,
+      "stall4": 5,
+      "total": 25
+    }
+  ],
+  "throughputScaleK": 4.897196261682243
+}
