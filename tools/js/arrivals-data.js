@@ -57,14 +57,10 @@ export function filterByTimeWindow(flights, nowDate, pastMinutes = 30, futureMin
 
 const DENSITY_HIGH = 600;
 const DENSITY_MID = 300;
-const TAXI_DENSITY_HIGH = 70;
-const TAXI_DENSITY_MID = 30;
 
-function classifyDensity(value, mode = 'pax') {
-  const high = mode === 'taxi' ? TAXI_DENSITY_HIGH : DENSITY_HIGH;
-  const mid = mode === 'taxi' ? TAXI_DENSITY_MID : DENSITY_MID;
-  if (value >= high) return 'high';
-  if (value >= mid) return 'mid';
+function classifyDensity(value) {
+  if (value >= DENSITY_HIGH) return 'high';
+  if (value >= DENSITY_MID) return 'mid';
   return 'low';
 }
 
@@ -79,7 +75,6 @@ export function aggregateHeatmapClient(flights) {
     if (!bins.has(key)) {
       bins.set(key, {
         bin: key, totalPax: 0, internationalPax: 0,
-        totalTaxiPax: 0,
         flightCount: 0, unknownCount: 0, delayedCount: 0, internationalCount: 0,
         reachNoneCount: 0
       });
@@ -93,14 +88,12 @@ export function aggregateHeatmapClient(flights) {
     }
     if (f.isInternational) b.internationalCount += 1;
     if (f.status === '遅延') b.delayedCount += 1;
-    b.totalTaxiPax += f.estimatedTaxiPax ?? 0;
     if (f.reachTier === 'none') b.reachNoneCount += 1;
   }
   const arr = Array.from(bins.values()).sort((a, b) => a.bin.localeCompare(b.bin));
   return arr.map(b => ({
     ...b,
-    densityTier: classifyDensity(b.totalPax),
-    taxiDensityTier: classifyDensity(b.totalTaxiPax, 'taxi')
+    densityTier: classifyDensity(b.totalPax)
   }));
 }
 
@@ -116,33 +109,14 @@ export function summarizeFlights(flights, opts = {}) {
   const delayedCount = flights.filter(f => f.status === '遅延').length;
   const unknownCount = flights.filter(f => f.estimatedPax === null).length;
   const hourlyAvg = totalFlights > 0 ? Math.round(totalPax / windowHours) : 0;
-  const totalTaxiPax = flights.reduce((s, f) => s + (f.estimatedTaxiPax ?? 0), 0);
   const reachNoneCount = flights.filter(f => f.reachTier === 'none').length;
-  const peakTaxiBin = computePeakTaxiBin(flights);
   return {
     totalPax, internationalPax,
     totalFlights, internationalCount,
     delayedCount, unknownCount, hourlyAvg,
     windowLabel,
-    totalTaxiPax,
-    reachNoneCount,
-    peakTaxiBin
+    reachNoneCount
   };
-}
-
-function computePeakTaxiBin(flights) {
-  const bins = new Map();
-  for (const f of flights) {
-    const t = f.estimatedTime ?? f.scheduledTime;
-    if (!t) continue;
-    const [h, mm] = t.split(':').map(Number);
-    const binMin = mm < 30 ? '00' : '30';
-    const key = `${String(h).padStart(2, '0')}:${binMin}`;
-    bins.set(key, (bins.get(key) ?? 0) + (f.estimatedTaxiPax ?? 0));
-  }
-  let bestKey = null, best = 0;
-  for (const [k, v] of bins) if (v > best) { bestKey = k; best = v; }
-  return { bin: bestKey, value: best };
 }
 
 function timeToMinutes(hhmm) {
@@ -178,8 +152,7 @@ export function detectTopics(flights) {
       scheduledTime: f.scheduledTime,
       estimatedTime: f.estimatedTime ?? f.scheduledTime,
       delayMin,
-      estimatedPax: f.estimatedPax ?? null,
-      estimatedTaxiPax: f.estimatedTaxiPax ?? 0
+      estimatedPax: f.estimatedPax ?? null
     });
   }
   topics.sort((a, b) => timeToMinutes(a.estimatedTime) - timeToMinutes(b.estimatedTime));

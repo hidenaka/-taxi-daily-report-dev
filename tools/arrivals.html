@@ -42,9 +42,6 @@
     .legend-mid  .legend-swatch { background: var(--warn); }
     .legend-high .legend-swatch { background: var(--peak); }
     .legend-intl .legend-swatch { background: var(--intl); }
-    .heatmap-mode-toggle { display: flex; gap: 6px; padding: 6px 12px; }
-    .heatmap-mode-btn { background: #1a1a1d; color: var(--sub); padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; }
-    .heatmap-mode-btn.is-active { background: var(--accent); color: #000; }
     #heatmap .heatmap-row { display: grid; grid-template-columns: 44px 1fr 200px; align-items: center; gap: 8px; padding: 4px 0; }
     .heatmap-time { color: var(--sub); font-variant-numeric: tabular-nums; font-size: 13px; }
     .heatmap-bar-wrap { position: relative; height: 10px; background: rgba(255,255,255,0.04); border-radius: 2px; }
@@ -53,12 +50,6 @@
     .heatmap-row.tier-high .heatmap-bar { background: var(--peak); }
     .heatmap-row.tier-mid .heatmap-bar { background: var(--warn); }
     .heatmap-row.tier-low .heatmap-bar { background: var(--accent); }
-    #heatmap.is-taxi-mode .heatmap-row.tier-low .heatmap-bar  { background: #3a6e3a; }
-    #heatmap.is-taxi-mode .heatmap-row.tier-mid .heatmap-bar  { background: var(--taxi); }
-    #heatmap.is-taxi-mode .heatmap-row.tier-high .heatmap-bar { background: #22c55e; }
-    #heatmap.is-taxi-mode .heatmap-row.tier-mid .tier-badge   { color: var(--taxi); }
-    #heatmap.is-taxi-mode .heatmap-row.tier-high .tier-badge  { color: #22c55e; }
-    #heatmap.is-taxi-mode .heatmap-row.tier-low .tier-badge   { color: #6e9e6e; }
     .heatmap-label { color: var(--fg); font-size: 12px; text-align: right; line-height: 1.5; }
     .tier-badge { font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.06); white-space: nowrap; }
     .tier-high .tier-badge { color: var(--peak); }
@@ -72,8 +63,6 @@
     #summary .summary-delay { color: var(--warn); font-weight: 600; }
     #summary .summary-ok { color: #6ec96e; font-size: 12px; }
     #summary .summary-intl { color: var(--intl); font-size: 12px; }
-    #summary .summary-taxi strong { color: var(--taxi) !important; }
-    #summary .summary-peak { color: var(--accent); font-size: 12px; }
     #summary .summary-reach-none { color: var(--peak); font-size: 12px; font-weight: 600; }
     #topics { background: #181820; border-top: 1px solid #2a2a35; border-bottom: 1px solid #2a2a35; padding: 8px 12px; }
     #topics .topic-header { color: var(--peak); font-weight: 700; font-size: 13px; margin-bottom: 4px; }
@@ -91,7 +80,6 @@
     .flight-line1 .from { flex: 1; }
     .flight-line1 .aircraft { color: var(--sub); font-size: 12px; }
     .flight-line1 .reach { font-size: 13px; margin-left: auto; }
-    .flight-line2 .taxi-pax { color: var(--taxi); font-weight: 600; }
     .delay-boost { color: var(--peak); font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,82,82,0.15); margin-left: 4px; }
     .lightning-boost { color: #ffd84d; font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,216,77,0.15); margin-left: 4px; font-weight: 600; }
     #weather-banner { padding: 10px 12px; font-size: 13px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #2a2a35; }
@@ -160,13 +148,8 @@
 
   <button id="detail-toggle" type="button">▼ 今日の全便を表示</button>
 
-  <div class="heatmap-mode-toggle">
-    <button class="heatmap-mode-btn is-active" data-mode="pax">降客数</button>
-    <button class="heatmap-mode-btn" data-mode="taxi">タクシー候補</button>
-  </div>
-
   <section>
-    <h2 id="heatmap-title">時間帯別 推定降客数（30分単位）</h2>
+    <h2>時間帯別 推定降客数（30分単位）</h2>
     <div id="heatmap"></div>
   </section>
 

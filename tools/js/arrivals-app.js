@@ -9,7 +9,7 @@ const TAB_TERMINALS = {
   'T3': ['T3']
 };
 
-const state = { arrivals: null, tab: 'T1T2', detailMode: false, heatmapMode: 'pax' };
+const state = { arrivals: null, tab: 'T1T2', detailMode: false };
 
 async function refresh() {
   try {
@@ -34,13 +34,7 @@ function render() {
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
   renderTopics(document.getElementById('topics'), topics);
   renderSummary(document.getElementById('summary'), summary);
-  const heatmapEl = document.getElementById('heatmap');
-  heatmapEl.classList.toggle('is-taxi-mode', state.heatmapMode === 'taxi');
-  renderHeatmap(heatmapEl, bins, state.heatmapMode);
-  const title = document.getElementById('heatmap-title');
-  if (title) title.textContent = state.heatmapMode === 'taxi'
-    ? '時間帯別 タクシー候補数（30分単位）'
-    : '時間帯別 推定降客数（30分単位）';
+  renderHeatmap(document.getElementById('heatmap'), bins);
   renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(visible));
   renderUpdatedAt(
     document.getElementById('arrivals-footer'),
@@ -83,23 +77,10 @@ function setupDetailToggle() {
   });
 }
 
-function setupHeatmapModeToggle() {
-  document.querySelectorAll('.heatmap-mode-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.heatmapMode = btn.dataset.mode;
-      document.querySelectorAll('.heatmap-mode-btn').forEach(b => {
-        b.classList.toggle('is-active', b.dataset.mode === state.heatmapMode);
-      });
-      if (state.arrivals) render();
-    });
-  });
-}
-
 renderLegend(document.getElementById('legend'));
 setupTerminalTabs();
 setupReload();
 setupDetailToggle();
-setupHeatmapModeToggle();
 refresh();
 initForecastSection();
 setInterval(refresh, 60000);
