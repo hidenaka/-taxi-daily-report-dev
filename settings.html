@@ -238,6 +238,13 @@ async function initCancelSection() {
       badge.style.color = '#991b1b';
       form.style.display = 'none';
       done.style.display = '';
+    } else if (sub && sub.cancelAtPeriodEnd) {
+      // Stripe側で期間末解約を予約済み(status はまだ trial/active)
+      badge.textContent = '退会手続き済み（現在のご利用期間の終了をもって退会）';
+      badge.style.color = '#991b1b';
+      form.style.display = 'none';
+      done.textContent = '退会手続きを受け付けました。現在のご利用期間の終了日まで、引き続きご利用いただけます。';
+      done.style.display = '';
     } else {
       badge.textContent = `現在の状態: ${formatStatus(sub.status)}`;
       badge.style.color = '#065f46';
@@ -249,16 +256,25 @@ async function initCancelSection() {
 
 document.getElementById('cancelSubBtn').addEventListener('click', async () => {
   const reason = document.getElementById('cancelReasonSel').value || null;
-  if (!confirm('本当に退会しますか?\n退会後はサービスをご利用いただけなくなります。')) return;
+  if (!confirm('退会の手続きをします。よろしいですか?')) return;
   const btn = document.getElementById('cancelSubBtn');
   btn.disabled = true;
   btn.textContent = '処理中...';
   try {
-    await cancelSubscription(reason);
+    const result = await cancelSubscription(reason);
+    const done = document.getElementById('cancelDoneMsg');
+    const badge = document.getElementById('cancelStatusBadge');
     document.getElementById('cancelForm').style.display = 'none';
-    document.getElementById('cancelDoneMsg').style.display = '';
-    document.getElementById('cancelStatusBadge').textContent = '退会済み';
-    document.getElementById('cancelStatusBadge').style.color = '#991b1b';
+    if (result && result.mode === 'stripe') {
+      // 期間末解約: 現在のご利用期間の終了まで利用継続
+      done.textContent = '退会手続きを受け付けました。現在のご利用期間の終了日まで、引き続きご利用いただけます。';
+      badge.textContent = '退会手続き済み（期間末で終了）';
+    } else {
+      done.textContent = '退会処理が完了しました。';
+      badge.textContent = '退会済み';
+    }
+    done.style.display = '';
+    badge.style.color = '#991b1b';
   } catch (e) {
     console.error('cancel error:', e);
     alert('退会処理に失敗しました: ' + (e.message || e));

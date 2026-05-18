@@ -199,11 +199,46 @@ export async function recordAgreementAndSubscribe(versions) {
   return payload;
 }
 
+// ============================================================
+// 課金バックエンド(Cloudflare Worker)連携
+// ============================================================
+
+// dev/prod で Worker を切り替える(firebase-init.js と同じ環境判定)。
+function billingApiBase() {
+  const isDev =
+    location.hostname.includes('-dev') ||
+    location.pathname.includes('-dev') ||
+    location.hostname === 'localhost' ||
+    location.hostname === '127.0.0.1';
+  return isDev
+    ? 'https://cabis-billing-dev.haqei64384.workers.dev'
+    : 'https://cabis-billing.haqei64384.workers.dev';
+}
+
+// 同意を記録(status=pending化)し、Stripe Checkout セッションURLを取得して返す。
+// couponCode を渡すと Worker 側でプロモーションコードを解決し割引を適用する。
+// 呼び出し側は戻り値のURLへ location 遷移する。
+export async function startCheckout(versions, couponCode) {
+  await recordAgreementAndSubscribe(versions); // 同意保存 + status=pending
+  const { userId } = await loadFirebase();
+  const res = await fetch(billingApiBase() + '/create-checkout-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, couponCode: couponCode || '' }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.url) {
+    const err = new Error(data.error || ('http_' + res.status));
+    err.code = data.error || ('http_' + res.status);
+    throw err;
+  }
+  return data.url;
+}
+
 export async function cancelSubscription(reason) {
   const { db, userId, fs } = await loadFirebase();
   const ref = fs.doc(db, 'subscriptions', userId);
   const existing = await fs.getDoc(ref);
-  const now = new Date().toISOString();
   let baseData;
   if (existing.exists()) {
     baseData = existing.data();
@@ -212,6 +247,25 @@ export async function cancelSubscription(reason) {
   } else {
     throw new Error('No subscription to cancel');
   }
+
+  // Stripe サブスクがある場合 → Worker 経由で「期間末解約」を依頼する。
+  // Firestore への status 反映は Stripe Webhook 側で行われる。
+  if (baseData.stripeSubscriptionId) {
+    const res = await fetch(billingApiBase() + '/cancel-subscription', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, reason: reason || '' }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || ('cancel failed: ' + res.status));
+    }
+    clearSubCache(); // 退会直後に古い状態を表示しないようキャッシュ破棄
+    return { mode: 'stripe' };
+  }
+
+  // Stripe サブスク無し(課金導入前からの利用者など) → 直接 Firestore を canceled に。
+  const now = new Date().toISOString();
   await fs.setDoc(ref, {
     ...baseData,
     status: 'canceled',
@@ -221,5 +275,5 @@ export async function cancelSubscription(reason) {
     updatedAt: now,
   });
   clearSubCache(); // 退会直後に古い状態を表示しないようキャッシュ破棄
-  return true;
+  return { mode: 'direct' };
 }

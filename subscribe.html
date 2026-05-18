@@ -3,16 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>ご利用案内 — タクシー日報分析</title>
+<title>有料プランのお申し込み — キャビス</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
 <style>
-  body { padding-bottom: 24px; }
+  body { padding-bottom: 28px; }
   .back-link { display:inline-block; margin-bottom:12px; color:var(--primary); text-decoration:none; font-size:13px; }
-  .guide-card p { font-size:13px; line-height:1.7; }
-  .guide-card .mail { font-size:15px; font-weight:600; }
+  .price-box { padding:14px; background:#fffbe6; border:1px solid #ffe58f; border-radius:8px; margin:6px 0; text-align:center; }
+  .price-amount { font-size:30px; font-weight:800; color:#d97706; }
+  .price-unit { font-size:13px; color:var(--muted); }
+  .price-free { font-size:13px; color:#059669; font-weight:700; }
+  .coupon-row { display:flex; gap:8px; margin-top:8px; }
+  .coupon-row input { flex:1; padding:9px; border:1px solid var(--border); border-radius:6px; font-size:14px; text-transform:uppercase; }
+  .coupon-msg { font-size:12px; margin-top:6px; min-height:16px; }
+  .coupon-msg.ok { color:#059669; }
+  .coupon-msg.ng { color:#dc2626; }
+  .confirm-row { display:flex; padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:13px; line-height:1.6; }
+  .confirm-row:last-child { border-bottom:none; }
+  .confirm-row .ck { width:84px; flex-shrink:0; color:var(--muted); font-weight:600; }
+  .confirm-row .cv { flex:1; }
+  .hl { color:#d97706; font-weight:700; }
+  .agree-row { display:flex; align-items:flex-start; gap:8px; margin:8px 0; padding:9px; background:#f9fafb; border-radius:6px; border:1px solid var(--border); }
+  .agree-row input[type=checkbox] { margin-top:3px; flex-shrink:0; width:18px; height:18px; }
+  .agree-row label { font-size:13px; line-height:1.5; cursor:pointer; }
+  .agree-row a { color: var(--primary); }
+  .submit-btn { width:100%; padding:15px; font-size:15px; font-weight:700; background:var(--primary); color:#fff; border:none; border-radius:8px; margin-top:12px; }
+  .submit-btn:disabled { background:#cbd5e1; cursor:not-allowed; }
+  .status-msg { padding:12px; border-radius:6px; margin:12px 0; font-size:13px; }
+  .status-msg.info { background:#e0f2fe; border:1px solid #7dd3fc; color:#075985; }
+  .status-msg.error { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; }
 </style>
 </head>
 <body>
@@ -31,39 +52,205 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;max-width:520px;margin:0 auto;">
   <a href="index.html" class="back-link">← ホームに戻る</a>
-  <h1>ご利用案内</h1>
-  <p class="muted" style="margin-bottom:14px;">
-    タクシー日報分析は、労働組合・法人を通じてご提供しているサービスです。
-    個人で直接お申し込みいただく必要はありません。
+  <h1>有料プランのお申し込み</h1>
+  <p class="muted" style="margin-bottom:14px;font-size:13px;">
+    キャビスの全機能（日報・乗務タイマー・IC判定・需要予測）を、初月無料でお試しいただけます。
   </p>
 
-  <section class="card guide-card">
-    <h3>すでに組合・法人から案内を受けている方</h3>
-    <p>
-      配布された<strong>招待リンク</strong>を開くと、登録が完了しご利用いただけます。
-      リンクが見当たらない、または登録がうまくいかない場合は、
-      お使いの組合・法人のご担当者にご確認ください。
+  <div id="pendingNote" class="status-msg info" style="display:none;">
+    前回のお申し込み手続きが完了していません。下記より、もう一度お進みください。
+  </div>
+
+  <!-- 割引コード -->
+  <section class="card">
+    <h3>割引コード（任意）</h3>
+    <p class="muted" style="font-size:12px;">
+      提携組合から割引コードを受け取った方は入力してください。お持ちでない方は空欄のままで進めます。
     </p>
+    <div class="coupon-row">
+      <input type="text" id="couponInput" placeholder="例: KUMIAI" autocapitalize="characters" autocomplete="off">
+      <button class="btn" id="applyCouponBtn" style="background:var(--primary);color:#fff;">適用</button>
+    </div>
+    <div class="coupon-msg" id="couponMsg"></div>
   </section>
 
-  <section class="card guide-card">
-    <h3>導入をご検討の組合・法人の方</h3>
-    <p>組合員・所属ドライバー向けの導入については、メールでお問い合わせください。</p>
-    <p class="mail"><a href="mailto:cabis@taxicabis.com">cabis@taxicabis.com</a></p>
+  <!-- 月額料金 -->
+  <section class="card">
+    <h3>月額料金</h3>
+    <div class="price-box">
+      <div class="price-free">初月無料（30日間）</div>
+      <div style="margin-top:6px;">
+        <span class="price-amount" id="priceAmount">700</span><span class="price-unit"> 円（税込）／月</span>
+      </div>
+      <div class="muted" id="planLabel" style="font-size:12px;margin-top:4px;">通常プラン</div>
+    </div>
   </section>
 
-  <section class="card guide-card">
-    <h3>ご利用にあたって</h3>
-    <p>
-      <a href="legal/terms.html" target="_blank" rel="noopener">利用規約</a>
-      ／
-      <a href="legal/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>
-    </p>
+  <!-- お申し込み内容の確認（特商法・定期購入規制の必須表示） -->
+  <section class="card" id="confirmCard">
+    <h3>お申し込み内容の確認</h3>
+    <div>
+      <div class="confirm-row"><div class="ck">提供内容</div><div class="cv">キャビス 有料プラン（日報・乗務タイマー・IC判定・需要予測の全機能）</div></div>
+      <div class="confirm-row"><div class="ck">月額料金</div><div class="cv"><span class="hl" id="cvPrice">700円</span>（税込）</div></div>
+      <div class="confirm-row"><div class="ck">初月無料</div><div class="cv">お申し込みから<span class="hl">30日間は無料</span>。無料期間の終了後、<span id="cvPrice2">月額700円</span>の自動課金が始まります。</div></div>
+      <div class="confirm-row"><div class="ck">支払方法</div><div class="cv">クレジットカード・月額前払い（Stripe決済）</div></div>
+      <div class="confirm-row"><div class="ck">継続課金</div><div class="cv">これは毎月自動で課金が継続するサブスクリプションです。</div></div>
+      <div class="confirm-row"><div class="ck">課金日</div><div class="cv">無料期間終了日：<span id="cvTrialEnd">—</span><br>初回課金日：<span id="cvFirstCharge">—</span><br>以降、毎月同日ごろに自動課金されます。</div></div>
+      <div class="confirm-row"><div class="ck">契約期間</div><div class="cv">最低契約期間はありません。解約するまで自動更新されます。</div></div>
+      <div class="confirm-row"><div class="ck">解約方法</div><div class="cv">アプリ内の「設定」画面からいつでも解約できます。</div></div>
+      <div class="confirm-row"><div class="ck">解約締切</div><div class="cv">次回課金日の前日までに解約すれば、次回の課金は発生しません（無料期間中の解約も料金はかかりません）。</div></div>
+      <div class="confirm-row"><div class="ck">返金</div><div class="cv">サービスの性質上、決済後の返金・日割り返金は行いません。</div></div>
+      <div class="confirm-row"><div class="ck">関連文書</div><div class="cv">
+        <a href="legal/terms.html" target="_blank" rel="noopener">利用規約</a> ／
+        <a href="legal/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a> ／
+        <a href="legal/tokuteishou.html" target="_blank" rel="noopener">特定商取引法に基づく表記</a>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ご同意 + 申込確定 -->
+  <section class="card">
+    <h3>ご確認・ご同意</h3>
+    <p class="muted" style="font-size:11px;margin-bottom:8px;">下記すべてをご確認のうえ、チェックを入れてください。</p>
+    <div class="agree-row">
+      <input type="checkbox" id="agreeTerms">
+      <label for="agreeTerms"><a href="legal/terms.html" target="_blank" rel="noopener">利用規約</a>を読み、内容に同意します</label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreePrivacy">
+      <label for="agreePrivacy"><a href="legal/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>を読み、個人情報の取扱いに同意します</label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreeTokuteishou">
+      <label for="agreeTokuteishou"><a href="legal/tokuteishou.html" target="_blank" rel="noopener">特定商取引法に基づく表記</a>を確認しました</label>
+    </div>
+    <div class="agree-row">
+      <input type="checkbox" id="agreeAll">
+      <label for="agreeAll">初月無料期間の終了後、上記の月額料金が自動で課金されることを理解して申し込みます</label>
+    </div>
+    <button class="submit-btn" id="submitBtn" disabled>申し込む（初月無料・以降 月額700円）</button>
+    <div id="statusMsg"></div>
+    <p class="muted" style="font-size:11px;margin-top:8px;">「申し込む」を押すと、クレジットカード情報の入力画面（Stripe）に移動します。</p>
+  </section>
+
+  <!-- 既に申込済み -->
+  <section class="card" id="alreadySection" style="display:none;">
+    <h3>お申し込み状況</h3>
+    <div id="alreadyMsg" class="status-msg info"></div>
+    <a href="index.html" class="btn" style="display:block;text-align:center;text-decoration:none;background:var(--primary);color:#fff;">ホームへ戻る</a>
   </section>
 </main>
 <script type="module">
 import { renderLegalFooter } from './js/legal-footer.js';
+import { getSubscription, startCheckout, isPaying, formatStatus } from './js/subscription-state.js';
+
 renderLegalFooter();
+
+// 法務文書の現行バージョン（同意記録に保存される）
+const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };
+
+// 既知のプロモーションコード → 月額(円)。最終的な割引判定は Stripe（Worker）が行う。
+const COUPON_PRICES = { '': 700, KUMIAI: 500, KEIHO: 300 };
+const COUPON_LABELS = { '': '通常プラン', KUMIAI: '提携組合 紹介プログラム価格', KEIHO: '恵豊組合 協力価格' };
+
+let appliedCoupon = '';
+
+function fmtDate(d) {
+  return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0')
+    + '/' + String(d.getDate()).padStart(2, '0');
+}
+
+function renderPrice() {
+  const price = COUPON_PRICES[appliedCoupon] ?? 700;
+  document.getElementById('priceAmount').textContent = price;
+  document.getElementById('planLabel').textContent = COUPON_LABELS[appliedCoupon] || '通常プラン';
+  document.getElementById('cvPrice').textContent = price + '円';
+  document.getElementById('cvPrice2').textContent = '月額' + price + '円';
+  document.getElementById('submitBtn').textContent = `申し込む（初月無料・以降 月額${price}円）`;
+}
+
+function renderDates() {
+  const end = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+  document.getElementById('cvTrialEnd').textContent = fmtDate(end);
+  document.getElementById('cvFirstCharge').textContent = fmtDate(end);
+}
+
+// 割引コード適用
+document.getElementById('applyCouponBtn').addEventListener('click', () => {
+  const raw = document.getElementById('couponInput').value.trim().toUpperCase();
+  document.getElementById('couponInput').value = raw;
+  const msg = document.getElementById('couponMsg');
+  if (!raw) {
+    appliedCoupon = '';
+    msg.textContent = '通常プラン（700円）で進めます。';
+    msg.className = 'coupon-msg';
+  } else if (COUPON_PRICES[raw] !== undefined) {
+    appliedCoupon = raw;
+    msg.textContent = `コードを適用しました：${COUPON_LABELS[raw]}（月額${COUPON_PRICES[raw]}円）`;
+    msg.className = 'coupon-msg ok';
+  } else {
+    appliedCoupon = '';
+    msg.textContent = 'このコードは確認できませんでした。コードをお確かめください。';
+    msg.className = 'coupon-msg ng';
+  }
+  renderPrice();
+});
+
+// 同意チェック
+const checkboxes = ['agreeTerms', 'agreePrivacy', 'agreeTokuteishou', 'agreeAll']
+  .map((id) => document.getElementById(id));
+const submitBtn = document.getElementById('submitBtn');
+const statusMsg = document.getElementById('statusMsg');
+
+function updateSubmitState() {
+  submitBtn.disabled = !checkboxes.every((cb) => cb.checked);
+}
+checkboxes.forEach((cb) => cb.addEventListener('change', updateSubmitState));
+
+function showStatus(text, kind) {
+  statusMsg.innerHTML = `<div class="status-msg ${kind}">${text}</div>`;
+}
+
+submitBtn.addEventListener('click', async () => {
+  if (!checkboxes.every((cb) => cb.checked)) return;
+  submitBtn.disabled = true;
+  showStatus('決済ページを準備しています…', 'info');
+  try {
+    const url = await startCheckout(AGREEMENT_VERSIONS, appliedCoupon);
+    showStatus('決済ページに移動します…', 'info');
+    location.href = url;
+  } catch (e) {
+    console.error('checkout error:', e);
+    let text = 'エラーが発生しました。通信環境を確認のうえ、時間をおいて再度お試しください。';
+    if (e.code === 'invalid_coupon') {
+      text = '割引コードが無効です。コードをご確認のうえ、もう一度お試しください。';
+    }
+    showStatus(text, 'error');
+    submitBtn.disabled = false;
+  }
+});
+
+async function init() {
+  renderPrice();
+  renderDates();
+  try {
+    const sub = await getSubscription();
+    if (sub && isPaying(sub)) {
+      // 既にご利用中 → 申込フォームを隠して状態のみ表示
+      document.querySelectorAll('main > section.card').forEach((s) => {
+        if (s.id !== 'alreadySection') s.style.display = 'none';
+      });
+      document.getElementById('alreadySection').style.display = '';
+      document.getElementById('alreadyMsg').textContent =
+        `すでにご利用中です（状態：${formatStatus(sub.status)}）。`;
+    } else if (sub && sub.status === 'pending') {
+      document.getElementById('pendingNote').style.display = '';
+    }
+  } catch (e) {
+    console.error('subscription load error:', e);
+  }
+}
+init();
 </script>
 </body>
 </html>

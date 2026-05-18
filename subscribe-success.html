@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>お申し込み完了 — キャビス</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  body { padding-bottom: 24px; }
+  .hero { text-align:center; padding:24px 14px 4px; }
+  .hero .mark { font-size:46px; }
+  .hero h1 { margin:8px 0 4px; }
+</style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+</script>
+<main style="padding:14px;max-width:520px;margin:0 auto;">
+  <div class="hero">
+    <div class="mark">🎉</div>
+    <h1>お申し込みありがとうございます</h1>
+    <p class="muted">お申し込み手続きが完了しました。</p>
+  </div>
+  <section class="card">
+    <h3>ご利用開始</h3>
+    <p style="font-size:13px;line-height:1.7;">
+      初月は無料です。30日間の無料期間が終了したあと、ご登録のクレジットカードに月額料金が課金されます。
+      解約はいつでもアプリ内の「設定」画面から手続きできます。
+    </p>
+    <div id="statusLine" class="muted" style="font-size:12px;margin-top:8px;">ご利用状態を確認しています…</div>
+  </section>
+  <a href="index.html" class="btn" style="display:block;text-align:center;text-decoration:none;background:var(--primary);color:#fff;">ホームへ進む</a>
+</main>
+<script type="module">
+import { renderLegalFooter } from './js/legal-footer.js';
+import { getSubscription, formatStatus, isPaying } from './js/subscription-state.js';
+import { clearSubCache } from './js/sub-cache.js';
+renderLegalFooter();
+
+// Stripe Webhook による Firestore 反映には数秒のラグがあるため、数回ポーリングする。
+async function poll() {
+  const line = document.getElementById('statusLine');
+  for (let i = 0; i < 4; i++) {
+    clearSubCache();
+    try {
+      const sub = await getSubscription();
+      if (sub && isPaying(sub)) {
+        line.textContent = 'ご利用状態：' + formatStatus(sub.status);
+        return;
+      }
+    } catch (e) { /* リトライ */ }
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  line.textContent = 'ご利用状態の反映に少し時間がかかっています。ホーム画面で自動的に反映されます。';
+}
+poll();
+</script>
+</body>
+</html>
