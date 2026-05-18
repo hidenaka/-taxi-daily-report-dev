@@ -93,7 +93,7 @@ if (location.hostname.includes('-dev')) {
     <div class="price-box">
       <div class="price-free">初月無料（30日間）</div>
       <div style="margin-top:6px;">
-        <span class="price-amount" id="priceAmount">700</span><span class="price-unit"> 円（税込）／月</span>
+        <span class="price-amount" id="priceAmount">1,000</span><span class="price-unit"> 円（税込）／月</span>
       </div>
       <div class="muted" id="planLabel" style="font-size:12px;margin-top:4px;">通常プラン</div>
     </div>
@@ -104,8 +104,8 @@ if (location.hostname.includes('-dev')) {
     <h3>お申し込み内容の確認</h3>
     <div>
       <div class="confirm-row"><div class="ck">提供内容</div><div class="cv">キャビス 有料プラン（日報・乗務タイマー・IC判定・需要予測の全機能）</div></div>
-      <div class="confirm-row"><div class="ck">月額料金</div><div class="cv"><span class="hl" id="cvPrice">700円</span>（税込）</div></div>
-      <div class="confirm-row"><div class="ck">初月無料</div><div class="cv">お申し込みから<span class="hl">30日間は無料</span>。無料期間の終了後、<span id="cvPrice2">月額700円</span>の自動課金が始まります。</div></div>
+      <div class="confirm-row"><div class="ck">月額料金</div><div class="cv"><span class="hl" id="cvPrice">1,000円</span>（税込）</div></div>
+      <div class="confirm-row"><div class="ck">初月無料</div><div class="cv">お申し込みから<span class="hl">30日間は無料</span>。無料期間の終了後、<span id="cvPrice2">月額1,000円</span>の自動課金が始まります。</div></div>
       <div class="confirm-row"><div class="ck">支払方法</div><div class="cv">クレジットカード・月額前払い（Stripe決済）</div></div>
       <div class="confirm-row"><div class="ck">継続課金</div><div class="cv">これは毎月自動で課金が継続するサブスクリプションです。</div></div>
       <div class="confirm-row"><div class="ck">課金日</div><div class="cv">無料期間終了日：<span id="cvTrialEnd">—</span><br>初回課金日：<span id="cvFirstCharge">—</span><br>以降、毎月同日ごろに自動課金されます。</div></div>
@@ -141,7 +141,7 @@ if (location.hostname.includes('-dev')) {
       <input type="checkbox" id="agreeAll">
       <label for="agreeAll">初月無料期間の終了後、上記の月額料金が自動で課金されることを理解して申し込みます</label>
     </div>
-    <button class="submit-btn" id="submitBtn" disabled>申し込む（初月無料・以降 月額700円）</button>
+    <button class="submit-btn" id="submitBtn" disabled>申し込む（初月無料・以降 月額1,000円）</button>
     <div id="statusMsg"></div>
     <p class="muted" style="font-size:11px;margin-top:8px;">「申し込む」を押すと、クレジットカード情報の入力画面（Stripe）に移動します。</p>
   </section>
@@ -164,7 +164,7 @@ renderLegalFooter();
 const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };
 
 // 既知のプロモーションコード → 月額(円)。最終的な割引判定は Stripe（Worker）が行う。
-const COUPON_PRICES = { '': 700, KUMIAI: 500, KEIHO: 300 };
+const COUPON_PRICES = { '': 1000, KUMIAI: 700, KEIHO: 500 };
 const COUPON_LABELS = { '': '通常プラン', KUMIAI: '提携組合 紹介プログラム価格', KEIHO: '恵豊組合 協力価格' };
 
 let appliedCoupon = '';
@@ -175,12 +175,13 @@ function fmtDate(d) {
 }
 
 function renderPrice() {
-  const price = COUPON_PRICES[appliedCoupon] ?? 700;
-  document.getElementById('priceAmount').textContent = price;
+  const price = COUPON_PRICES[appliedCoupon] ?? 1000;
+  const yen = price.toLocaleString('ja-JP');
+  document.getElementById('priceAmount').textContent = yen;
   document.getElementById('planLabel').textContent = COUPON_LABELS[appliedCoupon] || '通常プラン';
-  document.getElementById('cvPrice').textContent = price + '円';
-  document.getElementById('cvPrice2').textContent = '月額' + price + '円';
-  document.getElementById('submitBtn').textContent = `申し込む（初月無料・以降 月額${price}円）`;
+  document.getElementById('cvPrice').textContent = yen + '円';
+  document.getElementById('cvPrice2').textContent = '月額' + yen + '円';
+  document.getElementById('submitBtn').textContent = `申し込む（初月無料・以降 月額${yen}円）`;
 }
 
 function renderDates() {
@@ -196,7 +197,7 @@ document.getElementById('applyCouponBtn').addEventListener('click', () => {
   const msg = document.getElementById('couponMsg');
   if (!raw) {
     appliedCoupon = '';
-    msg.textContent = '通常プラン（700円）で進めます。';
+    msg.textContent = '通常プラン（1,000円）で進めます。';
     msg.className = 'coupon-msg';
   } else if (COUPON_PRICES[raw] !== undefined) {
     appliedCoupon = raw;

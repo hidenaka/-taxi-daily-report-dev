@@ -15,7 +15,7 @@ compatibility_date = "2025-01-01"
 # --- dev（既定）: Stripe テストモード × Firebase dev プロジェクト ---
 [vars]
 FIREBASE_PROJECT_ID = "taxi-dailydata-dev"
-STRIPE_PRICE_ID = "price_1TYPWqGtKUEpwNTvLJq2HwQ6"
+STRIPE_PRICE_ID = "price_1TYYNKGtKUEpwNTvjuqwpjEw"
 APP_BASE_URL = "https://hidenaka.github.io/-taxi-daily-report-dev"
 ALLOWED_ORIGIN = "https://hidenaka.github.io"
 

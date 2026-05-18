@@ -268,6 +268,8 @@ async function stripe(env, method, path, params) {
     headers: {
       Authorization: 'Bearer ' + env.STRIPE_SECRET_KEY,
       'Content-Type': 'application/x-www-form-urlencoded',
+      // API版を固定（アカウント既定の最新版はパラメータ仕様が変わりうるため）
+      'Stripe-Version': '2024-06-20',
     },
   };
   if (params) opts.body = encodeForm(params);
