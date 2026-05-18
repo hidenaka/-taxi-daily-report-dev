@@ -11,6 +11,10 @@ const TAB_TERMINALS = {
 
 const state = { arrivals: null, tab: 'T1T2', detailMode: false };
 
+// 予測セクションの再描画関数。initForecastSection 解決後に差し替わる。
+// それまでは何もしない（更新ボタンが早く押されてもエラーにしない）。
+let refreshForecast = () => {};
+
 async function refresh() {
   try {
     state.arrivals = await loadArrivals();
@@ -65,7 +69,10 @@ function setupTerminalTabs() {
 
 function setupReload() {
   const btn = document.getElementById('arrivals-reload');
-  if (btn) btn.addEventListener('click', refresh);
+  if (btn) btn.addEventListener('click', () => {
+    refresh();
+    refreshForecast();
+  });
 }
 
 function setupDetailToggle() {
@@ -82,5 +89,5 @@ setupTerminalTabs();
 setupReload();
 setupDetailToggle();
 refresh();
-initForecastSection();
-setInterval(refresh, 60000);
+initForecastSection().then(fn => { if (fn) refreshForecast = fn; });
+setInterval(() => { refresh(); refreshForecast(); }, 60000);

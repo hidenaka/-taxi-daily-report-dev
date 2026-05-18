@@ -152,6 +152,8 @@ async function renderForecastMode(metaEl, tableEl) {
 
 // 到着便ページの予測セクションを初期化・描画する。
 // プルダウンで実績（既定）／予測を切り替える。選択は localStorage に保存。
+// 戻り値: 再描画関数（更新ボタンから最新データを取り直すのに使う）。
+// 必要な要素が無いときは undefined。
 export async function initForecastSection() {
   const metaEl = document.getElementById('forecast-meta');
   const tableEl = document.getElementById('forecast-table-wrap');
@@ -181,4 +183,5 @@ export async function initForecastSection() {
   });
 
   await render();
+  return render;
 }
