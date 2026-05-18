@@ -1,10 +1,9 @@
-const CACHE_NAME = 'taxi-daily-v150';
+const CACHE_NAME = 'taxi-daily-v145';
 const STATIC_FILES = [
   './',
   './index.html',
   './input.html',
   './ocr-import.html',
-  './ocr-worker.html',
   './detail.html',
   './calendar.html',
   './review.html',
@@ -12,9 +11,6 @@ const STATIC_FILES = [
   './settings.html',
   './bulk-input.html',
   './subscribe.html',
-  './subscribe-success.html',
-  './subscribe-cancel.html',
-  './login.html',
   './tools.html',
   './tools/index.html',
   './tools/ic.html',
@@ -33,11 +29,10 @@ const STATIC_FILES = [
   './js/access-control.js',
   './js/planned-shifts.js',
   './js/ocr-import.js',
-  './js/ocr-worker.js',
   './css/ocr-import.css',
-  // 注: js/ocr/ocr-bundle.js は ocr-import.js が動的importで遅延ロードするため、
-  //     install を軽く保つ目的でここには含めない（実行時キャッシュに任せる）。
-  //     .js は fetch ハンドラがネットワーク優先＋取得時キャッシュするため初回取得後はオフライン可。
+  // 注: OCR本体はサーバー（Cloud Function）で実行する。端末側はFirebase認証で
+  //     トークンを取り画像をPOSTするのみ。firebase-init.js 等は fetch ハンドラの
+  //     実行時キャッシュ（SWR）で初回取得後はオフラインでも読める。
   './legal/tokuteishou.html',
   './legal/terms.html',
   './legal/privacy.html',

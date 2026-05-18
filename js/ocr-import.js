@@ -1,19 +1,15 @@
 // js/ocr-import.js
-// 写真取り込み画面のUIグルー。画像選択 → ブレ判定 → 前処理＋PP-OCR →
-// 編集レビュー表表示 →「日報に取り込む」で input.html へ引き渡し。
-// 認識ロジックは js/ocr/ocr-bundle.js（Phase 1B-1）に委譲する。
+// 写真取り込み画面のUIグルー。営業明細の写真を選択 → Cloud Function に送信 →
+// サーバー側でOCR → 返ってきた日報データ（trips/rests）を編集レビュー表に表示 →
+// 「日報に取り込む」で input.html へ引き渡す。
 //
-// バンドル（OCRエンジン）はサイズが大きいため、ページ表示時には読み込まない。
-// 静的importにするとページを開いた瞬間にバンドル全体がロード・初期化され、
-// iOS Safari がメモリ不足でクラッシュする。画像が選ばれた時に初めて
-// 動的import()で読み込み、結果はモジュールキャッシュで使い回す。
-let ocrModulePromise = null;
-function loadOcr() {
-  if (!ocrModulePromise) {
-    ocrModulePromise = import("./ocr/ocr-bundle.js");
-  }
-  return ocrModulePromise;
-}
+// OCR本体は Firebase Cloud Function（サーバー）で実行する。画像はサーバー上で
+// メモリ処理のみ・ディスク非保存・ログ非出力。端末内OCRは廃止済み。
+import { auth } from "./firebase-init.js";
+
+// OCR関数のURL。auth と同じ Firebase プロジェクト（dev/prod）を自動で指す。
+const FUNCTION_URL =
+  "https://us-central1-" + auth.app.options.projectId + ".cloudfunctions.net/ocrReportFn";
 
 const input = document.getElementById("imageInput");
 const statusEl = document.getElementById("ocrStatus");
@@ -23,60 +19,27 @@ const importBtn = document.getElementById("importBtn");
 // 現在レビュー中のデータ（編集はこのオブジェクトに即時反映される）。
 let reviewData = null;
 
-// ── 解析の進捗ダイアグ ───────────────────────────────────────────
-// iOS Safari はメモリ不足だとタブごとクラッシュし JS エラーを捕捉できない。
-// そこで各処理段階を localStorage に逐次保存し、リロード後に「どこまで
-// 進んで落ちたか」を確認できるようにする（クラッシュ箇所の特定用）。
-const DIAG_KEY = "ocrDiag";
-const STAGE_LABEL = {
-  bundle: "解析エンジンを読み込み中…",
-  blur: "画像を確認中…",
-  preprocess: "画像を前処理中…",
-  "model-load": "OCRモデルを読み込み中…（初回はダウンロードに時間がかかります）",
-  recognize: "文字を検出・認識中…",
-  reconstruct: "表を組み立て中…",
-};
-function diag(stage, extra) {
-  try {
-    localStorage.setItem(
-      DIAG_KEY,
-      JSON.stringify({ stage, extra: extra || null, at: Date.now() })
-    );
-  } catch (_) {}
-  if (STAGE_LABEL[stage]) {
-    statusEl.textContent = STAGE_LABEL[stage] + (extra ? ` (${extra})` : "");
-  }
-}
-
-// 前回の解析が完了しなかった（＝クラッシュした可能性）場合、停止段階を表示する。
-(function showPriorDiag() {
-  try {
-    const raw = localStorage.getItem(DIAG_KEY);
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    if (!d || d.stage === "done") return;
-    const stageText =
-      (STAGE_LABEL[d.stage] || d.stage) + (d.extra ? ` (${d.extra})` : "");
-    const msg =
-      d.stage === "error"
-        ? "前回はエラーで停止しました：" + (d.extra || "")
-        : "前回の解析は「" + stageText + "」の段階で中断しました。";
-    statusEl.innerHTML =
-      '<div style="background:#fff3e0;border:1px solid #ffb74d;padding:8px 10px;' +
-      'border-radius:6px;font-size:12px;line-height:1.5;">' +
-      msg +
-      "<br>もう一度「画像を選ぶ」から試してください。</div>";
-  } catch (_) {}
-})();
-
-// 選択ファイルを canvas に描画する。
-async function fileToCanvas(file) {
+// 選択ファイルを JPEG Blob に変換する。
+// iOSのHEIC等もブラウザでデコード→canvas→JPEG再エンコードで形式を統一する。
+// 長辺は4000pxに制限（iOSのcanvas上限内。サーバーは内部で3200pxへ縮小する）。
+async function fileToJpegBlob(file) {
   const bitmap = await createImageBitmap(file);
+  const MAX = 4000;
+  const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
-  canvas.width = bitmap.width;
-  canvas.height = bitmap.height;
-  canvas.getContext("2d").drawImage(bitmap, 0, 0);
-  return canvas;
+  canvas.width = w;
+  canvas.height = h;
+  canvas.getContext("2d").drawImage(bitmap, 0, 0, w, h);
+  if (bitmap.close) bitmap.close();
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("画像の変換に失敗しました"))),
+      "image/jpeg",
+      0.92
+    );
+  });
 }
 
 // trip / rest の編集可能セル（td）を作る。
@@ -103,7 +66,7 @@ function cell(obj, key, opts) {
   return td;
 }
 
-// rowsToDrive の結果（trips/rests）を編集可能なレビュー表として描画する。
+// trips/rests を編集可能なレビュー表として描画する。
 // 1行 = 1 trip。休憩行も時系列に混ぜ、種別が分かるように表示する。
 function renderReview(trips, rests) {
   reviewEl.innerHTML = "";
@@ -194,57 +157,6 @@ importBtn.addEventListener("click", () => {
   location.href = "input.html";
 });
 
-// 帯画像1枚を、使い捨てiframe（ocr-worker.html）でOCRする。
-// iframe生成 → 準備完了を待つ → 帯画像を転送 → box受領 → iframe破棄。
-// iframeを破棄すると realm ごと解放されるため、onnxruntime のWASMメモリが
-// 帯をまたいで蓄積しない（iOS Safari の連続処理クラッシュ対策の核心）。
-function ocrStripInIframe(bitmap, index, total) {
-  return new Promise((resolve, reject) => {
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("aria-hidden", "true");
-    iframe.style.cssText =
-      "position:absolute;left:-9999px;width:0;height:0;border:0;visibility:hidden;";
-    let settled = false;
-
-    const cleanup = () => {
-      window.removeEventListener("message", onMessage);
-      clearTimeout(timer);
-      iframe.remove(); // realm ごと破棄 → onnxruntime のWASMメモリを解放
-    };
-    const onMessage = (ev) => {
-      if (ev.origin !== location.origin || ev.source !== iframe.contentWindow) return;
-      const m = ev.data || {};
-      if (m.type === "ocr-ready") {
-        // 帯画像を転送（transfer）。親側の bitmap は neuter され二重保持を避ける。
-        iframe.contentWindow.postMessage(
-          { type: "ocr-strip", index, bitmap },
-          location.origin,
-          [bitmap]
-        );
-      } else if (m.type === "ocr-result" && m.index === index) {
-        settled = true;
-        cleanup();
-        resolve(m.boxes || []);
-      } else if (m.type === "ocr-error" && m.index === index) {
-        settled = true;
-        cleanup();
-        reject(new Error(m.error || "OCRに失敗しました"));
-      }
-    };
-    // 帯のOCRが時間内に終わらない（iframeのクラッシュ等）場合の保険。
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      reject(new Error(`文字認識 ${index + 1}/${total} が時間内に終わりませんでした`));
-    }, 180000);
-
-    window.addEventListener("message", onMessage);
-    iframe.src = "ocr-worker.html";
-    document.body.appendChild(iframe);
-  });
-}
-
 input.addEventListener("change", async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -252,57 +164,37 @@ input.addEventListener("change", async (e) => {
   reviewEl.innerHTML = "";
   importBtn.style.display = "none";
   reviewData = null;
-  window.__ocrImportResult = null;
-  window.__ocrImportError = null;
-  window.__ocrImportDone = false;
 
   try {
-    diag("bundle");
-    const ocr = await loadOcr();
-
-    diag("blur");
-    const rawCanvas = await fileToCanvas(file);
-    const blur = await ocr.checkBlur(rawCanvas);
-    if (blur.blurry) {
-      diag("done");
-      statusEl.textContent = "写真が不鮮明です。明るい場所で、営業明細の全体が入るように撮り直してください。";
+    statusEl.textContent = "ログインを確認中…";
+    await auth.authStateReady();
+    const user = auth.currentUser;
+    if (!user) {
+      statusEl.textContent = "ログインが必要です。ログインしてから写真を選んでください。";
       return;
     }
 
-    diag("preprocess");
-    const pre = await ocr.preprocessImage(rawCanvas);
-    rawCanvas.width = 0; // 生画像canvasを解放
-    rawCanvas.height = 0;
-    const preW = pre.width;
-    const preH = pre.height;
-    // 前処理済み画像はBlob（PNG・圧縮）で保持し、巨大なcanvas（数十MB）は
-    // すぐ解放する。親ページのメモリを軽く保ち、iframe側に余地を残すため。
-    const preBlob = await new Promise((res) => pre.toBlob(res, "image/png"));
-    pre.width = 0;
-    pre.height = 0;
-    if (!preBlob) throw new Error("画像の前処理に失敗しました");
+    statusEl.textContent = "画像を準備中…";
+    const blob = await fileToJpegBlob(file);
+    const token = await user.getIdToken();
 
-    // 画像を縦の帯に分割し、帯ごとに使い捨てiframeでOCRする。
-    // 各帯のOCRが終わるたびにiframeを破棄し、メモリを帯ごとにリセットする。
-    const strips = ocr.planStrips(preH);
-    const stripResults = [];
-    for (let i = 0; i < strips.length; i++) {
-      diag("recognize", `${i + 1}/${strips.length}`);
-      const { y0, y1 } = strips[i];
-      const bitmap = await createImageBitmap(preBlob, 0, y0, preW, y1 - y0);
-      const boxes = await ocrStripInIframe(bitmap, i, strips.length);
-      stripResults.push({ y0, y1, index: i, total: strips.length, boxes });
-      // 破棄したiframeのメモリ解放をブラウザに行わせる猶予。
-      await new Promise((r) => setTimeout(r, 150));
+    statusEl.textContent = "解析中…（10〜40秒ほどかかります）";
+    const res = await fetch(FUNCTION_URL, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
+      body: blob,
+    });
+
+    if (!res.ok) {
+      let msg = `サーバーエラー (${res.status})`;
+      try { msg = (await res.json()).error || msg; } catch (_) {}
+      statusEl.textContent = "エラー: " + msg;
+      return;
     }
 
-    diag("reconstruct");
-    const merged = ocr.mergeStripResults(stripResults);
-    const { rows } = ocr.reconstructRows({ text: "", boxes: merged });
-    diag("done");
-    window.__ocrImportResult = { boxes: merged, rows };
-
-    const { trips, rests } = ocr.rowsToDrive(rows);
+    const data = await res.json();
+    const trips = data.trips || [];
+    const rests = data.rests || [];
     if (trips.length === 0 && rests.length === 0) {
       // OCRは走ったが明細行を1つも復元できなかった → 空の表を出さず撮り直しを促す
       statusEl.textContent = "明細を読み取れませんでした。明るい場所で、営業明細の全体が入るように撮り直してください。";
@@ -312,10 +204,6 @@ input.addEventListener("change", async (e) => {
     statusEl.textContent = `読み取り完了: 乗車 ${trips.length}件 ・ 休憩 ${rests.length}回`;
     renderReview(trips, rests);
   } catch (err) {
-    window.__ocrImportError = String((err && err.stack) || err);
-    diag("error", (err && err.message) || String(err));
     statusEl.textContent = "エラー: " + ((err && err.message) || err);
-  } finally {
-    window.__ocrImportDone = true;
   }
 });

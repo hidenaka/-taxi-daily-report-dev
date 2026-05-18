@@ -1,0 +1,16 @@
+{
+  "name": "taxi-ocr-functions",
+  "description": "営業明細OCR用 Cloud Functions（端末内OCRをサーバー側へ移行）",
+  "type": "module",
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "firebase-functions": "^6.0.0",
+    "onnxruntime-node": "^1.26.0",
+    "ppu-ocv": "^3.1.5",
+    "ppu-paddle-ocr": "^5.4.4"
+  }
+}
