@@ -1,86 +1,63 @@
 // js/ocr/src/preprocess.js
-// 営業明細写真の前処理（ブラウザ版）。
-// 生画像canvas → 向き補正 → 書類検出 → 条件付き台形補正 → 傾き補正 → グレースケール＋拡大。
-// ロジックは ocr-spike/auto-preprocess.mjs（Node検証済み・Phase 1A）と同一。
-// Node版との違い: 入出力は HTMLCanvasElement、fs入出力なし。
-import "./opencv-runtime.js"; // globalThis.cv に OpenCV を登録（ppu-ocv/web より前に）
-import { ImageProcessor, Contours, DeskewService, cv } from "ppu-ocv/web";
+// 営業明細写真の前処理（素のCanvas実装。OpenCV非依存）。
+// 生画像canvas → 向き補正（横長なら90°回転）→ グレースケール＋拡大。
+//
+// 旧版は OpenCV.js（ppu-ocv）で 書類4隅検出・台形補正・傾き補正 も行っていたが、
+// OpenCV.js は ~8MB＋WASMヒープを消費し iOS Safari がメモリクラッシュした。
+// 軽量化のため OpenCV を全廃し、書類検出・台形補正・deskew は除外した。
+// 固定テンプレート復元は「概ね正立した写真」を前提とする。
 
-// 粗い向き補正。営業明細は縦長なので、横長画像は90°回転して縦長にする。
+// 横長画像は縦長になるよう反時計回り90°回転する（営業明細は縦長）。
 function orient(canvas) {
-  if (canvas.width > canvas.height) {
-    return new ImageProcessor(canvas).rotate({ angle: -90 }).toCanvas();
-  }
-  return canvas;
+  if (canvas.width <= canvas.height) return canvas;
+  const off = document.createElement("canvas");
+  off.width = canvas.height;
+  off.height = canvas.width;
+  const ctx = off.getContext("2d");
+  // 「左に90°回す」標準手順: translate(0,height) してから -90° 回転。
+  ctx.translate(0, off.height);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(canvas, 0, 0);
+  return off;
 }
 
-// 書類の4隅を検出。{points, bbox} を返す。取れなければ null。
-function detectDocument(canvas) {
-  const proc = new ImageProcessor(canvas).grayscale().blur().canny({ lower: 50, upper: 150 });
-  const contours = new Contours(proc.img, { mode: cv.RETR_EXTERNAL, method: cv.CHAIN_APPROX_SIMPLE });
-  let result = null;
-  try {
-    if (contours.getSize() > 0) {
-      const rectContour = contours.getApproximateRectangleContour({ threshold: 0.02 });
-      const contour = rectContour && rectContour.rows >= 4 ? rectContour : undefined;
-      result = contours.getCornerPoints({ canvas, contour });
-    }
-  } catch (e) {
-    console.warn("detectDocument: 検出失敗、全体を使用:", e.message);
-    result = null;
-  }
-  contours.destroy();
-  proc.destroy();
-  return result;
-}
-
-// 4隅で透視変換し正立矩形へ。
-// 検出quadが画像のほぼ全域を覆う時だけ補正する（=紙の縁を捉えている）。
-// 内側の表枠など部分的なquadは誤検出とみなしスキップ（部分クロップを防ぐ）。
-function rectify(canvas, corners) {
-  if (!corners || !corners.points) return canvas;
-  const p = corners.points;
-  const pts = [p.topLeft, p.topRight, p.bottomLeft, p.bottomRight].filter(Boolean);
-  if (pts.length < 4) return canvas;
-  const xs = pts.map((c) => c.x), ys = pts.map((c) => c.y);
-  const spreadX = (Math.max(...xs) - Math.min(...xs)) / canvas.width;
-  const spreadY = (Math.max(...ys) - Math.min(...ys)) / canvas.height;
-  if (spreadX < 0.85 || spreadY < 0.85) return canvas;
-  return new ImageProcessor(canvas).warp({ points: corners.points, bbox: corners.bbox }).toCanvas();
-}
-
-// 微傾き補正。DeskewService がテキスト領域から傾き角を推定して補正する。
-async function deskew(canvas) {
-  try {
-    return await new DeskewService().deskewImage(canvas);
-  } catch (e) {
-    console.warn("deskew: 失敗、スキップ:", e.message);
-    return canvas;
-  }
-}
-
-// グレースケール化し、OCR検出に十分な解像度へ拡大。
+// グレースケール化し、OCR検出に十分な解像度へ拡大する（目標幅3200px）。
 // 注: 適応的二値化は Phase 1A で PP-OCR 精度を落としたため不採用。
 function grayscaleResize(canvas) {
-  const targetW = 3200;
-  const targetH = Math.round(canvas.height * (targetW / canvas.width));
-  return new ImageProcessor(canvas)
-    .grayscale()
-    .resize({ width: targetW, height: targetH })
-    .toCanvas();
+  // iOS Safari の canvas 面積上限（約16.7Mpx）を超えるとクラッシュするため、
+  // 目標幅は面積が約16Mpx を超えない範囲に収める。
+  const MAX_AREA = 16_000_000;
+  let targetW = 3200;
+  let h = Math.round(canvas.height * (targetW / canvas.width));
+  if (targetW * h > MAX_AREA) {
+    targetW = Math.floor(Math.sqrt((MAX_AREA * canvas.width) / canvas.height));
+    h = Math.round(canvas.height * (targetW / canvas.width));
+  }
+  const off = document.createElement("canvas");
+  off.width = targetW;
+  off.height = h;
+  const ctx = off.getContext("2d", { willReadFrequently: true });
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(canvas, 0, 0, targetW, h);
+  // グレースケール化（輝度＝0.299R+0.587G+0.114B）。
+  const img = ctx.getImageData(0, 0, targetW, h);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const g = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) | 0;
+    d[i] = g;
+    d[i + 1] = g;
+    d[i + 2] = g;
+  }
+  ctx.putImageData(img, 0, 0);
+  return off;
 }
 
 /**
  * 生画像canvasを前処理し、OCR投入可能なcanvasを返す。
  * @param {HTMLCanvasElement|OffscreenCanvas} canvas
- * @returns {Promise<HTMLCanvasElement|OffscreenCanvas>}
+ * @returns {Promise<HTMLCanvasElement>}
  */
 export async function preprocessImage(canvas) {
-  await ImageProcessor.initRuntime();
-  let c = orient(canvas);
-  const corners = detectDocument(c);
-  c = rectify(c, corners);
-  c = await deskew(c);
-  c = grayscaleResize(c);
-  return c;
+  return grayscaleResize(orient(canvas));
 }

@@ -2,7 +2,18 @@
 // 写真取り込み画面のUIグルー。画像選択 → ブレ判定 → 前処理＋PP-OCR →
 // 編集レビュー表表示 →「日報に取り込む」で input.html へ引き渡し。
 // 認識ロジックは js/ocr/ocr-bundle.js（Phase 1B-1）に委譲する。
-import { recognizeReport, checkBlur, rowsToDrive } from "./ocr/ocr-bundle.js";
+//
+// バンドル（OCRエンジン）はサイズが大きいため、ページ表示時には読み込まない。
+// 静的importにするとページを開いた瞬間にバンドル全体がロード・初期化され、
+// iOS Safari がメモリ不足でクラッシュする。画像が選ばれた時に初めて
+// 動的import()で読み込み、結果はモジュールキャッシュで使い回す。
+let ocrModulePromise = null;
+function loadOcr() {
+  if (!ocrModulePromise) {
+    ocrModulePromise = import("./ocr/ocr-bundle.js");
+  }
+  return ocrModulePromise;
+}
 
 const input = document.getElementById("imageInput");
 const statusEl = document.getElementById("ocrStatus");
@@ -149,6 +160,9 @@ input.addEventListener("change", async (e) => {
   window.__ocrImportDone = false;
 
   try {
+    statusEl.textContent = "解析エンジンを準備中…";
+    const { recognizeReport, checkBlur, rowsToDrive } = await loadOcr();
+
     statusEl.textContent = "画像を確認中…";
     const canvas = await fileToCanvas(file);
 

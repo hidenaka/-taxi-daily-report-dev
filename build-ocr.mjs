@@ -13,7 +13,7 @@ await build({
   // 実際の挙動を見て loader/external/assetNames を調整する。
   loader: { ".wasm": "file" },
   assetNames: "vendor/[name]-[hash]",
-  // @techstark/opencv-js（Emscripten）が参照する Node 組込みを空スタブへ。
+  // onnxruntime-web（Emscripten出力）が参照する Node 組込みを空スタブへ。
   // ブラウザでは ENVIRONMENT_IS_NODE 経路は実行されないため安全。
   alias: {
     fs: "./js/ocr/src/node-builtin-stub.js",
