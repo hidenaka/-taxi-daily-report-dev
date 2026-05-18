@@ -4,6 +4,10 @@
 
 const STALL_KEYS = ['stall1', 'stall2', 'stall3', 'stall4'];
 
+// 予測データが古い(=供給が止まっている)とみなす閾値。供給元は数分ごとに更新されるため、
+// これより古ければ Mac mini 観測の停止や配信不通の可能性が高い。
+const STALE_MINUTES = 60;
+
 // "HH:MM" → 分
 function toMinutes(hhmm) {
   const [h, m] = String(hhmm).split(':').map(Number);
@@ -15,6 +19,15 @@ function toHHMM(min) {
   const h = Math.floor(min / 60) % 24;
   const m = min % 60;
   return `${h}:${String(m).padStart(2, '0')}`;
+}
+
+// generatedAt が now から maxMinutes より古ければ true。
+// 未設定・解釈不能な値も「古い(取得できていない)」とみなす。
+export function isStale(generatedAt, now, maxMinutes) {
+  if (!generatedAt) return true;
+  const gen = new Date(generatedAt).getTime();
+  if (Number.isNaN(gen)) return true;
+  return (now.getTime() - gen) > maxMinutes * 60 * 1000;
 }
 
 // 5分スロット配列を15分ビンに合算する。
@@ -74,12 +87,21 @@ export async function initForecastSection() {
 
   const { data, error } = await loadEnsemble();
   if (error) {
-    metaEl.textContent = `予測データの読み込みに失敗: ${error}`;
+    metaEl.textContent = `予測データを取得できていません（${error}）`;
     tableEl.innerHTML = '';
     return;
   }
 
   const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
+  // 古いデータは表を出さない。停止中の予測を最新のように見せない。
+  if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
+    metaEl.textContent = ts
+      ? `予測データを取得できていません（最終 ${ts}）`
+      : '予測データを取得できていません';
+    tableEl.innerHTML = '';
+    return;
+  }
+
   metaEl.textContent = ts ? `予測時刻 ${ts} 時点` : '';
   tableEl.innerHTML = renderTable(aggregateTo15min(data.slots));
 }

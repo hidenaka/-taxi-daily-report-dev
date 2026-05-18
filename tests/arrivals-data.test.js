@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN } from '../tools/js/arrivals-data.js';
 
 test('normalizeArrivals: "to be determined" estimatedTime を null にする', () => {
   const data = {
@@ -121,4 +121,32 @@ test('normalizeArrivals: status="到着"/"欠航"/"遅延" はそのまま維持
   assert.equal(data.flights[0].status, '到着');
   assert.equal(data.flights[1].status, '欠航');
   assert.equal(data.flights[2].status, '遅延');
+});
+
+// --- detectTopics: 大幅遅延便の抽出 ---
+
+test(`detectTopics: ${BIG_DELAY_MIN}分以上の遅延便だけ拾う`, () => {
+  const flights = [
+    { flightNumber: 'NH1', scheduledTime: '10:00', estimatedTime: '10:45' }, // 45分遅延 → 拾う
+    { flightNumber: 'NH2', scheduledTime: '11:00', estimatedTime: '11:10' }, // 10分遅延 → 拾わない
+    { flightNumber: 'NH3', scheduledTime: '12:00', estimatedTime: '12:30' }, // 30分遅延 → 拾う(境界)
+  ];
+  const topics = detectTopics(flights);
+  assert.deepEqual(topics.map(t => t.flightNumber), ['NH1', 'NH3']);
+  assert.equal(topics[0].delayMin, 45);
+});
+
+test('detectTopics: 到着済みの便は除外する', () => {
+  const flights = [
+    { flightNumber: 'NH4', scheduledTime: '09:00', estimatedTime: '10:00', status: '到着' },
+  ];
+  assert.equal(detectTopics(flights).length, 0);
+});
+
+test('detectTopics: estimatedTime 昇順に並ぶ', () => {
+  const flights = [
+    { flightNumber: 'LATE', scheduledTime: '14:00', estimatedTime: '15:00' },
+    { flightNumber: 'EARLY', scheduledTime: '10:00', estimatedTime: '11:00' },
+  ];
+  assert.deepEqual(detectTopics(flights).map(t => t.flightNumber), ['EARLY', 'LATE']);
 });

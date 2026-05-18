@@ -102,31 +102,19 @@ export function renderTopics(container, topics) {
   }
   container.hidden = false;
   const items = topics.map(t => {
-    const icons = [
-      t.reachNone ? '🔴' : '',
-      t.delayBoost ? '🌙' : '',
-      t.lightningBoost ? '⚡' : ''
-    ].filter(Boolean).join(' ');
     const paxLabel = (t.estimatedPax !== null && t.estimatedPax !== undefined)
       ? `約${t.estimatedPax}人`
       : '推定不可';
-    const detail = t.delayMin > 0
-      ? `${t.scheduledTime}→${t.estimatedTime} (${t.delayMin}分遅延) / ${paxLabel} / タクシー候補~${t.estimatedTaxiPax}`
-      : `${t.estimatedTime}着 / ${paxLabel} / タクシー候補~${t.estimatedTaxiPax}`;
+    const detail = `${t.scheduledTime}→${t.estimatedTime} (${t.delayMin}分遅延) / ${paxLabel} / タクシー候補~${t.estimatedTaxiPax}`;
     return `<div class="topic-item">
-      <span class="topic-icons">${icons}</span>
       <span class="topic-flight">${t.flightNumber}</span>
       <span class="topic-from">${t.fromName}</span>
       <span class="topic-detail">${detail}</span>
       <span class="topic-terminal">${t.terminal}</span>
     </div>`;
   }).join('');
-  const reasons = [];
-  if (topics.some(t => t.reachNone)) reasons.push('公共交通不可');
-  if (topics.some(t => t.delayBoost)) reasons.push('遅延深夜');
-  if (topics.some(t => t.lightningBoost)) reasons.push('雷解除ラッシュ');
   container.innerHTML = `
-    <div class="topic-header">🚨 タクシー需要急増 (${topics.length}件) — ${reasons.join(' / ')}</div>
+    <div class="topic-header">⏰ 大幅遅延便情報 (${topics.length}件)</div>
     ${items}
   `;
 }

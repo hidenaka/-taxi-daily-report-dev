@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { aggregateTo15min, loadEnsemble } from '../tools/js/forecast-section.js';
+import { aggregateTo15min, loadEnsemble, isStale } from '../tools/js/forecast-section.js';
 
 // --- aggregateTo15min: 5分スロット → 15分ビン合算 ---
 
@@ -90,4 +90,23 @@ test('loadEnsemble: fetch 例外も error に記録し例外を投げない', as
   const r = await loadEnsemble(fetchFn);
   assert.equal(r.data, null);
   assert.equal(r.error, 'network error');
+});
+
+// --- isStale: 古い予測データの判定 ---
+
+test('isStale: 閾値以内の新しいデータは false', () => {
+  const now = new Date('2026-05-18T16:00:00+09:00');
+  assert.equal(isStale('2026-05-18T15:30:00+09:00', now, 60), false);
+});
+
+test('isStale: 閾値より古いデータは true', () => {
+  const now = new Date('2026-05-18T16:00:00+09:00');
+  assert.equal(isStale('2026-05-18T14:00:00+09:00', now, 60), true);
+});
+
+test('isStale: 未設定・解釈不能な値は true（取得できていない扱い）', () => {
+  const now = new Date('2026-05-18T16:00:00+09:00');
+  assert.equal(isStale('', now, 60), true);
+  assert.equal(isStale(undefined, now, 60), true);
+  assert.equal(isStale('not-a-date', now, 60), true);
 });

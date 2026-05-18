@@ -159,17 +159,18 @@ export function sortFlightsByTime(flights) {
   });
 }
 
+// 大幅遅延とみなす遅延分数の下限。
+export const BIG_DELAY_MIN = 30;
+
+// 大幅遅延便（予定より BIG_DELAY_MIN 分以上遅れている未到着便）を抽出する。
 export function detectTopics(flights) {
   const topics = [];
   for (const f of flights) {
     if (f.status === '到着') continue;
-    const reachNone = f.reachTier === 'none';
-    const delayBoost = f.taxiDelayBoost && f.taxiDelayBoost > 1.0;
-    const lightningBoost = f.taxiLightningBoost && f.taxiLightningBoost > 1.0;
-    if (!reachNone && !delayBoost && !lightningBoost) continue;
     const sched = timeToMinutes(f.scheduledTime);
     const est = timeToMinutes(f.estimatedTime ?? f.scheduledTime);
     const delayMin = (sched !== null && est !== null) ? Math.max(0, est - sched) : 0;
+    if (delayMin < BIG_DELAY_MIN) continue;
     topics.push({
       flightNumber: f.flightNumber,
       fromName: f.fromName,
@@ -177,9 +178,6 @@ export function detectTopics(flights) {
       scheduledTime: f.scheduledTime,
       estimatedTime: f.estimatedTime ?? f.scheduledTime,
       delayMin,
-      reachNone,
-      delayBoost: !!delayBoost,
-      lightningBoost: !!lightningBoost,
       estimatedPax: f.estimatedPax ?? null,
       estimatedTaxiPax: f.estimatedTaxiPax ?? 0
     });
