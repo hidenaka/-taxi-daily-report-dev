@@ -178,7 +178,12 @@ export function renderFlightList(container, flights) {
     row.className = 'flight-row' + (isDelayed ? ' is-delayed' : '') + (isUnknown ? ' is-unknown' : '');
     const time = f.estimatedTime ?? f.scheduledTime ?? '--:--';
     const aircraft = f.aircraftCode ?? '機材不明';
-    const pax = f.estimatedPax !== null ? `約${f.estimatedPax}人` : '推定不可';
+    const hasPax = f.estimatedPax !== null && f.estimatedPax !== undefined;
+    const hasSeats = f.seatCount !== null && f.seatCount !== undefined;
+    const paxLine = hasPax
+      ? `<span class="pax-est">推定搭乗 ${f.estimatedPax}人</span>`
+        + (hasSeats ? `<span class="pax-max">（最大 ${f.seatCount}人）</span>` : '')
+      : `<span class="pax-est">搭乗人数 推定不可</span>`;
     const statusIcon = isDelayed ? ' ⚠' : '';
     const reachIcon = f.reachTier === 'high' ? '🟢'
                     : f.reachTier === 'mid'  ? '🟡'
@@ -196,13 +201,10 @@ export function renderFlightList(container, flights) {
         <span class="time">${time}</span>
         <span class="flight-no">${f.flightNumber}</span>
         <span class="from">${f.fromName}</span>
-        <span class="aircraft">${aircraft}</span>
         <span class="reach">${reachIcon}</span>
       </div>
-      <div class="flight-line2">
-        <span class="pax">${pax}</span>
-        <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span>
-      </div>
+      <div class="flight-line2">${paxLine}</div>
+      <div class="flight-line3">機材 ${aircraft} ・ <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span></div>
     `;
     container.appendChild(row);
   }

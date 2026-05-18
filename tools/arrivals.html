@@ -73,12 +73,11 @@
     #topics .topic-terminal { color: var(--sub); font-size: 11px; }
     #detail-toggle { display: block; margin: 8px auto; padding: 6px 14px; background: #1a1a1d; color: var(--sub); border: 1px solid #333; border-radius: 6px; cursor: pointer; font-size: 12px; }
     #detail-toggle.is-active { background: var(--accent); color: #000; border-color: var(--accent); }
-    #flight-list .flight-row { padding: 8px 0; border-bottom: 1px solid #1a1a1d; }
+    #flight-list .flight-row { padding: 11px 0; border-bottom: 1px solid #1a1a1d; }
     .flight-line1 { display: flex; gap: 8px; align-items: baseline; }
     .flight-line1 .time { font-weight: bold; min-width: 50px; }
     .flight-line1 .flight-no { color: var(--accent); min-width: 60px; }
     .flight-line1 .from { flex: 1; }
-    .flight-line1 .aircraft { color: var(--sub); font-size: 12px; }
     .flight-line1 .reach { font-size: 13px; margin-left: auto; }
     .delay-boost { color: var(--peak); font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,82,82,0.15); margin-left: 4px; }
     .lightning-boost { color: #ffd84d; font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,216,77,0.15); margin-left: 4px; font-weight: 600; }
@@ -87,7 +86,10 @@
     #weather-banner.is-recovery { background: linear-gradient(90deg, #2a3a18, #3a4d20); color: #fff3a0; border-color: #5a6e2a; }
     #weather-banner .weather-icon { font-size: 18px; }
     #weather-banner strong { color: #fff; font-weight: 700; }
-    .flight-line2 { display: flex; gap: 8px; color: var(--sub); font-size: 12px; padding-left: 50px; }
+    .flight-line2 { padding-left: 50px; margin-top: 4px; font-size: 13px; }
+    .flight-line2 .pax-est { font-weight: 600; }
+    .flight-line2 .pax-max { color: var(--sub); }
+    .flight-line3 { padding-left: 50px; margin-top: 3px; color: var(--sub); font-size: 12px; }
     .flight-row.is-delayed { background: rgba(255, 184, 77, 0.08); }
     .flight-row.is-delayed .status { color: var(--warn); }
     .flight-row.is-unknown { opacity: 0.6; }
