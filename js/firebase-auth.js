@@ -141,6 +141,36 @@ export async function createUserWithCredentials(userId, password) {
   }
 }
 
+// セルフサービス新規登録: ユーザーが選んだログインID＋パスワードで新規アカウントを作成する。
+// 成功するとそのアカウントでログイン状態になる。匿名で使っていた場合、匿名セッションは
+// 破棄される（匿名データ＝user_sample 等の共有デモは引き継がない＝まっさらな専用アカウント）。
+export async function signUp(userId, password) {
+  if (!/^[a-z][a-z0-9_]*$/.test(userId)) {
+    return { success: false, error: 'ログインIDは半角英小文字で始め、英小文字・数字・_ のみ使えます' };
+  }
+  if (userId.length < 3 || userId.length > 30) {
+    return { success: false, error: 'ログインIDは3〜30文字にしてください' };
+  }
+  if (!password || password.length < 8) {
+    return { success: false, error: 'パスワードは8文字以上にしてください' };
+  }
+  const result = await createUserWithCredentials(userId, password);
+  if (!result.success) {
+    let msg = result.error || '登録に失敗しました';
+    if (/email-already-in-use/.test(msg)) {
+      msg = 'このログインIDは既に使われています。別のIDをお試しください';
+    } else if (/weak-password/.test(msg)) {
+      msg = 'パスワードは8文字以上にしてください';
+    }
+    return { success: false, error: msg };
+  }
+  currentUser = result.user;
+  currentUserId = userId;
+  localStorage.setItem('taxi_user_id', userId);
+  clearSubCache();
+  return { success: true };
+}
+
 // ログアウト
 export async function logout() {
   await signOut(auth);

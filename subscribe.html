@@ -61,6 +61,11 @@ if (location.hostname.includes('-dev')) {
     前回のお申し込み手続きが完了していません。下記より、もう一度お進みください。
   </div>
 
+  <div id="accountNote" class="status-msg info" style="display:none;">
+    お申し込みには<strong>アカウント登録（無料）</strong>が必要です。機種変更や複数端末でデータを引き継ぐために必要です。<br>
+    <a href="login.html?mode=signup&amp;next=subscribe.html" style="font-weight:bold;">→ アカウントを登録する</a>
+  </div>
+
   <!-- 割引コード -->
   <section class="card">
     <h3>割引コード（任意）</h3>
@@ -143,6 +148,7 @@ if (location.hostname.includes('-dev')) {
 <script type="module">
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, startCheckout, isPaying, formatStatus } from './js/subscription-state.js';
+import { isEmailAuth } from './js/firebase-auth.js';
 
 renderLegalFooter();
 
@@ -213,6 +219,11 @@ function showStatus(text, kind) {
 
 submitBtn.addEventListener('click', async () => {
   if (!checkboxes.every((cb) => cb.checked)) return;
+  // アカウント未登録(匿名)なら、決済の前に登録へ誘導する
+  if (!isEmailAuth()) {
+    location.href = 'login.html?mode=signup&next=subscribe.html';
+    return;
+  }
   submitBtn.disabled = true;
   showStatus('決済ページを準備しています…', 'info');
   try {
@@ -243,8 +254,14 @@ async function init() {
       document.getElementById('alreadySection').style.display = '';
       document.getElementById('alreadyMsg').textContent =
         `すでにご利用中です（状態：${formatStatus(sub.status)}）。`;
-    } else if (sub && sub.status === 'pending') {
-      document.getElementById('pendingNote').style.display = '';
+    } else {
+      if (sub && sub.status === 'pending') {
+        document.getElementById('pendingNote').style.display = '';
+      }
+      // アカウント未登録(匿名)なら申込前の登録を促す
+      if (!isEmailAuth()) {
+        document.getElementById('accountNote').style.display = '';
+      }
     }
   } catch (e) {
     console.error('subscription load error:', e);
