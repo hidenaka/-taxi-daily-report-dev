@@ -177,6 +177,25 @@ export async function adminSaveConfigForUser(targetUserId, config) {
   return true;
 }
 
+// ========== COMPANIES (admin) ==========
+
+// Admin: 全会社プロファイルを取得（id 付き配列）
+export async function adminListCompanies() {
+  await waitForAuth();
+  const snap = await getDocs(collection(db, 'companies'));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Admin: 会社プロファイルを保存（新規・更新どちらも）
+export async function adminSaveCompany(companyId, data) {
+  await waitForAuth();
+  await setDoc(doc(db, 'companies', companyId), {
+    ...data,
+    updatedAt: new Date().toISOString()
+  });
+  return true;
+}
+
 // ========== BATCH OPERATIONS (for data migration) ==========
 
 export async function batchSaveDrives(drives) {
