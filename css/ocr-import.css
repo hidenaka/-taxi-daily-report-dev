@@ -6,25 +6,48 @@
   margin-bottom: 6px;
 }
 
-/* === レビュー表（input.html の .preview-table に準拠） === */
+/* === 解析中の進捗バー === */
+.ocr-progress {
+  height: 7px;
+  background: #e3e3e3;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.ocr-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--blue, #1a73e8);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* === レビュー表 === */
+/* 表は内容の幅にし、ビューポートを超えたら .review-wrap が横スクロールする。
+   地名列を広く取り、全項目を見切れなく確認・編集できるようにする。 */
+.review-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .review-table {
-  width: 100%;
-  font-size: 12px;
+  width: auto;
   border-collapse: collapse;
+  font-size: 12px;
   margin-top: 8px;
 }
 
 .review-table th,
 .review-table td {
-  padding: 4px 5px;
-  border-bottom: 1px solid #eee;
+  padding: 5px 6px;
+  border: 1px solid #eee;
   text-align: left;
+  white-space: nowrap;
 }
 
 .review-table th {
   font-size: 11px;
   color: var(--muted, #888);
-  white-space: nowrap;
 }
 
 .review-table tr.rest {
@@ -36,19 +59,44 @@
   color: var(--orange, #e67e22);
 }
 
+/* No 列 */
+.review-table th:nth-child(1),
+.review-table td:nth-child(1) {
+  min-width: 34px;
+  text-align: center;
+}
+
+/* セルは常に枠線のある入力欄として見せる（編集できると分かるように） */
 .review-table input {
-  width: 100%;
-  border: 1px solid transparent;
-  padding: 3px 4px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  padding: 4px 5px;
   font-size: 12px;
-  background: transparent;
+  background: #fff;
   box-sizing: border-box;
+}
+.review-table td:nth-child(2) input,
+.review-table td:nth-child(3) input {
+  width: 58px;
+}
+.review-table td:nth-child(4) input {
+  width: 42px;
+}
+/* 乗車地・降車地: 広く取りフル表示 */
+.review-table td:nth-child(5) input,
+.review-table td:nth-child(6) input {
+  width: 152px;
+}
+.review-table td:nth-child(7) input {
+  width: 56px;
+}
+.review-table td:nth-child(8) input {
+  width: 76px;
 }
 
 .review-table input:focus {
   outline: none;
-  border-color: #bbb;
-  background: #fff;
+  border-color: var(--blue, #1a73e8);
 }
 
 /* 低信頼セル: 薄い警告色でハイライト */
@@ -61,8 +109,4 @@
   font-size: 11px;
   color: var(--muted, #888);
   margin: 6px 0 0;
-}
-
-.review-wrap {
-  overflow-x: auto;
 }

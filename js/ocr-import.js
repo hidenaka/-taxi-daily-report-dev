@@ -44,6 +44,41 @@ function updateSummary() {
     `休憩 ${rests.length}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
 }
 
+// ── 解析中の進捗バー ───────────────────────────────────────────
+// サーバー処理の内部段階はクライアントから見えないため、経過時間ベースで
+// 漸近的にバーを進める（完了するまで100%にはしない＝誤って先に満了しない）。
+// 経過秒数は実数を表示する。
+let progressTimer = null;
+let progressTrack = null;
+let progressBar = null;
+function showProgress() {
+  if (!progressTrack) {
+    progressTrack = document.createElement("div");
+    progressTrack.className = "ocr-progress";
+    progressBar = document.createElement("div");
+    progressBar.className = "ocr-progress-bar";
+    progressTrack.appendChild(progressBar);
+    statusEl.insertAdjacentElement("afterend", progressTrack);
+  }
+  progressTrack.style.display = "";
+  progressBar.style.width = "0%";
+  const start = Date.now();
+  clearInterval(progressTimer);
+  progressTimer = setInterval(() => {
+    const sec = (Date.now() - start) / 1000;
+    // 速く立ち上がり徐々に緩む。上限92%（応答到着で実質完了）。
+    const pct = 92 * (1 - Math.exp(-sec / 16));
+    progressBar.style.width = pct.toFixed(1) + "%";
+    statusEl.textContent = `解析中… ${Math.floor(sec)}秒（初回は時間がかかります）`;
+  }, 250);
+}
+function hideProgress() {
+  clearInterval(progressTimer);
+  progressTimer = null;
+  if (progressBar) progressBar.style.width = "100%";
+  if (progressTrack) progressTrack.style.display = "none";
+}
+
 // 選択ファイルを JPEG Blob に変換する。
 // iOSのHEIC等もブラウザでデコード→canvas→JPEG再エンコードで形式を統一する。
 // 長辺は4000pxに制限（iOSのcanvas上限内。サーバーは内部で3200pxへ縮小する）。
@@ -107,7 +142,8 @@ function renderReview(trips, rests) {
   const hint = document.createElement("p");
   hint.className = "review-hint";
   hint.textContent =
-    "黄色のセルは読み取りの確度が低い箇所です。確認・修正してから取り込んでください。";
+    "黄色のセルは読み取りの確度が低い箇所です。各セルはタップで修正できます。" +
+    "表は横スクロールで全項目を確認できます。確認・修正してから取り込んでください。";
   reviewEl.appendChild(hint);
 
   const wrap = document.createElement("div");
@@ -225,12 +261,18 @@ input.addEventListener("change", async (e) => {
     const blob = await fileToJpegBlob(file);
     const token = await user.getIdToken();
 
-    statusEl.textContent = "解析中…（10〜40秒ほどかかります）";
-    const res = await fetch(FUNCTION_URL, {
-      method: "POST",
-      headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
-      body: blob,
-    });
+    statusEl.textContent = "解析中…";
+    showProgress();
+    let res;
+    try {
+      res = await fetch(FUNCTION_URL, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
+        body: blob,
+      });
+    } finally {
+      hideProgress();
+    }
 
     if (!res.ok) {
       let msg = `サーバーエラー (${res.status})`;
