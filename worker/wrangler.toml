@@ -1,0 +1,31 @@
+# cabis-billing — Cloudflare Worker（キャビス課金バックエンド）
+# デプロイ: dev   = `wrangler deploy`            → cabis-billing-dev
+#           prod  = `wrangler deploy --env production` → cabis-billing
+#
+# 非機密の設定は [vars]、機密は `wrangler secret put` で投入する。
+#   wrangler secret put STRIPE_SECRET_KEY
+#   wrangler secret put STRIPE_WEBHOOK_SECRET
+#   wrangler secret put FIREBASE_SERVICE_ACCOUNT
+# （prod は各コマンドに --env production を付ける）
+
+name = "cabis-billing-dev"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# --- dev（既定）: Stripe テストモード × Firebase dev プロジェクト ---
+[vars]
+FIREBASE_PROJECT_ID = "taxi-dailydata-dev"
+STRIPE_PRICE_ID = "price_1TYPWqGtKUEpwNTvLJq2HwQ6"
+APP_BASE_URL = "https://hidenaka.github.io/-taxi-daily-report-dev"
+ALLOWED_ORIGIN = "https://hidenaka.github.io"
+
+# --- production: Stripe ライブモード × Firebase 本番プロジェクト ---
+[env.production]
+name = "cabis-billing"
+
+[env.production.vars]
+FIREBASE_PROJECT_ID = "taxi-dailydata"
+# ↓ Live モードで Product/Price を再作成したら差し替える
+STRIPE_PRICE_ID = "price_LIVE_PLACEHOLDER"
+APP_BASE_URL = "https://app.taxicabis.com"
+ALLOWED_ORIGIN = "https://app.taxicabis.com"

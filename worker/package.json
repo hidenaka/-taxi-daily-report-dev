@@ -1,0 +1,12 @@
+{
+  "name": "cabis-billing",
+  "version": "1.0.0",
+  "private": true,
+  "description": "キャビス課金バックエンド（Cloudflare Worker）— Stripe Checkout / Webhook / 解約",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:prod": "wrangler deploy --env production",
+    "tail": "wrangler tail cabis-billing-dev"
+  }
+}

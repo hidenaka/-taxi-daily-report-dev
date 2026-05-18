@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+# サービスアカウント鍵など機密ファイルを worker/ 配下に置いた場合の保険
+*serviceaccount*.json
+*service-account*.json
+.dev.vars
