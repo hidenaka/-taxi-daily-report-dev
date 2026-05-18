@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Cabis ｜ 入力</title>
+<title>入力 — タクシー日報分析</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
 .preview-table { width: 100%; font-size: 12px; border-collapse: collapse; }
@@ -309,8 +309,8 @@ document.getElementById('parseBtn').onclick = () => {
   const text = document.getElementById('rawTextInput').value;
   if (!text.trim()) return;
   try {
-    // フォーマット済みテキスト(先頭4行ヘッダー)を自動判別。先頭の # 等の装飾も許容
-    const isFormatted = /^[#>*\s-]*(日付|車種|出庫|帰庫)\s*[::]/m.test(text.split('\n').slice(0, 8).join('\n'));
+    // フォーマット済みテキスト(先頭4行ヘッダー)を自動判別
+    const isFormatted = /^(日付|車種|出庫|帰庫)\s*[::]/m.test(text.split('\n').slice(0, 6).join('\n'));
     if (isFormatted) {
       parsed = parseFormattedReport(text);
       // ヘッダーから自動入力
@@ -345,11 +345,23 @@ function renderPreview() {
     ...parsed.trips.map((t, i) => ({...t, _kind: 'trip', _idx: i})),
     ...(parsed.rests || []).map((r, i) => ({...r, _kind: 'rest', _idx: i}))
   ];
-  allRows.sort((a, b) => {
-    const ta = a.boardTime || a.startTime || '';
-    const tb = b.boardTime || b.startTime || '';
-    return ta.localeCompare(tb);
-  });
+  // 時系列順。文字列比較だと "7:37" が "10:00" より後ろに来るため数値で比較。
+  // 1勤務は24h未満の連続帯なので、勤務開始より前の時刻は翌日(+24h)扱いにする
+  // （日跨ぎ勤務でも正しく並ぶ）。
+  const t2m = (s) => {
+    const m = String(s || '').match(/(\d{1,2}):(\d{2})/);
+    return m ? (+m[1]) * 60 + (+m[2]) : -1;
+  };
+  const anchorC = [];
+  if (parsed.trips[0]) anchorC.push(t2m(parsed.trips[0].boardTime));
+  if ((parsed.rests || [])[0]) anchorC.push(t2m(parsed.rests[0].startTime));
+  const va = anchorC.filter(v => v >= 0);
+  const anchor = va.length ? Math.min(...va) : 0;
+  const eff = (s) => {
+    const m = t2m(s);
+    return m < 0 ? 1e9 : (m < anchor ? m + 1440 : m);
+  };
+  allRows.sort((a, b) => eff(a.boardTime || a.startTime) - eff(b.boardTime || b.startTime));
 
   for (const row of allRows) {
     const tr = document.createElement('tr');

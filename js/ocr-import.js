@@ -19,6 +19,31 @@ const importBtn = document.getElementById("importBtn");
 // 現在レビュー中のデータ（編集はこのオブジェクトに即時反映される）。
 let reviewData = null;
 
+// サマリ表示要素（renderReview で生成）。
+let summaryEl = null;
+
+// "H:MM"/"HH:MM" → 分。空/不正は -1。
+function timeToMin(s) {
+  const m = String(s || "").match(/(\d{1,2}):(\d{2})/);
+  return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : -1;
+}
+
+// reviewData を集計してサマリ要素を更新する。セル編集時にも呼ぶ。
+// 表示はテキスト貼付時（input.html のプレビュー）と同じ書式。
+function updateSummary() {
+  if (!summaryEl || !reviewData) return;
+  const trips = reviewData.trips || [];
+  const rests = reviewData.rests || [];
+  const cancelCount = trips.filter((t) => t.isCancel).length;
+  const validCount = trips.length - cancelCount;
+  const totalSales = trips
+    .filter((t) => !t.isCancel)
+    .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  summaryEl.innerHTML =
+    `<strong>${validCount}件</strong> ・ キャンセル ${cancelCount}件 ・ ` +
+    `休憩 ${rests.length}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
+}
+
 // 選択ファイルを JPEG Blob に変換する。
 // iOSのHEIC等もブラウザでデコード→canvas→JPEG再エンコードで形式を統一する。
 // 長辺は4000pxに制限（iOSのcanvas上限内。サーバーは内部で3200pxへ縮小する）。
@@ -61,6 +86,7 @@ function cell(obj, key, opts) {
     } else {
       obj[key] = inp.value;
     }
+    updateSummary(); // 金額等の修正をサマリへ即反映
   });
   td.appendChild(inp);
   return td;
@@ -70,6 +96,13 @@ function cell(obj, key, opts) {
 // 1行 = 1 trip。休憩行も時系列に混ぜ、種別が分かるように表示する。
 function renderReview(trips, rests) {
   reviewEl.innerHTML = "";
+
+  // サマリ（件数・売上）。読み取りが妥当か一目で確認するため表の上に出す。
+  summaryEl = document.createElement("div");
+  summaryEl.className = "review-summary";
+  summaryEl.style.cssText =
+    "background:#e8f0fe;border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:14px;";
+  reviewEl.appendChild(summaryEl);
 
   const hint = document.createElement("p");
   hint.className = "review-hint";
@@ -90,11 +123,24 @@ function renderReview(trips, rests) {
     ...trips.map((t) => ({ kind: "trip", obj: t })),
     ...rests.map((r) => ({ kind: "rest", obj: r })),
   ];
-  all.sort((a, b) => {
-    const ta = a.obj.boardTime || a.obj.startTime || "";
-    const tb = b.obj.boardTime || b.obj.startTime || "";
-    return String(ta).localeCompare(String(tb));
-  });
+  // 時系列に並べる。1勤務は24h未満の連続帯なので、勤務開始（文書先頭の行）
+  // より前の時刻は翌日とみなし +24h する（日跨ぎ勤務でも正しく並ぶ）。
+  // 文字列比較だと "7:37" が "10:00" より後ろに来てしまうため数値で比較する。
+  const anchorCands = [];
+  if (trips[0]) anchorCands.push(timeToMin(trips[0].boardTime));
+  if (rests[0]) anchorCands.push(timeToMin(rests[0].startTime));
+  const validAnchors = anchorCands.filter((v) => v >= 0);
+  const anchor = validAnchors.length ? Math.min(...validAnchors) : 0;
+  const effMin = (s) => {
+    const m = timeToMin(s);
+    if (m < 0) return 1e9; // 時刻なしは末尾へ
+    return m < anchor ? m + 1440 : m;
+  };
+  all.sort(
+    (a, b) =>
+      effMin(a.obj.boardTime || a.obj.startTime) -
+      effMin(b.obj.boardTime || b.obj.startTime)
+  );
 
   for (const item of all) {
     const tr = document.createElement("tr");
@@ -136,6 +182,7 @@ function renderReview(trips, rests) {
 
   wrap.appendChild(tbl);
   reviewEl.appendChild(wrap);
+  updateSummary();
   importBtn.style.display = "";
 }
 
