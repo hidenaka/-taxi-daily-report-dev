@@ -74,6 +74,14 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // --- companies/{companyId} ---
+    // 全ログインユーザーが読める（自分の会社プロファイル参照のため）。
+    // 書き込みは管理者のみ。
+    match /companies/{companyId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
     // --- adminUids/{firebaseAuthUid} ---
     // Owner can read their own entry (lets the client know it has admin).
     // Writes are not allowed via the client; entries are seeded from the
