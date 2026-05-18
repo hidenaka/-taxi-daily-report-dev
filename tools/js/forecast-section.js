@@ -105,21 +105,38 @@ export function renderActualsTable(slots) {
   </table>`;
 }
 
-// 到着便ページの予測セクションを初期化・描画する。
-export async function initForecastSection() {
-  const metaEl = document.getElementById('forecast-meta');
-  const tableEl = document.getElementById('forecast-table-wrap');
-  if (!metaEl || !tableEl) return;
+// 予測モードの localStorage キー。
+const MODE_STORAGE_KEY = 'arrivalsForecastMode';
 
+// 実績モードを描画する。
+async function renderActualsMode(metaEl, tableEl) {
+  const { data, error } = await loadActuals();
+  if (error) {
+    metaEl.textContent = `実績データを取得できていません（${error}）`;
+    tableEl.innerHTML = '';
+    return;
+  }
+  const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
+  if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
+    metaEl.textContent = ts
+      ? `実績データを取得できていません（最終 ${ts}）`
+      : '実績データを取得できていません';
+    tableEl.innerHTML = '';
+    return;
+  }
+  metaEl.textContent = ts ? `実績 ${ts} 時点まで` : '';
+  tableEl.innerHTML = renderActualsTable(data.slots);
+}
+
+// 予測モードを描画する。
+async function renderForecastMode(metaEl, tableEl) {
   const { data, error } = await loadEnsemble();
   if (error) {
     metaEl.textContent = `予測データを取得できていません（${error}）`;
     tableEl.innerHTML = '';
     return;
   }
-
   const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
-  // 古いデータは表を出さない。停止中の予測を最新のように見せない。
   if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
     metaEl.textContent = ts
       ? `予測データを取得できていません（最終 ${ts}）`
@@ -127,7 +144,36 @@ export async function initForecastSection() {
     tableEl.innerHTML = '';
     return;
   }
-
   metaEl.textContent = ts ? `予測時刻 ${ts} 時点` : '';
   tableEl.innerHTML = renderTable(aggregateTo15min(data.slots));
+}
+
+// 到着便ページの予測セクションを初期化・描画する。
+// プルダウンで実績（既定）／予測を切り替える。選択は localStorage に保存。
+export async function initForecastSection() {
+  const metaEl = document.getElementById('forecast-meta');
+  const tableEl = document.getElementById('forecast-table-wrap');
+  const modeEl = document.getElementById('forecast-mode');
+  if (!metaEl || !tableEl || !modeEl) return;
+
+  let saved = null;
+  try { saved = localStorage.getItem(MODE_STORAGE_KEY); } catch { /* ignore */ }
+  modeEl.value = (saved === 'forecast') ? 'forecast' : 'actuals';
+
+  async function render() {
+    metaEl.textContent = '読み込み中...';
+    tableEl.innerHTML = '';
+    if (modeEl.value === 'forecast') {
+      await renderForecastMode(metaEl, tableEl);
+    } else {
+      await renderActualsMode(metaEl, tableEl);
+    }
+  }
+
+  modeEl.addEventListener('change', () => {
+    try { localStorage.setItem(MODE_STORAGE_KEY, modeEl.value); } catch { /* ignore */ }
+    render();
+  });
+
+  await render();
 }
