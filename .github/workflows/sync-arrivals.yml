@@ -26,7 +26,7 @@ jobs:
       - name: Copy data files
         run: |
           mkdir -p dest/tools/data
-          for f in arrivals.json stall-ensemble.json stall-forecast.json stall-pattern-match.json; do
+          for f in arrivals.json stall-ensemble.json; do
             cp "src/data/$f" "dest/tools/data/$f"
           done
 
@@ -35,7 +35,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          FILES="tools/data/arrivals.json tools/data/stall-ensemble.json tools/data/stall-forecast.json tools/data/stall-pattern-match.json"
+          FILES="tools/data/arrivals.json tools/data/stall-ensemble.json"
           for i in 1 2 3; do
             if [ -z "$(git status --porcelain $FILES)" ]; then
               echo "No change. Skipping commit."
@@ -49,7 +49,7 @@ jobs:
             echo "push failed (attempt $i): refresh and re-copy"
             git fetch origin main
             git reset --hard origin/main
-            for f in arrivals.json stall-ensemble.json stall-forecast.json stall-pattern-match.json; do
+            for f in arrivals.json stall-ensemble.json; do
               cp "../src/data/$f" "tools/data/$f"
             done
             sleep $((i * 3))
