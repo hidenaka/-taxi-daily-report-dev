@@ -1,4 +1,4 @@
-name: Sync Arrivals from taxi-ic-helper
+name: Sync Arrivals & Forecast from taxi-ic-helper
 
 on:
   schedule:
@@ -23,30 +23,35 @@ jobs:
           repository: hidenaka/taxi-ic-helper
           path: src
 
-      - name: Copy arrivals.json
+      - name: Copy data files
         run: |
           mkdir -p dest/tools/data
-          cp src/data/arrivals.json dest/tools/data/arrivals.json
+          for f in arrivals.json stall-ensemble.json stall-forecast.json stall-pattern-match.json; do
+            cp "src/data/$f" "dest/tools/data/$f"
+          done
 
       - name: Commit if changed
         working-directory: dest
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          FILES="tools/data/arrivals.json tools/data/stall-ensemble.json tools/data/stall-forecast.json tools/data/stall-pattern-match.json"
           for i in 1 2 3; do
-            if [ -z "$(git status --porcelain tools/data/arrivals.json)" ]; then
+            if [ -z "$(git status --porcelain $FILES)" ]; then
               echo "No change. Skipping commit."
               exit 0
             fi
-            git add tools/data/arrivals.json
-            git commit -m "chore(arrivals): sync from taxi-ic-helper $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" || true
+            git add $FILES
+            git commit -m "chore(data): sync from taxi-ic-helper $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" || true
             if git push; then
               exit 0
             fi
             echo "push failed (attempt $i): refresh and re-copy"
             git fetch origin main
             git reset --hard origin/main
-            cp ../src/data/arrivals.json tools/data/arrivals.json
+            for f in arrivals.json stall-ensemble.json stall-forecast.json stall-pattern-match.json; do
+              cp "../src/data/$f" "tools/data/$f"
+            done
             sleep $((i * 3))
           done
           echo "push failed after 3 retries"
