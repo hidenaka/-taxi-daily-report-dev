@@ -172,7 +172,10 @@ export async function initForecastSection() {
 
   modeEl.addEventListener('change', () => {
     try { localStorage.setItem(MODE_STORAGE_KEY, modeEl.value); } catch { /* ignore */ }
-    render();
+    render().catch(err => {
+      metaEl.textContent = '表示に失敗しました';
+      console.error(err);
+    });
   });
 
   await render();
