@@ -6,11 +6,22 @@
 <title>入力 — タクシー日報分析</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
-.preview-table { width: 100%; font-size: 12px; border-collapse: collapse; }
-.preview-table th, .preview-table td { padding: 4px 6px; border-bottom: 1px solid #eee; text-align: left; }
+/* プレビュー表: 内容幅にして横スクロール、各セルを編集可能な入力欄にする */
+.preview-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.preview-table { width: auto; font-size: 12px; border-collapse: collapse; margin-top: 8px; }
+.preview-table th, .preview-table td { padding: 5px 6px; border: 1px solid #eee; text-align: left; white-space: nowrap; }
+.preview-table th { font-size: 11px; color: var(--muted); }
 .preview-table tr.cancel { color: var(--orange); }
 .preview-table tr.rest { color: var(--muted); background: #fafafa; }
-.preview-table input { width: 100%; border: none; padding: 2px; font-size: 12px; }
+.preview-table th:nth-child(1), .preview-table td:nth-child(1) { min-width: 34px; text-align: center; }
+.preview-table input { border: 1px solid #d0d0d0; border-radius: 4px; padding: 4px 5px; font-size: 12px; background: #fff; box-sizing: border-box; }
+.preview-table td:nth-child(2) input, .preview-table td:nth-child(3) input { width: 58px; }
+.preview-table td:nth-child(4) input { width: 42px; }
+.preview-table td:nth-child(5) input, .preview-table td:nth-child(6) input { width: 152px; }
+.preview-table td:nth-child(7) input { width: 56px; }
+.preview-table td:nth-child(8) input { width: 76px; }
+.preview-table input:focus { outline: none; border-color: var(--blue, #1a73e8); }
+.preview-table .low-confidence input { background: #fff4d6; border-color: #f0c040; }
 </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -57,7 +68,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="previewSection" style="display:none;">
     <div id="previewSummary" style="margin-bottom:8px;"></div>
-    <table class="preview-table" id="previewTable"></table>
+    <div class="preview-wrap"><table class="preview-table" id="previewTable"></table></div>
   </section>
 
   <section class="card">
@@ -225,8 +236,9 @@ function applyOcrImport() {
   renderPreview();
 
   const hint = document.getElementById('dateHint');
-  hint.innerHTML = '📷 写真から取り込んだ内容です。確認・修正して保存してください。' +
-    `<br>自動判定: ${document.getElementById('dateInput').value}（変更可）`;
+  hint.innerHTML = '📷 写真から取り込みました。<b>まず日付を確認してください</b>' +
+    `（自動判定: ${document.getElementById('dateInput').value}・タップで変更）。` +
+    '明細はこの下の表で1セルずつ修正できます。';
   hint.style.color = '#1565c0';
 }
 
@@ -327,75 +339,112 @@ document.getElementById('parseBtn').onclick = () => {
   }
 };
 
+// 保存前に表示用メタ情報（_ocrFlags）を取り除く。
+function stripOcrMeta(o) {
+  const c = { ...o };
+  delete c._ocrFlags;
+  return c;
+}
+
+// プレビュー表のサマリ（件数・売上）を再計算して表示する。
+function refreshPreviewSummary() {
+  if (!parsed) return;
+  const trips = parsed.trips || [];
+  const rests = parsed.rests || [];
+  const cancelCount = trips.filter(t => t.isCancel).length;
+  const validCount = trips.length - cancelCount;
+  const totalSales = trips.filter(t => !t.isCancel).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  document.getElementById('previewSummary').innerHTML =
+    `<strong>${validCount}件</strong> ・ キャンセル ${cancelCount}件 ・ 休憩 ${rests.length}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
+}
+
+// 編集可能セル（td）を作る。編集は parsed の実体オブジェクトに即反映。
+// _ocrFlags が立つセルは low-confidence（黄色）でハイライトする。
+function previewCell(obj, key, opts) {
+  const td = document.createElement('td');
+  const flags = obj._ocrFlags || {};
+  const flagKey = (opts && opts.flagKey) || key;
+  if (flags[flagKey]) td.classList.add('low-confidence');
+  const inp = document.createElement('input');
+  if (opts && opts.type) inp.type = opts.type;
+  if (opts && opts.step) inp.step = opts.step;
+  inp.value = obj[key] == null ? '' : obj[key];
+  inp.addEventListener('change', () => {
+    if (opts && opts.type === 'number') {
+      const v = parseFloat(inp.value);
+      obj[key] = Number.isFinite(v) ? v : 0;
+    } else {
+      obj[key] = inp.value;
+    }
+    refreshPreviewSummary();
+  });
+  td.appendChild(inp);
+  return td;
+}
+
 function renderPreview() {
   const sec = document.getElementById('previewSection');
   sec.style.display = 'block';
-  const cancelCount = parsed.trips.filter(t => t.isCancel).length;
-  const validCount = parsed.trips.length - cancelCount;
-  const totalSales = parsed.trips.filter(t => !t.isCancel).reduce((s, t) => s + t.amount, 0);
-  const restCount = (parsed.rests || []).length;
-  document.getElementById('previewSummary').innerHTML =
-    `<strong>${validCount}件</strong> ・ キャンセル ${cancelCount}件 ・ 休憩 ${restCount}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
+  refreshPreviewSummary();
 
   const tbl = document.getElementById('previewTable');
-  tbl.innerHTML = '<tr><th>No</th><th>時間</th><th>区間</th><th>km</th><th>金額</th></tr>';
+  tbl.innerHTML =
+    '<tr><th>No</th><th>乗車</th><th>降車</th><th>迎</th>' +
+    '<th>乗車地</th><th>降車地</th><th>km</th><th>金額</th></tr>';
 
-  // trips と rests を時刻順に混ぜて表示
-  const allRows = [
-    ...parsed.trips.map((t, i) => ({...t, _kind: 'trip', _idx: i})),
-    ...(parsed.rests || []).map((r, i) => ({...r, _kind: 'rest', _idx: i}))
+  const trips = parsed.trips || [];
+  const rests = parsed.rests || [];
+  const all = [
+    ...trips.map(t => ({ kind: 'trip', obj: t })),
+    ...rests.map(r => ({ kind: 'rest', obj: r })),
   ];
   // 時系列順。文字列比較だと "7:37" が "10:00" より後ろに来るため数値で比較。
-  // 1勤務は24h未満の連続帯なので、勤務開始より前の時刻は翌日(+24h)扱いにする
-  // （日跨ぎ勤務でも正しく並ぶ）。
+  // 勤務開始より前の時刻は翌日(+24h)扱い（日跨ぎ勤務でも正しく並ぶ）。
   const t2m = (s) => {
     const m = String(s || '').match(/(\d{1,2}):(\d{2})/);
     return m ? (+m[1]) * 60 + (+m[2]) : -1;
   };
   const anchorC = [];
-  if (parsed.trips[0]) anchorC.push(t2m(parsed.trips[0].boardTime));
-  if ((parsed.rests || [])[0]) anchorC.push(t2m(parsed.rests[0].startTime));
+  if (trips[0]) anchorC.push(t2m(trips[0].boardTime));
+  if (rests[0]) anchorC.push(t2m(rests[0].startTime));
   const va = anchorC.filter(v => v >= 0);
   const anchor = va.length ? Math.min(...va) : 0;
-  const eff = (s) => {
-    const m = t2m(s);
-    return m < 0 ? 1e9 : (m < anchor ? m + 1440 : m);
-  };
-  allRows.sort((a, b) => eff(a.boardTime || a.startTime) - eff(b.boardTime || b.startTime));
+  const eff = (s) => { const m = t2m(s); return m < 0 ? 1e9 : (m < anchor ? m + 1440 : m); };
+  all.sort((a, b) => eff(a.obj.boardTime || a.obj.startTime) - eff(b.obj.boardTime || b.obj.startTime));
 
-  for (const row of allRows) {
+  for (const item of all) {
     const tr = document.createElement('tr');
-    if (row._kind === 'rest') {
-      tr.classList.add('rest');
-      tr.innerHTML = `
-        <td>休</td>
-        <td>${row.startTime}-${row.endTime}</td>
-        <td>${row.place}</td>
-        <td>-</td>
-        <td>-</td>
-      `;
+    if (item.kind === 'rest') {
+      tr.className = 'rest';
+      const r = item.obj;
+      const noTd = document.createElement('td'); noTd.textContent = '休';
+      tr.appendChild(noTd);
+      tr.appendChild(previewCell(r, 'startTime'));
+      tr.appendChild(previewCell(r, 'endTime'));
+      tr.appendChild(document.createElement('td'));
+      tr.appendChild(previewCell(r, 'place', { flagKey: '乗車地' }));
+      tr.appendChild(document.createElement('td'));
+      tr.appendChild(document.createElement('td'));
+      tr.appendChild(document.createElement('td'));
     } else {
-      if (row.isCancel) tr.classList.add('cancel');
-      const noLabel = row.isCharter && row.no != null ? '貸' + row.no : (row.no == null ? (row.isCancel ? 'キ' : '') : row.no);
-      tr.innerHTML = `
-        <td>${noLabel}</td>
-        <td><input data-idx="${row._idx}" data-key="boardTime" value="${row.boardTime}"></td>
-        <td>${row.boardPlace} → ${row.alightPlace}</td>
-        <td><input data-idx="${row._idx}" data-key="km" type="number" step="0.1" value="${row.km}"></td>
-        <td><input data-idx="${row._idx}" data-key="amount" type="number" value="${row.amount}"></td>
-      `;
+      const t = item.obj;
+      if (t.isCancel) tr.className = 'cancel';
+      const noTd = document.createElement('td');
+      const flags = t._ocrFlags || {};
+      if (flags['No']) noTd.classList.add('low-confidence');
+      noTd.textContent = t.isCharter && t.no != null ? '貸' + t.no
+        : (t.no == null ? (t.isCancel ? 'キ' : '') : t.no);
+      tr.appendChild(noTd);
+      tr.appendChild(previewCell(t, 'boardTime', { flagKey: '乗車' }));
+      tr.appendChild(previewCell(t, 'alightTime', { flagKey: '降車' }));
+      tr.appendChild(previewCell(t, 'pickupKind', { flagKey: '迎' }));
+      tr.appendChild(previewCell(t, 'boardPlace', { flagKey: '乗車地' }));
+      tr.appendChild(previewCell(t, 'alightPlace', { flagKey: '降車地' }));
+      tr.appendChild(previewCell(t, 'km', { type: 'number', step: '0.1', flagKey: '営Km' }));
+      tr.appendChild(previewCell(t, 'amount', { type: 'number', flagKey: '合計' }));
     }
     tbl.appendChild(tr);
   }
-
-  // インライン編集の反映
-  tbl.querySelectorAll('input[data-idx]').forEach(inp => {
-    inp.onchange = () => {
-      const i = parseInt(inp.dataset.idx); const k = inp.dataset.key;
-      const v = inp.type === 'number' ? parseFloat(inp.value) : inp.value;
-      parsed.trips[i][k] = v;
-    };
-  });
 }
 
 document.getElementById('saveBtn').onclick = async () => {
@@ -416,8 +465,8 @@ document.getElementById('saveBtn').onclick = async () => {
     returnTime: document.getElementById('returnTimeInput').value || null,
     memo: document.getElementById('memoInput').value,
     rawText: document.getElementById('rawTextInput').value,
-    trips: parsed.trips,
-    rests: parsed.rests,
+    trips: parsed.trips.map(stripOcrMeta),
+    rests: (parsed.rests || []).map(stripOcrMeta),
     weather,
     violations: readViolations(),
     createdAt: new Date().toISOString(),
