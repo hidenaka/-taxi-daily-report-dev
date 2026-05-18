@@ -235,9 +235,40 @@ function applyOcrImport() {
   };
   renderPreview();
 
+  // 帰庫時刻の概算補完: 営業明細ヘッダーの入庫時刻はOCRで読めない（写真の
+  // ヘッダー文字が小さく不可）。代わりに明細の「最後の活動時刻」を帰庫欄に
+  // 仮入力する。実際の帰庫は車庫へ戻る時間ぶん少し後なので、入力ページで
+  // 微調整する前提。帰庫欄が空のときだけ補完する。
+  let derivedReturn = '';
+  try {
+    const t2m = (s) => {
+      const m = String(s || '').match(/(\d{1,2}):(\d{2})/);
+      return m ? (+m[1]) * 60 + (+m[2]) : -1;
+    };
+    const starts = parsed.trips.map(t => t2m(t.boardTime))
+      .concat(parsed.rests.map(r => t2m(r.startTime))).filter(v => v >= 0);
+    const anchor = starts.length ? Math.min(...starts) : 0;
+    let bestM = -1;
+    const ends = parsed.trips.map(t => t.alightTime)
+      .concat(parsed.rests.map(r => r.endTime));
+    for (const e of ends) {
+      const raw0 = t2m(e);
+      if (raw0 < 0) continue;
+      const m = raw0 < anchor ? raw0 + 1440 : raw0;
+      if (m > bestM) {
+        bestM = m;
+        const mm = String(e).match(/(\d{1,2}):(\d{2})/);
+        derivedReturn = String(+mm[1]).padStart(2, '0') + ':' + mm[2];
+      }
+    }
+    const ri = document.getElementById('returnTimeInput');
+    if (ri && !ri.value && derivedReturn) ri.value = derivedReturn;
+  } catch (e) { /* 補完失敗時は空欄のまま */ }
+
   const hint = document.getElementById('dateHint');
-  hint.innerHTML = '📷 写真から取り込みました。<b>まず日付を確認してください</b>' +
-    `（自動判定: ${document.getElementById('dateInput').value}・タップで変更）。` +
+  hint.innerHTML = '📷 写真から取り込みました。<b>日付</b>を確認し、' +
+    `<b>帰庫時刻</b>${derivedReturn ? `（概算 ${derivedReturn}・要確認）` : ''}と車種も確認してください` +
+    `。日付の自動判定: ${document.getElementById('dateInput').value}（タップで変更）。` +
     '明細はこの下の表で1セルずつ修正できます。';
   hint.style.color = '#1565c0';
 }
