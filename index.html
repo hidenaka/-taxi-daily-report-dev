@@ -309,19 +309,28 @@ async function render() {
     const projectionTiers = rateTable && (rateTable[tierKey] || rateTable["11"]);
     if (projectionTiers && projectionTiers.length > 0) {
       const currentSalesExclTax = monthly.exclTax;
-      const currentTierIdx = findTierIdx(projectionTiers, currentSalesExclTax);
+      const isLocked = rawDrives.length >= 11; // 11乗務以降は歩率確定
+      const remainingShifts = Math.max(0, respShifts - rawDrives.length);
+      // 着地見込: 現在の1出番あたり平均営収(税抜)が tierShiftCount 出番続いた場合の月度営収。
+      // 月途中は「累計だけで見たティア」ではなく、この見込み着地ティアで歩率を判定する。
+      const tierShiftCount = Number(tierKey) || 11;
+      const drivenAvgExcl = rawDrives.length > 0 ? currentSalesExclTax / rawDrives.length : 0;
+      const projectedSalesExcl = drivenAvgExcl * tierShiftCount;
+      const anchorSalesExcl = isLocked ? currentSalesExclTax : projectedSalesExcl;
+      const currentTierIdx = findTierIdx(projectionTiers, anchorSalesExcl);
       if (currentTierIdx >= 0) {
         const currentTier = projectionTiers[currentTierIdx];
-        const isLocked = rawDrives.length >= 11; // 11乗務以降は歩率確定
-        const remainingShifts = Math.max(0, respShifts - rawDrives.length);
-        // 確定後は actualResult.rate(実際の計算結果)を採用
+        // 確定後は actualResult.rate(実績)、月途中は着地見込ティアの歩率
         const displayRate = isLocked ? actualResult.rate : currentTier.rate;
-        const badgeBg = isLocked ? '#c8e6c9' : '#fff3e0';
-        const badgeFg = isLocked ? '#2e7d32' : '#e65100';
-        const badgeLabel = isLocked ? '確定' : '暫定';
+        const badgeBg = isLocked ? '#c8e6c9' : '#e3f2fd';
+        const badgeFg = isLocked ? '#2e7d32' : '#1565c0';
+        const badgeLabel = isLocked ? '確定' : '着地見込';
 
-        let buritsuHtml = `
-          <div class="kv"><div>現在の歩率</div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
+        let buritsuHtml = isLocked ? `
+          <div class="kv"><div>確定 歩率</div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
+        ` : `
+          <div class="kv"><div>着地見込 歩率</div><div><strong>${(displayRate*100).toFixed(1)}%</strong></div></div>
+          <p class="muted" style="font-size:10px;margin-top:4px;">現在の1出番平均 ${formatYen(drivenAvgExcl)}（税抜）が ${tierShiftCount}出番続いた場合の月度営収 ${formatYen(projectedSalesExcl)} 見込み。このペースでの着地歩率です。</p>
         `;
 
         if (!isLocked && remainingShifts > 0) {
