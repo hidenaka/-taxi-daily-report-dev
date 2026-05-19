@@ -174,12 +174,14 @@ if (location.hostname.includes('-dev')) {
 
       <label class="muted" style="margin-top:8px;display:block;">給与モード</label>
       <select class="select" id="companyPayrollMode">
-        <option value="step_rate">段階歩率（step_rate）</option>
-        <option value="fixed_rate">固定率（fixed_rate）</option>
+        <option value="step_rate">変動部立</option>
+        <option value="fixed_rate">固定部立</option>
       </select>
 
-      <label class="muted" style="margin-top:8px;display:block;">固定率</label>
-      <input class="input" id="companyFixedRate" type="number" step="0.01" value="0.55">
+      <div id="companyFixedRateField">
+        <label class="muted" style="margin-top:8px;display:block;">固定率</label>
+        <input class="input" id="companyFixedRate" type="number" step="0.01" value="0.55">
+      </div>
 
       <label class="muted" style="margin-top:8px;display:block;">手取り率</label>
       <input class="input" id="companyTakeHomeRate" type="number" step="0.01" value="0.75">
@@ -196,11 +198,13 @@ if (location.hostname.includes('-dev')) {
       <label class="muted" style="margin-top:8px;display:block;">インセンティブ 額（出番あたり）</label>
       <input class="input" id="companyPremiumAmount" type="number" step="100" value="2000">
 
-      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
-      <h4 style="margin:0 0 8px;font-size:13px;">歩率テーブル</h4>
-      <p class="muted" style="font-size:11px;margin-bottom:8px;">新規会社では恵豊のひな型値が入っています。その会社の実値に直してください。</p>
-      <div id="companyRateTableEditor"></div>
-      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+      <div id="companyRateTableField">
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+        <h4 style="margin:0 0 8px;font-size:13px;">歩率テーブル</h4>
+        <p class="muted" style="font-size:11px;margin-bottom:8px;">新規会社では恵豊のひな型値が入っています。その会社の実値に直してください。</p>
+        <div id="companyRateTableEditor"></div>
+        <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+      </div>
 
       <button class="btn" id="saveCompanyBtn" style="width:100%;background:var(--primary);color:#fff;">💾 会社を保存</button>
     </section>
@@ -1122,6 +1126,13 @@ function newCompanyTemplate() {
   };
 }
 
+// 給与モードに応じて固定率／歩率テーブルの入力欄を出し分ける
+function applyCompanyPayrollModeUI() {
+  const isFixed = document.getElementById('companyPayrollMode').value === 'fixed_rate';
+  document.getElementById('companyFixedRateField').style.display = isFixed ? '' : 'none';
+  document.getElementById('companyRateTableField').style.display = isFixed ? 'none' : '';
+}
+
 function fillCompanyForm(c, isNew) {
   companyIsNew = isNew;
   const slugInput = document.getElementById('companySlug');
@@ -1141,6 +1152,7 @@ function fillCompanyForm(c, isNew) {
     c.premiumIncentive?.amountPerShift ?? 2000;
   renderRateTable(c.rateTable || DEFAULT_CONFIG.rateTable,
     'companyRateTableEditor', 'companyRate1213');
+  applyCompanyPayrollModeUI();
 }
 
 async function loadCompanyList() {
@@ -1164,6 +1176,7 @@ async function loadCompanyList() {
 }
 
 document.getElementById('loadCompanyListBtn').onclick = loadCompanyList;
+document.getElementById('companyPayrollMode').onchange = applyCompanyPayrollModeUI;
 
 document.getElementById('companySelect').onchange = (e) => {
   const v = e.target.value;
