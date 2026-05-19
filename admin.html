@@ -208,7 +208,8 @@ if (location.hostname.includes('-dev')) {
     <section class="admin-card">
       <h3>⚙️ ユーザー設定編集</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">特定ユーザーの設定を編集。レートテーブル、デフォルト値など。</p>
-      
+      <p style="font-size:11px;margin-bottom:8px;color:#d32f2f;">※歩率・手取り率など会社レベル項目は「🏢 会社管理」で設定します。会社に所属するユーザーには会社プロファイルが優先され、ここでの編集は反映されません。</p>
+
       <label class="muted">対象ユーザーID</label>
       <input class="input" id="targetUserIdForConfig" placeholder="sample1" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       
