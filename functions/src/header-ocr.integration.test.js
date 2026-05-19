@@ -12,7 +12,10 @@ const SAMPLE = path.join(
   "..", "..", "ocr-spike", "test-images", "2026-05-10.png"
 );
 
-test("実画像 2026-05-10.png からヘッダー4項目を読み取る", { timeout: 180000 }, async () => {
+// サンプル画像はリポジトリ外（ocr-spike/）。無い環境ではスキップする。
+const skip = fs.existsSync(SAMPLE) ? false : "サンプル画像 ocr-spike/test-images/2026-05-10.png が無いためスキップ";
+
+test("実画像 2026-05-10.png からヘッダー4項目を読み取る", { timeout: 180000, skip }, async () => {
   const buf = fs.readFileSync(SAMPLE);
   const h = await extractHeader(buf);
   assert.equal(h.date, "2026-05-10");

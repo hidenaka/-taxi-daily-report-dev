@@ -77,9 +77,10 @@ export function parseHeaderBoxes(boxes) {
   }
 
   // 走行KM: 「走行」かつ「KM/Km/ＫＭ」を含むラベル（「走行時間」「実車KM」を除外）。
+  // maxDx は狭め（120）。走行KMセルの隣に実車KMの値が並ぶため、x距離で排除する。
   const kmLabel = find((t) => t.includes("走行") && /K[Mm]|ＫＭ/.test(t));
   if (kmLabel) {
-    result.totalKm = valueBelow(boxes, kmLabel, { minDy: 10, maxDy: 160, maxDx: 230 }, pickInt);
+    result.totalKm = valueBelow(boxes, kmLabel, { minDy: 10, maxDy: 160, maxDx: 120 }, pickInt);
   }
 
   return result;
