@@ -117,7 +117,7 @@ import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth } from './js/firebase-auth.js';
-import { getPlannedVehicle, pruneOrphanVehicles } from './js/planned-shifts.js';
+import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -219,10 +219,11 @@ async function render() {
 
   const monthLabel = formatBillingPeriod(viewPeriod);
   const takeHomeRate = config.takeHomeRate ?? 0.75;
-  // 予定出番数: カレンダーのシフト予定(expandedDates)の当月度内件数を使う。
+  // 予定出番数: 当月度の総出番 = 実績日と予定日(expandedDates)の和集合。
+  // 実績入力は expandedDates を更新しないため、和集合で数える必要がある。
   // 未設定(0件)時のみ責任出番(設定値)にフォールバック。
-  const plannedShifts = (config.shifts.expandedDates || [])
-    .filter(d => d >= range.start && d <= range.end).length;
+  const plannedShifts = countMonthlyShifts(
+    rawDrives.map(d => d.date), config.shifts.expandedDates, range.start, range.end);
   const respShifts = plannedShifts > 0 ? plannedShifts : config.responsibilityShifts;
 
   // 現在月度かつ責任出番未達の段階では、予定責任出番ベース(rateTable["11"]等)で歩率計算

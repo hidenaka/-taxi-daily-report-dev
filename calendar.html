@@ -85,6 +85,7 @@ import {
   applyShiftState,
   getPlannedVehicle,
   pruneOrphanVehicles,
+  countMonthlyShifts,
 } from './js/planned-shifts.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
@@ -229,7 +230,9 @@ function renderDowToggles() {
 
 function renderSummary() {
   const { start, end } = getBillingPeriodRange(viewPeriod);
-  const planned = config.shifts.expandedDates.filter(d => d >= start && d <= end).length;
+  // 予定: 当月度の総出番 = 実績日と予定日(expandedDates)の和集合。
+  const planned = countMonthlyShifts(
+    drivesThisMonth.map(d => d.date), config.shifts.expandedDates, start, end);
   const paid = (config.shifts.paidLeaveDates || []).filter(d => d >= start && d <= end).length;
   const actual = drivesThisMonth.length;
   const remaining = Math.max(0, planned - actual);

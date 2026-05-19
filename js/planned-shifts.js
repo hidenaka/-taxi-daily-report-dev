@@ -75,3 +75,17 @@ export function pruneOrphanVehicles(config) {
   }
   return config;
 }
+
+// 指定月度の総出番数 = 予定日(expandedDates)と実績日(driveDates)の和集合の件数。
+// 実績入力は expandedDates を更新しないため、両方の和集合で数える必要がある
+// （expandedDates の生件数では、予定登録せず実績入力した日が数え落ちる）。
+export function countMonthlyShifts(driveDates, expandedDates, start, end) {
+  const set = new Set();
+  for (const d of (expandedDates || [])) {
+    if (d >= start && d <= end) set.add(d);
+  }
+  for (const d of (driveDates || [])) {
+    if (d >= start && d <= end) set.add(d);
+  }
+  return set.size;
+}
