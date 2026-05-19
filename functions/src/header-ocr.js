@@ -4,11 +4,13 @@
 // 画像・canvas はすべてメモリ上のみ。ディスクに保存しない。
 
 // ラベルboxの近傍下方から値boxを1つ選ぶ。
-// label の下方 y差 [minDy,maxDy]、x中心差 |dx| < maxDx の範囲で、
+// label の下辺からの y差 [minDy,maxDy]、x中心差 |dx| < maxDx の範囲で、
 // pickValue(text) が非nullを返す最初の（最も近い）boxの結果を返す。
+// 基準にラベル下辺(bbox[3])を使うのは、ラベルが高い場合に自身の隣のboxを
+// 誤って値として拾わないため。
 function valueBelow(boxes, label, { minDy, maxDy, maxDx }, pickValue) {
   const lx = (label.bbox[0] + label.bbox[2]) / 2;
-  const ly = label.bbox[1];
+  const ly = label.bbox[3];
   const cands = [];
   for (const b of boxes) {
     if (b === label) continue;
