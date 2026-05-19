@@ -11,6 +11,11 @@ import { auth } from "./firebase-init.js";
 const FUNCTION_URL =
   "https://us-central1-" + auth.app.options.projectId + ".cloudfunctions.net/ocrReportFn";
 
+// 予熱: このページを開いた時点で関数を起動＋OCRモデルをロードさせておく。
+// ユーザーが写真を撮る/選ぶ数十秒の間にコールドスタートを裏で済ませる狙い。
+// 認証不要・結果は使わない（fire-and-forget）。失敗は無視する。
+fetch(FUNCTION_URL + "?warmup=1", { method: "POST" }).catch(() => {});
+
 const input = document.getElementById("imageInput");
 const statusEl = document.getElementById("ocrStatus");
 
@@ -70,6 +75,23 @@ function hideProgress() {
   if (progressTrack) progressTrack.style.display = "none";
 }
 
+// OCR関数へ画像をPOSTする。ネットワークエラー（コールドスタートによる
+// 接続切れ等）の場合は1.5秒待って1回だけ自動リトライする（2回目は関数が
+// 温まっているので速い）。
+async function postOcr(blob, token) {
+  const doFetch = () => fetch(FUNCTION_URL, {
+    method: "POST",
+    headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
+    body: blob,
+  });
+  try {
+    return await doFetch();
+  } catch (e) {
+    await new Promise((r) => setTimeout(r, 1500));
+    return await doFetch();
+  }
+}
+
 input.addEventListener("change", async (e) => {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
@@ -91,11 +113,7 @@ input.addEventListener("change", async (e) => {
     showProgress();
     let res;
     try {
-      res = await fetch(FUNCTION_URL, {
-        method: "POST",
-        headers: { Authorization: "Bearer " + token, "Content-Type": "image/jpeg" },
-        body: blob,
-      });
+      res = await postOcr(blob, token);
     } finally {
       hideProgress();
     }

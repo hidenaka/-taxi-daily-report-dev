@@ -10,6 +10,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { ocrReport } from "./src/pipeline.js";
 import { consumeQuota } from "./src/quota.js";
+import { getService, getHeaderService } from "./src/ocr-engine.js";
 
 initializeApp();
 
@@ -19,6 +20,15 @@ export const ocrReportFn = onRequest(
   { memory: "4GiB", timeoutSeconds: 300, cors: true },
   async (req, res) => {
     try {
+      // ウォームアップ: OCRモデルを事前ロードして即返す（認証不要・画像処理なし）。
+      // 写真取り込みページを開いた時点で呼ばれ、コールドスタート＋モデルロードを
+      // ユーザーの操作時間（写真を撮る/選ぶ間）に隠す。モデルをメモリに載せるだけ。
+      if (req.query && req.query.warmup === "1") {
+        await Promise.all([getService(), getHeaderService()]);
+        res.json({ warmed: true });
+        return;
+      }
+
       if (req.method !== "POST") {
         res.status(405).json({ error: "POST のみ対応しています" });
         return;
