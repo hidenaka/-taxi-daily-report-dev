@@ -146,6 +146,66 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>🏢 会社管理</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">会社プロファイル（歩率テーブル・給与ルール等）を作成・編集します。会社レベル設定の正しい編集口です。</p>
+
+      <button class="btn" id="loadCompanyListBtn" style="width:100%;">会社リストを読み込み</button>
+      <label class="muted" style="margin-top:12px;display:block;">会社を選択</label>
+      <select class="select" id="companySelect">
+        <option value="__new__">＋ 新規会社を作成</option>
+      </select>
+      <div id="companyStatus" style="font-size:12px;margin:8px 0;"></div>
+
+      <label class="muted" style="margin-top:8px;display:block;">会社ID（slug）</label>
+      <input class="input" id="companySlug" placeholder="keiho" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+      <label class="muted" style="margin-top:8px;display:block;">会社名</label>
+      <input class="input" id="companyName" placeholder="恵豊">
+
+      <label class="muted" style="margin-top:8px;display:block;">プラン</label>
+      <select class="select" id="companyPlan">
+        <option value="partner">提携（partner）</option>
+        <option value="normal">通常（normal）</option>
+      </select>
+
+      <label class="muted" style="margin-top:8px;display:block;">
+        <input type="checkbox" id="companyActive" checked> 有効
+      </label>
+
+      <label class="muted" style="margin-top:8px;display:block;">給与モード</label>
+      <select class="select" id="companyPayrollMode">
+        <option value="step_rate">段階歩率（step_rate）</option>
+        <option value="fixed_rate">固定率（fixed_rate）</option>
+      </select>
+
+      <label class="muted" style="margin-top:8px;display:block;">固定率</label>
+      <input class="input" id="companyFixedRate" type="number" step="0.01" value="0.55">
+
+      <label class="muted" style="margin-top:8px;display:block;">手取り率</label>
+      <input class="input" id="companyTakeHomeRate" type="number" step="0.01" value="0.75">
+
+      <label class="muted" style="margin-top:8px;display:block;">責任出番数</label>
+      <input class="input" id="companyResponsibilityShifts" type="number" step="1" value="11">
+
+      <label class="muted" style="margin-top:8px;display:block;">有給休暇 1日あたり金額</label>
+      <input class="input" id="companyPaidLeaveAmount" type="number" step="100" value="39340">
+
+      <label class="muted" style="margin-top:8px;display:block;">インセンティブ 閾値売上（税抜）</label>
+      <input class="input" id="companyPremiumThreshold" type="number" step="1000" value="80000">
+
+      <label class="muted" style="margin-top:8px;display:block;">インセンティブ 額（出番あたり）</label>
+      <input class="input" id="companyPremiumAmount" type="number" step="100" value="2000">
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+      <h4 style="margin:0 0 8px;font-size:13px;">歩率テーブル</h4>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">新規会社では恵豊のひな型値が入っています。その会社の実値に直してください。</p>
+      <div id="companyRateTableEditor"></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+
+      <button class="btn" id="saveCompanyBtn" style="width:100%;background:var(--primary);color:#fff;">💾 会社を保存</button>
+    </section>
+
+    <section class="admin-card">
       <h3>⚙️ ユーザー設定編集</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">特定ユーザーの設定を編集。レートテーブル、デフォルト値など。</p>
       
