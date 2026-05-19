@@ -196,8 +196,13 @@ function findHeaderRow(boxes) {
   }));
 
   // ヘッダー行の上端/下端 y。
+  // headerBottom を max で取ると、1個のラベル box が縦長に誤検出された場合
+  // （例: "No" が行罫線まで含み下端が伸びる）にそれへ引っ張られ、明細表の
+  // 1行目の START 列を「ヘッダー内」と誤判定して丸ごとカットしてしまう。
+  // ラベル下端の中央値で頑健に取る（外れ値1個に影響されない）。
   const headerTop = Math.min(...headerBoxes.map((hb) => hb.box.bbox[1]));
-  const headerBottom = Math.max(...headerBoxes.map((hb) => hb.box.bbox[3]));
+  const sortedBottoms = headerBoxes.map((hb) => hb.box.bbox[3]).sort((a, b) => a - b);
+  const headerBottom = sortedBottoms[Math.floor(sortedBottoms.length / 2)];
   // 明細領域から除外すべきヘッダーラベル box の集合（参照同一性で判定）。
   // END グループの最初の行はヘッダーと同じ y 帯に印字されるため、
   // y カットではなくヘッダー box そのものを名指しで除外する。
@@ -640,11 +645,16 @@ export function reconstructRows(ocr) {
   // （= 数値データでない）。データ行は 営Km/合計/料金 等に数字を含む。
   const endRowsRaw = endRowsAll.filter((er) => {
     if (er.items.length >= 3) return true;
-    // 2 box 以下: ヘッダーラベル取りこぼしでないこと（数字 or 地名を含む）
+    // 2 box 以下: 実データ（数値 or 降車地の地名）を持つクラスタのみ残す。
+    // 備考テキストの折り返し断片（例: "ネット決済ETC羽田(千代田)" の2行目
+    // "代田）"）は、立替/備考列に紛れて 1 box の偽 END 物理行になる。これを
+    // 行と数えると END 対応が1つズレる。数値でも降車地の地名でもないので落とす。
     return er.items.some((it) => {
       const t = normalizeKanji(txt(it.b));
-      if (matchHeaderLabel(t)) return false;        // ヘッダー列名そのもの
-      return /\d/.test(t) || /[一-鿿]/.test(t);     // 数値 or 漢字（地名）
+      if (matchHeaderLabel(t)) return false;                  // ヘッダー列名そのもの
+      if (t.replace(/[^0-9]/g, "").length >= 2) return true;  // 数値データ（2桁以上）
+      if (it.ci === 6 && /[一-鿿]{2,}/.test(t)) return true;  // 降車地列の地名
+      return false;
     });
   });
 
