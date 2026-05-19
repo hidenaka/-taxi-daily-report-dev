@@ -3,6 +3,9 @@
 // 表OCRパイプラインとは独立。生画像を正立回転し、上部帯を拡大してOCRする。
 // 画像・canvas はすべてメモリ上のみ。ディスクに保存しない。
 
+import { loadImage, createCanvas } from "ppu-ocv";
+import { recognizeHeaderBoxes } from "./ocr-engine.js";
+
 // ラベルboxの近傍下方から値boxを1つ選ぶ。
 // label の下辺からの y差 [minDy,maxDy]、x中心差 |dx| < maxDx の範囲で、
 // pickValue(text) が非nullを返す最初の（最も近い）boxの結果を返す。
@@ -60,24 +63,72 @@ export function parseHeaderBoxes(boxes) {
 
   const dateLabel = find((t) => t.includes("処理") && t.includes("日付"));
   if (dateLabel) {
-    result.date = valueBelow(boxes, dateLabel, { minDy: 30, maxDy: 160, maxDx: 250 }, pickDate);
+    result.date = valueBelow(boxes, dateLabel, { minDy: 10, maxDy: 160, maxDx: 250 }, pickDate);
   }
 
   const departLabel = find((t) => t.includes("出庫"));
   if (departLabel) {
-    result.departTime = valueBelow(boxes, departLabel, { minDy: 30, maxDy: 160, maxDx: 300 }, pickTime);
+    result.departTime = valueBelow(boxes, departLabel, { minDy: 10, maxDy: 160, maxDx: 300 }, pickTime);
   }
 
   const returnLabel = find((t) => t.includes("入庫"));
   if (returnLabel) {
-    result.returnTime = valueBelow(boxes, returnLabel, { minDy: 30, maxDy: 160, maxDx: 300 }, pickTime);
+    result.returnTime = valueBelow(boxes, returnLabel, { minDy: 10, maxDy: 160, maxDx: 300 }, pickTime);
   }
 
   // 走行KM: 「走行」かつ「KM/Km/ＫＭ」を含むラベル（「走行時間」「実車KM」を除外）。
   const kmLabel = find((t) => t.includes("走行") && /K[Mm]|ＫＭ/.test(t));
   if (kmLabel) {
-    result.totalKm = valueBelow(boxes, kmLabel, { minDy: 30, maxDy: 160, maxDx: 230 }, pickInt);
+    result.totalKm = valueBelow(boxes, kmLabel, { minDy: 10, maxDy: 160, maxDx: 230 }, pickInt);
   }
 
   return result;
+}
+
+// 生画像をフォームが正立する向きに整える。
+// 営業明細は横長の紙に縦長レイアウト。横長写真は時計回り90度回転で正立する
+// （2026-05-19検証でCW回転＝正立を確認）。縦長写真はそのまま使う。
+function uprightCanvas(img) {
+  if (img.width > img.height) {
+    const c = createCanvas(img.height, img.width); // 幅=元高さ, 高さ=元幅
+    const ctx = c.getContext("2d");
+    ctx.translate(c.width, 0);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(img, 0, 0);
+    return c;
+  }
+  const c = createCanvas(img.width, img.height);
+  c.getContext("2d").drawImage(img, 0, 0);
+  return c;
+}
+
+const HEADER_BAND_RATIO = 0.22; // 正立画像の上部22%にヘッダー全体が収まる
+const HEADER_TARGET_WIDTH = 4500; // 帯をこの幅へ拡大（検出が小さい文字を拾える）
+
+/**
+ * 生画像Bufferからヘッダー情報を読み取る。
+ * 失敗しても例外を投げず、読めなかった項目は null で返す（表OCRを止めないため）。
+ * @param {Buffer} imageBuffer 生画像（JPEG/PNG）
+ * @returns {Promise<{date:?string, departTime:?string, returnTime:?string, totalKm:?number}>}
+ */
+export async function extractHeader(imageBuffer) {
+  const empty = { date: null, departTime: null, returnTime: null, totalKm: null };
+  try {
+    const img = await loadImage(imageBuffer);
+    const upright = uprightCanvas(img);
+    const bandH = Math.round(upright.height * HEADER_BAND_RATIO);
+    const scale = HEADER_TARGET_WIDTH / upright.width;
+    const band = createCanvas(
+      Math.round(upright.width * scale),
+      Math.round(bandH * scale)
+    );
+    band
+      .getContext("2d")
+      .drawImage(upright, 0, 0, upright.width, bandH, 0, 0, band.width, band.height);
+    const boxes = await recognizeHeaderBoxes(band);
+    return parseHeaderBoxes(boxes);
+  } catch (e) {
+    console.warn("extractHeader: 失敗、ヘッダーは空で返す:", (e && e.message) || e);
+    return empty;
+  }
 }
