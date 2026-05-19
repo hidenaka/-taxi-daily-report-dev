@@ -166,9 +166,13 @@ import {
   filterDrivesByVehicle,
   renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
-import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed } from './js/chart-helpers.js';
+import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA } from './js/chart-helpers.js';
+import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
+
+const REC_AREA_LS_KEY = 'cabis_rec_area_last';
+const REC_AREA_FALLBACK = '千代田区丸の内';
 
 if (!(await enforceAccess('analysis'))) {
   throw new Error('access-denied: redirected');
@@ -396,6 +400,8 @@ function applyVehicleFilterAndRender(label) {
   updateDataSourceInfo();
   populateRecommendArea();
   updateNeighborInfo();
+  // GPSが既に許可されているユーザーには静かに自動取得して初期エリアを上書き
+  maybeAutoRunGpsLookup();
   renderHourEff();
   renderHighValue();
   renderArea();
@@ -477,13 +483,23 @@ async function load() {
 }
 
 function populateRecommendArea() {
-  // 降車エリア候補 (過去5件以上)
-  const all = dropoffAreaAnalysis(allDrives).filter(a => a.dropoffs >= 5);
-  all.sort((a, b) => b.dropoffs - a.dropoffs);
+  // 降車エリア候補から OFFICE_AREA を除外＋件数降順
+  const candidates = filterRecAreaCandidates(dropoffAreaAnalysis(allDrives), OFFICE_AREA);
   const sel = document.getElementById('recArea');
   const prev = sel.value;
-  sel.innerHTML = all.map(a => `<option value="${a.area}">${a.area} (${a.dropoffs}件)</option>`).join('');
-  if (prev && all.find(a => a.area === prev)) sel.value = prev;
+  sel.innerHTML = candidates.map(a => `<option value="${a.area}">${a.area} (${a.dropoffs}件)</option>`).join('');
+  const availableAreas = candidates.map(c => c.area);
+  let lastArea = null;
+  try { lastArea = localStorage.getItem(REC_AREA_LS_KEY); } catch (e) {}
+  // 優先: セッション中の手動選択 (prev) > localStorage > fallback(丸の内) > 先頭
+  // ※ GPS自動取得は populateRecommendArea の外側で非同期に上書きする
+  sel.value = chooseInitialRecArea({
+    gpsArea: prev || null,
+    lastArea,
+    companyDefault: null, // Phase 2 で companies/{companyId}.defaultRecArea を渡す
+    fallback: REC_AREA_FALLBACK,
+    availableAreas,
+  });
   // 時刻はデフォルト現在時刻
   if (!document.getElementById('recTime').value) {
     const now = new Date();
@@ -501,7 +517,15 @@ function updateNeighborInfo() {
   const list = Array.from(ns).slice(0, 5).join(', ');
   info.textContent = `近隣${ns.size}: ${list}${ns.size > 5 ? '…' : ''}`;
 }
-document.getElementById('recArea').addEventListener('change', () => { gpsWideAreas = null; showRecGpsBadge(false); updateNeighborInfo(); });
+document.getElementById('recArea').addEventListener('change', () => {
+  gpsWideAreas = null;
+  showRecGpsBadge(false);
+  updateNeighborInfo();
+  try {
+    const v = document.getElementById('recArea').value;
+    if (v) localStorage.setItem(REC_AREA_LS_KEY, v);
+  } catch (e) {}
+});
 document.getElementById('recTimeNow').onclick = () => {
   const now = new Date();
   document.getElementById('recTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -598,21 +622,24 @@ function commonPrefixLen(a, b) {
 }
 
 // GPS取得 → 国土地理院reverse geocoding → エリア推定 → recArea セット
-document.getElementById('recGps').onclick = async () => {
+// silent=true: 自動実行モード（UIを触らず、エラー黙殺、完全一致のみ値上書き）
+async function runGpsLookup({ silent = false } = {}) {
   const info = document.getElementById('recGpsInfo');
   const btn = document.getElementById('recGps');
-  if (!navigator.geolocation) { info.textContent = 'このブラウザは位置情報非対応'; return; }
-  btn.disabled = true; btn.textContent = '📍 取得中…';
-  info.textContent = '位置情報取得中…';
+  if (!navigator.geolocation) {
+    if (!silent) info.textContent = 'このブラウザは位置情報非対応';
+    return;
+  }
+  if (!silent) { btn.disabled = true; btn.textContent = '📍 取得中…'; info.textContent = '位置情報取得中…'; }
   try {
     const pos = await new Promise((resolve, reject) =>
       navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, enableHighAccuracy: true })
     );
     const { latitude: lat, longitude: lon } = pos.coords;
-    info.textContent = `緯度${lat.toFixed(5)}, 経度${lon.toFixed(5)} → 町名取得中…`;
+    if (!silent) info.textContent = `緯度${lat.toFixed(5)}, 経度${lon.toFixed(5)} → 町名取得中…`;
     const res = await fetch(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`);
     const data = await res.json();
-    if (!data.results) { info.textContent = '町名取得失敗'; return; }
+    if (!data.results) { if (!silent) info.textContent = '町名取得失敗'; return; }
     const muniCd = data.results.muniCd;
     const lv01Nm = data.results.lv01Nm;
     let muniName = MUNI_FALLBACK[muniCd] || '';
@@ -626,7 +653,7 @@ document.getElementById('recGps').onclick = async () => {
     }
     const detectedRaw = (muniName + (lv01Nm || ''));
     const detected = normalizePlace(detectedRaw);
-    info.innerHTML = `📍 推定: <strong>${detected || '(取得不能)'}</strong>(原文: ${detectedRaw}, muniCd=${muniCd})`;
+    if (!silent) info.innerHTML = `📍 推定: <strong>${detected || '(取得不能)'}</strong>(原文: ${detectedRaw}, muniCd=${muniCd})`;
     const sel = document.getElementById('recArea');
     const options = Array.from(sel.options).map(o => o.value);
     // 完全一致 or 「区+detected」一致 (例: detected="上池台" → "大田区上池台" を探す)
@@ -634,10 +661,11 @@ document.getElementById('recGps').onclick = async () => {
     gpsWideAreas = null;
     if (matched) {
       sel.value = matched;
+      try { localStorage.setItem(REC_AREA_LS_KEY, matched); } catch (e) {}
       updateNeighborInfo();
       showRecGpsBadge(true, '確定');
-      document.getElementById('recSearch').click();
-    } else if (detected) {
+      if (!silent) document.getElementById('recSearch').click();
+    } else if (detected && !silent) {
       // 完全一致なし → 同区内の「文字列が近いエリア」を起点に、neighborMapで実移動可能範囲に絞る
       let wardMatch = detected.match(/^([^区市]+(?:区|市[^区]+?区|市))/);
       let ward = wardMatch ? wardMatch[1] : '';
@@ -673,15 +701,28 @@ document.getElementById('recGps').onclick = async () => {
       showRecGpsBadge(true, '範囲');
       info.innerHTML += `<br>完全一致なし → 起点 <strong>${seeds.join(', ')}</strong> から実移動実績ある ${gpsWideAreas.length} エリアに絞り検索`;
       document.getElementById('recSearch').click();
-    } else {
+    } else if (!silent) {
       info.innerHTML += '<br>該当エリアなし';
     }
   } catch (err) {
-    info.textContent = '位置情報取得エラー: ' + (err.message || err.code);
+    if (!silent) info.textContent = '位置情報取得エラー: ' + (err.message || err.code);
   } finally {
-    btn.disabled = false; btn.textContent = '📍 現在地から自動入力';
+    if (!silent) { btn.disabled = false; btn.textContent = '📍 現在地から自動入力'; }
   }
-};
+}
+document.getElementById('recGps').onclick = () => runGpsLookup({ silent: false });
+
+// permissions が granted の時のみページ読込時にサイレント自動取得
+// prompt/denied/未対応ブラウザでは何もせず（許可ダイアログを勝手に出さない）
+async function maybeAutoRunGpsLookup() {
+  if (!navigator.geolocation || !navigator.permissions) return;
+  try {
+    const perm = await navigator.permissions.query({ name: 'geolocation' });
+    if (perm.state === 'granted') {
+      runGpsLookup({ silent: true });
+    }
+  } catch (e) { /* permissions API 非対応は諦める */ }
+}
 
 // 履歴行の userId バッジ: 自分(または不明)は空文字、自分以外はroleに応じたバッジ
 function userBadge(userId) {
