@@ -615,8 +615,11 @@ export function reconstructRows(ocr) {
     if (ci === IDX_NO && /[:：]/.test(t)) ci = IDX_NORIBA_TIME;
     const isStart = startCols.has(ci);
     // START 列はヘッダー下端より下のみ。END 列はヘッダー上端より下（END_1 救済）。
+    // 判定は box 上端でなく中心 yc で行う。明細表の1行目はヘッダー行と y が
+    // 接近し、上端判定だと1行目の START 列をヘッダー扱いで丸ごとカットして
+    // しまう（ヘッダーラベル自体は labelBoxes で別途名指し除外済み）。
     if (isStart) {
-      if (c.b.bbox[1] < headerBottom - 2) continue;
+      if (c.yc < headerBottom) continue;
     }
     placed.push({ b: c.b, xc: c.xc, yc: c.yc, ci, isStart });
   }
