@@ -1116,8 +1116,8 @@ function newCompanyTemplate() {
     takeHomeRate: DEFAULT_CONFIG.takeHomeRate,
     responsibilityShifts: DEFAULT_CONFIG.responsibilityShifts,
     paidLeaveAmount: DEFAULT_CONFIG.paidLeaveAmount,
-    premiumIncentive: DEFAULT_CONFIG.premiumIncentive,
-    rateTable: DEFAULT_CONFIG.rateTable,
+    premiumIncentive: JSON.parse(JSON.stringify(DEFAULT_CONFIG.premiumIncentive)),
+    rateTable: JSON.parse(JSON.stringify(DEFAULT_CONFIG.rateTable)),
   };
 }
 
