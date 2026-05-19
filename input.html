@@ -81,10 +81,16 @@ if (location.hostname.includes('-dev')) {
         </select>
       </div>
       <div style="flex:1;">
+        <label class="muted">出庫時刻</label>
+        <input class="input" id="departTimeInput" type="time">
+      </div>
+      <div style="flex:1;">
         <label class="muted">帰庫時刻</label>
         <input class="input" id="returnTimeInput" type="time">
       </div>
     </div>
+    <label class="muted" style="margin-top:8px;display:block;">総走行距離（km・回送込み）</label>
+    <input class="input" id="totalKmInput" type="number" inputmode="numeric" placeholder="例: 309">
     <label class="muted" style="margin-top:8px;display:block;">メモ</label>
     <textarea id="memoInput" rows="2" class="input"></textarea>
   </section>
@@ -190,6 +196,8 @@ async function init() {
       document.getElementById('rawTextInput').value = existing.rawText || '';
       document.getElementById('vehicleTypeSel').value = existing.vehicleType;
       document.getElementById('returnTimeInput').value = existing.returnTime || '';
+      document.getElementById('departTimeInput').value = existing.departureTime || '';
+      document.getElementById('totalKmInput').value = existing.totalDistanceKm != null ? existing.totalDistanceKm : '';
       document.getElementById('memoInput').value = existing.memo || '';
       writeViolations(existing.violations || null);
       // 既存trips/restsをparsedに直接セットしてプレビュー描画
@@ -265,8 +273,29 @@ function applyOcrImport() {
     if (ri && !ri.value && derivedReturn) ri.value = derivedReturn;
   } catch (e) { /* 補完失敗時は空欄のまま */ }
 
+  // ヘッダーOCR結果を各欄へ反映する。読めた項目だけ上書きする。
+  // 出庫・帰庫はヘッダーの実値が明細からの概算より正確なので優先する。
+  const header = (data && data.header) || null;
+  let headerNote = '';
+  if (header) {
+    if (header.date) document.getElementById('dateInput').value = header.date;
+    if (header.departTime) document.getElementById('departTimeInput').value = header.departTime;
+    if (header.returnTime) {
+      document.getElementById('returnTimeInput').value = header.returnTime;
+      derivedReturn = ''; // ヘッダー実値があるので明細概算の注記は不要
+    }
+    if (header.totalKm != null) document.getElementById('totalKmInput').value = header.totalKm;
+    const got = [];
+    if (header.date) got.push('日付');
+    if (header.departTime) got.push('出庫');
+    if (header.returnTime) got.push('帰庫');
+    if (header.totalKm != null) got.push('走行距離');
+    if (got.length) headerNote = `ヘッダーから ${got.join('・')} を読み取りました。`;
+  }
+
   const hint = document.getElementById('dateHint');
-  hint.innerHTML = '📷 写真から取り込みました。<b>日付</b>を確認し、' +
+  hint.innerHTML = '📷 写真から取り込みました。' + headerNote +
+    '<b>日付</b>を確認し、' +
     `<b>帰庫時刻</b>${derivedReturn ? `（概算 ${derivedReturn}・要確認）` : ''}と車種も確認してください` +
     `。日付の自動判定: ${document.getElementById('dateInput').value}（タップで変更）。` +
     '明細はこの下の表で1セルずつ修正できます。';
@@ -489,11 +518,14 @@ document.getElementById('saveBtn').onclick = async () => {
   try { weather = await fetchWeatherForDate(date, config.weatherLocation); }
   catch (e) { console.warn('天候取得失敗:', e); }
 
+  const totalKmRaw = document.getElementById('totalKmInput').value;
+  const totalDistanceKm = totalKmRaw.trim() !== '' ? parseInt(totalKmRaw, 10) : null;
   const drive = {
     date,
     vehicleType: document.getElementById('vehicleTypeSel').value,
-    departureTime: config.defaults.departureTime,
+    departureTime: document.getElementById('departTimeInput').value || config.defaults.departureTime,
     returnTime: document.getElementById('returnTimeInput').value || null,
+    totalDistanceKm: Number.isFinite(totalDistanceKm) ? totalDistanceKm : null,
     memo: document.getElementById('memoInput').value,
     rawText: document.getElementById('rawTextInput').value,
     trips: parsed.trips.map(stripOcrMeta),
