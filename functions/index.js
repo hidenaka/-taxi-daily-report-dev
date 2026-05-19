@@ -49,8 +49,8 @@ export const ocrReportFn = onRequest(
         return;
       }
 
-      const { trips, rests } = await ocrReport(imageBuffer);
-      res.json({ trips, rests });
+      const { trips, rests, header } = await ocrReport(imageBuffer);
+      res.json({ trips, rests, header });
     } catch (e) {
       // 画像の内容はログに残さない。エラーの種別のみ記録する。
       console.error("ocrReportFn error:", (e && e.message) || e);
