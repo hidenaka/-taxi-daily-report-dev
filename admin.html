@@ -288,8 +288,9 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription } from './js/firebase-storage.js?v=2';
+import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
+import { buildCompanyDoc } from './js/admin-companies.js';
 import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_STATUS_LABELS, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload, formatStatus } from './js/subscription-state.js';
@@ -1102,6 +1103,120 @@ document.getElementById('subEditSaveBtn').addEventListener('click', async () => 
 });
 
 document.getElementById('loadSubsBtn').addEventListener('click', loadSubscriptionsView);
+
+// ========== 会社管理 ==========
+let companyCache = [];
+let companyIsNew = true;
+
+// 新規会社のひな型（DEFAULT_CONFIG＝恵豊相当をベースにする）
+function newCompanyTemplate() {
+  return {
+    name: '', slug: '', plan: 'partner', active: true,
+    payrollMode: 'step_rate', fixedRate: 0.55,
+    takeHomeRate: DEFAULT_CONFIG.takeHomeRate,
+    responsibilityShifts: DEFAULT_CONFIG.responsibilityShifts,
+    paidLeaveAmount: DEFAULT_CONFIG.paidLeaveAmount,
+    premiumIncentive: DEFAULT_CONFIG.premiumIncentive,
+    rateTable: DEFAULT_CONFIG.rateTable,
+  };
+}
+
+function fillCompanyForm(c, isNew) {
+  companyIsNew = isNew;
+  const slugInput = document.getElementById('companySlug');
+  slugInput.value = isNew ? '' : (c.slug || '');
+  slugInput.readOnly = !isNew;
+  document.getElementById('companyName').value = c.name || '';
+  document.getElementById('companyPlan').value = c.plan || 'partner';
+  document.getElementById('companyActive').checked = c.active !== false;
+  document.getElementById('companyPayrollMode').value = c.payrollMode || 'step_rate';
+  document.getElementById('companyFixedRate').value = c.fixedRate ?? 0.55;
+  document.getElementById('companyTakeHomeRate').value = c.takeHomeRate ?? 0.75;
+  document.getElementById('companyResponsibilityShifts').value = c.responsibilityShifts ?? 11;
+  document.getElementById('companyPaidLeaveAmount').value = c.paidLeaveAmount ?? 39340;
+  document.getElementById('companyPremiumThreshold').value =
+    c.premiumIncentive?.thresholdSalesExclTax ?? 80000;
+  document.getElementById('companyPremiumAmount').value =
+    c.premiumIncentive?.amountPerShift ?? 2000;
+  renderRateTable(c.rateTable || DEFAULT_CONFIG.rateTable,
+    'companyRateTableEditor', 'companyRate1213');
+}
+
+async function loadCompanyList() {
+  const status = document.getElementById('companyStatus');
+  try {
+    companyCache = await adminListCompanies();
+    const sel = document.getElementById('companySelect');
+    sel.innerHTML = '<option value="__new__">＋ 新規会社を作成</option>';
+    for (const c of companyCache) {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.name || c.id}（${c.id}）`;
+      sel.appendChild(opt);
+    }
+    status.textContent = `✓ ${companyCache.length} 社を読み込みました`;
+    status.style.color = 'green';
+  } catch (e) {
+    status.textContent = '✗ 読み込み失敗: ' + e.message;
+    status.style.color = '#d32f2f';
+  }
+}
+
+document.getElementById('loadCompanyListBtn').onclick = loadCompanyList;
+
+document.getElementById('companySelect').onchange = (e) => {
+  const v = e.target.value;
+  if (v === '__new__') {
+    fillCompanyForm(newCompanyTemplate(), true);
+  } else {
+    const c = companyCache.find(x => x.id === v);
+    if (c) fillCompanyForm(c, false);
+  }
+};
+
+document.getElementById('saveCompanyBtn').onclick = async () => {
+  const status = document.getElementById('companyStatus');
+  const form = {
+    slug: document.getElementById('companySlug').value.trim(),
+    name: document.getElementById('companyName').value,
+    plan: document.getElementById('companyPlan').value,
+    active: document.getElementById('companyActive').checked,
+    payrollMode: document.getElementById('companyPayrollMode').value,
+    fixedRate: document.getElementById('companyFixedRate').value,
+    takeHomeRate: document.getElementById('companyTakeHomeRate').value,
+    responsibilityShifts: document.getElementById('companyResponsibilityShifts').value,
+    paidLeaveAmount: document.getElementById('companyPaidLeaveAmount').value,
+    premiumThreshold: document.getElementById('companyPremiumThreshold').value,
+    premiumAmount: document.getElementById('companyPremiumAmount').value,
+    rateTable: collectRateTable('companyRateTableEditor', 'companyRate1213'),
+  };
+  const { doc: companyDoc, error } = buildCompanyDoc(form);
+  if (error) {
+    status.textContent = '✗ ' + error;
+    status.style.color = '#d32f2f';
+    return;
+  }
+  if (companyIsNew && companyCache.some(c => c.id === companyDoc.slug)) {
+    status.textContent = `✗ 会社ID「${companyDoc.slug}」は既に存在します`;
+    status.style.color = '#d32f2f';
+    return;
+  }
+  try {
+    await adminSaveCompany(companyDoc.slug, companyDoc);
+    status.textContent = `✓ 会社「${companyDoc.name}」を保存しました`;
+    status.style.color = 'green';
+    await loadCompanyList();
+    document.getElementById('companySelect').value = companyDoc.slug;
+    companyIsNew = false;
+    document.getElementById('companySlug').readOnly = true;
+  } catch (e) {
+    status.textContent = '✗ 保存失敗: ' + e.message;
+    status.style.color = '#d32f2f';
+  }
+};
+
+// 初期表示は新規会社フォーム
+fillCompanyForm(newCompanyTemplate(), true);
 </script>
 </body>
 </html>
