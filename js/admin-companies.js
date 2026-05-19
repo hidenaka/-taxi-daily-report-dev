@@ -19,6 +19,7 @@ function num(v) {
 
 // フォーム値オブジェクト → companies ドキュメント。
 // 成功時は { doc }、検証エラー時は { error } を返す。
+// 会社レベル項目のうち rateTable / fixedRate は payrollMode に応じて取捨選択する。
 export function buildCompanyDoc(form) {
   const slug = String(form.slug || '').trim();
   if (!SLUG_RE.test(slug) || slug.length < 2 || slug.length > 40) {
@@ -32,11 +33,11 @@ export function buildCompanyDoc(form) {
   const payrollMode = String(form.payrollMode || '').trim();
   if (!payrollMode) return { error: '給与モードを選択してください' };
 
+  // モードに依らず必須の数値項目
   const numbers = {
     takeHomeRate: num(form.takeHomeRate),
     responsibilityShifts: num(form.responsibilityShifts),
     paidLeaveAmount: num(form.paidLeaveAmount),
-    fixedRate: num(form.fixedRate),
     thresholdSalesExclTax: num(form.premiumThreshold),
     amountPerShift: num(form.premiumAmount),
   };
@@ -45,16 +46,12 @@ export function buildCompanyDoc(form) {
       return { error: `数値項目「${NUMBER_LABELS[k]}」が未入力または不正です` };
     }
   }
-  if (!form.rateTable || typeof form.rateTable !== 'object') {
-    return { error: '歩率テーブルが不正です' };
-  }
 
   const doc = {
     name,
     slug,
     plan: form.plan,
     active: form.active === true,
-    rateTable: form.rateTable,
     takeHomeRate: numbers.takeHomeRate,
     responsibilityShifts: numbers.responsibilityShifts,
     premiumIncentive: {
@@ -63,7 +60,20 @@ export function buildCompanyDoc(form) {
     },
     paidLeaveAmount: numbers.paidLeaveAmount,
     payrollMode,
-    fixedRate: numbers.fixedRate,
   };
+
+  // 固定部立は fixedRate 必須・rateTable 不要。変動部立は逆。
+  if (payrollMode === 'fixed_rate') {
+    const fixedRate = num(form.fixedRate);
+    if (!Number.isFinite(fixedRate)) {
+      return { error: `数値項目「${NUMBER_LABELS.fixedRate}」が未入力または不正です` };
+    }
+    doc.fixedRate = fixedRate;
+  } else {
+    if (!form.rateTable || typeof form.rateTable !== 'object') {
+      return { error: '歩率テーブルが不正です' };
+    }
+    doc.rateTable = form.rateTable;
+  }
   return { doc };
 }
