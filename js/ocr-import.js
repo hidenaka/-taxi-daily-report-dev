@@ -110,6 +110,7 @@ input.addEventListener("change", async (e) => {
     const data = await res.json();
     const trips = data.trips || [];
     const rests = data.rests || [];
+    const header = data.header || null;
     if (trips.length === 0 && rests.length === 0) {
       statusEl.textContent = "明細を読み取れませんでした。明るい場所で、営業明細の全体が入るように撮り直してください。";
       return;
@@ -117,7 +118,7 @@ input.addEventListener("change", async (e) => {
 
     // 結果を input.html へ引き渡す。確認・修正・日付入力は input.html で行う。
     statusEl.textContent = `読み取り完了: 乗車 ${trips.length}件 ・ 休憩 ${rests.length}回。日報入力ページへ移動します…`;
-    sessionStorage.setItem("ocrImport", JSON.stringify({ trips, rests, ts: Date.now() }));
+    sessionStorage.setItem("ocrImport", JSON.stringify({ trips, rests, header, ts: Date.now() }));
     location.href = "input.html";
   } catch (err) {
     statusEl.textContent = "エラー: " + ((err && err.message) || err);
