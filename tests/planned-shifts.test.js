@@ -179,3 +179,22 @@ test('countMonthlyShifts: 空・null を安全に扱う', () => {
   assert.equal(countMonthlyShifts([], [], '2026-05-16', '2026-06-15'), 0);
   assert.equal(countMonthlyShifts(null, null, '2026-05-16', '2026-06-15'), 0);
 });
+
+test('countMonthlyShifts: 13日ぶんタップした予定をそのまま13と数える', () => {
+  const expandedDates = [];
+  for (let d = 16; d <= 28; d++) expandedDates.push(`2026-05-${d}`); // 13日
+  assert.equal(countMonthlyShifts([], expandedDates, '2026-05-16', '2026-06-15'), 13);
+});
+
+test('countMonthlyShifts: 15日ぶんタップした予定をそのまま15と数える', () => {
+  const expandedDates = [];
+  for (let d = 16; d <= 30; d++) expandedDates.push(`2026-05-${d}`); // 15日
+  assert.equal(countMonthlyShifts([], expandedDates, '2026-05-16', '2026-06-15'), 15);
+});
+
+test('countMonthlyShifts: 予定12日＋実績2日(1日は予定と重複)で13と数える', () => {
+  const expandedDates = [];
+  for (let d = 16; d <= 27; d++) expandedDates.push(`2026-05-${d}`); // 予定12日
+  const driveDates = ['2026-05-16', '2026-05-28']; // 16は予定にも、28は予定外
+  assert.equal(countMonthlyShifts(driveDates, expandedDates, '2026-05-16', '2026-06-15'), 13);
+});
