@@ -72,21 +72,19 @@ if (location.hostname.includes('-dev')) {
   </section>
 
   <section class="card">
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:96px;">
-        <label class="muted">乗務種別</label>
-        <select class="select" id="vehicleTypeSel">
-          <option value="japantaxi">ジャパンタクシー</option>
-          <option value="premium">プレミアム</option>
-        </select>
-      </div>
-      <div style="flex:1;min-width:88px;">
+    <label class="muted">乗務種別</label>
+    <select class="select" id="vehicleTypeSel">
+      <option value="japantaxi">ジャパンタクシー</option>
+      <option value="premium">プレミアム</option>
+    </select>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <div style="flex:1;min-width:0;">
         <label class="muted">出庫時刻</label>
-        <input class="input" id="departTimeInput" type="time">
+        <input class="input" id="departTimeInput" type="time" style="width:100%;box-sizing:border-box;">
       </div>
-      <div style="flex:1;min-width:88px;">
+      <div style="flex:1;min-width:0;">
         <label class="muted">帰庫時刻</label>
-        <input class="input" id="returnTimeInput" type="time">
+        <input class="input" id="returnTimeInput" type="time" style="width:100%;box-sizing:border-box;">
       </div>
     </div>
     <label class="muted" style="margin-top:8px;display:block;">総走行距離（km・回送込み）</label>
