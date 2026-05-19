@@ -3,6 +3,8 @@
 // 会社レベル設定の項目。これらは会社プロファイルが優先される。
 // それ以外（shifts, weatherLocation, 各種target, displayName, defaults, privacy）は
 // 個人レベルとして userConfigs/{userId} に残す。
+// 注: rateTable と fixedRate は payrollMode に応じて片方のみ会社プロファイルに
+// 入る（変動部立=rateTable / 固定部立=fixedRate）。全キーが常に揃うとは限らない。
 export const COMPANY_LEVEL_KEYS = [
   'rateTable',
   'takeHomeRate',
