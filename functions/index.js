@@ -14,7 +14,9 @@ import { consumeQuota } from "./src/quota.js";
 initializeApp();
 
 export const ocrReportFn = onRequest(
-  { memory: "2GiB", timeoutSeconds: 300, cors: true },
+  // メモリ4GiB: 表OCRに加えヘッダーOCRで2つ目のPP-OCRサービスを使うため、
+  // 2GiBでは実測ピーク約2.08GiBで僅かに超過しOOMした。余裕を持たせる。
+  { memory: "4GiB", timeoutSeconds: 300, cors: true },
   async (req, res) => {
     try {
       if (req.method !== "POST") {
