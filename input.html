@@ -72,25 +72,25 @@ if (location.hostname.includes('-dev')) {
   </section>
 
   <section class="card">
-    <div style="display:flex;gap:8px;">
-      <div style="flex:1;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:96px;">
         <label class="muted">乗務種別</label>
         <select class="select" id="vehicleTypeSel">
           <option value="japantaxi">ジャパンタクシー</option>
           <option value="premium">プレミアム</option>
         </select>
       </div>
-      <div style="flex:1;">
+      <div style="flex:1;min-width:88px;">
         <label class="muted">出庫時刻</label>
         <input class="input" id="departTimeInput" type="time">
       </div>
-      <div style="flex:1;">
+      <div style="flex:1;min-width:88px;">
         <label class="muted">帰庫時刻</label>
         <input class="input" id="returnTimeInput" type="time">
       </div>
     </div>
     <label class="muted" style="margin-top:8px;display:block;">総走行距離（km・回送込み）</label>
-    <input class="input" id="totalKmInput" type="number" inputmode="numeric" placeholder="例: 309">
+    <input class="input" id="totalKmInput" type="number" inputmode="numeric" step="1" min="0" placeholder="例: 309">
     <label class="muted" style="margin-top:8px;display:block;">メモ</label>
     <textarea id="memoInput" rows="2" class="input"></textarea>
   </section>
@@ -285,6 +285,8 @@ function applyOcrImport() {
       derivedReturn = ''; // ヘッダー実値があるので明細概算の注記は不要
     }
     if (header.totalKm != null) document.getElementById('totalKmInput').value = header.totalKm;
+    // got は固定の項目名リテラルのみ。header の値そのものは入れない
+    // （headerNote は下で innerHTML に連結するため、注入を避ける）。
     const got = [];
     if (header.date) got.push('日付');
     if (header.departTime) got.push('出庫');
