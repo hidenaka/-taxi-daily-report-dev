@@ -199,13 +199,13 @@ export async function initForecastSection() {
   // detail (今日全部表示) state — localStorage に保存
   let detail = false;
   try { detail = localStorage.getItem(DETAIL_STORAGE_KEY) === '1'; } catch { /* ignore */ }
-  const detailBtn = document.getElementById('forecast-detail-toggle');
-  function updateDetailBtn() {
-    if (!detailBtn) return;
-    detailBtn.textContent = detail ? '▲ 直近に戻す' : '▼ 今日全部を表示';
-    detailBtn.classList.toggle('is-active', detail);
+  const scopeRecentBtn = document.getElementById('forecast-scope-recent');
+  const scopeAllBtn = document.getElementById('forecast-scope-all');
+  function updateScopeBtns() {
+    if (scopeRecentBtn) scopeRecentBtn.classList.toggle('is-active', !detail);
+    if (scopeAllBtn) scopeAllBtn.classList.toggle('is-active', detail);
   }
-  updateDetailBtn();
+  updateScopeBtns();
 
   async function render() {
     metaEl.textContent = '読み込み中...';
@@ -225,17 +225,18 @@ export async function initForecastSection() {
     });
   });
 
-  if (detailBtn) {
-    detailBtn.addEventListener('click', () => {
-      detail = !detail;
-      try { localStorage.setItem(DETAIL_STORAGE_KEY, detail ? '1' : '0'); } catch { /* ignore */ }
-      updateDetailBtn();
-      render().catch(err => {
-        metaEl.textContent = '表示に失敗しました';
-        console.error(err);
-      });
+  function setDetail(next) {
+    if (detail === next) return;
+    detail = next;
+    try { localStorage.setItem(DETAIL_STORAGE_KEY, detail ? '1' : '0'); } catch { /* ignore */ }
+    updateScopeBtns();
+    render().catch(err => {
+      metaEl.textContent = '表示に失敗しました';
+      console.error(err);
     });
   }
+  if (scopeRecentBtn) scopeRecentBtn.addEventListener('click', () => setDetail(false));
+  if (scopeAllBtn) scopeAllBtn.addEventListener('click', () => setDetail(true));
 
   await render();
   return render;
