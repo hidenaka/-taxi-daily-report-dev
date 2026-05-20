@@ -177,6 +177,21 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>📥 申請レビュー</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">ドライバーから届いたヒアリング申請を確認・取込します。</p>
+
+      <div style="display:flex;gap:4px;margin-bottom:12px;">
+        <button class="btn tab-btn active" data-tab="submitted" style="flex:1;font-size:11px;padding:6px;">未取込</button>
+        <button class="btn tab-btn" data-tab="imported" style="flex:1;font-size:11px;padding:6px;">取込済</button>
+        <button class="btn tab-btn" data-tab="archived" style="flex:1;font-size:11px;padding:6px;">アーカイブ</button>
+      </div>
+
+      <button class="btn" id="refreshSetupRequestsBtn" style="width:100%;font-size:11px;margin-bottom:8px;">🔄 一覧を更新</button>
+
+      <div id="setupRequestsList" style="font-size:12px;"></div>
+    </section>
+
+    <section class="admin-card">
       <h3>🏢 会社管理</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">会社プロファイル（歩率テーブル・給与ルール等）を作成・編集します。会社レベル設定の正しい編集口です。</p>
 
@@ -337,7 +352,7 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany } from './js/firebase-storage.js?v=2';
+import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany, adminListSetupRequests, adminImportSetupRequest } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { buildCompanyDoc, buildCompanySignupUrl } from './js/admin-companies.js?v=3';
 import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
@@ -1325,6 +1340,23 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
     document.getElementById('companySelect').value = companyDoc.slug;
     companyIsNew = false;
     document.getElementById('companySlug').readOnly = true;
+
+    // 取込モードなら、申請を imported 化
+    if (window.__importingRequestId) {
+      try {
+        await adminImportSetupRequest(
+          window.__importingRequestId,
+          companyDoc.slug,
+          companyDoc,
+        );
+        window.__importingRequestId = null;
+        document.getElementById('companySlug').readOnly = false;
+        document.getElementById('saveCompanyBtn').textContent = '💾 会社を保存';
+        if (typeof loadSetupRequests === 'function') loadSetupRequests();
+      } catch (err) {
+        alert('取込完了マーク失敗（companies は保存済み）: ' + err.message);
+      }
+    }
   } catch (e) {
     status.textContent = '✗ 保存失敗: ' + e.message;
     status.style.color = '#d32f2f';
@@ -1408,6 +1440,131 @@ document.getElementById('copyIssuedUrlBtn')?.addEventListener('click', () => {
 });
 
 renderIssueHistory();
+
+// ========== 申請レビュー ==========
+let currentTab = 'submitted';
+
+document.querySelectorAll('.tab-btn').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach((x) => x.classList.remove('active'));
+    b.classList.add('active');
+    currentTab = b.dataset.tab;
+    loadSetupRequests();
+  });
+});
+
+document.getElementById('refreshSetupRequestsBtn')?.addEventListener('click', loadSetupRequests);
+
+async function loadSetupRequests() {
+  const wrap = document.getElementById('setupRequestsList');
+  if (!wrap) return;
+  wrap.innerHTML = '読み込み中...';
+  try {
+    const list = await adminListSetupRequests({ status: currentTab });
+    if (list.length === 0) {
+      wrap.innerHTML = '<p class="muted" style="font-size:11px;">該当する申請はありません</p>';
+      return;
+    }
+    wrap.innerHTML = '';
+    for (const item of list) {
+      wrap.appendChild(renderSetupRequestCard(item));
+    }
+  } catch (err) {
+    wrap.innerHTML = `<p style="color:#dc3545;">読み込み失敗: ${err.message}</p>`;
+  }
+}
+
+function renderSetupRequestCard(item) {
+  const div = document.createElement('div');
+  div.style.cssText = 'border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:8px;';
+
+  const slug = item.assignedSlug || '(slug 未設定)';
+  const ts = item.submittedAt || item.createdAt;
+  const submittedAt = ts
+    ? new Date(ts.toDate ? ts.toDate() : ts).toLocaleString('ja-JP')
+    : '-';
+  const cfg = item.config || {};
+  const flags = [];
+  if (cfg.rateTable?.hasText) flags.push('📝 自由テキスト');
+  if (cfg.rateTable?.hasAttachment) flags.push('📎 添付');
+
+  div.innerHTML = `
+    <div style="font-weight:bold;font-family:monospace;">📨 ${slug}</div>
+    <div style="font-size:11px;color:#666;margin:4px 0;">受付: ${submittedAt}</div>
+    <div style="font-size:11px;margin:4px 0;">プラン: ${cfg.plan || '-'} / 給与: ${cfg.payrollMode || '-'}</div>
+    ${flags.length ? `<div style="font-size:11px;margin:4px 0;">${flags.join(' ')} → メール本文/添付を確認</div>` : ''}
+    ${currentTab === 'submitted' ? `
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="btn import-btn" data-id="${item.id}" data-slug="${slug}" style="flex:1;background:var(--primary);color:#fff;font-size:11px;padding:6px;">📋 取込フォームに展開</button>
+        <button class="btn archive-btn" data-id="${item.id}" style="background:#dc3545;color:#fff;font-size:11px;padding:6px 10px;">🗑</button>
+      </div>
+    ` : ''}
+  `;
+
+  div.querySelector('.import-btn')?.addEventListener('click', () => loadIntoCompanyForm(item));
+  div.querySelector('.archive-btn')?.addEventListener('click', () => archiveRequest(item.id));
+  return div;
+}
+
+function loadIntoCompanyForm(item) {
+  const cfg = item.config || {};
+  const slug = item.assignedSlug;
+
+  document.getElementById('companySelect').value = '__new__';
+  document.getElementById('companySlug').value = slug;
+  document.getElementById('companySlug').readOnly = true;
+  document.getElementById('companyPlan').value = cfg.plan || 'partner';
+  document.getElementById('companyActive').checked = true;
+  document.getElementById('companyPayrollMode').value = cfg.payrollMode || 'fixed_rate';
+  document.getElementById('companyTakeHomeRate').value = cfg.takeHomeRate ?? 0.75;
+  document.getElementById('companyResponsibilityShifts').value = cfg.responsibilityShifts ?? 11;
+  document.getElementById('companyPaidLeaveAmount').value = cfg.paidLeaveAmount ?? 39340;
+  document.getElementById('companyPremiumThreshold').value = cfg.premiumIncentive?.thresholdSalesExclTax ?? 80000;
+  document.getElementById('companyPremiumAmount').value = cfg.premiumIncentive?.amountPerShift ?? 2000;
+  if (cfg.payrollMode === 'fixed_rate') {
+    document.getElementById('companyFixedRate').value = cfg.fixedRate ?? 0.55;
+  }
+  if (cfg.defaultRecArea) {
+    document.getElementById('companyDefaultRecArea').value = cfg.defaultRecArea;
+  }
+
+  // 給与モード UI 切替（companyPayrollMode の change ハンドラを発火）
+  document.getElementById('companyPayrollMode').dispatchEvent(new Event('change'));
+
+  // 取込モード フラグ
+  window.__importingRequestId = item.id;
+  document.getElementById('saveCompanyBtn').textContent = `💾 会社を保存 + 申請(${item.id.slice(0, 6)}…)を取込完了に`;
+
+  // 「🏢 会社管理」セクションまでスクロール
+  const target = Array.from(document.querySelectorAll('h3')).find((h) => h.textContent.includes('🏢'));
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  alert(`申請 ${slug} を会社管理フォームに展開しました。\nメール本文/添付(自由テキスト・歩率規程)を確認後、必要に応じて値を修正し、保存してください。`);
+}
+
+async function archiveRequest(requestId) {
+  if (!confirm('この申請をアーカイブしますか？個人特定情報は削除されます。')) return;
+  try {
+    const user = getCurrentUser();
+    if (!user) throw new Error('未ログイン');
+    const idToken = await user.getIdToken();
+    const WORKER_BASE = location.hostname === 'app.taxicabis.com'
+      ? 'https://cabis-billing.haqei64384.workers.dev'
+      : 'https://cabis-billing-dev.haqei64384.workers.dev';
+    const res = await fetch(`${WORKER_BASE}/setup-request/archive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({ requestId }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    loadSetupRequests();
+  } catch (err) {
+    alert('アーカイブ失敗: ' + err.message);
+  }
+}
+
+// 初回読み込み
+loadSetupRequests();
 </script>
 </body>
 </html>

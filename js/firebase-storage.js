@@ -6,9 +6,9 @@ import { getBillingPeriodRange } from './app.js';
 import { DEFAULT_CONFIG } from './default-config.js';
 import { filterParticipatingUserIds } from './user-doc.js';
 import {
-  doc, getDoc, setDoc, deleteDoc, collection,
-  query, where, getDocs, orderBy, writeBatch,
-  Timestamp
+  doc, getDoc, setDoc, updateDoc, deleteDoc, collection,
+  query, where, getDocs, orderBy, limit, writeBatch,
+  Timestamp, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ========== DRIVES ==========
@@ -744,5 +744,51 @@ export async function adminSaveSubscription(targetUserId, subscription) {
   await waitForAuth();
   const ref = doc(db, 'subscriptions', targetUserId);
   await setDoc(ref, subscription);
+  return true;
+}
+
+// ========== companySetupRequests (admin only; rules gate read) ==========
+
+// Admin: companySetupRequests 一覧取得（status 別）
+// 'submitted' / 'imported' / 'archived' は submittedAt 降順、
+// それ以外（'pending' 等）は createdAt 降順。
+export async function adminListSetupRequests(filter = {}) {
+  await waitForAuth();
+  const col = collection(db, 'companySetupRequests');
+  const orderKey = (filter.status && filter.status !== 'pending') ? 'submittedAt' : 'createdAt';
+  let q;
+  if (filter.status) {
+    q = query(col, where('status', '==', filter.status), orderBy(orderKey, 'desc'), limit(50));
+  } else {
+    q = query(col, orderBy(orderKey, 'desc'), limit(50));
+  }
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+// Admin: 申請を imported 状態に遷移（companies/{slug} 作成と同時）
+export async function adminImportSetupRequest(requestId, slug, configToImport) {
+  await waitForAuth();
+  // companies/{slug} を upsert
+  await setDoc(doc(db, 'companies', slug), {
+    ...configToImport,
+    active: true,
+    slug,
+    updatedAt: new Date().toISOString(),
+  }, { merge: true });
+
+  // 申請を imported に
+  const summary = {
+    payrollMode: configToImport.payrollMode,
+    plan: configToImport.plan,
+  };
+  await updateDoc(doc(db, 'companySetupRequests', requestId), {
+    status: 'imported',
+    importedAt: serverTimestamp(),
+    importedToSlug: slug,
+    importedConfigSummary: summary,
+    config: deleteField(),
+    tokenHash: deleteField(),
+  });
   return true;
 }
