@@ -123,7 +123,10 @@
     #arrivals-error { background: #4a1a1a; color: #ffb; padding: 8px; border-radius: 4px; margin: 8px 12px; }
     #forecast-section { border-bottom: 1px solid #222; }
     #forecast-section h2 { font-size: 15px; color: var(--fg); margin: 14px 0 6px; font-weight: 600; }
-    #forecast-section .fc-mode { margin: 4px 0 8px; padding: 4px 8px; background: #16161c; color: var(--fg); border: 1px solid #333; border-radius: 6px; font-size: 13px; }
+    #forecast-section .fc-controls { display: flex; gap: 8px; align-items: center; margin: 4px 0 8px; flex-wrap: wrap; }
+    #forecast-section .fc-mode { padding: 4px 8px; background: #16161c; color: var(--fg); border: 1px solid #333; border-radius: 6px; font-size: 13px; }
+    #forecast-section .fc-detail-toggle { padding: 4px 10px; background: #1a1a1d; color: var(--sub); border: 1px solid #333; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    #forecast-section .fc-detail-toggle.is-active { background: var(--accent); color: #000; border-color: var(--accent); }
     #forecast-section .fc-scope { margin: 0 0 6px; color: var(--sub); font-size: 11px; }
     .fc-meta { color: var(--sub); font-size: 12px; margin-bottom: 8px; }
     .fc-empty { color: var(--sub); font-size: 13px; }
@@ -181,10 +184,13 @@
   <section id="forecast-section">
     <h2>🚕 タクシー出庫（実績／予測）</h2>
     <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
-    <select id="forecast-mode" class="fc-mode">
-      <option value="actuals">実績（直近2時間）</option>
-      <option value="forecast">予測（今後2時間）</option>
-    </select>
+    <div class="fc-controls">
+      <select id="forecast-mode" class="fc-mode">
+        <option value="actuals">実績</option>
+        <option value="forecast">予測</option>
+      </select>
+      <button id="forecast-detail-toggle" type="button" class="fc-detail-toggle">▼ 今日全部を表示</button>
+    </div>
     <div id="forecast-meta" class="fc-meta">読み込み中...</div>
     <div id="forecast-table-wrap"></div>
   </section>

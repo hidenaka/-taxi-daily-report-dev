@@ -121,9 +121,20 @@ export function renderActualsTable(slots) {
 
 // 予測モードの localStorage キー。
 const MODE_STORAGE_KEY = 'arrivalsForecastMode';
+// 「今日全部表示」toggle の localStorage キー。
+const DETAIL_STORAGE_KEY = 'arrivalsForecastDetail';
+
+// 直近2時間 (15分bin で 8 件) に絞る純関数。 detail=true なら入力をそのまま返す。
+// データが少ない場合は 全件返す。
+export function limitSlotsToRecent(slots, detail, recentBins = 8) {
+  if (!Array.isArray(slots)) return [];
+  if (detail) return slots;
+  if (slots.length <= recentBins) return slots;
+  return slots.slice(-recentBins);
+}
 
 // 実績モードを描画する。
-async function renderActualsMode(metaEl, tableEl) {
+async function renderActualsMode(metaEl, tableEl, detail) {
   const { data, error } = await loadActuals();
   if (error) {
     metaEl.textContent = `実績データを取得できていません（${error}）`;
@@ -141,12 +152,15 @@ async function renderActualsMode(metaEl, tableEl) {
   const accum = computeAccumulatedTotal(data.slots, new Date());
   const tsPart = ts ? `実績 ${ts} 時点まで` : '';
   const accumPart = `JST 5:00 起点 累計 ${accum}台`;
-  metaEl.textContent = tsPart ? `${tsPart}  /  ${accumPart}` : accumPart;
-  tableEl.innerHTML = renderActualsTable(data.slots);
+  const scopeLabel = detail ? '今日全部' : '直近2時間';
+  metaEl.textContent = tsPart
+    ? `${tsPart}  /  ${accumPart}  /  ${scopeLabel}表示`
+    : `${accumPart}  /  ${scopeLabel}表示`;
+  tableEl.innerHTML = renderActualsTable(limitSlotsToRecent(data.slots, detail));
 }
 
 // 予測モードを描画する。
-async function renderForecastMode(metaEl, tableEl) {
+async function renderForecastMode(metaEl, tableEl, detail) {
   const { data, error } = await loadEnsemble();
   if (error) {
     metaEl.textContent = `予測データを取得できていません（${error}）`;
@@ -161,8 +175,11 @@ async function renderForecastMode(metaEl, tableEl) {
     tableEl.innerHTML = '';
     return;
   }
-  metaEl.textContent = ts ? `予測時刻 ${ts} 時点` : '';
-  tableEl.innerHTML = renderTable(aggregateTo15min(data.slots));
+  const scopeLabel = detail ? '今後全部' : '今後2時間';
+  metaEl.textContent = ts
+    ? `予測時刻 ${ts} 時点  /  ${scopeLabel}表示`
+    : `${scopeLabel}表示`;
+  tableEl.innerHTML = renderTable(limitSlotsToRecent(aggregateTo15min(data.slots), detail));
 }
 
 // 到着便ページの予測セクションを初期化・描画する。
@@ -179,13 +196,24 @@ export async function initForecastSection() {
   try { saved = localStorage.getItem(MODE_STORAGE_KEY); } catch { /* ignore */ }
   modeEl.value = (saved === 'forecast') ? 'forecast' : 'actuals';
 
+  // detail (今日全部表示) state — localStorage に保存
+  let detail = false;
+  try { detail = localStorage.getItem(DETAIL_STORAGE_KEY) === '1'; } catch { /* ignore */ }
+  const detailBtn = document.getElementById('forecast-detail-toggle');
+  function updateDetailBtn() {
+    if (!detailBtn) return;
+    detailBtn.textContent = detail ? '▲ 直近に戻す' : '▼ 今日全部を表示';
+    detailBtn.classList.toggle('is-active', detail);
+  }
+  updateDetailBtn();
+
   async function render() {
     metaEl.textContent = '読み込み中...';
     tableEl.innerHTML = '';
     if (modeEl.value === 'forecast') {
-      await renderForecastMode(metaEl, tableEl);
+      await renderForecastMode(metaEl, tableEl, detail);
     } else {
-      await renderActualsMode(metaEl, tableEl);
+      await renderActualsMode(metaEl, tableEl, detail);
     }
   }
 
@@ -196,6 +224,18 @@ export async function initForecastSection() {
       console.error(err);
     });
   });
+
+  if (detailBtn) {
+    detailBtn.addEventListener('click', () => {
+      detail = !detail;
+      try { localStorage.setItem(DETAIL_STORAGE_KEY, detail ? '1' : '0'); } catch { /* ignore */ }
+      updateDetailBtn();
+      render().catch(err => {
+        metaEl.textContent = '表示に失敗しました';
+        console.error(err);
+      });
+    });
+  }
 
   await render();
   return render;
