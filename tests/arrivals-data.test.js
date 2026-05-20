@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, aggregateByOrigin } from '../tools/js/arrivals-data.js';
 
 test('normalizeArrivals: "to be determined" estimatedTime を null にする', () => {
   const data = {
@@ -149,4 +149,61 @@ test('detectTopics: estimatedTime 昇順に並ぶ', () => {
     { flightNumber: 'EARLY', scheduledTime: '10:00', estimatedTime: '11:00' },
   ];
   assert.deepEqual(detectTopics(flights).map(t => t.flightNumber), ['EARLY', 'LATE']);
+});
+
+// --- aggregateByOrigin: 出発地別集計 ---
+
+test('aggregateByOrigin: fromName 単位で groupCount と totalEstimatedTaxiPax を集計', () => {
+  const flights = [
+    { fromName: '伊丹', estimatedTaxiPax: 8,  status: '到着' },
+    { fromName: '伊丹', estimatedTaxiPax: 6,  status: '飛行中' },
+    { fromName: '関空', estimatedTaxiPax: 4,  status: '飛行中' },
+    { fromName: '札幌', estimatedTaxiPax: 10, status: '到着' },
+  ];
+  const result = aggregateByOrigin(flights);
+  // 結果は totalEstimatedTaxiPax 降順: 伊丹(14) > 札幌(10) > 関空(4)
+  assert.deepEqual(result, [
+    { fromName: '伊丹', flightCount: 2, totalEstimatedTaxiPax: 14 },
+    { fromName: '札幌', flightCount: 1, totalEstimatedTaxiPax: 10 },
+    { fromName: '関空', flightCount: 1, totalEstimatedTaxiPax: 4 },
+  ]);
+});
+
+test('aggregateByOrigin: 欠航便は除外', () => {
+  const flights = [
+    { fromName: '札幌', estimatedTaxiPax: 10, status: '到着' },
+    { fromName: '札幌', estimatedTaxiPax: 5,  status: '欠航' },
+  ];
+  const result = aggregateByOrigin(flights);
+  assert.deepEqual(result, [
+    { fromName: '札幌', flightCount: 1, totalEstimatedTaxiPax: 10 },
+  ]);
+});
+
+test('aggregateByOrigin: estimatedTaxiPax が null/undefined のものは 0 扱い', () => {
+  const flights = [
+    { fromName: '札幌', estimatedTaxiPax: null,      status: '到着' },
+    { fromName: '札幌', estimatedTaxiPax: undefined, status: '到着' },
+    { fromName: '札幌', estimatedTaxiPax: 7,         status: '到着' },
+  ];
+  const result = aggregateByOrigin(flights);
+  assert.deepEqual(result, [
+    { fromName: '札幌', flightCount: 3, totalEstimatedTaxiPax: 7 },
+  ]);
+});
+
+test('aggregateByOrigin: fromName が無い便はスキップ', () => {
+  const flights = [
+    { fromName: '札幌', estimatedTaxiPax: 5, status: '到着' },
+    { fromName: null,   estimatedTaxiPax: 3, status: '到着' },
+    { estimatedTaxiPax: 2, status: '到着' },
+  ];
+  const result = aggregateByOrigin(flights);
+  assert.deepEqual(result, [
+    { fromName: '札幌', flightCount: 1, totalEstimatedTaxiPax: 5 },
+  ]);
+});
+
+test('aggregateByOrigin: 空配列は空配列を返す', () => {
+  assert.deepEqual(aggregateByOrigin([]), []);
 });

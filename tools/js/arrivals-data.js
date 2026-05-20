@@ -183,3 +183,28 @@ export function classifyStaleness(updatedAtIso, now) {
   if (ageMinutes <= STALENESS_CRITICAL_MIN) return { level: 'warn', ageMinutes };
   return { level: 'critical', ageMinutes };
 }
+
+// 当日全便を fromName 単位で集計し、totalEstimatedTaxiPax 降順で返す純関数。
+// 欠航便・fromName 無し便は除外。estimatedTaxiPax の null/undefined は 0 扱い。
+// 同点ソートは fromName 昇順で安定化させる。
+export function aggregateByOrigin(flights) {
+  if (!Array.isArray(flights) || flights.length === 0) return [];
+  const map = new Map();
+  for (const f of flights) {
+    if (f.status === '欠航') continue;
+    if (!f.fromName) continue;
+    const key = f.fromName;
+    if (!map.has(key)) {
+      map.set(key, { fromName: key, flightCount: 0, totalEstimatedTaxiPax: 0 });
+    }
+    const g = map.get(key);
+    g.flightCount += 1;
+    g.totalEstimatedTaxiPax += (f.estimatedTaxiPax || 0);
+  }
+  return [...map.values()].sort((a, b) => {
+    if (b.totalEstimatedTaxiPax !== a.totalEstimatedTaxiPax) {
+      return b.totalEstimatedTaxiPax - a.totalEstimatedTaxiPax;
+    }
+    return a.fromName.localeCompare(b.fromName);
+  });
+}
