@@ -991,6 +991,7 @@ document.getElementById('recSearch').onclick = () => {
 function renderHighValue() {
   const rows = highValueAreasByZone(allDrives, ZONE_PRESETS.human.zones, { minSamples: 5 }).slice(0, 15);
   const body = document.getElementById('highValueBody');
+  if (!body) return; // ロック状態 (applyAggregateAccessGate がカード上書き済み) の時は何もしない
   if (rows.length === 0) { body.innerHTML = '<p class="muted" style="font-size:11px;">該当データなし</p>'; return; }
   const maxSales = Math.max(...rows.map(r => r.avgSales), 1);
   const maxMedian = Math.max(...rows.map(r => r.medianSales || 0), 1);
@@ -1138,7 +1139,9 @@ function renderArea() {
   }
   html += '</tbody></table></div>';
   if (top.length === 0) html = '<p class="muted" style="font-size:11px;">5件以上のエリアがありません</p>';
-  document.getElementById('areaBody').innerHTML = html;
+  const areaBody = document.getElementById('areaBody');
+  if (!areaBody) return; // ロック状態 (applyAggregateAccessGate がカード上書き済み) の時は何もしない
+  areaBody.innerHTML = html;
   document.querySelectorAll('#areaBody tr[data-area]').forEach(tr => {
     tr.onclick = () => {
       const area = tr.dataset.area;
