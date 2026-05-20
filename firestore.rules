@@ -75,10 +75,12 @@ service cloud.firestore {
     }
 
     // --- companies/{companyId} ---
-    // 全ログインユーザーが読める（自分の会社プロファイル参照のため）。
+    // 未認証読み取りを許可（招待URL `?company=<slug>` 検証で未認証時に必要・Task 12）。
+    // slug は decisions 7 で匿名識別子化 (`co-XXXXXX`) → slug を知ってる人 = 招待された人。
+    // 32^6 ≈ 10億通りで brute-force 困難、漏洩しても会社特定不可。
     // 書き込みは管理者のみ。
     match /companies/{companyId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow write: if isAdmin();
     }
 
