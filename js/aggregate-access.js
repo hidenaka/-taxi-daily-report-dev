@@ -1,9 +1,9 @@
-// 営業サポート「全員データ統合」の閲覧レベル制御（C案＋E案・継続出番数連動）
-// 純関数のみ。連続ON期間中の出番数で段階が上がる。
+// 営業サポート「全員データ統合」の閲覧レベル制御（C案＋E案・営業登録日数連動）
+// 純関数のみ。連続ON期間中の営業登録日数で段階が上がる。
 // E案: 「ONにして見た瞬間だけ提供」のフリーライダー抑止＋継続利用インセンティブ。
 
 // 段階定義
-// onboarding: 0-3出番 / light: 4-9 / standard: 10-19 / full: 20+
+// onboarding: 0-3日 / light: 4-9日 / standard: 10-19日 / full: 20日+
 export const ACCESS_LEVELS = {
   onboarding: {
     minShifts: 0,
@@ -35,7 +35,7 @@ export const ACCESS_LEVELS = {
   },
 };
 
-// 連続ON期間中の出番数 → 段階名
+// 連続ON期間中の営業登録日数 → 段階名（引数名 shiftsCount は互換性のため維持）
 export function getAccessLevel(shiftsCount) {
   const n = Math.max(0, Number(shiftsCount) || 0);
   if (n >= ACCESS_LEVELS.full.minShifts) return 'full';
@@ -44,7 +44,7 @@ export function getAccessLevel(shiftsCount) {
   return 'onboarding';
 }
 
-// 次の段階・残り出番数
+// 次の段階・残り営業登録日数
 export function getNextThreshold(shiftsCount) {
   const n = Math.max(0, Number(shiftsCount) || 0);
   if (n >= ACCESS_LEVELS.full.minShifts) return { nextLevel: null, shiftsRemaining: 0 };
@@ -57,7 +57,7 @@ export function getNextThreshold(shiftsCount) {
   return { nextLevel: 'light', shiftsRemaining: ACCESS_LEVELS.light.minShifts - n };
 }
 
-// 出番数 → 表示件数制限（{recHistoryTop, areaTop, highValueTop}）
+// 営業登録日数 → 表示件数制限（{recHistoryTop, areaTop, highValueTop}）
 export function getAccessLimits(shiftsCount) {
   const level = getAccessLevel(shiftsCount);
   const def = ACCESS_LEVELS[level];

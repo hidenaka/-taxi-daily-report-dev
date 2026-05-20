@@ -181,7 +181,7 @@ if (location.hostname.includes('-dev')) {
       <div style="font-size:13px;line-height:1.6;">
         <strong>営業サポートのベンチマーク統合分析に参加する</strong><br>
         <span class="muted" style="font-size:11px;">
-          ONの間は、あなたの日報から「いつ・どのエリアで降ろされたか」だけが匿名で集計されます。代わりに営業サポート画面で全ドライバーの傾向を見られます。<strong>ON期間中に保存・更新した日報の数（=出番数）</strong>で閲覧範囲が段階的に広がります（スタート→ライト→スタンダード→フル）。過去日付の日報を写真OCRや手入力で後から取り込んでも出番数に加算されます。OFFにするとデータは集計から外れ、出番数カウントはリセットされます。
+          ONの間は、あなたの日報から「いつ・どのエリアで降ろされたか」だけが匿名で集計されます。代わりに営業サポート画面で全ドライバーの傾向を見られます。<strong>ON期間中に営業登録した日数</strong>で閲覧範囲が段階的に広がります（スタート→ライト→スタンダード→フル）。過去日付の日報を写真OCRや手入力で後から取り込んでも営業登録日数に加算されます。OFFにするとデータは集計から外れ、営業登録日数のカウントはリセットされます。
         </span>
       </div>
     </label>
@@ -597,10 +597,10 @@ async function refreshAggregateAccessProgress() {
     const { nextLevel, shiftsRemaining } = getNextThreshold(count);
     document.getElementById('aggregateAccessLevelBadge').textContent = ACCESS_LEVELS[level].label;
     document.getElementById('aggregateAccessShifts').textContent =
-      `現在の連続出番数: ${count} 出番（${ACCESS_LEVELS[level].label}）`;
+      `現在の連続営業登録日数: ${count} 日（${ACCESS_LEVELS[level].label}）`;
     const next = document.getElementById('aggregateAccessNext');
     if (nextLevel) {
-      next.textContent = `次の段階「${ACCESS_LEVELS[nextLevel].label}」まであと ${shiftsRemaining} 出番`;
+      next.textContent = `次の段階「${ACCESS_LEVELS[nextLevel].label}」まであと ${shiftsRemaining} 日`;
     } else {
       next.textContent = '🎉 すべての段階を解放済みです（フル閲覧）';
     }
@@ -624,7 +624,7 @@ async function initAggregateAnalysisToggle() {
   toggle.addEventListener('change', async () => {
     const want = toggle.checked;
     if (!want) {
-      const ok = confirm('ベンチマーク統合分析への参加をOFFにしますか？\n\n・あなたの日報データは集計から外れます\n・「全員データ統合」機能（次の営業先推奨 / 高期待値エリア / 降車エリア別効率）が利用できなくなります\n・継続参加の出番数カウントがリセットされます（再ONで0からスタート）\n・いつでもONに戻せます');
+      const ok = confirm('ベンチマーク統合分析への参加をOFFにしますか？\n\n・あなたの日報データは集計から外れます\n・「全員データ統合」機能（次の営業先推奨 / 高期待値エリア / 降車エリア別効率）が利用できなくなります\n・継続参加の営業登録日数カウントがリセットされます（再ONで0日からスタート）\n・いつでもONに戻せます');
       if (!ok) { toggle.checked = true; return; }
     } else {
       // ONに戻すとき、過去にOFF経験があれば「0出番からのリスタート」を明示

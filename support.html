@@ -183,10 +183,10 @@ if (!(await enforceAccess('analysis'))) {
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 renderLegalFooter();
 
-// C案＋E案: 「全員データ統合」3カードを参加状況＋連続出番数で段階的に開閉
+// C案＋E案: 「全員データ統合」3カードを参加状況＋連続営業登録日数で段階的に開閉
 // - OFF時: 3カードとも🔒（設定でONにすると利用可）
-// - ON時: 連続出番数で onboarding/light/standard/full の4段階
-//   - onboarding(0-3): 推奨検索のみ・他2カードは「あとN出番で解放」
+// - ON時: 連続営業登録日数で onboarding/light/standard/full の4段階
+//   - onboarding(0-3): 推奨検索のみ・他2カードは「あとN日で解放」
 //   - light(4-9):      推奨検索＋降車エリア・高期待値はロック
 //   - standard(10-19): 全カード閲覧可（件数制限あり）
 //   - full(20+):       全件閲覧
@@ -220,7 +220,7 @@ async function applyAggregateAccessGate() {
     currentAccessLimits = { recHistoryTop: 0, areaTop: 0, highValueTop: 0 };
     return;
   }
-  // ON時: 連続出番数で段階判定
+  // ON時: 連続営業登録日数で段階判定
   let shifts = 0;
   try { shifts = await getMyConsecutiveShiftsCount(); } catch (e) {}
   const level = getAccessLevel(shifts);
@@ -233,7 +233,7 @@ async function applyAggregateAccessGate() {
     const el = document.getElementById('areaCard');
     if (el) el.innerHTML = buildAccessPlaceholder({
       title: '「降車エリア別 効率」はライト以上で解放',
-      hint: `継続参加 ${shifts} 出番／あと ${ACCESS_LEVELS.light.minShifts - shifts} 出番でライトに昇格します`,
+      hint: `継続参加 ${shifts} 日／あと ${ACCESS_LEVELS.light.minShifts - shifts} 日でライトに昇格します`,
       level: 'light',
     });
   }
@@ -242,7 +242,7 @@ async function applyAggregateAccessGate() {
     const el = document.getElementById('highValueCard');
     if (el) el.innerHTML = buildAccessPlaceholder({
       title: '「高期待値エリア × 時間帯」はスタンダード以上で解放',
-      hint: `継続参加 ${shifts} 出番／あと ${Math.max(0, ACCESS_LEVELS.standard.minShifts - shifts)} 出番でスタンダードに昇格します`,
+      hint: `継続参加 ${shifts} 日／あと ${Math.max(0, ACCESS_LEVELS.standard.minShifts - shifts)} 日でスタンダードに昇格します`,
       level: 'standard',
     });
   }
