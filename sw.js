@@ -29,6 +29,7 @@ const STATIC_FILES = [
   './js/chart-helpers.js',
   './js/rec-area.js',
   './js/user-doc.js',
+  './js/aggregate-access.js',
   './js/legal-footer.js',
   './js/subscription-state.js',
   './js/access-control.js',

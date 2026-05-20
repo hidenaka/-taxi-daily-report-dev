@@ -407,12 +407,54 @@ export async function getMyAggregateAnalysisFlag() {
 }
 
 // 自分の users/{uid}.participatesInAggregateAnalysis を更新する
+// E案: ONにする時は aggregateOnSince を現在時刻に、OFFにする時は null にする
+//   → 連続ON期間中の出番数で閲覧レベル（onboarding/light/standard/full）が決まる
 export async function setMyAggregateAnalysisFlag(value) {
   await waitForAuth();
   const user = getCurrentUser();
   if (!user) throw new Error('not authenticated');
-  await setDoc(doc(db, 'users', user.uid), { participatesInAggregateAnalysis: !!value }, { merge: true });
+  const patch = { participatesInAggregateAnalysis: !!value };
+  patch.aggregateOnSince = value ? new Date().toISOString() : null;
+  await setDoc(doc(db, 'users', user.uid), patch, { merge: true });
   return !!value;
+}
+
+// 自分の users/{uid}.aggregateOnSince を返す（OFF時または未設定なら null）
+export async function getMyAggregateOnSince() {
+  await waitForAuth();
+  const user = getCurrentUser();
+  if (!user) return null;
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) return null;
+    return snap.data().aggregateOnSince || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// 自分の「連続ON期間中の出番数」を返す
+// = drives/{uid}/daily のうち date が onSince の日付以降のドキュメント数
+// onSince が null（OFF中）なら 0 を返す
+export async function getMyConsecutiveShiftsCount() {
+  await waitForAuth();
+  const user = getCurrentUser();
+  if (!user) return 0;
+  const onSince = await getMyAggregateOnSince();
+  if (!onSince) return 0;
+  const sinceDate = String(onSince).slice(0, 10); // ISO8601 → YYYY-MM-DD
+  const myUserId = getUserId();
+  if (!myUserId) return 0;
+  try {
+    const q = query(
+      collection(db, 'drives', myUserId, 'daily'),
+      where('date', '>=', sinceDate)
+    );
+    const snap = await getDocs(q);
+    return snap.size;
+  } catch (e) {
+    return 0;
+  }
 }
 
 export async function listActiveUserIds() {

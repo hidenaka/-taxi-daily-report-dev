@@ -159,7 +159,8 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, toLocalIso } from './js/app.js';
-import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
+import { ACCESS_LEVELS, getAccessLevel, getAccessLimits, getNextThreshold } from './js/aggregate-access.js';
 import {
   ensureActiveVehicleType,
   getActiveVehicleType,
@@ -182,22 +183,68 @@ if (!(await enforceAccess('analysis'))) {
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 renderLegalFooter();
 
-// C案: 自分が participatesInAggregateAnalysis=false なら「全員データ統合」3カードを
-// プレースホルダに差し替え（ベンチマーク機能を利用するには設定でONが必要）
-async function applyAggregateAnalysisGate() {
-  let flag = true;
-  try { flag = await getMyAggregateAnalysisFlag(); } catch (e) {}
-  if (flag) return;
-  const placeholderHTML = `
+// C案＋E案: 「全員データ統合」3カードを参加状況＋連続出番数で段階的に開閉
+// - OFF時: 3カードとも🔒（設定でONにすると利用可）
+// - ON時: 連続出番数で onboarding/light/standard/full の4段階
+//   - onboarding(0-3): 推奨検索のみ・他2カードは「あとN出番で解放」
+//   - light(4-9):      推奨検索＋降車エリア・高期待値はロック
+//   - standard(10-19): 全カード閲覧可（件数制限あり）
+//   - full(20+):       全件閲覧
+let currentAccessLimits = null; // 各カードが renderHourEff/renderHighValue/renderArea で参照
+
+function buildAccessPlaceholder({ title, hint, level }) {
+  const levelLabel = level ? ACCESS_LEVELS[level]?.label : null;
+  return `
     <div style="text-align:center;padding:24px 12px;background:#fff8e1;border:1px solid #ffd54f;border-radius:6px;font-size:12px;line-height:1.7;">
       <div style="font-size:32px;margin-bottom:6px;">🔒</div>
-      <strong>「全員データ統合」機能は無効です</strong><br>
-      <span class="muted">設定画面で「ベンチマーク統合分析に参加する」をONにすると利用できます。</span><br>
-      <a href="settings.html" style="display:inline-block;margin-top:10px;background:var(--primary);color:#fff;padding:6px 14px;border-radius:4px;text-decoration:none;font-weight:600;">⚙️ 設定を開く</a>
+      <strong>${title}</strong><br>
+      <span class="muted">${hint}</span>
+      ${levelLabel ? `<br><span style="display:inline-block;margin-top:6px;background:#9e9e9e;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;">次の段階: ${levelLabel}</span>` : ''}
+      <br><a href="settings.html" style="display:inline-block;margin-top:10px;background:var(--primary);color:#fff;padding:6px 14px;border-radius:4px;text-decoration:none;font-weight:600;">⚙️ 設定を開く</a>
     </div>`;
-  for (const id of ['recommendCard', 'highValueCard', 'areaCard']) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = placeholderHTML;
+}
+
+async function applyAggregateAccessGate() {
+  let flag = true;
+  try { flag = await getMyAggregateAnalysisFlag(); } catch (e) {}
+  if (!flag) {
+    // OFF時: 全カードを「設定でONに」プレースホルダ
+    const ph = buildAccessPlaceholder({
+      title: '「全員データ統合」機能は無効です',
+      hint: '設定画面で「ベンチマーク統合分析に参加する」をONにすると利用できます。',
+    });
+    for (const id of ['recommendCard', 'highValueCard', 'areaCard']) {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = ph;
+    }
+    currentAccessLimits = { recHistoryTop: 0, areaTop: 0, highValueTop: 0 };
+    return;
+  }
+  // ON時: 連続出番数で段階判定
+  let shifts = 0;
+  try { shifts = await getMyConsecutiveShiftsCount(); } catch (e) {}
+  const level = getAccessLevel(shifts);
+  const limits = getAccessLimits(shifts);
+  const { nextLevel, shiftsRemaining } = getNextThreshold(shifts);
+  currentAccessLimits = limits;
+
+  // 「降車エリア別 効率」ロック判定
+  if (limits.areaTop === 0) {
+    const el = document.getElementById('areaCard');
+    if (el) el.innerHTML = buildAccessPlaceholder({
+      title: '「降車エリア別 効率」はライト以上で解放',
+      hint: `継続参加 ${shifts} 出番／あと ${ACCESS_LEVELS.light.minShifts - shifts} 出番でライトに昇格します`,
+      level: 'light',
+    });
+  }
+  // 「高期待値エリア × 時間帯」ロック判定
+  if (limits.highValueTop === 0) {
+    const el = document.getElementById('highValueCard');
+    if (el) el.innerHTML = buildAccessPlaceholder({
+      title: '「高期待値エリア × 時間帯」はスタンダード以上で解放',
+      hint: `継続参加 ${shifts} 出番／あと ${Math.max(0, ACCESS_LEVELS.standard.minShifts - shifts)} 出番でスタンダードに昇格します`,
+      level: 'standard',
+    });
   }
 }
 
@@ -1060,7 +1107,7 @@ function renderArea() {
 // Firebase-only mode
 renderPaceCard();
 load();
-applyAggregateAnalysisGate();
+applyAggregateAccessGate();
 </script>
 </body>
 </html>
