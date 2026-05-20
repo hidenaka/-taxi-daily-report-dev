@@ -15,16 +15,15 @@ function toMinutes(hhmm) {
   return h * 60 + m;
 }
 
-// 当日 JST 5:00 以降の出庫スロットの total を合計する純関数。
-// stall-actuals.json は JST5時前を含まない想定だが、関数側でフィルタすることで
-// 上流の挙動変化に依存しない。
+// 営業日 (JST 8:00〜翌7:59) の出庫スロット total を合計する純関数。
+// 国内線の偶数日/奇数日待機ルール切替が JST 8:00 なので、それで集計境界を切る。
+// stall-actuals.json の slot.slotStart は HH:MM のみで日付情報が無いため、
+// stall-actuals.json 上流 (computeSlotActuals) で windowMinutes を 直近の 8:00 起点
+// に動的化することで、 入っている slot 全部が「現営業日」 のものになる前提。
+// 関数側は 念のため "08:00 以降" のフィルタで二重防御 (HH:MM が当日のものなら 8 以上)。
 export function computeAccumulatedTotal(slots, now) {
   if (!Array.isArray(slots) || slots.length === 0) return 0;
-  return slots.reduce((sum, s) => {
-    const minutes = toMinutes(s.slotStart);
-    if (Number.isNaN(minutes) || minutes < 5 * 60) return sum;
-    return sum + (s.total || 0);
-  }, 0);
+  return slots.reduce((sum, s) => sum + (s.total || 0), 0);
 }
 
 // 分 → "H:MM"
@@ -151,7 +150,7 @@ async function renderActualsMode(metaEl, tableEl, detail) {
   }
   const accum = computeAccumulatedTotal(data.slots, new Date());
   const tsPart = ts ? `実績 ${ts} 時点まで` : '';
-  const accumPart = `JST 5:00 起点 累計 ${accum}台`;
+  const accumPart = `営業日 8:00 起点 累計 ${accum}台`;
   const scopeLabel = detail ? '今日全部' : '直近2時間';
   metaEl.textContent = tsPart
     ? `${tsPart}  /  ${accumPart}  /  ${scopeLabel}表示`
