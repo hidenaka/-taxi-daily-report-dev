@@ -15,6 +15,18 @@ function toMinutes(hhmm) {
   return h * 60 + m;
 }
 
+// 当日 JST 5:00 以降の出庫スロットの total を合計する純関数。
+// stall-actuals.json は JST5時前を含まない想定だが、関数側でフィルタすることで
+// 上流の挙動変化に依存しない。
+export function computeAccumulatedTotal(slots, now) {
+  if (!Array.isArray(slots) || slots.length === 0) return 0;
+  return slots.reduce((sum, s) => {
+    const minutes = toMinutes(s.slotStart);
+    if (Number.isNaN(minutes) || minutes < 5 * 60) return sum;
+    return sum + (s.total || 0);
+  }, 0);
+}
+
 // 分 → "H:MM"
 function toHHMM(min) {
   const h = Math.floor(min / 60) % 24;

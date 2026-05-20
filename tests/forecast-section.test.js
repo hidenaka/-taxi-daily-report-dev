@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { aggregateTo15min, loadEnsemble, isStale, loadActuals, renderActualsTable } from '../tools/js/forecast-section.js';
+import { aggregateTo15min, loadEnsemble, isStale, loadActuals, renderActualsTable, computeAccumulatedTotal } from '../tools/js/forecast-section.js';
 
 // --- aggregateTo15min: 5分スロット → 15分ビン合算 ---
 
@@ -161,4 +161,41 @@ test('renderActualsTable: 空配列はデータなし表示', () => {
 test('renderActualsTable: stallフィールド欠落スロットは undefined を描画しない', () => {
   const html = renderActualsTable([{ slotStart: '18:00', slotEnd: '18:15', total: 0 }]);
   assert.ok(!html.includes('undefined'), 'stallフィールドが欠落しても undefined を出力しない');
+});
+
+// --- computeAccumulatedTotal: 当日 JST 5:00 以降の total 合計 ---
+
+test('computeAccumulatedTotal: JST 5:00 以降の当日 slot の total を合計', () => {
+  const now = new Date('2026-05-20T10:30:00+09:00');
+  const slots = [
+    { slotStart: '05:00', slotEnd: '05:15', total: 3 },
+    { slotStart: '06:30', slotEnd: '06:45', total: 5 },
+    { slotStart: '10:00', slotEnd: '10:15', total: 7 },
+  ];
+  assert.equal(computeAccumulatedTotal(slots, now), 15);
+});
+
+test('computeAccumulatedTotal: 5:00 より前のスロットは除外', () => {
+  const now = new Date('2026-05-20T10:00:00+09:00');
+  const slots = [
+    { slotStart: '04:45', slotEnd: '05:00', total: 100 },
+    { slotStart: '05:00', slotEnd: '05:15', total: 3 },
+  ];
+  assert.equal(computeAccumulatedTotal(slots, now), 3);
+});
+
+test('computeAccumulatedTotal: 空配列は 0', () => {
+  const now = new Date('2026-05-20T10:00:00+09:00');
+  assert.equal(computeAccumulatedTotal([], now), 0);
+  assert.equal(computeAccumulatedTotal(null, now), 0);
+  assert.equal(computeAccumulatedTotal(undefined, now), 0);
+});
+
+test('computeAccumulatedTotal: total が欠落しているスロットは 0 扱い', () => {
+  const now = new Date('2026-05-20T10:00:00+09:00');
+  const slots = [
+    { slotStart: '05:00', slotEnd: '05:15' },           // total なし
+    { slotStart: '06:00', slotEnd: '06:15', total: 4 },
+  ];
+  assert.equal(computeAccumulatedTotal(slots, now), 4);
 });
