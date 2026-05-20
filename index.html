@@ -256,6 +256,33 @@ async function render() {
     rawDrives.map(d => d.date), config.shifts.expandedDates, range.start, range.end);
   const respShifts = plannedShifts > 0 ? plannedShifts : config.responsibilityShifts;
 
+  // 一時デバッグ: 「出番」分母の不整合を調査
+  if (isCurrent) {
+    const _driveDates = rawDrives.map(d => d.date).sort();
+    const _expanded = (config.shifts.expandedDates || []).filter(d => d >= range.start && d <= range.end).sort();
+    const _unionSet = new Set([..._driveDates, ..._expanded]);
+    const _union = [..._unionSet].sort();
+    const _dup = _driveDates.filter(d => _expanded.includes(d));
+    console.log('[DEBUG-shift-count]', {
+      range, plannedShifts, respShifts,
+      driveDates: _driveDates, driveCount: _driveDates.length,
+      expandedInRange: _expanded, expandedCount: _expanded.length,
+      union: _union, unionSize: _union.length,
+      duplicates: _dup,
+      rawExpandedTotal: (config.shifts.expandedDates || []).length
+    });
+    const dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:60px;left:8px;right:8px;background:#1a1a24;color:#7cb8ff;padding:8px 10px;border-radius:6px;font-size:11px;font-family:monospace;z-index:9998;white-space:pre-wrap;line-height:1.4;border:1px solid #4ea1ff;';
+    dbg.textContent =
+      `[DEBUG] respShifts=${respShifts} plannedShifts=${plannedShifts}\n` +
+      `range: ${range.start} 〜 ${range.end}\n` +
+      `driveDates(${_driveDates.length}): ${_driveDates.join(', ')}\n` +
+      `expandedInRange(${_expanded.length}): ${_expanded.join(', ')}\n` +
+      `union(${_union.length}): ${_union.join(', ')}\n` +
+      `dup: ${_dup.join(', ') || 'なし'}  rawExpandedTotal=${(config.shifts.expandedDates || []).length}`;
+    document.body.appendChild(dbg);
+  }
+
   // 現在月度かつ責任出番未達の段階では、予定責任出番ベース(rateTable["11"]等)で歩率計算
   // 過去月度・確定月度は実shiftCountベース(従来通り)
   const useResponsibilityTier = isCurrent && rawDrives.length > 0 && rawDrives.length < respShifts;
