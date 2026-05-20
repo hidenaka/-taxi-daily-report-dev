@@ -21,8 +21,8 @@ ALLOWED_ORIGIN = "https://hidenaka.github.io"
 MAIL_FROM = "noreply@taxicabis.com"
 MAIL_TO = "haqei64384@gmail.com"
 # ADMIN_UIDS: Firebase Auth UID リスト（カンマ区切り）。
-# 値は中野氏が Firebase Console (Auth → Users) で実 UID を確認して差し替える。
-ADMIN_UIDS = "user_self,mm"
+# `npm run admin:list` で adminUids コレクションから取得した実 UID。
+ADMIN_UIDS = "7tLCsySjR8c7U60GRXrlGGMdkHD2"
 
 # --- production: Stripe ライブモード × Firebase 本番プロジェクト ---
 [env.production]
@@ -37,5 +37,5 @@ ALLOWED_ORIGIN = "https://app.taxicabis.com"
 MAIL_FROM = "noreply@taxicabis.com"
 MAIL_TO = "haqei64384@gmail.com"
 # ADMIN_UIDS: Firebase Auth UID リスト（カンマ区切り）。
-# 値は中野氏が Firebase Console (Auth → Users) で実 UID を確認して差し替える。
-ADMIN_UIDS = "user_self,mm"
+# `npm run admin:list -- --project=taxi-dailydata` で adminUids コレクションから取得した実 UID。
+ADMIN_UIDS = "kbCfUozleZYLkIdej3VT2KS60pg2"
