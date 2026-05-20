@@ -132,6 +132,46 @@ export function limitSlotsToRecent(slots, detail, recentBins = 8) {
   return slots.slice(-recentBins);
 }
 
+// 15分 slot を 1時間 単位に集計する純関数。 sparkline 表示用。
+// 出力は { hour: 0-23, stall1-4, total } の配列、 hour 昇順。
+export function aggregateBy1Hour(slots) {
+  if (!Array.isArray(slots) || slots.length === 0) return [];
+  const byHour = new Map();
+  for (const s of slots) {
+    const hh = String(s.slotStart || '').slice(0, 2);
+    const h = parseInt(hh, 10);
+    if (Number.isNaN(h)) continue;
+    if (!byHour.has(h)) {
+      byHour.set(h, { hour: h, stall1: 0, stall2: 0, stall3: 0, stall4: 0, total: 0 });
+    }
+    const b = byHour.get(h);
+    b.stall1 += s.stall1 ?? 0;
+    b.stall2 += s.stall2 ?? 0;
+    b.stall3 += s.stall3 ?? 0;
+    b.stall4 += s.stall4 ?? 0;
+    b.total += s.total ?? 0;
+  }
+  return [...byHour.values()].sort((a, b) => a.hour - b.hour);
+}
+
+// 1時間 sparkline HTML を生成。 棒の長さは max 比で正規化。
+function renderHourlySparkline(hourlyData) {
+  if (!hourlyData || hourlyData.length === 0) return '';
+  const max = Math.max(1, ...hourlyData.map(h => h.total));
+  const rows = hourlyData.map(h => {
+    const pct = Math.round((h.total / max) * 100);
+    return `<div class="fc-spark-row">
+      <span class="fc-spark-hour">${h.hour}時</span>
+      <span class="fc-spark-bar"><span class="fc-spark-bar-fill" style="width:${pct}%"></span></span>
+      <span class="fc-spark-total">${h.total}台</span>
+    </div>`;
+  }).join('');
+  return `<div class="fc-sparkline">
+    <div class="fc-spark-label">1時間ごとの出庫数 (波形)</div>
+    ${rows}
+  </div>`;
+}
+
 // 実績モードを描画する。
 async function renderActualsMode(metaEl, tableEl, detail) {
   const { data, error } = await loadActuals();
@@ -156,6 +196,9 @@ async function renderActualsMode(metaEl, tableEl, detail) {
     ? `${tsPart}  /  ${accumPart}  /  ${scopeLabel}表示`
     : `${accumPart}  /  ${scopeLabel}表示`;
   tableEl.innerHTML = renderActualsTable(limitSlotsToRecent(data.slots, detail));
+  // sparkline は data.slots 全体 (営業日全部) を 1時間集計して描画
+  const sparkEl = document.getElementById('forecast-sparkline');
+  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(aggregateBy1Hour(data.slots));
 }
 
 // 予測モードを描画する。
@@ -178,7 +221,11 @@ async function renderForecastMode(metaEl, tableEl, detail) {
   metaEl.textContent = ts
     ? `予測時刻 ${ts} 時点  /  ${scopeLabel}表示`
     : `${scopeLabel}表示`;
-  tableEl.innerHTML = renderTable(limitSlotsToRecent(aggregateTo15min(data.slots), detail));
+  const aggSlots = aggregateTo15min(data.slots);
+  tableEl.innerHTML = renderTable(limitSlotsToRecent(aggSlots, detail));
+  // 予測モードでも 1時間 sparkline を表示（予測波形が見える）
+  const sparkEl = document.getElementById('forecast-sparkline');
+  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(aggregateBy1Hour(aggSlots));
 }
 
 // 到着便ページの予測セクションを初期化・描画する。

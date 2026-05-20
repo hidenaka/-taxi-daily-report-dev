@@ -218,3 +218,41 @@ test('limitSlotsToRecent: null/空配列はそのまま空配列', () => {
   assert.deepEqual(limitSlotsToRecent([], false), []);
   assert.deepEqual(limitSlotsToRecent(null, true), []);
 });
+
+import { aggregateBy1Hour } from '../tools/js/forecast-section.js';
+
+test('aggregateBy1Hour: 15分slot を 1時間 単位に集計', () => {
+  const slots = [
+    { slotStart: '08:00', stall1: 1, stall2: 2, stall3: 3, stall4: 4, total: 10 },
+    { slotStart: '08:15', stall1: 1, stall2: 1, stall3: 1, stall4: 1, total: 4 },
+    { slotStart: '08:30', stall1: 2, stall2: 0, stall3: 1, stall4: 1, total: 4 },
+    { slotStart: '08:45', stall1: 0, stall2: 1, stall3: 2, stall4: 1, total: 4 },
+    { slotStart: '09:00', stall1: 1, stall2: 1, stall3: 1, stall4: 1, total: 4 },
+  ];
+  const r = aggregateBy1Hour(slots);
+  assert.deepEqual(r, [
+    { hour: 8, stall1: 4, stall2: 4, stall3: 7, stall4: 7, total: 22 },
+    { hour: 9, stall1: 1, stall2: 1, stall3: 1, stall4: 1, total: 4 },
+  ]);
+});
+
+test('aggregateBy1Hour: hour 昇順', () => {
+  const slots = [
+    { slotStart: '20:00', total: 5 },
+    { slotStart: '08:00', total: 3 },
+    { slotStart: '12:00', total: 4 },
+  ];
+  assert.deepEqual(aggregateBy1Hour(slots).map(b => b.hour), [8, 12, 20]);
+});
+
+test('aggregateBy1Hour: 空配列は空配列', () => {
+  assert.deepEqual(aggregateBy1Hour([]), []);
+  assert.deepEqual(aggregateBy1Hour(null), []);
+});
+
+test('aggregateBy1Hour: stall フィールド欠落は 0 扱い', () => {
+  const slots = [{ slotStart: '10:00', total: 5 }]; // stall1-4 無し
+  assert.deepEqual(aggregateBy1Hour(slots), [
+    { hour: 10, stall1: 0, stall2: 0, stall3: 0, stall4: 0, total: 5 },
+  ]);
+});

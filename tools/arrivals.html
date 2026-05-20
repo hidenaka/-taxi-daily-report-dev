@@ -129,6 +129,14 @@
     #forecast-section .fc-scope-btn { padding: 4px 10px; background: #1a1a1d; color: var(--sub); border: none; font-size: 12px; cursor: pointer; }
     #forecast-section .fc-scope-btn + .fc-scope-btn { border-left: 1px solid #333; }
     #forecast-section .fc-scope-btn.is-active { background: var(--accent); color: #000; font-weight: 600; }
+    #forecast-section .fc-sparkline-wrap { margin-top: 12px; }
+    #forecast-section .fc-sparkline { display: flex; flex-direction: column; gap: 2px; padding: 8px; background: #14141a; border-radius: 4px; }
+    #forecast-section .fc-spark-label { color: var(--sub); font-size: 11px; margin-bottom: 4px; }
+    #forecast-section .fc-spark-row { display: grid; grid-template-columns: 36px 1fr 50px; gap: 6px; align-items: center; font-size: 11px; }
+    #forecast-section .fc-spark-hour { color: var(--sub); font-variant-numeric: tabular-nums; text-align: right; }
+    #forecast-section .fc-spark-bar { background: rgba(255,255,255,0.05); height: 12px; border-radius: 2px; position: relative; }
+    #forecast-section .fc-spark-bar-fill { display: block; background: var(--accent); height: 100%; border-radius: 2px; min-width: 2px; }
+    #forecast-section .fc-spark-total { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
     #forecast-section .fc-scope { margin: 0 0 6px; color: var(--sub); font-size: 11px; }
     .fc-meta { color: var(--sub); font-size: 12px; margin-bottom: 8px; }
     .fc-empty { color: var(--sub); font-size: 13px; }
@@ -198,6 +206,7 @@
     </div>
     <div id="forecast-meta" class="fc-meta">読み込み中...</div>
     <div id="forecast-table-wrap"></div>
+    <div id="forecast-sparkline" class="fc-sparkline-wrap"></div>
   </section>
 
   <div id="topics" hidden></div>
