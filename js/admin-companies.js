@@ -1,4 +1,9 @@
 // js/admin-companies.js — admin 会社管理: フォーム値の検証とドキュメント化（純関数）
+//
+// 設計方針（2026-05-20 決定）: 会社名(name)はサーバーに保存しない。
+// データ流出時の特定リスク低減のため、companies ドキュメントは内部識別子(slug)＋
+// 給与/プラン等の運用設定のみを保持する。会社名表示が必要な場面は管理者の頭の中の
+// マップ（または手元のローカルメモ）で扱う。
 
 const SLUG_RE = /^[a-z][a-z0-9_]*$/;
 
@@ -25,8 +30,6 @@ export function buildCompanyDoc(form) {
   if (!SLUG_RE.test(slug) || slug.length < 2 || slug.length > 40) {
     return { error: '会社ID(slug)は半角英小文字で始まり、英小文字・数字・_ のみ・2〜40文字です' };
   }
-  const name = String(form.name || '').trim();
-  if (!name) return { error: '会社名を入力してください' };
   if (form.plan !== 'partner' && form.plan !== 'normal') {
     return { error: 'プランは partner / normal のいずれかです' };
   }
@@ -48,7 +51,6 @@ export function buildCompanyDoc(form) {
   }
 
   const doc = {
-    name,
     slug,
     plan: form.plan,
     active: form.active === true,

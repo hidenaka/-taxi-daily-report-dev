@@ -4,7 +4,7 @@ import { buildCompanyDoc } from '../js/admin-companies.js';
 
 function stepForm(over = {}) {
   return {
-    slug: 'keiho', name: '恵豊', plan: 'partner', active: true,
+    slug: 'keiho', plan: 'partner', active: true,
     payrollMode: 'step_rate',
     takeHomeRate: '0.75', responsibilityShifts: '11', paidLeaveAmount: '39340',
     fixedRate: '0.55', premiumThreshold: '80000', premiumAmount: '2000',
@@ -62,8 +62,10 @@ test('buildCompanyDoc: 不正な slug でエラー', () => {
   assert.ok(buildCompanyDoc(stepForm({ slug: 'a' })).error);      // 短すぎ
 });
 
-test('buildCompanyDoc: 会社名欠落でエラー', () => {
-  assert.ok(buildCompanyDoc(stepForm({ name: '  ' })).error);
+test('buildCompanyDoc: 会社名(name)は保存されない — 個人特定リスクの低減', () => {
+  const { doc } = buildCompanyDoc(stepForm({ name: '恵豊' }));
+  assert.strictEqual(doc.name, undefined);
+  assert.strictEqual(doc.slug, 'keiho');
 });
 
 test('buildCompanyDoc: plan が不正でエラー', () => {

@@ -159,9 +159,6 @@ if (location.hostname.includes('-dev')) {
       <label class="muted" style="margin-top:8px;display:block;">会社ID（slug）</label>
       <input class="input" id="companySlug" placeholder="keiho" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 
-      <label class="muted" style="margin-top:8px;display:block;">会社名</label>
-      <input class="input" id="companyName" placeholder="恵豊">
-
       <label class="muted" style="margin-top:8px;display:block;">プラン</label>
       <select class="select" id="companyPlan">
         <option value="partner">提携（partner）</option>
@@ -1138,7 +1135,6 @@ function fillCompanyForm(c, isNew) {
   const slugInput = document.getElementById('companySlug');
   slugInput.value = isNew ? '' : (c.slug || '');
   slugInput.readOnly = !isNew;
-  document.getElementById('companyName').value = c.name || '';
   document.getElementById('companyPlan').value = c.plan || 'partner';
   document.getElementById('companyActive').checked = c.active !== false;
   document.getElementById('companyPayrollMode').value = c.payrollMode || 'step_rate';
@@ -1164,7 +1160,7 @@ async function loadCompanyList() {
     for (const c of companyCache) {
       const opt = document.createElement('option');
       opt.value = c.id;
-      opt.textContent = `${c.name || c.id}（${c.id}）`;
+      opt.textContent = c.id;
       sel.appendChild(opt);
     }
     status.textContent = `✓ ${companyCache.length} 社を読み込みました`;
@@ -1192,7 +1188,6 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
   const status = document.getElementById('companyStatus');
   const form = {
     slug: document.getElementById('companySlug').value.trim(),
-    name: document.getElementById('companyName').value,
     plan: document.getElementById('companyPlan').value,
     active: document.getElementById('companyActive').checked,
     payrollMode: document.getElementById('companyPayrollMode').value,
@@ -1217,7 +1212,7 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
   }
   try {
     await adminSaveCompany(companyDoc.slug, companyDoc);
-    status.textContent = `✓ 会社「${companyDoc.name}」を保存しました`;
+    status.textContent = `✓ 会社「${companyDoc.slug}」を保存しました`;
     status.style.color = 'green';
     await loadCompanyList();
     document.getElementById('companySelect').value = companyDoc.slug;

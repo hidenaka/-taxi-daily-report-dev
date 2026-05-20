@@ -7,7 +7,6 @@ import { COMPANY_LEVEL_KEYS } from './company-config.js';
 export function buildKeihoProfile() {
   const base = { ...DEFAULT_CONFIG, payrollMode: 'step_rate', fixedRate: 0.55 };
   const profile = {
-    name: '恵豊',
     slug: 'keiho',
     plan: 'partner',
     active: true,
