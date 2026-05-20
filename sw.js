@@ -34,6 +34,7 @@ const STATIC_FILES = [
   './js/invite-url.js',
   './js/slug-gen.js',
   './js/qr-code.js',
+  './js/summary-drive.js',
   './js/aggregate-access.js',
   './js/help-toggle.js',
   './js/legal-footer.js',

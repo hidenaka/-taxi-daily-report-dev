@@ -1,9 +1,10 @@
+import { extractInclTaxFare } from './summary-drive.js';
+
 const TAX_RATE = 1.1;
 
+// 日次売上の計算。明細日報なら trips 集計、合計のみ日報なら summaryFare 直接（decisions 8）。
 export function calcDailySales(drive) {
-  const inclTax = (drive.trips || [])
-    .filter(t => !t.isCancel)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+  const inclTax = extractInclTaxFare(drive);
   return {
     inclTax,
     exclTax: inclTax / TAX_RATE
