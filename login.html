@@ -8,8 +8,11 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="manifest" href="manifest.webmanifest">
+<!-- Cloudflare Turnstile（Bot対策・ログインフォーム保護） -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <style>
   body { padding-bottom: 24px; }
+  .turnstile-row { margin: 14px 0 8px; min-height: 70px; display: flex; justify-content: center; }
   .back-link { display:inline-block; margin-bottom:12px; color:var(--primary); text-decoration:none; font-size:13px; }
   .tabs { display:flex; margin-bottom:14px; border-bottom:2px solid var(--border); }
   .tab { flex:1; padding:10px; text-align:center; font-size:14px; font-weight:600; background:none; border:none; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
@@ -64,6 +67,12 @@ if (location.hostname.includes('-dev')) {
         <label for="loginPw">パスワード</label>
         <input type="password" id="loginPw" autocomplete="current-password">
       </div>
+      <div class="turnstile-row">
+        <div class="cf-turnstile" id="turnstileLogin"
+             data-sitekey="1x00000000000000000000AA"
+             data-callback="onTurnstileLogin"
+             data-action="login"></div>
+      </div>
       <button class="submit-btn" id="loginBtn">ログイン</button>
       <div id="loginMsg"></div>
     </section>
@@ -84,6 +93,12 @@ if (location.hostname.includes('-dev')) {
         <label for="suPw2">パスワード（確認）</label>
         <input type="password" id="suPw2" autocomplete="new-password">
       </div>
+      <div class="turnstile-row">
+        <div class="cf-turnstile" id="turnstileSignup"
+             data-sitekey="1x00000000000000000000AA"
+             data-callback="onTurnstileSignup"
+             data-action="signup"></div>
+      </div>
       <button class="submit-btn" id="signupBtn">この内容で登録する</button>
       <div id="signupMsg"></div>
     </section>
@@ -97,6 +112,46 @@ if (location.hostname.includes('-dev')) {
 import { renderLegalFooter } from './js/legal-footer.js';
 import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase-auth.js';
 renderLegalFooter();
+
+// ===== Cloudflare Turnstile =====
+// Bot対策。token は widget が自動取得し callback で受け取る。
+// ログイン/新規登録時に Worker /verify-turnstile で検証してから本処理に進む。
+let turnstileLoginToken = null;
+let turnstileSignupToken = null;
+window.onTurnstileLogin = (t) => { turnstileLoginToken = t; };
+window.onTurnstileSignup = (t) => { turnstileSignupToken = t; };
+
+function resetTurnstile(widgetId) {
+  // Turnstile API は動的ロード（async script）。未ロード時は安全にスキップ
+  if (window.turnstile && window.turnstile.reset) {
+    try { window.turnstile.reset('#' + widgetId); } catch (_) { /* widget再描画前の呼び出しは無視 */ }
+  }
+}
+
+function billingApiBase() {
+  const isDev = location.hostname.includes('-dev')
+    || location.pathname.includes('-dev')
+    || location.hostname === 'localhost'
+    || location.hostname === '127.0.0.1';
+  return isDev
+    ? 'https://cabis-billing-dev.haqei64384.workers.dev'
+    : 'https://cabis-billing.haqei64384.workers.dev';
+}
+
+async function verifyTurnstile(token) {
+  try {
+    const res = await fetch(billingApiBase() + '/verify-turnstile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return !!data.success;
+  } catch (_) {
+    return false;
+  }
+}
 
 const params = new URLSearchParams(location.search);
 // next: ローカルの html ページのみ許可（オープンリダイレクト防止）
@@ -134,7 +189,21 @@ loginBtn.addEventListener('click', async () => {
     showMsg('loginMsg', 'ログインIDとパスワードを入力してください', 'error');
     return;
   }
+  if (!turnstileLoginToken) {
+    showMsg('loginMsg', '人間判定が完了していません。数秒お待ちいただいてから、もう一度お試しください。', 'error');
+    return;
+  }
   loginBtn.disabled = true;
+  showMsg('loginMsg', '人間判定中…', 'info');
+  const okHuman = await verifyTurnstile(turnstileLoginToken);
+  // Turnstile token は使い切り。次の試行に備えて widget をリセット。
+  turnstileLoginToken = null;
+  resetTurnstile('turnstileLogin');
+  if (!okHuman) {
+    showMsg('loginMsg', '人間判定に失敗しました。ページを再読み込みしてもう一度お試しください。', 'error');
+    loginBtn.disabled = false;
+    return;
+  }
   showMsg('loginMsg', 'ログインしています…', 'info');
   const r = await loginWithUserId(id, pw);
   if (r.success) {
@@ -155,7 +224,20 @@ signupBtn.addEventListener('click', async () => {
     showMsg('signupMsg', 'パスワード（確認）が一致しません', 'error');
     return;
   }
+  if (!turnstileSignupToken) {
+    showMsg('signupMsg', '人間判定が完了していません。数秒お待ちいただいてから、もう一度お試しください。', 'error');
+    return;
+  }
   signupBtn.disabled = true;
+  showMsg('signupMsg', '人間判定中…', 'info');
+  const okHuman = await verifyTurnstile(turnstileSignupToken);
+  turnstileSignupToken = null;
+  resetTurnstile('turnstileSignup');
+  if (!okHuman) {
+    showMsg('signupMsg', '人間判定に失敗しました。ページを再読み込みしてもう一度お試しください。', 'error');
+    signupBtn.disabled = false;
+    return;
+  }
   showMsg('signupMsg', '登録しています…', 'info');
   const r = await signUp(id, pw);
   if (r.success) {

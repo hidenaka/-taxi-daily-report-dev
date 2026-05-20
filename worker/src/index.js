@@ -8,11 +8,13 @@
 //   POST /create-checkout-session  { userId, couponCode? } -> { url }
 //   POST /cancel-subscription      { userId, reason? }      -> { ok: true }
 //   POST /webhook                  Stripe イベント受信
+//   POST /verify-turnstile         { token, action? } -> { success } ログイン保護
 //
 // 環境変数（wrangler.toml [vars]）:
 //   FIREBASE_PROJECT_ID, STRIPE_PRICE_ID, APP_BASE_URL, ALLOWED_ORIGIN
 // シークレット（wrangler secret put）:
-//   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT
+//   STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, FIREBASE_SERVICE_ACCOUNT,
+//   TURNSTILE_SECRET_KEY（Cloudflare Turnstile siteverify 用）
 //
 // 依存パッケージなし（fetch + Web Crypto のみ）。
 // ============================================================
@@ -44,6 +46,9 @@ export default {
       }
       if (request.method === 'POST' && path === '/webhook') {
         return await handleWebhook(request, env);
+      }
+      if (request.method === 'POST' && path === '/verify-turnstile') {
+        return await handleVerifyTurnstile(request, env);
       }
       return json(env, { error: 'not_found' }, 404);
     } catch (err) {
@@ -198,6 +203,40 @@ async function handleWebhook(request, env) {
   return new Response(JSON.stringify({ received: true }), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+// ============================================================
+// Cloudflare Turnstile siteverify（ログイン/新規登録フォームのBot対策）
+// ============================================================
+
+// クライアントから受け取った Turnstile token を Cloudflare に検証してもらう。
+// ログイン・新規登録フォームのブルートフォース対策（割賦販売法セキュリティ
+// 申告書「管理者画面のアカウントロック」相当を CAPTCHA 方式で満たす）。
+async function handleVerifyTurnstile(request, env) {
+  if (!env.TURNSTILE_SECRET_KEY) {
+    return json(env, { success: false, error: 'turnstile_not_configured' }, 500);
+  }
+  const body = await request.json().catch(() => ({}));
+  const token = String(body.token || '');
+  if (!token) {
+    return json(env, { success: false, error: 'missing_token' }, 400);
+  }
+  const ip = request.headers.get('CF-Connecting-IP') || '';
+
+  const form = 'secret=' + encodeURIComponent(env.TURNSTILE_SECRET_KEY)
+    + '&response=' + encodeURIComponent(token)
+    + (ip ? '&remoteip=' + encodeURIComponent(ip) : '');
+
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form,
+  });
+  const data = await res.json().catch(() => ({}));
+  return json(env, {
+    success: !!data.success,
+    errorCodes: data['error-codes'] || [],
   });
 }
 
