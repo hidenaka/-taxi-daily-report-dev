@@ -221,6 +221,26 @@ export function renderFlightList(container, flights) {
   }
 }
 
+// 出発地別集計の行リストを描画する。groups は totalEstimatedTaxiPax 降順前提。
+export function renderOriginSummary(container, groups) {
+  if (!container) return;
+  container.innerHTML = '';
+  if (!groups || groups.length === 0) {
+    container.innerHTML = '<div class="empty">表示可能な集計がありません</div>';
+    return;
+  }
+  for (const g of groups) {
+    const row = document.createElement('div');
+    row.className = 'origin-row';
+    row.innerHTML = `
+      <span class="origin-name">${g.fromName}</span>
+      <span class="origin-count">${g.flightCount}便</span>
+      <span class="origin-pax">推定タクシー客 ${g.totalEstimatedTaxiPax}人</span>
+    `;
+    container.appendChild(row);
+  }
+}
+
 export function renderUpdatedAt(container, updatedAt, totalUnknownAircraft) {
   const t = new Date(updatedAt);
   const minAgo = Math.floor((Date.now() - t.getTime()) / 60000);
