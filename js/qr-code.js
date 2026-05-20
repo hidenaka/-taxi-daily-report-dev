@@ -46,7 +46,9 @@ export async function renderQrSvg(text, opts = {}) {
   const qr = qrcode(opts.typeNumber || 0, opts.errorCorrectionLevel || 'M');
   qr.addData(text);
   qr.make();
-  return qr.createSvgTag({ cellSize, margin, scalable: true });
+  // scalable:false (default) で SVG に width/height 属性を付与する。
+  // scalable:true だと viewBox のみで親 inline-block と連鎖して width=0 で無描画になるバグを回避。
+  return qr.createSvgTag({ cellSize, margin });
 }
 
 // PNG Blob を返す（ダウンロード用）。
