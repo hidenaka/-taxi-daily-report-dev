@@ -187,6 +187,18 @@ if (location.hostname.includes('-dev')) {
     </label>
     <div id="aggregateAnalysisStatus" class="muted" style="font-size:10px;margin-top:4px;"></div>
 
+    <details style="margin-top:8px;font-size:11px;line-height:1.6;">
+      <summary style="cursor:pointer;color:var(--muted);font-size:10px;">⚠️ OFFにする前にご確認ください（注意事項）</summary>
+      <div style="background:#fff8e1;border:1px solid #ffd54f;border-radius:4px;padding:8px;margin-top:4px;font-size:10.5px;color:#5d4037;">
+        <ul style="margin:0;padding-left:18px;">
+          <li><strong>OFF以降のデータは集計に入りません</strong>：OFFに切り替えた後に保存・更新する日報は、ベンチマーク統合分析の対象外になります。</li>
+          <li><strong>OFFにすると過去ぶんも集計から外れます</strong>：これまでに参加していた期間のあなたのデータも、以降は他の利用者に見られません。</li>
+          <li><strong>ただし、ONだった期間に他の利用者が見たデータは遡って取り消せません</strong>：ON中はあなたのエリア・時刻の匿名集計が他の参加者に表示されていました。閲覧された後のスクリーンショット等は当方では把握・回収できません。</li>
+          <li><strong>保存された日報そのものは集計OFFでは消えません</strong>：あなたの日報データ自体は引き続きあなたのアカウントに保存されています。削除をご希望の場合は別途お問い合わせください（cabis@taxicabis.com）。</li>
+        </ul>
+      </div>
+    </details>
+
     <div id="aggregateAccessProgress" style="display:none;margin-top:10px;padding:10px;background:#f1f8e9;border:1px solid #c5e1a5;border-radius:6px;font-size:11px;line-height:1.6;">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
         <strong style="font-size:12px;">🌱 継続参加</strong>
