@@ -99,6 +99,13 @@ if (location.hostname.includes('-dev')) {
         <li>「📍 現在地から自動入力」で GPS から降ろし場所を自動セット</li>
         <li>他のドライバーの匿名集計データも含みます（個人特定情報なし）</li>
       </ul>
+      <div style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;line-height:1.5;color:#075985;">
+        🛡️ <strong>「📍 現在地から自動入力」ボタンの動き</strong><br>
+        ・<strong>このボタンを押した時だけ</strong>、今いる場所をスマホから1回受け取ります<br>
+        ・受け取った場所は<strong>「降ろした場所」欄を埋めるためだけ</strong>に使い、その場で捨てます<br>
+        ・キャビス側で<strong>あなたの場所を覚える・記録する・他の人に見せることは一切ありません</strong><br>
+        ・ボタンを押さない限り、場所は受け取りません
+      </div>
       <a href="guide.html#ch4" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
@@ -119,6 +126,11 @@ if (location.hostname.includes('-dev')) {
         <input type="checkbox" id="recExpand" checked> 近隣エリアも含める
       </label>
       <span class="muted" style="font-size:10px;" id="recNeighborInfo"></span>
+    </div>
+    <div id="gpsPrivacyBanner" style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px;line-height:1.5;color:#075985;position:relative;">
+      <button id="gpsPrivacyClose" aria-label="閉じる" style="position:absolute;right:6px;top:4px;background:transparent;border:none;color:#075985;font-size:16px;line-height:1;cursor:pointer;padding:2px 6px;">×</button>
+      <strong>🛡️ 「📍 現在地から自動入力」は押した時だけ動きます</strong><br>
+      <span style="font-size:10px;">場所は降ろし場所の入力にだけ使い、保存も共有もしません。</span>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <button id="recGps" style="flex:1;background:#fff;color:var(--primary);border:1px solid var(--primary);padding:8px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;">📍 現在地から自動入力</button>
@@ -820,6 +832,23 @@ async function runGpsLookup({ silent = false } = {}) {
   }
 }
 document.getElementById('recGps').onclick = () => runGpsLookup({ silent: false });
+
+// GPS プライバシー説明バナーの開閉制御。本人が閉じたら localStorage で記憶し再表示しない。
+(() => {
+  const banner = document.getElementById('gpsPrivacyBanner');
+  if (!banner) return;
+  if (localStorage.getItem('cabis_gps_privacy_dismissed') === '1') {
+    banner.style.display = 'none';
+    return;
+  }
+  const closeBtn = document.getElementById('gpsPrivacyClose');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      banner.style.display = 'none';
+      localStorage.setItem('cabis_gps_privacy_dismissed', '1');
+    });
+  }
+})();
 
 // permissions が granted の時のみページ読込時にサイレント自動取得
 // prompt/denied/未対応ブラウザでは何もせず（許可ダイアログを勝手に出さない）
