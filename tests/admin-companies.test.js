@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { buildCompanyDoc } from '../js/admin-companies.js';
+import { buildCompanyDoc, buildCompanySignupUrl } from '../js/admin-companies.js';
 
 function stepForm(over = {}) {
   return {
@@ -80,4 +80,44 @@ test('buildCompanyDoc: 共通数値項目が非数値なら両モードでエラ
   assert.ok(buildCompanyDoc(stepForm({ takeHomeRate: '' })).error);
   assert.ok(buildCompanyDoc(stepForm({ paidLeaveAmount: 'abc' })).error);
   assert.ok(buildCompanyDoc(fixedForm({ takeHomeRate: '' })).error);
+});
+
+test('buildCompanyDoc: defaultRecArea が設定されていれば doc に含まれる', () => {
+  const { doc } = buildCompanyDoc(stepForm({ defaultRecArea: '千代田区丸の内' }));
+  assert.strictEqual(doc.defaultRecArea, '千代田区丸の内');
+});
+
+test('buildCompanyDoc: defaultRecArea が空文字なら doc に含まれない（任意項目）', () => {
+  const { doc } = buildCompanyDoc(stepForm({ defaultRecArea: '' }));
+  assert.strictEqual(doc.defaultRecArea, undefined);
+});
+
+test('buildCompanyDoc: defaultRecArea 前後の空白はトリムされる', () => {
+  const { doc } = buildCompanyDoc(stepForm({ defaultRecArea: '  港区六本木  ' }));
+  assert.strictEqual(doc.defaultRecArea, '港区六本木');
+});
+
+// ====== buildCompanySignupUrl ======
+
+test('buildCompanySignupUrl: slug を ?company=<slug> に展開', () => {
+  assert.strictEqual(buildCompanySignupUrl('keiho'), 'https://app.taxicabis.com/?company=keiho');
+});
+
+test('buildCompanySignupUrl: baseUrl 指定で dev/任意ホストにも対応', () => {
+  assert.strictEqual(
+    buildCompanySignupUrl('keiho', 'https://hidenaka.github.io/-taxi-daily-report-dev'),
+    'https://hidenaka.github.io/-taxi-daily-report-dev/?company=keiho'
+  );
+});
+
+test('buildCompanySignupUrl: slug が空なら空文字を返す（UI 用）', () => {
+  assert.strictEqual(buildCompanySignupUrl(''), '');
+  assert.strictEqual(buildCompanySignupUrl(null), '');
+});
+
+test('buildCompanySignupUrl: baseUrl 末尾スラッシュは正規化', () => {
+  assert.strictEqual(
+    buildCompanySignupUrl('keiho', 'https://app.taxicabis.com/'),
+    'https://app.taxicabis.com/?company=keiho'
+  );
 });

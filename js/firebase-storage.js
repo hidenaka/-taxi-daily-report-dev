@@ -4,10 +4,11 @@ import { getUserId, waitForAuth, setUserId as fbSetUserId, getCurrentUser } from
 import { DEFAULT_USER_ID, isValidUserId, normalizeUserId } from './userid.js';
 import { getBillingPeriodRange } from './app.js';
 import { DEFAULT_CONFIG } from './default-config.js';
-import { 
-  doc, getDoc, setDoc, deleteDoc, collection, 
+import { filterParticipatingUserIds } from './user-doc.js';
+import {
+  doc, getDoc, setDoc, deleteDoc, collection,
   query, where, getDocs, orderBy, writeBatch,
-  Timestamp 
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // ========== DRIVES ==========
@@ -390,6 +391,30 @@ export async function putFile(path, jsonObject, message, sha = null) {
 
 // ========== USER MANAGEMENT (for support / multi-user features) ==========
 
+// 自分の users/{uid}.participatesInAggregateAnalysis を返す（未定義は true 扱い・互換）
+export async function getMyAggregateAnalysisFlag() {
+  await waitForAuth();
+  const user = getCurrentUser();
+  if (!user) return true;
+  try {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (!snap.exists()) return true;
+    const v = snap.data().participatesInAggregateAnalysis;
+    return v !== false; // undefined/null は true 扱い（マイグレ移行期間互換）
+  } catch (e) {
+    return true;
+  }
+}
+
+// 自分の users/{uid}.participatesInAggregateAnalysis を更新する
+export async function setMyAggregateAnalysisFlag(value) {
+  await waitForAuth();
+  const user = getCurrentUser();
+  if (!user) throw new Error('not authenticated');
+  await setDoc(doc(db, 'users', user.uid), { participatesInAggregateAnalysis: !!value }, { merge: true });
+  return !!value;
+}
+
 export async function listActiveUserIds() {
   await waitForAuth();
   try {
@@ -461,12 +486,34 @@ export async function getUserRoleMap() {
   return map;
 }
 
+// ベンチマーク統合分析に参加している（participatesInAggregateAnalysis≠false）
+// アクティブユーザーのIDだけを返す。C案の集計対象を絞るための関数。
+export async function listAggregateAnalysisUserIds() {
+  await waitForAuth();
+  try {
+    const snap = await getDocs(collection(db, 'users'));
+    const userDocs = snap.docs.map(d => d.data());
+    const eligibleIds = filterParticipatingUserIds(userDocs);
+    // 実際にデータを持っているかも検証（listActiveUserIds と同じロジック）
+    const activeIds = [];
+    for (const uid of eligibleIds) {
+      try {
+        const drivesSnap = await getDocs(collection(db, 'drives', uid, 'daily'));
+        if (!drivesSnap.empty) activeIds.push(uid);
+      } catch (e) { /* skip on permission error */ }
+    }
+    return activeIds.length > 0 ? activeIds : eligibleIds;
+  } catch (e) {
+    return [getUserId() || getMyUserId()];
+  }
+}
+
 export async function getAllUsersDrivesForMonth(yearMonth) {
   await waitForAuth();
   const { start, end } = getBillingPeriodRange(yearMonth);
   let userIds;
   try {
-    userIds = await listActiveUserIds();
+    userIds = await listAggregateAnalysisUserIds();
   } catch (e) {
     userIds = [getUserId() || getMyUserId()];
   }

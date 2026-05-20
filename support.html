@@ -159,7 +159,7 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, toLocalIso } from './js/app.js';
-import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag } from './js/storage.js';
 import {
   ensureActiveVehicleType,
   getActiveVehicleType,
@@ -173,6 +173,7 @@ import { enforceAccess } from './js/access-control.js';
 
 const REC_AREA_LS_KEY = 'cabis_rec_area_last';
 const REC_AREA_FALLBACK = '千代田区丸の内';
+let companyDefaultRecArea = null; // companies/{companyId}.defaultRecArea（getConfigマージ後の実効値）
 
 if (!(await enforceAccess('analysis'))) {
   throw new Error('access-denied: redirected');
@@ -180,6 +181,25 @@ if (!(await enforceAccess('analysis'))) {
 
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 renderLegalFooter();
+
+// C案: 自分が participatesInAggregateAnalysis=false なら「全員データ統合」3カードを
+// プレースホルダに差し替え（ベンチマーク機能を利用するには設定でONが必要）
+async function applyAggregateAnalysisGate() {
+  let flag = true;
+  try { flag = await getMyAggregateAnalysisFlag(); } catch (e) {}
+  if (flag) return;
+  const placeholderHTML = `
+    <div style="text-align:center;padding:24px 12px;background:#fff8e1;border:1px solid #ffd54f;border-radius:6px;font-size:12px;line-height:1.7;">
+      <div style="font-size:32px;margin-bottom:6px;">🔒</div>
+      <strong>「全員データ統合」機能は無効です</strong><br>
+      <span class="muted">設定画面で「ベンチマーク統合分析に参加する」をONにすると利用できます。</span><br>
+      <a href="settings.html" style="display:inline-block;margin-top:10px;background:var(--primary);color:#fff;padding:6px 14px;border-radius:4px;text-decoration:none;font-weight:600;">⚙️ 設定を開く</a>
+    </div>`;
+  for (const id of ['recommendCard', 'highValueCard', 'areaCard']) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = placeholderHTML;
+  }
+}
 
 const todayIso = () => toLocalIso(new Date());
 
@@ -452,6 +472,12 @@ async function load() {
 
   // === Phase 2: バックグラウンドで最新を取得 ===
   try {
+    // 会社プロファイルの defaultRecArea を取得（getConfig は会社マージ済み実効設定を返す）
+    try {
+      const cfg = await getConfig();
+      companyDefaultRecArea = cfg?.defaultRecArea || null;
+    } catch (e) { companyDefaultRecArea = null; }
+
     const [myParts, allParts, userIds, displayMap, roleMap] = await Promise.all([
       Promise.all(periods.map(ym => getDrivesForMonth(ym))),
       Promise.all(periods.map(ym => getAllUsersDrivesForMonth(ym))),
@@ -491,12 +517,12 @@ function populateRecommendArea() {
   const availableAreas = candidates.map(c => c.area);
   let lastArea = null;
   try { lastArea = localStorage.getItem(REC_AREA_LS_KEY); } catch (e) {}
-  // 優先: セッション中の手動選択 (prev) > localStorage > fallback(丸の内) > 先頭
+  // 優先: セッション中の手動選択 (prev) > localStorage > companyDefault > fallback(丸の内) > 先頭
   // ※ GPS自動取得は populateRecommendArea の外側で非同期に上書きする
   sel.value = chooseInitialRecArea({
     gpsArea: prev || null,
     lastArea,
-    companyDefault: null, // Phase 2 で companies/{companyId}.defaultRecArea を渡す
+    companyDefault: companyDefaultRecArea,
     fallback: REC_AREA_FALLBACK,
     availableAreas,
   });
@@ -1034,6 +1060,7 @@ function renderArea() {
 // Firebase-only mode
 renderPaceCard();
 load();
+applyAggregateAnalysisGate();
 </script>
 </body>
 </html>

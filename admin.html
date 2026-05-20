@@ -195,6 +195,10 @@ if (location.hostname.includes('-dev')) {
       <label class="muted" style="margin-top:8px;display:block;">インセンティブ 額（出番あたり）</label>
       <input class="input" id="companyPremiumAmount" type="number" step="100" value="2000">
 
+      <label class="muted" style="margin-top:8px;display:block;">営業地デフォルト（任意・空欄なら「千代田区丸の内」）</label>
+      <input class="input" id="companyDefaultRecArea" placeholder="千代田区丸の内" autocomplete="off">
+      <p class="muted" style="font-size:10px;margin-top:2px;">営業サポート「次の営業先 推奨検索」の初期エリア。GPS取得が許可されていれば自動でGPS推定が優先される。</p>
+
       <div id="companyRateTableField">
         <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
         <h4 style="margin:0 0 8px;font-size:13px;">歩率テーブル</h4>
@@ -204,6 +208,15 @@ if (location.hostname.includes('-dev')) {
       </div>
 
       <button class="btn" id="saveCompanyBtn" style="width:100%;background:var(--primary);color:#fff;">💾 会社を保存</button>
+
+      <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
+      <h4 style="margin:0 0 8px;font-size:13px;">📋 申込URL（組合・会社に配布）</h4>
+      <p class="muted" style="font-size:10px;margin-bottom:6px;">この会社の組合員・社員が登録するときに使う固有リンク。配布チラシの QR コードや組合のメール周知に使う。</p>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="input" id="companySignupUrlDisplay" readonly style="flex:1;font-size:11px;font-family:monospace;background:#f5f5f5;" placeholder="会社を選択／slug 入力で自動生成">
+        <button class="btn" id="copyCompanySignupUrlBtn" style="background:var(--gray);color:#333;font-size:11px;padding:6px 10px;white-space:nowrap;">📋 コピー</button>
+      </div>
+      <div id="companySignupUrlStatus" class="muted" style="font-size:10px;margin-top:3px;"></div>
     </section>
 
     <section class="admin-card">
@@ -292,7 +305,7 @@ import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
 import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
-import { buildCompanyDoc } from './js/admin-companies.js?v=2';
+import { buildCompanyDoc, buildCompanySignupUrl } from './js/admin-companies.js?v=3';
 import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_STATUS_LABELS, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload, formatStatus } from './js/subscription-state.js';
@@ -1146,9 +1159,11 @@ function fillCompanyForm(c, isNew) {
     c.premiumIncentive?.thresholdSalesExclTax ?? 80000;
   document.getElementById('companyPremiumAmount').value =
     c.premiumIncentive?.amountPerShift ?? 2000;
+  document.getElementById('companyDefaultRecArea').value = c.defaultRecArea || '';
   renderRateTable(c.rateTable || DEFAULT_CONFIG.rateTable,
     'companyRateTableEditor', 'companyRate1213');
   applyCompanyPayrollModeUI();
+  updateCompanySignupUrlDisplay();
 }
 
 async function loadCompanyList() {
@@ -1174,6 +1189,31 @@ async function loadCompanyList() {
 document.getElementById('loadCompanyListBtn').onclick = loadCompanyList;
 document.getElementById('companyPayrollMode').onchange = applyCompanyPayrollModeUI;
 
+// 申込URL 表示の更新（slug 変更 or 会社選択時）
+function updateCompanySignupUrlDisplay() {
+  const slug = document.getElementById('companySlug').value.trim();
+  // dev/prod 自動判定: 本番 LP を組合配布に使うので常に app.taxicabis.com
+  // dev で表示する場合は現在のホストをそのまま使う（開発者が試せるように）
+  const isProd = !location.hostname.includes('-dev') && !location.hostname.includes('localhost');
+  const baseUrl = isProd ? 'https://app.taxicabis.com' : location.origin + location.pathname.replace(/admin\.html$/, '').replace(/\/$/, '');
+  document.getElementById('companySignupUrlDisplay').value = buildCompanySignupUrl(slug, baseUrl);
+}
+document.getElementById('companySlug').addEventListener('input', updateCompanySignupUrlDisplay);
+document.getElementById('copyCompanySignupUrlBtn').onclick = async () => {
+  const url = document.getElementById('companySignupUrlDisplay').value;
+  const status = document.getElementById('companySignupUrlStatus');
+  if (!url) { status.textContent = 'まず会社を選択／作成してください'; return; }
+  try {
+    await navigator.clipboard.writeText(url);
+    status.textContent = '✓ コピーしました: ' + url;
+    status.style.color = 'green';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  } catch (e) {
+    status.textContent = '✗ コピー失敗（手動で選択してコピーしてください）';
+    status.style.color = '#d32f2f';
+  }
+};
+
 document.getElementById('companySelect').onchange = (e) => {
   const v = e.target.value;
   if (v === '__new__') {
@@ -1197,6 +1237,7 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
     paidLeaveAmount: document.getElementById('companyPaidLeaveAmount').value,
     premiumThreshold: document.getElementById('companyPremiumThreshold').value,
     premiumAmount: document.getElementById('companyPremiumAmount').value,
+    defaultRecArea: document.getElementById('companyDefaultRecArea').value,
     rateTable: collectRateTable('companyRateTableEditor', 'companyRate1213'),
   };
   const { doc: companyDoc, error } = buildCompanyDoc(form);

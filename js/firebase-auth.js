@@ -9,6 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { DEFAULT_CONFIG } from './default-config.js';
+import { buildNewUserDoc } from './user-doc.js';
 import { clearSubCache } from './sub-cache.js';
 
 let currentUser = null;
@@ -127,12 +128,10 @@ export async function createUserWithCredentials(userId, password) {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     // users/{uid} を先に作成（myUserId() が機能するために必須）
     // これがないと Firestore Rules で userConfigs/{userId} への書き込みが拒否される
-    await setDoc(doc(db, 'users', result.user.uid), {
+    await setDoc(doc(db, 'users', result.user.uid), buildNewUserDoc({
       userId,
       companyId: localStorage.getItem('taxi_pending_company') || null,
-      createdAt: new Date().toISOString(),
-      isAnonymous: false
-    });
+    }));
     // userConfigsに初期設定を作成（DEFAULT_CONFIGをベースに）
     const defaultConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     await setDoc(doc(db, 'userConfigs', userId), defaultConfig);

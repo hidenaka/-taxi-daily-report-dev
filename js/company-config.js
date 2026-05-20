@@ -13,6 +13,9 @@ export const COMPANY_LEVEL_KEYS = [
   'paidLeaveAmount',
   'payrollMode',
   'fixedRate',
+  // 営業地検索のデフォルト初期エリア（任意）。未設定なら丸の内フォールバック。
+  // 例: keiho なら '千代田区丸の内'
+  'defaultRecArea',
 ];
 
 // 会社プロファイル＋個人設定 → 実効設定。

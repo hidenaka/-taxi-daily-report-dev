@@ -174,6 +174,20 @@ if (location.hostname.includes('-dev')) {
     <div id="rateTableEditor"></div>
   </section>
 
+  <section class="card" id="privacySection">
+    <h3>🔒 プライバシー</h3>
+    <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;padding:8px 0;">
+      <input type="checkbox" id="aggregateAnalysisToggle" style="margin-top:3px;flex:none;width:18px;height:18px;cursor:pointer;">
+      <div style="font-size:13px;line-height:1.6;">
+        <strong>営業サポートのベンチマーク統合分析に参加する</strong><br>
+        <span class="muted" style="font-size:11px;">
+          ONの間は、あなたの日報から「いつ・どのエリアで降ろされたか」だけが匿名で集計されます。代わりに営業サポート画面で全ドライバーの傾向（高期待値エリア・次の営業先推奨など）を見られます。OFFにすると、あなたのデータは集計から外され、営業サポートの全員データ統合機能も使えなくなります。
+        </span>
+      </div>
+    </label>
+    <div id="aggregateAnalysisStatus" class="muted" style="font-size:10px;margin-top:4px;"></div>
+  </section>
+
   <section class="card" id="cancelSection" style="display:none;border-color:#fca5a5;">
     <h3 style="color:#991b1b;">退会する</h3>
     <p class="muted" style="font-size:12px;margin-bottom:8px;">退会すると次回更新日以降サービスを利用できなくなります。乗務データは退会後30日間保持され、その後削除されます。</p>
@@ -202,7 +216,7 @@ if (location.hostname.includes('-dev')) {
 </div>
 <script type="module">
 import { renderBottomNav } from './js/app.js';
-import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, getUserRoleMap } from './js/storage.js';
+import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, getUserRoleMap, getMyAggregateAnalysisFlag, setMyAggregateAnalysisFlag } from './js/storage.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
@@ -550,9 +564,37 @@ async function initUI() {
   }
 }
 
+// プライバシー — ベンチマーク統合分析の参加トグル
+async function initAggregateAnalysisToggle() {
+  const toggle = document.getElementById('aggregateAnalysisToggle');
+  const status = document.getElementById('aggregateAnalysisStatus');
+  try {
+    const flag = await getMyAggregateAnalysisFlag();
+    toggle.checked = flag;
+    status.textContent = flag ? '✅ 参加中（営業サポートの全員データ統合が使えます）' : '⏸ 不参加（あなたのデータは集計から外れ、全員データ統合機能も無効）';
+  } catch (e) {
+    status.textContent = '状態を取得できませんでした: ' + (e.message || e);
+  }
+  toggle.addEventListener('change', async () => {
+    const want = toggle.checked;
+    if (!want) {
+      const ok = confirm('ベンチマーク統合分析への参加をOFFにしますか？\n\n・あなたの日報データは集計から外れます\n・営業サポート画面の「全員データ統合」機能（次の営業先 推奨検索 / 高期待値エリア / 降車エリア別 効率）が利用できなくなります\n・いつでもONに戻せます');
+      if (!ok) { toggle.checked = true; return; }
+    }
+    try {
+      const next = await setMyAggregateAnalysisFlag(want);
+      status.textContent = next ? '✅ 参加中（営業サポートの全員データ統合が使えます）' : '⏸ 不参加（あなたのデータは集計から外れ、全員データ統合機能も無効）';
+    } catch (e) {
+      toggle.checked = !want;
+      status.textContent = '保存に失敗しました: ' + (e.message || e);
+    }
+  });
+}
+
 // 常に読み込み
 loadConfig();
 initUI();
+initAggregateAnalysisToggle();
 </script>
 </body>
 </html>

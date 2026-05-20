@@ -64,6 +64,10 @@ export function buildCompanyDoc(form) {
     payrollMode,
   };
 
+  // defaultRecArea は任意項目。空文字なら省略、設定された文字列は doc に含める。
+  const defaultRecArea = String(form.defaultRecArea || '').trim();
+  if (defaultRecArea) doc.defaultRecArea = defaultRecArea;
+
   // 固定部立は fixedRate 必須・rateTable 不要。変動部立は逆。
   if (payrollMode === 'fixed_rate') {
     const fixedRate = num(form.fixedRate);
@@ -78,4 +82,12 @@ export function buildCompanyDoc(form) {
     doc.rateTable = form.rateTable;
   }
   return { doc };
+}
+
+// 会社の申込URLを生成する純関数。配布用QR/メール周知の元データ。
+// 例: buildCompanySignupUrl('keiho') === 'https://app.taxicabis.com/?company=keiho'
+export function buildCompanySignupUrl(slug, baseUrl = 'https://app.taxicabis.com') {
+  if (!slug) return '';
+  const base = String(baseUrl).replace(/\/+$/, '');
+  return `${base}/?company=${slug}`;
 }
