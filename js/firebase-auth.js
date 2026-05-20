@@ -11,7 +11,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/f
 import { DEFAULT_CONFIG } from './default-config.js';
 import { buildNewUserDoc } from './user-doc.js';
 import { clearSubCache } from './sub-cache.js';
-import { loadInviteSlug } from './invite-url.js';
+import { loadInviteSlug, loadReferrer } from './invite-url.js';
 
 let currentUser = null;
 let currentUserId = null;
@@ -132,6 +132,7 @@ export async function createUserWithCredentials(userId, password) {
     await setDoc(doc(db, 'users', result.user.uid), buildNewUserDoc({
       userId,
       companyId: localStorage.getItem('taxi_pending_company') || null,
+      referredBy: loadReferrer(localStorage),
     }));
     // userConfigsに初期設定を作成（DEFAULT_CONFIGをベースに）
     const defaultConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));

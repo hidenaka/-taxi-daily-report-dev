@@ -3,9 +3,19 @@
 import { readSubCache, clearSubCache, isSubCacheFresh } from './sub-cache.js';
 
 export const FEATURES = ['core', 'analysis', 'export'];
+// プラン階層（decisions 8: 営業日報明細が紙で出ない会社向け 500円シンプルプラン）
+// - 'full': 既存挙動・全機能（営業サポート/分析/エクスポート）
+// - 'simple': core のみ。analysis/export は利用不可（500円プラン）
+export const PLAN_TIERS = ['full', 'simple'];
 
 export function isValidFeature(feature) {
   return FEATURES.includes(feature);
+}
+
+// プラン取得：sub.plan が無い場合は 'full' default（既存ユーザー互換）
+export function getPlanTier(sub) {
+  if (sub && PLAN_TIERS.includes(sub.plan)) return sub.plan;
+  return 'full';
 }
 
 // canAccess: feature と subscription を受け取り、アクセス可否を返す
@@ -14,19 +24,42 @@ export function canAccess(feature, sub) {
   if (!isValidFeature(feature)) return false;
   if (!sub) return false;
 
-  switch (sub.status) {
-    case 'trial':
-    case 'active':
-      return true;
-    case 'past_due':
-      // 支払い遅延: core は維持(閲覧/編集)、分析・エクスポートは制限
-      return feature === 'core';
-    case 'pending':
-    case 'canceled':
-    case 'unpaid':
-    default:
-      return false;
+  // 課金状態の判定
+  const statusOk = (() => {
+    switch (sub.status) {
+      case 'trial':
+      case 'active':
+        return true;
+      case 'past_due':
+        // 支払い遅延: core は維持(閲覧/編集)、分析・エクスポートは制限
+        return feature === 'core';
+      case 'pending':
+      case 'canceled':
+      case 'unpaid':
+      default:
+        return false;
+    }
+  })();
+  if (!statusOk) return false;
+
+  // プラン階層の判定（status OK が前提）
+  const tier = getPlanTier(sub);
+  if (tier === 'simple') {
+    // シンプルプランは core のみ（給与計算・カレンダー・ツール群）。analysis/export 不可
+    return feature === 'core';
   }
+  // 'full' は status が OK なら全機能可
+  return true;
+}
+
+// 制限理由の細分化：シンプルプランで analysis を踏んだケースを区別する
+// 戻り値: 'subscribe' | 'simple-plan' | 'restricted' | null
+export function getAccessDenialReason(feature, sub) {
+  if (!sub) return 'subscribe';
+  if (canAccess(feature, sub)) return null;
+  const tier = getPlanTier(sub);
+  if (tier === 'simple' && feature !== 'core') return 'simple-plan';
+  return 'restricted';
 }
 
 // getRestrictionReason: UI 表示用の理由文言。アクセス可能なら null
@@ -104,13 +137,21 @@ function revalidateInBackground(feature, redirectUrl) {
     });
 }
 
+// 制限理由を redirect URL の query に乗せる純関数（テスト容易化）。
+// 'subscribe' は無印（既存挙動互換）、'simple-plan' は ?reason=simple-plan を付ける。
+export function buildRedirectUrl(baseUrl, reason) {
+  if (!reason || reason === 'subscribe') return baseUrl;
+  const sep = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${sep}reason=${encodeURIComponent(reason)}`;
+}
+
 // 各ページの先頭で呼ぶ。アクセス不可なら subscribe.html にリダイレクト。
 // 戻り値: アクセス可なら true、リダイレクトした場合は false (このあとの処理は止めるべき)
 //
 // セッションキャッシュがあれば Firebase に触れず即座に表示し（楽観表示）、
 // バックグラウンドで再検証する。ツール間の切り替えが高速になる。
 export async function enforceAccess(feature, options = {}) {
-  const redirectUrl = options.redirect || 'subscribe.html';
+  const baseRedirectUrl = options.redirect || 'subscribe.html';
   hideUntilCheck();
 
   // --- セッションキャッシュ判定（ヒット時は Firebase をロードしない）---
@@ -118,10 +159,11 @@ export async function enforceAccess(feature, options = {}) {
   if (isSubCacheFresh(cached, Date.now()) && cached.userId === readUserId()) {
     if (canAccess(feature, cached.sub)) {
       revealAfterCheck();
-      revalidateInBackground(feature, redirectUrl);
+      revalidateInBackground(feature, baseRedirectUrl);
       return true;
     }
-    location.replace(redirectUrl);
+    const reason = getAccessDenialReason(feature, cached.sub);
+    location.replace(buildRedirectUrl(baseRedirectUrl, reason));
     return false;
   }
 
@@ -133,12 +175,13 @@ export async function enforceAccess(feature, options = {}) {
   } catch (e) {
     console.error('enforceAccess: failed to load subscription', e);
     // 取得失敗時は安全側に倒してリダイレクト(body は隠したまま)
-    location.replace(redirectUrl);
+    location.replace(baseRedirectUrl);
     return false;
   }
   if (!canAccess(feature, sub)) {
-    // 不可: 隠したままリダイレクト
-    location.replace(redirectUrl);
+    // 不可: 隠したままリダイレクト（理由付き）
+    const reason = getAccessDenialReason(feature, sub);
+    location.replace(buildRedirectUrl(baseRedirectUrl, reason));
     return false;
   }
   // 可: body を表示

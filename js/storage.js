@@ -44,3 +44,4 @@ export const getUserDisplayMapCached = provider.getUserDisplayMapCached;
 export const getUserRoleMapCached = provider.getUserRoleMapCached;
 export const listActiveUserIdsCached = provider.listActiveUserIdsCached;
 export const getConfigCached = provider.getConfigCached;
+export const getMyCompanyId = provider.getMyCompanyId;

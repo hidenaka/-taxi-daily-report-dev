@@ -245,6 +245,31 @@ if (location.hostname.includes('-dev')) {
     </div>
   </section>
 
+  <section class="card" id="referralSection" style="display:none;">
+    <h3>👥 同じ会社の同僚に紹介する</h3>
+    <p class="muted" style="font-size:12px;margin:0 0 10px;">あなたと同じ会社の運転手さんに、下のURLまたはQRコードを共有してください。受け取った人は自動的に同じ会社設定で登録できます。</p>
+    <div class="field" style="margin:8px 0;">
+      <label class="muted" style="font-size:11px;">紹介URL</label>
+      <input type="text" id="referralUrlDisplay" readonly style="width:100%;padding:8px;font-size:12px;font-family:monospace;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:4px;box-sizing:border-box;">
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn" id="referralCopyBtn" style="flex:1;min-width:120px;">📋 URLをコピー</button>
+      <button class="btn" id="referralQrBtn" style="flex:1;min-width:120px;">📱 QRコード表示</button>
+    </div>
+    <div id="referralCopyStatus" class="muted" style="font-size:11px;margin-top:6px;min-height:14px;"></div>
+    <div id="referralQrContainer" style="display:none;margin-top:12px;text-align:center;padding:12px;background:#fff;border:1px solid #e0e0e0;border-radius:6px;">
+      <div id="referralQrCode" style="display:inline-block;"></div>
+      <div class="muted" style="font-size:10px;margin-top:6px;">スマホで読み取って共有してください</div>
+      <button class="btn" id="referralQrDownloadBtn" style="margin-top:8px;padding:6px 14px;font-size:11px;">⬇️ PNG ダウンロード</button>
+    </div>
+    <details style="margin-top:10px;font-size:11px;line-height:1.6;">
+      <summary style="cursor:pointer;color:var(--muted);font-size:10px;">⚠️ 紹介時の重要な注意事項</summary>
+      <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;padding:8px;margin-top:4px;font-size:10.5px;color:#92400e;">
+        <strong>必ず同じ会社の人にのみ共有してください。</strong>このURLには会社設定（料金プラン・歩率テーブル等）が紐づいています。他社の人がこのURLから登録すると、その人にとっての料金・歩率が異なる結果になり、誤登録による返金や料金変更には応じられません。
+      </div>
+    </details>
+  </section>
+
   <section class="card" id="cancelSection" style="display:none;border-color:#fca5a5;">
     <h3 style="color:#991b1b;">退会する</h3>
     <p class="muted" style="font-size:12px;margin-bottom:8px;">退会すると次回更新日以降サービスを利用できなくなります。乗務データは退会後30日間保持され、その後削除されます。</p>
@@ -275,6 +300,9 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav } from './js/app.js';
 import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, getUserRoleMap, getMyAggregateAnalysisFlag, setMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
 import { ACCESS_LEVELS, getAccessLevel, getNextThreshold } from './js/aggregate-access.js';
+import { buildReferralUrl } from './js/admin-companies.js';
+import { getMyCompanyId } from './js/storage.js';
+import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
@@ -327,6 +355,73 @@ async function initCancelSection() {
   }
 }
 
+// 紹介セクション（同じ会社の同僚に紹介する）
+async function initReferralSection() {
+  try {
+    const userId = getMyUserId();
+    const companyId = await getMyCompanyId();
+    if (!userId || !companyId) {
+      // 招待URL経由でないユーザー（旧ユーザー等）は表示しない
+      return;
+    }
+    const section = document.getElementById('referralSection');
+    if (!section) return;
+    const url = buildReferralUrl(companyId, userId);
+    if (!url) return;
+    const urlInput = document.getElementById('referralUrlDisplay');
+    urlInput.value = url;
+    section.style.display = '';
+
+    document.getElementById('referralCopyBtn').addEventListener('click', async () => {
+      const status = document.getElementById('referralCopyStatus');
+      try {
+        await navigator.clipboard.writeText(url);
+        status.textContent = '✅ コピーしました';
+        status.style.color = '#065f46';
+      } catch (e) {
+        urlInput.select();
+        document.execCommand('copy');
+        status.textContent = '✅ コピーしました（フォールバック）';
+        status.style.color = '#065f46';
+      }
+      setTimeout(() => { status.textContent = ''; }, 3000);
+    });
+
+    let qrShown = false;
+    document.getElementById('referralQrBtn').addEventListener('click', async () => {
+      const container = document.getElementById('referralQrContainer');
+      const qrEl = document.getElementById('referralQrCode');
+      if (qrShown) {
+        container.style.display = 'none';
+        qrShown = false;
+        return;
+      }
+      try {
+        qrEl.innerHTML = '生成中…';
+        container.style.display = '';
+        const svg = await renderQrSvg(url, { cellSize: 5, margin: 4 });
+        qrEl.innerHTML = svg;
+        qrShown = true;
+      } catch (e) {
+        console.error('QR generate error:', e);
+        qrEl.innerHTML = '<span style="color:#991b1b;font-size:11px;">QRコード生成に失敗しました</span>';
+      }
+    });
+
+    document.getElementById('referralQrDownloadBtn').addEventListener('click', async () => {
+      try {
+        const filename = `cabis-invite-${companyId}-${userId}.png`;
+        await downloadQrPng(url, filename, { cellSize: 10, margin: 4 });
+      } catch (e) {
+        console.error('QR download error:', e);
+        alert('PNG ダウンロードに失敗しました');
+      }
+    });
+  } catch (e) {
+    console.error('referral section init error:', e);
+  }
+}
+
 document.getElementById('cancelSubBtn').addEventListener('click', async () => {
   const reason = document.getElementById('cancelReasonSel').value || null;
   if (!confirm('退会の手続きをします。よろしいですか?')) return;
@@ -357,6 +452,7 @@ document.getElementById('cancelSubBtn').addEventListener('click', async () => {
 });
 
 initCancelSection();
+initReferralSection();
 
 let currentConfig = null;
 let myRole = 'member';

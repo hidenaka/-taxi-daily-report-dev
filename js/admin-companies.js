@@ -91,3 +91,13 @@ export function buildCompanySignupUrl(slug, baseUrl = 'https://app.taxicabis.com
   const base = String(baseUrl).replace(/\/+$/, '');
   return `${base}/?company=${slug}`;
 }
+
+// 紹介者付き招待URLを生成する純関数。settings.html「自社の人に紹介する」用。
+// 例: buildReferralUrl('keiho', 'taro') === 'https://app.taxicabis.com/?company=keiho&ref=taro'
+// ref が空/不正な場合は会社URLのみを返す（フォールバック）。
+export function buildReferralUrl(slug, referrerUserId, baseUrl = 'https://app.taxicabis.com') {
+  const url = buildCompanySignupUrl(slug, baseUrl);
+  if (!url || !referrerUserId) return url;
+  if (!/^[a-z][a-z0-9_]{2,29}$/.test(referrerUserId)) return url;
+  return `${url}&ref=${referrerUserId}`;
+}

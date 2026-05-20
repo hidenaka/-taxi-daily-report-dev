@@ -61,6 +61,13 @@ if (location.hostname.includes('-dev')) {
     前回のお申し込み手続きが完了していません。下記より、もう一度お進みください。
   </div>
 
+  <!-- シンプルプランからのアクセス制限通知（営業サポート系の機能を踏んだケース） -->
+  <div id="simplePlanNote" class="status-msg info" style="display:none;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:12px;border-radius:6px;margin-bottom:14px;font-size:13px;line-height:1.6;">
+    <strong>営業サポート機能はシンプルプランでは利用できません</strong><br>
+    現在ご利用中の<strong>シンプルプラン（500円）</strong>では、給与計算・カレンダー予定管理・IC判定・需要予測など「合計金額のみで動く機能」をご利用いただけます。営業サポート（降車エリア統計・推奨検索・ペース管理）など明細データが必要な機能をご利用になるには、<strong>フルプラン（1,000円）へのアップグレード</strong>が必要です。<br>
+    アップグレードをご希望の場合は <a href="mailto:cabis@taxicabis.com" style="color:#92400e;text-decoration:underline;font-weight:bold;">cabis@taxicabis.com</a> までご連絡ください。
+  </div>
+
   <!-- Step 1: アカウント登録（匿名ユーザー向け。登録済みなら非表示） -->
   <section class="card" id="registerStep" style="display:none;">
     <h3>まず、アカウント登録（無料）</h3>
@@ -163,7 +170,13 @@ renderLegalFooter();
 
 // 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
 // 不正 slug は localStorage に保存せず、画面上部に警告 banner を表示。
-checkInviteAndWarn(new URLSearchParams(location.search), localStorage, fetchCompanyExists);
+const subParams = new URLSearchParams(location.search);
+checkInviteAndWarn(subParams, localStorage, fetchCompanyExists);
+
+// アクセス制限の理由を URL から受け取り、シンプルプラン制限ならその旨表示（decisions 8）
+if (subParams.get('reason') === 'simple-plan') {
+  document.getElementById('simplePlanNote').style.display = '';
+}
 
 // 法務文書の現行バージョン（同意記録に保存される）
 const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };

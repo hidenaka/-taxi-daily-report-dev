@@ -82,6 +82,12 @@ if (location.hostname.includes('-dev')) {
 
     <!-- 新規登録 -->
     <section id="signupForm" style="display:none;">
+      <!-- 招待URL誤選択に関する重要な注意（返金不可） -->
+      <div id="inviteWarning" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12px;line-height:1.6;color:#92400e;">
+        <strong>⚠️ 招待URLの確認をお願いします</strong><br>
+        現在、<span id="inviteCompanyDisplay" style="font-family:monospace;background:#fff;padding:1px 5px;border-radius:3px;">—</span> の招待URLで登録しようとしています。<br>
+        <strong>これがご自身の所属会社/組合の招待URLかを必ず担当者にご確認ください。</strong>誤った招待URLでの登録(他社用URL等)による料金・条件の食い違いについて、返金や料金変更には応じられません。
+      </div>
       <div class="field">
         <label for="suId">ログインID（半角英数字）</label>
         <input type="text" id="suId" autocapitalize="none" autocomplete="username" placeholder="例: tanaka_taxi">
@@ -234,9 +240,11 @@ async function setMode(mode) {
     );
     return;
   }
-  // 有効: フォーム表示
+  // 有効: フォーム表示 + 招待URL警告ボックスに slug を反映
   clearGuard();
   signupForm.style.display = '';
+  const disp = document.getElementById('inviteCompanyDisplay');
+  if (disp) disp.textContent = '?company=' + slug;
 }
 tabLogin.addEventListener('click', () => setMode('login'));
 tabSignup.addEventListener('click', () => setMode('signup'));

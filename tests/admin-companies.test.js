@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { buildCompanyDoc, buildCompanySignupUrl } from '../js/admin-companies.js';
+import { buildCompanyDoc, buildCompanySignupUrl, buildReferralUrl } from '../js/admin-companies.js';
 
 function stepForm(over = {}) {
   return {
@@ -119,5 +119,53 @@ test('buildCompanySignupUrl: baseUrl 末尾スラッシュは正規化', () => {
   assert.strictEqual(
     buildCompanySignupUrl('keiho', 'https://app.taxicabis.com/'),
     'https://app.taxicabis.com/?company=keiho'
+  );
+});
+
+// --- buildReferralUrl (decisions: 紹介リンク+ref トラッキング) ---
+
+test('buildReferralUrl: slug + 正常な userId → ref 付きURL', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', 'taro_san'),
+    'https://app.taxicabis.com/?company=keiho&ref=taro_san'
+  );
+});
+
+test('buildReferralUrl: ref 空 → 会社URLのみ', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', ''),
+    'https://app.taxicabis.com/?company=keiho'
+  );
+});
+
+test('buildReferralUrl: ref が null → 会社URLのみ', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', null),
+    'https://app.taxicabis.com/?company=keiho'
+  );
+});
+
+test('buildReferralUrl: ref が不正形式 → 会社URLのみ（フォールバック）', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', 'Bad User!'),
+    'https://app.taxicabis.com/?company=keiho'
+  );
+});
+
+test('buildReferralUrl: ref が大文字始まり → 拒否', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', 'Taro'),
+    'https://app.taxicabis.com/?company=keiho'
+  );
+});
+
+test('buildReferralUrl: slug 空 → 空文字', () => {
+  assert.strictEqual(buildReferralUrl('', 'taro'), '');
+});
+
+test('buildReferralUrl: カスタム baseUrl', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', 'taro', 'https://hidenaka.github.io/-taxi-daily-report-dev'),
+    'https://hidenaka.github.io/-taxi-daily-report-dev/?company=keiho&ref=taro'
   );
 });

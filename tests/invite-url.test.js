@@ -4,6 +4,7 @@ import {
   loadInviteSlug,
   clearInviteSlug,
   validateInviteSlug,
+  loadReferrer,
 } from '../js/invite-url.js';
 
 function makeStorage(initial = {}) {
@@ -110,4 +111,57 @@ test('validateInviteSlug: slug が null → false（fetcher 呼ばず）', async
 test('validateInviteSlug: fetcher が throw → false', async () => {
   const fetcher = async () => { throw new Error('network down'); };
   assert.equal(await validateInviteSlug('keiho', fetcher), false);
+});
+
+// referrer (ref クエリ) のテスト
+
+test('captureInviteSlug: company + ref 正常 → 両方保存', () => {
+  const storage = makeStorage();
+  const params = new URLSearchParams('?company=keiho&ref=taro_san');
+  const result = captureInviteSlug(params, storage);
+  assert.equal(result, 'keiho');
+  assert.equal(storage._data.taxi_pending_company, 'keiho');
+  assert.equal(storage._data.taxi_pending_referrer, 'taro_san');
+});
+
+test('captureInviteSlug: company 無し + ref あり → 何も保存しない（ref も依存）', () => {
+  const storage = makeStorage();
+  const params = new URLSearchParams('?ref=taro');
+  assert.equal(captureInviteSlug(params, storage), null);
+  assert.equal(storage._data.taxi_pending_referrer, undefined);
+});
+
+test('captureInviteSlug: company OK + ref が不正形式 → company のみ保存', () => {
+  const storage = makeStorage();
+  const params = new URLSearchParams('?company=keiho&ref=Bad User!');
+  assert.equal(captureInviteSlug(params, storage), 'keiho');
+  assert.equal(storage._data.taxi_pending_referrer, undefined);
+});
+
+test('captureInviteSlug: ref が大文字始まり → 拒否', () => {
+  const storage = makeStorage();
+  const params = new URLSearchParams('?company=keiho&ref=Taro');
+  captureInviteSlug(params, storage);
+  assert.equal(storage._data.taxi_pending_referrer, undefined);
+});
+
+test('loadReferrer: 保存済み ref を返す', () => {
+  const storage = makeStorage({ taxi_pending_referrer: 'jiro' });
+  assert.equal(loadReferrer(storage), 'jiro');
+});
+
+test('loadReferrer: 未保存 → null', () => {
+  assert.equal(loadReferrer(makeStorage()), null);
+});
+
+test('loadReferrer: 不正値 → null', () => {
+  const storage = makeStorage({ taxi_pending_referrer: 'Bad!' });
+  assert.equal(loadReferrer(storage), null);
+});
+
+test('clearInviteSlug: company と ref を同時に削除', () => {
+  const storage = makeStorage({ taxi_pending_company: 'keiho', taxi_pending_referrer: 'taro' });
+  clearInviteSlug(storage);
+  assert.equal(storage._data.taxi_pending_company, undefined);
+  assert.equal(storage._data.taxi_pending_referrer, undefined);
 });

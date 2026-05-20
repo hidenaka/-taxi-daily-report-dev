@@ -130,6 +130,20 @@ export async function getConfig() {
   return mergeCompanyConfig(companyProfile, userConfig);
 }
 
+// 現ユーザーの companyId のみを返す（紹介URL生成等で使う軽量版）。
+export async function getMyCompanyId() {
+  try {
+    const uid = (typeof getCurrentUser === 'function' && getCurrentUser())
+      ? getCurrentUser().uid : null;
+    if (!uid) return null;
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    return userDoc.exists() ? (userDoc.data().companyId || null) : null;
+  } catch (e) {
+    console.warn('getMyCompanyId failed:', e);
+    return null;
+  }
+}
+
 // 現ユーザーの companyId から会社プロファイルを読む。無ければ null。
 async function loadCompanyProfile() {
   try {
