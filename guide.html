@@ -51,7 +51,8 @@
     <a href="#ch3">第3章 写真から取り込み（OCR）</a>
     <a href="#ch4">第4章 営業サポート</a>
     <a href="#ch5">第5章 設定とプライバシー</a>
-    <a href="#ch6">第6章 困った時は</a>
+    <a href="#ch6">第6章 ホーム画面に追加してアプリのように使う</a>
+    <a href="#ch7">第7章 困った時は</a>
   </div>
 
   <!-- ===== 第1章 ===== -->
@@ -201,8 +202,63 @@
   </ul>
   <p>詳細は <a href="legal/privacy.html">プライバシーポリシー</a> ／ <a href="legal/terms.html">利用規約</a> をご確認ください。</p>
 
-  <!-- ===== 第6章 ===== -->
-  <h2 id="ch6">第6章 困った時は</h2>
+  <!-- ===== 第6章: ホーム画面に追加してアプリのように使う ===== -->
+  <h2 id="ch6">第6章 ホーム画面に追加してアプリのように使う</h2>
+  <p>キャビスは Web アプリですが、<strong>スマホのホーム画面に追加すると、普通のアプリのようにアイコンタップで起動できます</strong>。ブラウザのアドレスバーも消えるので、画面いっぱいに使えて快適です。</p>
+  <p>App Store / Google Play からのダウンロードは不要です。1回設定すれば、次からはホーム画面のキャビスアイコンをタップするだけで開きます。</p>
+
+  <div class="feature-card">
+    <h3><span class="icon">📱</span>iPhone（Safari）の場合</h3>
+    <ol style="line-height:1.8;">
+      <li><strong>Safari で <a href="https://app.taxicabis.com/">app.taxicabis.com</a> を開く</strong>（Chrome等の他ブラウザでは追加できません。必ず Safari で）</li>
+      <li>画面下中央の <strong>「共有」ボタン（□と↑のアイコン）</strong>をタップ</li>
+      <li>メニューを下にスクロールし、<strong>「ホーム画面に追加」</strong>をタップ</li>
+      <li>アプリ名を確認（「Cabis」のまま、または好きな名前に変更可）→ 右上「追加」</li>
+      <li>ホーム画面にキャビスのアイコンが追加されれば完了。次からはこのアイコンをタップで開きます</li>
+    </ol>
+    <p class="muted" style="font-size:11px;margin-top:6px;">※ ホーム画面から開いた時はアドレスバー・タブが消えて全画面表示になります（PWA standalone モード）。</p>
+  </div>
+
+  <div class="feature-card">
+    <h3><span class="icon">📱</span>Android（Chrome）の場合</h3>
+    <ol style="line-height:1.8;">
+      <li>Chrome で <a href="https://app.taxicabis.com/">app.taxicabis.com</a> を開く</li>
+      <li>画面右上の <strong>「︙」（縦三点）メニュー</strong>をタップ</li>
+      <li><strong>「ホーム画面に追加」</strong>または <strong>「アプリをインストール」</strong>をタップ</li>
+      <li>「インストール」または「追加」をタップして確認</li>
+      <li>ホーム画面にキャビスのアイコンが追加されれば完了</li>
+    </ol>
+    <p class="muted" style="font-size:11px;margin-top:6px;">※ メニューに項目が表示されない場合は、アドレスバー右側の「インストール」アイコン（⊕や⤓）を探してみてください。</p>
+  </div>
+
+  <div class="feature-card">
+    <h3><span class="icon">💻</span>PC（Chrome / Edge）の場合</h3>
+    <ol style="line-height:1.8;">
+      <li>Chrome または Edge で <a href="https://app.taxicabis.com/">app.taxicabis.com</a> を開く</li>
+      <li>アドレスバー右側の <strong>「⊕（インストール）」アイコン</strong>をクリック<br>
+        ※ 見つからない場合は <strong>「︙」メニュー → 「キャストして保存して共有」→「アプリとしてインストール」</strong>（Chrome）または「アプリ→このサイトをアプリとしてインストール」（Edge）</li>
+      <li>「インストール」をクリック</li>
+      <li>独立したウィンドウで起動。Dock や タスクバーにピン留めできるようになります</li>
+    </ol>
+  </div>
+
+  <h3>こんなメリットがあります</h3>
+  <ul>
+    <li><strong>アドレスバーが消えて広く使える</strong>：画面情報量が増えるので明細表も見やすい</li>
+    <li><strong>毎回ブラウザでURLを入力しなくていい</strong>：ホーム画面のアイコンをタップするだけ</li>
+    <li><strong>ログイン状態も維持</strong>：一度ログインすれば次回からそのまま使えます（ログアウト操作するまで）</li>
+    <li><strong>オフライン時も起動はできる</strong>：通信不安定な車内でも画面は表示されます（データ保存は通信復帰後）</li>
+  </ul>
+
+  <h3>うまく行かない時は</h3>
+  <ul>
+    <li><strong>「ホーム画面に追加」が出ない</strong>：iPhone は Safari、Android は Chrome を使ってください。アプリ内ブラウザ（LINE等から開いた時）は対応していません。一度ブラウザアプリで開き直してください</li>
+    <li><strong>ホーム画面のアイコンから開いた時に古い画面が出る</strong>：一度ホーム画面のアイコンを長押しで削除 → ブラウザで再度「ホーム画面に追加」を実行してください</li>
+    <li><strong>ログインを毎回求められる</strong>：ブラウザの「サイトデータ」が消えている可能性があります。設定で iCloud の「Safari」同期や Chrome の「Cookie 保持」を確認してください</li>
+  </ul>
+
+  <!-- ===== 第7章 ===== -->
+  <h2 id="ch7">第7章 困った時は</h2>
 
   <h3>よくあるトラブル</h3>
   <ul>
