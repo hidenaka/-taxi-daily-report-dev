@@ -507,25 +507,6 @@ export async function listActiveUserIds() {
   }
 }
 
-export async function getUserDisplayMap() {
-  await waitForAuth();
-  const map = {};
-  try {
-    const snap = await getDocs(collection(db, 'users'));
-    for (const d of snap.docs) {
-      const data = d.data();
-      if (data.userId && isValidUserId(data.userId)) {
-        map[data.userId] = data.displayName || data.userId;
-      }
-    }
-  } catch (e) {
-    // 権限不足: 自分のみ
-    const myId = getUserId() || getMyUserId();
-    map[myId] = myId;
-  }
-  return map;
-}
-
 export async function getUserRoleMap() {
   await waitForAuth();
   const map = {};
@@ -705,13 +686,12 @@ export async function listAllUsersWithStats() {
       // userRoles collection may not exist
     }
     
-    // Get display names and config info
+    // Get config info (no displayName: per decisions 10, individual-identifying info not stored)
     for (const userId of Object.keys(userMap)) {
       try {
         const configSnap = await getDoc(doc(db, 'userConfigs', userId));
         if (configSnap.exists()) {
           const config = configSnap.data();
-          userMap[userId].displayName = config.displayName || '';
           userMap[userId].vehicleType = config.defaults?.vehicleType || '';
           userMap[userId].lastUpdated = config.lastUpdated || null;
         }

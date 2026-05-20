@@ -63,9 +63,6 @@ if (location.hostname.includes('-dev')) {
       </div>
       <button class="btn" id="switchAccountBtn" style="width:100%;">🔄 アカウントを切り替え</button>
       <div id="switchAccountStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
-      <label class="muted" style="margin-top:12px;display:block;">表示名(任意)</label>
-      <input class="input" id="displayNameInput" placeholder="自分">
-      <p class="muted" style="font-size:10px;margin-top:2px;">集計画面の表示用。</p>
     </section>
 
     <section class="card">
@@ -215,7 +212,6 @@ async function loadConfig() {
     document.getElementById('latInput').value = currentConfig.weatherLocation.lat;
     document.getElementById('lonInput').value = currentConfig.weatherLocation.lon;
     document.getElementById('locNameDisplay').textContent = currentConfig.weatherLocation.name || '千代田区';
-    document.getElementById('displayNameInput').value = currentConfig.displayName || '';
     renderRateTable(currentConfig.rateTable);
   } catch (e) {
     console.error('設定読み込みエラー:', e);
@@ -277,7 +273,6 @@ document.getElementById('switchAccountBtn').onclick = async () => {
 
 document.getElementById('saveConfigBtn').onclick = async () => {
   if (!currentConfig) { alert('設定が読み込まれていません'); return; }
-  currentConfig.displayName = document.getElementById('displayNameInput').value;
   currentConfig.defaults.vehicleType = document.getElementById('vehicleTypeSel').value;
   currentConfig.defaults.departureTime = document.getElementById('departureInput').value;
   currentConfig.takeHomeRate = parseFloat(document.getElementById('takeHomeRateInput').value);

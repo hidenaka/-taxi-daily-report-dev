@@ -203,7 +203,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, toLocalIso } from './js/app.js';
 import { showGpsPrivacyBanner } from './js/gps-privacy-banner.js';
 showGpsPrivacyBanner();
-import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
 import { ACCESS_LEVELS, getAccessLevel, getAccessLimits, getNextThreshold } from './js/aggregate-access.js';
 import {
   ensureActiveVehicleType,
@@ -303,7 +303,6 @@ let rawMyDrives = [];   // フィルタ前 自分(全月flat)
 let rawAllDrives = [];  // フィルタ前 全員(全月flat)
 let rawAllUserIds = []; // フィルタ前 アクティブUserId
 let currentPeriods = [];
-let userDisplayMap = {}; // userId -> displayName
 let myUserId = '';      // 履歴で自分/他人を区別する用
 let areaSort = 'dropoffs';
 let neighborMap = {};
@@ -487,11 +486,10 @@ function updateDataSourceInfo() {
   el.textContent = `全員モード: ${nUsers}ユーザー / 合計${allDrives.length}乗務(自分: ${myDrives.length}乗務)`;
 }
 
-function applyLoaded(periods, myParts, allParts, userIds, displayMap, roleMap, label) {
+function applyLoaded(periods, myParts, allParts, userIds, roleMap, label) {
   rawMyDrives = myParts.flat();
   rawAllDrives = allParts.flat();
   rawAllUserIds = userIds;
-  userDisplayMap = displayMap;
   userRoleMap = roleMap;
   myUserId = getMyUserId();
   currentPeriods = periods;
@@ -553,11 +551,10 @@ async function load() {
   const cMy = periods.map(ym => getDrivesForMonthCached(ym));
   const cAll = periods.map(ym => getAllUsersDrivesForMonthCached(ym));
   const cUserIds = listActiveUserIdsCached();
-  const cDisplay = getUserDisplayMapCached();
   const cRole = getUserRoleMapCached();
-  const cacheComplete = cMy.every(x => x !== null) && cAll.every(x => x !== null) && cUserIds && cDisplay && cRole;
+  const cacheComplete = cMy.every(x => x !== null) && cAll.every(x => x !== null) && cUserIds && cRole;
   if (cacheComplete) {
-    applyLoaded(periods, cMy, cAll, cUserIds, cDisplay, cRole, ' · 同期中…');
+    applyLoaded(periods, cMy, cAll, cUserIds, cRole, ' · 同期中…');
   } else {
     document.getElementById('rangeInfo').textContent = '読み込み中…';
   }
@@ -570,11 +567,10 @@ async function load() {
       companyDefaultRecArea = cfg?.defaultRecArea || null;
     } catch (e) { companyDefaultRecArea = null; }
 
-    const [myParts, allParts, userIds, displayMap, roleMap] = await Promise.all([
+    const [myParts, allParts, userIds, roleMap] = await Promise.all([
       Promise.all(periods.map(ym => getDrivesForMonth(ym))),
       Promise.all(periods.map(ym => getAllUsersDrivesForMonth(ym))),
       listActiveUserIds(),
-      getUserDisplayMap(),
       getUserRoleMap()
     ]);
     // cache が無かった場合のみここでトグル初期化 (Phase 0 でやれていれば skip)
@@ -592,7 +588,7 @@ async function load() {
         },
       });
     }
-    applyLoaded(periods, myParts, allParts, userIds, displayMap, roleMap, '');
+    applyLoaded(periods, myParts, allParts, userIds, roleMap, '');
   } catch (e) {
     if (!cacheComplete) {
       document.getElementById('rangeInfo').textContent = `読み込み失敗: ${e.message}`;

@@ -75,9 +75,7 @@ if (location.hostname.includes('-dev')) {
       <input class="input" id="newUserId" placeholder="taro" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <label class="muted" style="margin-top:8px;display:block;">初期パスワード</label>
       <input class="input" id="newUserPassword" type="password" placeholder="6文字以上" autocomplete="off">
-      <label class="muted" style="margin-top:8px;display:block;">表示名（任意）</label>
-      <input class="input" id="newUserDisplayName" placeholder="山田太郎" autocomplete="off">
-      
+
       <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
       <p class="muted" style="font-size:11px;margin-bottom:6px;"><strong>初期設定</strong>（作成後も変更可）</p>
       
@@ -256,10 +254,7 @@ if (location.hostname.includes('-dev')) {
       
       <label class="muted" style="margin-top:8px;display:block;">有給休暇 1日あたり金額</label>
       <input class="input" id="adminPaidLeaveAmount" type="number" step="100" min="0" value="39340">
-      
-      <label class="muted" style="margin-top:8px;display:block;">表示名</label>
-      <input class="input" id="adminDisplayName" placeholder="山田太郎">
-      
+
       <hr style="border:none;border-top:1px solid var(--border);margin:14px 0;">
       
       <h4 style="margin:0 0 8px;font-size:13px;">レートテーブル</h4>
@@ -441,7 +436,6 @@ document.getElementById('createUserBtn').onclick = async () => {
   const result = document.getElementById('createUserResult');
   const userId = document.getElementById('newUserId').value.trim();
   const password = document.getElementById('newUserPassword').value;
-  const displayName = document.getElementById('newUserDisplayName').value.trim();
 
   if (!userId || !password) {
     result.innerHTML = '<p style="color:#d32f2f;font-size:12px;">userIdとパスワードを入力してください</p>';
@@ -505,7 +499,6 @@ document.getElementById('createUserBtn').onclick = async () => {
         privacy: {
           shareDataWithOthers: true
         },
-        displayName: displayName || '',
         weatherLocation: { lat: 35.6938, lon: 139.7036, name: '千代田区' },
         shifts: { patterns: [], exceptions: { added: [], removed: [], swapped: [] }, expandedDates: [], paidLeaveDates: [] }
       };
@@ -813,7 +806,6 @@ document.getElementById('loadUsersBtn').onclick = async () => {
       html += '<table style="width:100%;font-size:11px;border-collapse:collapse;">';
       html += '<thead><tr style="background:#f5f5f5;font-weight:600;">';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">userId</th>';
-      html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">表示名</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">種別</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
@@ -831,7 +823,6 @@ document.getElementById('loadUsersBtn').onclick = async () => {
 
         html += `<tr style="border-bottom:1px solid #eee;">`;
         html += `<td style="padding:6px;font-family:monospace;"><strong>${u.userId}</strong>${roleBadge}</td>`;
-        html += `<td style="padding:6px;">${u.displayName || '—'}</td>`;
         html += `<td style="padding:6px;text-align:center;">${typeBadge}</td>`;
         html += `<td style="padding:6px;text-align:center;font-weight:600;">${u.driveCount || 0}件</td>`;
         html += `<td style="padding:6px;color:var(--muted);">${createdAt}</td>`;
@@ -897,8 +888,7 @@ async function loadAdminConfig() {
     document.getElementById('adminTakeHomeRate').value = adminCurrentConfig.takeHomeRate ?? 0.75;
     document.getElementById('adminTakeHomeTarget').value = adminCurrentConfig.takeHomeTarget ?? 500000;
     document.getElementById('adminPaidLeaveAmount').value = adminCurrentConfig.paidLeaveAmount ?? 39340;
-    document.getElementById('adminDisplayName').value = adminCurrentConfig.displayName || '';
-    
+
     renderRateTable(adminCurrentConfig.rateTable, 'adminRateTableEditor', 'adminRate1213');
   } catch (e) {
     status.textContent = '✗ 読み込み失敗: ' + e.message;
@@ -952,7 +942,6 @@ document.getElementById('saveAdminConfigBtn').onclick = async () => {
   const status = document.getElementById('adminConfigStatus');
   
   try {
-    adminCurrentConfig.displayName = document.getElementById('adminDisplayName').value;
     adminCurrentConfig.defaults.vehicleType = document.getElementById('adminVehicleType').value;
     adminCurrentConfig.defaults.departureTime = document.getElementById('adminDepartureTime').value;
     adminCurrentConfig.takeHomeRate = parseFloat(document.getElementById('adminTakeHomeRate').value);
