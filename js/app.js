@@ -4,7 +4,7 @@ export function isDevEnvironment() {
          location.pathname.includes('/dev/');
 }
 
-export function renderBottomNav(activePage) {
+export function renderBottomNav(activePage, basePath = '') {
   const items = [
     { id: 'home', label: 'ホーム', href: 'index.html' },
     { id: 'input', label: '入力', href: 'input.html' },
@@ -19,7 +19,7 @@ export function renderBottomNav(activePage) {
   };
   return `
     <nav class="bottom">
-      ${items.map(it => `<a href="${it.href}" class="${isActive(it) ? 'active' : ''}">${it.label}</a>`).join('')}
+      ${items.map(it => `<a href="${basePath}${it.href}" class="${isActive(it) ? 'active' : ''}">${it.label}</a>`).join('')}
     </nav>`;
 }
 
