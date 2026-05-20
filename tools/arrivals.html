@@ -110,10 +110,13 @@
     .flight-row.airline-sna   .flight-no   { color: #f4cd00; }
     .flight-row.airline-sfj   .flight-no   { color: #aaaaaa; }
     .flight-row.airline-other .flight-no   { color: #888888; }
-    /* ターミナル文字タグ */
+    /* ターミナル文字タグ: T1=赤・T2=青・T3=灰でターミナルを一目識別 */
     .terminal-tag { display: inline-block; padding: 1px 6px; border-radius: 3px;
       background: rgba(255,255,255,0.08); color: var(--sub); font-size: 11px;
-      font-weight: 600; margin-left: 6px; letter-spacing: 0.5px; }
+      font-weight: 700; margin-left: 6px; letter-spacing: 0.5px; }
+    .terminal-tag.t1 { background: #e60012; color: #fff; }
+    .terminal-tag.t2 { background: #1656c8; color: #fff; }
+    .terminal-tag.t3 { background: #4a4a4a; color: #fff; }
     footer { padding: 8px 12px; color: var(--sub); font-size: 11px; border-top: 1px solid #222; display: flex; flex-direction: column; gap: 2px; }
     footer.is-stale .updated { color: var(--warn); }
     .empty { color: var(--sub); padding: 12px 0; text-align: center; }

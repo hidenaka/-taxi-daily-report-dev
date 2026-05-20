@@ -197,7 +197,7 @@ function appendFlightRow(container, f) {
   const lightningBadge = (f.taxiLightningBoost && f.taxiLightningBoost > 1.0)
     ? ` <span class="lightning-boost">⚡ラッシュ</span>` : '';
   const terminalTag = (f.terminal && VALID_TERMINALS.has(f.terminal))
-    ? `<span class="terminal-tag">${f.terminal}</span>` : '';
+    ? `<span class="terminal-tag ${f.terminal.toLowerCase()}">${f.terminal}</span>` : '';
   row.innerHTML = `
     <div class="flight-line1">
       <span class="time">${time}</span>
