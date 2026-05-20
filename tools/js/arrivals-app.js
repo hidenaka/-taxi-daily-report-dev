@@ -18,12 +18,14 @@ try { state.originFilter = localStorage.getItem(ORIGIN_FILTER_KEY) || ''; } catc
 let refreshForecast = () => {};
 
 async function refresh() {
+  const errorEl = document.getElementById('arrivals-error');
   try {
     state.arrivals = await loadArrivals();
+    // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。
+    if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
     render();
   } catch (e) {
-    document.getElementById('arrivals-error').textContent = `データ取得失敗: ${e.message}`;
-    document.getElementById('arrivals-error').hidden = false;
+    if (errorEl) { errorEl.textContent = `データ取得失敗: ${e.message}`; errorEl.hidden = false; }
   }
 }
 
