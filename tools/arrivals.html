@@ -74,6 +74,9 @@
     #detail-toggle { display: block; margin: 8px auto; padding: 6px 14px; background: #1a1a1d; color: var(--sub); border: 1px solid #333; border-radius: 6px; cursor: pointer; font-size: 12px; }
     #detail-toggle.is-active { background: var(--accent); color: #000; border-color: var(--accent); }
     #flight-list-section { padding: 0 12px 8px; }
+    #flight-list-section .section-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    #flight-list-section .section-head h2 { margin: 8px 0; }
+    .origin-filter { padding: 4px 8px; background: #16161c; color: var(--fg); border: 1px solid #333; border-radius: 6px; font-size: 13px; max-width: 200px; }
     #flight-list { display: flex; flex-direction: column; }
     #flight-list .flight-row { padding: 10px 8px; border-bottom: 1px solid #1a1a1d; }
     #flight-list .flight-row:last-child { border-bottom: none; }
@@ -197,7 +200,12 @@
   </section>
 
   <section id="flight-list-section">
-    <h2>✈ 便リスト（時刻順）</h2>
+    <div class="section-head">
+      <h2>✈ 便リスト（時刻順）</h2>
+      <select id="origin-filter" class="origin-filter" aria-label="出発地で絞り込み">
+        <option value="">すべて</option>
+      </select>
+    </div>
     <div id="flight-list"></div>
   </section>
 

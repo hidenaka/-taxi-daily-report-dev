@@ -173,6 +173,21 @@ function jstHour(date) {
   return parseInt(jstStr, 10);
 }
 
+// 便配列から「出発地別の便数」リストを返す純関数。
+// 便数降順、同点は fromName 昇順。
+// fromName が無い便は除外。
+export function listOriginOptions(flights) {
+  if (!Array.isArray(flights) || flights.length === 0) return [];
+  const map = new Map();
+  for (const f of flights) {
+    if (!f.fromName) continue;
+    map.set(f.fromName, (map.get(f.fromName) || 0) + 1);
+  }
+  return [...map.entries()]
+    .sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))
+    .map(([fromName, count]) => ({ fromName, count }));
+}
+
 export function classifyStaleness(updatedAtIso, now) {
   if (!updatedAtIso) return { level: 'suppressed', ageMinutes: null };
   if (jstHour(now) < SUPPRESS_BEFORE_JST_HOUR) {

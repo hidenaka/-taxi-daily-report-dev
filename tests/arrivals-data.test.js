@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions } from '../tools/js/arrivals-data.js';
 
 test('normalizeArrivals: "to be determined" estimatedTime を null にする', () => {
   const data = {
@@ -149,5 +149,47 @@ test('detectTopics: estimatedTime 昇順に並ぶ', () => {
     { flightNumber: 'EARLY', scheduledTime: '10:00', estimatedTime: '11:00' },
   ];
   assert.deepEqual(detectTopics(flights).map(t => t.flightNumber), ['EARLY', 'LATE']);
+});
+
+// --- listOriginOptions: 出発地フィルタ用の選択肢 ---
+
+test('listOriginOptions: 便数降順で出発地と便数を返す', () => {
+  const flights = [
+    { fromName: '千歳' }, { fromName: '千歳' }, { fromName: '千歳' },
+    { fromName: '福岡' }, { fromName: '福岡' },
+    { fromName: '伊丹' },
+  ];
+  assert.deepEqual(listOriginOptions(flights), [
+    { fromName: '千歳', count: 3 },
+    { fromName: '福岡', count: 2 },
+    { fromName: '伊丹', count: 1 },
+  ]);
+});
+
+test('listOriginOptions: 同点は fromName 昇順', () => {
+  const flights = [
+    { fromName: '福岡' }, { fromName: '福岡' },
+    { fromName: '伊丹' }, { fromName: '伊丹' },
+    { fromName: '千歳' }, { fromName: '千歳' },
+  ];
+  assert.deepEqual(listOriginOptions(flights), [
+    { fromName: '伊丹', count: 2 },
+    { fromName: '千歳', count: 2 },
+    { fromName: '福岡', count: 2 },
+  ]);
+});
+
+test('listOriginOptions: fromName 無し便は除外', () => {
+  const flights = [
+    { fromName: '札幌' },
+    { fromName: null },
+    {},
+  ];
+  assert.deepEqual(listOriginOptions(flights), [{ fromName: '札幌', count: 1 }]);
+});
+
+test('listOriginOptions: 空配列は空配列', () => {
+  assert.deepEqual(listOriginOptions([]), []);
+  assert.deepEqual(listOriginOptions(null), []);
 });
 
