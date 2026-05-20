@@ -49,8 +49,13 @@ export const ocrReportFn = onRequest(
       }
 
       // 利用上限（ユーザー別・1日）
-      if (!(await consumeQuota(uid))) {
-        res.status(429).json({ error: "本日の取り込み回数の上限に達しました" });
+      const quota = await consumeQuota(uid);
+      if (!quota.ok) {
+        res.status(429).json({
+          error: `本日の取り込み回数の上限（${quota.limit}回/日）に達しました。日本時間 0:00 にリセットされます。`,
+          remaining: 0,
+          limit: quota.limit,
+        });
         return;
       }
 
@@ -62,7 +67,7 @@ export const ocrReportFn = onRequest(
       }
 
       const { trips, rests, header } = await ocrReport(imageBuffer);
-      res.json({ trips, rests, header });
+      res.json({ trips, rests, header, remaining: quota.remaining, limit: quota.limit });
     } catch (e) {
       // 画像の内容はログに残さない。エラーの種別のみ記録する。
       console.error("ocrReportFn error:", (e && e.message) || e);
