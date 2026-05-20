@@ -169,75 +169,69 @@ export function renderStaleBanner(container, classification) {
   `;
 }
 
-export function renderFlightList(container, flights) {
-  container.innerHTML = '';
-  if (flights.length === 0) {
-    container.innerHTML = '<div class="empty">表示可能な便がありません</div>';
-    return;
-  }
-  for (const f of flights) {
-    const row = document.createElement('div');
-    const isDelayed = f.status === '遅延';
-    const isUnknown = f.aircraftCode === null;
-    const colorKey = airlineToColorKey(f.airline);
-    row.className = 'flight-row'
-      + ` airline-${colorKey}`
-      + (isDelayed ? ' is-delayed' : '')
-      + (isUnknown ? ' is-unknown' : '');
-    const time = f.estimatedTime ?? f.scheduledTime ?? '--:--';
-    const aircraft = f.aircraftCode ?? '機材不明';
-    const hasPax = f.estimatedPax !== null && f.estimatedPax !== undefined;
-    const hasSeats = f.seatCount !== null && f.seatCount !== undefined;
-    const paxLine = hasPax
-      ? `<span class="pax-est">推定搭乗 ${f.estimatedPax}人</span>`
-        + (hasSeats ? `<span class="pax-max">（最大 ${f.seatCount}人）</span>` : '')
-      : `<span class="pax-est">搭乗人数 推定不可</span>`;
-    const statusIcon = isDelayed ? ' ⚠' : '';
-    const reachIcon = f.reachTier === 'high' ? '🟢'
-                    : f.reachTier === 'mid'  ? '🟡'
-                    : f.reachTier === 'low'  ? '🟡'
-                    : f.reachTier === 'none' ? '🔴'
-                    : '';
-    const delayBoostBadge = (f.taxiDelayBoost && f.taxiDelayBoost > 1.0)
-      ? ` <span class="delay-boost">遅延+深夜</span>`
-      : '';
-    const lightningBadge = (f.taxiLightningBoost && f.taxiLightningBoost > 1.0)
-      ? ` <span class="lightning-boost">⚡ラッシュ</span>`
-      : '';
-    const terminalTag = (f.terminal && VALID_TERMINALS.has(f.terminal))
-      ? `<span class="terminal-tag">${f.terminal}</span>` : '';
-    row.innerHTML = `
-      <div class="flight-line1">
-        <span class="time">${time}</span>
-        <span class="flight-no">${f.flightNumber}</span>
-        <span class="from">${f.fromName}</span>
-        <span class="reach">${reachIcon}</span>
-        ${terminalTag}
-      </div>
-      <div class="flight-line2">${paxLine}</div>
-      <div class="flight-line3">機材 ${aircraft} ・ <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span></div>
-    `;
-    container.appendChild(row);
-  }
+// 1便分の flight-row HTML を返す純関数。出発地別グループ内で再利用。
+// 出発地名は呼び出し側のグループヘッダで明示するため、行内には出さない。
+function buildFlightRowHtml(f) {
+  const isDelayed = f.status === '遅延';
+  const isUnknown = f.aircraftCode === null;
+  const colorKey = airlineToColorKey(f.airline);
+  const time = f.estimatedTime ?? f.scheduledTime ?? '--:--';
+  const aircraft = f.aircraftCode ?? '機材不明';
+  const hasPax = f.estimatedPax !== null && f.estimatedPax !== undefined;
+  const hasSeats = f.seatCount !== null && f.seatCount !== undefined;
+  const paxLine = hasPax
+    ? `<span class="pax-est">推定搭乗 ${f.estimatedPax}人</span>`
+      + (hasSeats ? `<span class="pax-max">（最大 ${f.seatCount}人）</span>` : '')
+    : `<span class="pax-est">搭乗人数 推定不可</span>`;
+  const statusIcon = isDelayed ? ' ⚠' : '';
+  const reachIcon = f.reachTier === 'high' ? '🟢'
+                  : f.reachTier === 'mid'  ? '🟡'
+                  : f.reachTier === 'low'  ? '🟡'
+                  : f.reachTier === 'none' ? '🔴'
+                  : '';
+  const delayBoostBadge = (f.taxiDelayBoost && f.taxiDelayBoost > 1.0)
+    ? ` <span class="delay-boost">遅延+深夜</span>` : '';
+  const lightningBadge = (f.taxiLightningBoost && f.taxiLightningBoost > 1.0)
+    ? ` <span class="lightning-boost">⚡ラッシュ</span>` : '';
+  const terminalTag = (f.terminal && VALID_TERMINALS.has(f.terminal))
+    ? `<span class="terminal-tag">${f.terminal}</span>` : '';
+  const taxiPaxLine = (f.estimatedTaxiPax !== null && f.estimatedTaxiPax !== undefined)
+    ? ` <span class="taxi-pax">推定タクシー客 ${f.estimatedTaxiPax}人</span>` : '';
+  const cls = 'flight-row airline-' + colorKey
+    + (isDelayed ? ' is-delayed' : '')
+    + (isUnknown ? ' is-unknown' : '');
+  return `<div class="${cls}">
+    <div class="flight-line1">
+      <span class="time">${time}</span>
+      <span class="flight-no">${f.flightNumber}</span>
+      <span class="reach">${reachIcon}</span>
+      ${terminalTag}
+    </div>
+    <div class="flight-line2">${paxLine}${taxiPaxLine}</div>
+    <div class="flight-line3">機材 ${aircraft} ・ <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span></div>
+  </div>`;
 }
 
-// 出発地別集計の行リストを描画する。groups は totalEstimatedTaxiPax 降順前提。
+// 出発地別グループを「ヘッダ + 配下に各便」として描画する。
+// groups は aggregateByOrigin の出力（totalEstimatedTaxiPax 降順、各 g.flights は時刻昇順）。
 export function renderOriginSummary(container, groups) {
   if (!container) return;
   container.innerHTML = '';
   if (!groups || groups.length === 0) {
-    container.innerHTML = '<div class="empty">表示可能な集計がありません</div>';
+    container.innerHTML = '<div class="empty">表示可能な便がありません</div>';
     return;
   }
   for (const g of groups) {
-    const row = document.createElement('div');
-    row.className = 'origin-row';
-    row.innerHTML = `
+    const groupEl = document.createElement('section');
+    groupEl.className = 'origin-group';
+    const header = `<div class="origin-header">
       <span class="origin-name">${g.fromName}</span>
       <span class="origin-count">${g.flightCount}便</span>
       <span class="origin-pax">推定タクシー客 ${g.totalEstimatedTaxiPax}人</span>
-    `;
-    container.appendChild(row);
+    </div>`;
+    const rows = g.flights.map(buildFlightRowHtml).join('');
+    groupEl.innerHTML = header + rows;
+    container.appendChild(groupEl);
   }
 }
 

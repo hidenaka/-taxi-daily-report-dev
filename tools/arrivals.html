@@ -74,19 +74,21 @@
     #detail-toggle { display: block; margin: 8px auto; padding: 6px 14px; background: #1a1a1d; color: var(--sub); border: 1px solid #333; border-radius: 6px; cursor: pointer; font-size: 12px; }
     #detail-toggle.is-active { background: var(--accent); color: #000; border-color: var(--accent); }
     #origin-summary-section { padding: 0 12px 8px; }
-    #origin-summary { display: flex; flex-direction: column; gap: 4px; }
-    #origin-summary .origin-row { display: grid; grid-template-columns: 1fr auto auto;
-      gap: 8px; align-items: baseline; padding: 4px 0;
-      border-bottom: 1px solid #1a1a1d; font-size: 13px; }
-    #origin-summary .origin-name { color: var(--fg); font-weight: 600; }
-    #origin-summary .origin-count { color: var(--sub); font-variant-numeric: tabular-nums; }
-    #origin-summary .origin-pax { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; }
-    #origin-summary .empty { color: var(--sub); font-size: 12px; padding: 8px 0; }
-    #flight-list .flight-row { padding: 11px 0; border-bottom: 1px solid #1a1a1d; }
+    #origin-summary { display: flex; flex-direction: column; gap: 12px; }
+    /* 出発地グループ: 出発地名ヘッダ + 配下に各便 */
+    .origin-group { display: flex; flex-direction: column; }
+    .origin-group .origin-header { display: grid; grid-template-columns: 1fr auto auto;
+      gap: 8px; align-items: baseline; padding: 6px 8px; font-size: 14px;
+      background: #14141a; border-radius: 4px; border-bottom: 1px solid #2a2a35; }
+    .origin-group .origin-name { color: var(--fg); font-weight: 700; font-size: 15px; }
+    .origin-group .origin-count { color: var(--sub); font-variant-numeric: tabular-nums; }
+    .origin-group .origin-pax { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; }
+    .origin-group .flight-row { padding: 10px 8px; border-bottom: 1px solid #1a1a1d; }
+    .origin-group .flight-row:last-child { border-bottom: none; }
+    #origin-summary .empty { color: var(--sub); font-size: 12px; padding: 12px 0; text-align: center; }
     .flight-line1 { display: flex; gap: 8px; align-items: baseline; }
-    .flight-line1 .time { font-weight: bold; min-width: 50px; }
-    .flight-line1 .flight-no { color: var(--accent); min-width: 60px; }
-    .flight-line1 .from { flex: 1; }
+    .flight-line1 .time { font-weight: bold; min-width: 50px; font-variant-numeric: tabular-nums; }
+    .flight-line1 .flight-no { min-width: 64px; font-weight: 700; }
     .flight-line1 .reach { font-size: 13px; margin-left: auto; }
     .delay-boost { color: var(--peak); font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,82,82,0.15); margin-left: 4px; }
     .lightning-boost { color: #ffd84d; font-size: 11px; padding: 1px 4px; border-radius: 3px; background: rgba(255,216,77,0.15); margin-left: 4px; font-weight: 600; }
@@ -95,23 +97,25 @@
     #weather-banner.is-recovery { background: linear-gradient(90deg, #2a3a18, #3a4d20); color: #fff3a0; border-color: #5a6e2a; }
     #weather-banner .weather-icon { font-size: 18px; }
     #weather-banner strong { color: #fff; font-weight: 700; }
-    .flight-line2 { padding-left: 50px; margin-top: 4px; font-size: 13px; }
+    .flight-line2 { padding-left: 58px; margin-top: 4px; font-size: 13px; }
     .flight-line2 .pax-est { font-weight: 600; }
     .flight-line2 .pax-max { color: var(--sub); }
-    .flight-line3 { padding-left: 50px; margin-top: 3px; color: var(--sub); font-size: 12px; }
+    .flight-line2 .taxi-pax { color: var(--accent); font-weight: 600; margin-left: 8px; }
+    .flight-line3 { padding-left: 58px; margin-top: 3px; color: var(--sub); font-size: 12px; }
     .flight-row.is-delayed { background: rgba(255, 184, 77, 0.08); }
     .flight-row.is-delayed .status { color: var(--warn); }
     .flight-row.is-unknown { opacity: 0.6; }
-    /* 航空会社色（左ボーダー）。色 hex は tools/js/airline-color.js と同期 */
-    .flight-row.airline-jal   { border-left: 3px solid #e60012; padding-left: 7px; }
-    .flight-row.airline-ana   { border-left: 3px solid #013193; padding-left: 7px; }
-    .flight-row.airline-jjp   { border-left: 3px solid #ff5e1f; padding-left: 7px; }
-    .flight-row.airline-sky   { border-left: 3px solid #00b6f0; padding-left: 7px; }
-    .flight-row.airline-ado   { border-left: 3px solid #4ea83a; padding-left: 7px; }
-    .flight-row.airline-sna   { border-left: 3px solid #f4cd00; padding-left: 7px; }
-    .flight-row.airline-sfj   { border-left: 3px solid #4a4a4a; padding-left: 7px; }
-    .flight-row.airline-other { border-left: 3px solid #777777; padding-left: 7px; }
-    /* ターミナル文字タグ。色は会社色と衝突しない単色グレー */
+    /* 航空会社色: 便名 (.flight-no) の文字色に反映。hex は tools/js/airline-color.js と同期 */
+    .flight-row .flight-no                 { color: var(--accent); }
+    .flight-row.airline-jal   .flight-no   { color: #e60012; }
+    .flight-row.airline-ana   .flight-no   { color: #4a8cff; }
+    .flight-row.airline-jjp   .flight-no   { color: #ff5e1f; }
+    .flight-row.airline-sky   .flight-no   { color: #00b6f0; }
+    .flight-row.airline-ado   .flight-no   { color: #4ea83a; }
+    .flight-row.airline-sna   .flight-no   { color: #f4cd00; }
+    .flight-row.airline-sfj   .flight-no   { color: #aaaaaa; }
+    .flight-row.airline-other .flight-no   { color: #888888; }
+    /* ターミナル文字タグ */
     .terminal-tag { display: inline-block; padding: 1px 6px; border-radius: 3px;
       background: rgba(255,255,255,0.08); color: var(--sub); font-size: 11px;
       font-weight: 600; margin-left: 6px; letter-spacing: 0.5px; }
@@ -201,13 +205,8 @@
   </section>
 
   <section id="origin-summary-section">
-    <h2>🛫 出発地別（今日 全便）</h2>
+    <h2>🛫 便リスト（出発地別）</h2>
     <div id="origin-summary"></div>
-  </section>
-
-  <section>
-    <h2>便リスト（過去30分〜未来3時間）</h2>
-    <div id="flight-list"></div>
   </section>
 
   <footer id="arrivals-footer"></footer>

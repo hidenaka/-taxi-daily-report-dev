@@ -1,5 +1,5 @@
-import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, aggregateByOrigin } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderOriginSummary } from './arrivals-render.js';
+import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, aggregateByOrigin } from './arrivals-data.js';
+import { renderHeatmap, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderOriginSummary } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
 
 const TAB_TERMINALS = {
@@ -35,13 +35,13 @@ function render() {
     : { windowHours: 3.5, windowLabel: '直近3時間' };
   const summary = summarizeFlights(visible, summaryOpts);
   const topics = detectTopics(all);
-  const originGroups = aggregateByOrigin(all);
+  // detailMode=ON のときは当日全便、OFF のときは直近便だけを出発地別グループ表示
+  const originGroups = aggregateByOrigin(visible);
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
   renderTopics(document.getElementById('topics'), topics);
   renderSummary(document.getElementById('summary'), summary);
   renderHeatmap(document.getElementById('heatmap'), bins);
   renderOriginSummary(document.getElementById('origin-summary'), originGroups);
-  renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(visible));
   renderUpdatedAt(
     document.getElementById('arrivals-footer'),
     state.arrivals.updatedAt,
