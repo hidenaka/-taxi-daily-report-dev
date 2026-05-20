@@ -138,7 +138,10 @@ async function renderActualsMode(metaEl, tableEl) {
     tableEl.innerHTML = '';
     return;
   }
-  metaEl.textContent = ts ? `実績 ${ts} 時点まで` : '';
+  const accum = computeAccumulatedTotal(data.slots, new Date());
+  const tsPart = ts ? `実績 ${ts} 時点まで` : '';
+  const accumPart = `JST 5:00 起点 累計 ${accum}台`;
+  metaEl.textContent = tsPart ? `${tsPart}  /  ${accumPart}` : accumPart;
   tableEl.innerHTML = renderActualsTable(data.slots);
 }
 
