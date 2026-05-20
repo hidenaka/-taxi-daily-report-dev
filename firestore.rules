@@ -84,6 +84,15 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // --- companySetupRequests/{requestId} ---
+    // ヒアリング申請（companySetupRequests）— 新規導入会社オンボーディング用
+    // - read: admin のみ（admin.html 申請レビューUIで使用）
+    // - write: 全クライアントから不可。Worker (Service Account) のみが書ける。
+    match /companySetupRequests/{requestId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     // --- adminUids/{firebaseAuthUid} ---
     // Owner can read their own entry (lets the client know it has admin).
     // Writes are not allowed via the client; entries are seeded from the
