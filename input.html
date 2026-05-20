@@ -56,25 +56,7 @@ if (location.hostname.includes('-dev')) {
     <div class="muted" id="dateHint" style="margin-top:4px;"></div>
   </section>
 
-  <!-- 合計のみで登録モード（decisions 8 シンプル500円プラン向け / フルプランからも任意で選択可） -->
-  <section class="card" id="summaryModeCard" style="border:2px solid #1565c0;background:#e3f2fd;display:none;">
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
-      <span style="font-size:18px;">📊</span>
-      <strong style="font-size:14px;color:#0d47a1;">合計金額のみで登録</strong>
-      <span id="summaryModeBadge" style="font-size:10px;background:#1565c0;color:#fff;padding:1px 6px;border-radius:3px;display:none;">シンプルプラン</span>
-    </div>
-    <p class="muted" style="margin:0 0 10px;font-size:11px;line-height:1.5;">
-      営業日報の明細が紙で出ない / 合計金額しか分からない場合の登録モード。給与計算・カレンダー予定管理に必要な情報だけ入力します。<br>
-      <span style="color:#0d47a1;">※ このモードでは「営業サポート」（降車エリア統計・推奨検索・ペース管理）は利用できません</span>
-    </p>
-    <label class="muted">税込合計売上（円）</label>
-    <input class="input" id="summaryFareInput" type="number" inputmode="numeric" step="100" min="0" placeholder="例: 55000">
-    <p id="summaryModeToggleArea" class="muted" style="font-size:11px;margin-top:8px;display:none;">
-      <a href="#" id="switchToDetailModeLink" style="color:#0d47a1;text-decoration:underline;">← 明細から登録するモードに切り替える</a>
-    </p>
-  </section>
-
-  <section class="card" id="ocrCardSection" style="border:2px solid #2e7d32;background:#f1f8e9;">
+  <section class="card" style="border:2px solid #2e7d32;background:#f1f8e9;">
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span style="font-size:18px;">📷</span>
       <strong style="font-size:14px;color:#2e7d32;">推奨：写真から取り込み</strong>
@@ -93,12 +75,9 @@ if (location.hostname.includes('-dev')) {
     </div>
     <p class="muted" style="margin:0 0 8px;font-size:11px;line-height:1.5;">営業明細の写真をそのままアップロード。Cabis 自社のOCRで処理し、画像はメモリ上のみ・保存もログ出力もしません。</p>
     <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:100%;background:#2e7d32;color:#fff;padding:10px;font-size:13px;font-weight:600;">📷 写真から取り込む</a>
-    <p id="switchToSummaryModeArea" class="muted" style="font-size:11px;margin:8px 0 0;display:none;">
-      明細が出ない場合は <a href="#" id="switchToSummaryModeLink" style="color:#1565c0;text-decoration:underline;">📊 合計金額のみで登録</a>
-    </p>
   </section>
 
-  <section class="card" id="textPasteSection">
+  <section class="card">
     <label class="muted">日報テキストを貼付（Claude/Gemini/フォーマット済み 自動判別）<button class="help-btn" data-help-for="text-paste" aria-label="ヘルプ">?</button></label>
     <div class="help-content" id="help-text-paste">
       💡 <strong>すでに別の方法（外部AI・自前ツール等）で日報をテキスト化した方の貼付欄です。</strong>
@@ -180,60 +159,12 @@ import { parseReport, parseFormattedReport } from './js/parser.js';
 import { getConfig, getDrive, saveDriveSafe } from './js/storage.js';
 import { fetchWeatherForDate } from './js/weather.js';
 import { renderLegalFooter } from './js/legal-footer.js';
-import { enforceAccess, getPlanTier } from './js/access-control.js';
-import { readSubCache } from './js/sub-cache.js';
-import { buildSummaryDrive } from './js/summary-drive.js';
+import { enforceAccess } from './js/access-control.js';
 import './js/help-toggle.js';
 
 if (!(await enforceAccess('core'))) {
   throw new Error('access-denied: redirected');
 }
-
-// プラン判定 + モード切替 UI セットアップ（decisions 8）
-// simple プラン → 合計モードに自動切替（明細経路は隠す）
-// full プラン → 明細モードがデフォルト。OCRセクション末尾のリンクから合計モードへ任意切替可
-let inputMode = 'detail'; // 'detail' | 'summary'
-function setInputMode(mode) {
-  inputMode = mode;
-  const summaryCard = document.getElementById('summaryModeCard');
-  const ocrCard = document.getElementById('ocrCardSection');
-  const textPaste = document.getElementById('textPasteSection');
-  const preview = document.getElementById('previewSection');
-  if (mode === 'summary') {
-    summaryCard.style.display = '';
-    if (ocrCard) ocrCard.style.display = 'none';
-    if (textPaste) textPaste.style.display = 'none';
-    if (preview) preview.style.display = 'none';
-  } else {
-    summaryCard.style.display = 'none';
-    if (ocrCard) ocrCard.style.display = '';
-    if (textPaste) textPaste.style.display = '';
-    // preview は parsed があれば後段ロジックで表示される
-  }
-}
-(function initInputMode() {
-  const cached = readSubCache();
-  const sub = cached && cached.sub ? cached.sub : null;
-  const plan = getPlanTier(sub);
-  if (plan === 'simple') {
-    // シンプルプラン → 合計のみ強制（明細モード切替不可）
-    document.getElementById('summaryModeBadge').style.display = '';
-    setInputMode('summary');
-  } else {
-    // フルプラン → デフォルト明細、入口リンクで合計モードへ任意切替
-    setInputMode('detail');
-    document.getElementById('switchToSummaryModeArea').style.display = '';
-    document.getElementById('summaryModeToggleArea').style.display = '';
-    document.getElementById('switchToSummaryModeLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      setInputMode('summary');
-    });
-    document.getElementById('switchToDetailModeLink').addEventListener('click', (e) => {
-      e.preventDefault();
-      setInputMode('detail');
-    });
-  }
-})();
 
 document.getElementById('navHost').innerHTML = renderBottomNav('input');
 renderLegalFooter();
@@ -617,52 +548,12 @@ function renderPreview() {
 }
 
 document.getElementById('saveBtn').onclick = async () => {
-  const btn = document.getElementById('saveBtn');
-  const date = document.getElementById('dateInput').value;
-  if (!date) return alert('乗務日を入力してください');
-
-  // 合計のみモードの保存パス（decisions 8）
-  if (inputMode === 'summary') {
-    const summaryRaw = document.getElementById('summaryFareInput').value;
-    const summaryFare = summaryRaw.trim() !== '' ? Number(summaryRaw) : NaN;
-    if (!Number.isFinite(summaryFare) || summaryFare < 0) {
-      return alert('税込合計売上を入力してください（0以上の数値）');
-    }
-    btn.disabled = true;
-    document.getElementById('saveStatus').textContent = '天候取得中…';
-    let weather = null;
-    try { weather = await fetchWeatherForDate(date, config.weatherLocation); }
-    catch (e) { console.warn('天候取得失敗:', e); }
-    const totalKmRaw = document.getElementById('totalKmInput').value;
-    const totalDistanceKm = totalKmRaw.trim() !== '' ? parseInt(totalKmRaw, 10) : null;
-    const drive = buildSummaryDrive({
-      date,
-      vehicleType: document.getElementById('vehicleTypeSel').value,
-      departureTime: document.getElementById('departTimeInput').value || config.defaults.departureTime,
-      returnTime: document.getElementById('returnTimeInput').value || null,
-      totalDistanceKm: Number.isFinite(totalDistanceKm) ? totalDistanceKm : null,
-      memo: document.getElementById('memoInput').value,
-      summaryFare,
-      weather,
-      violations: readViolations(),
-    });
-    document.getElementById('saveStatus').textContent = '保存中…';
-    try {
-      await saveDriveSafe(drive);
-      document.getElementById('saveStatus').textContent = '保存完了';
-      setTimeout(() => location.href = 'index.html', 800);
-    } catch (e) {
-      document.getElementById('saveStatus').textContent = 'エラー: ' + e.message;
-      btn.disabled = false;
-    }
-    return;
-  }
-
-  // 明細モード（既存パス）
   if (!parsed) return alert('先に「テキストを読み込む」を押してください');
+  const btn = document.getElementById('saveBtn');
   btn.disabled = true;
   document.getElementById('saveStatus').textContent = '天候取得中…';
 
+  const date = document.getElementById('dateInput').value;
   let weather = null;
   try { weather = await fetchWeatherForDate(date, config.weatherLocation); }
   catch (e) { console.warn('天候取得失敗:', e); }

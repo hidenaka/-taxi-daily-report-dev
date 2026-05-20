@@ -96,7 +96,6 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate } from './js/app.js';
 import { getDrive, listFiles, saveDriveSafe, deleteDrive } from './js/storage.js';
 import { calcDailySales } from './js/payroll.js';
-import { isSummaryDrive } from './js/summary-drive.js';
 import { calcTimeBreakdown, hourlyActivity, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, formatMin, timeToMinutes } from './js/chart-helpers.js';
 import { weatherEmoji } from './js/weather.js';
 import { renderLegalFooter } from './js/legal-footer.js';
@@ -362,24 +361,6 @@ function renderHourChart(drive) {
 }
 
 function renderTripsTable(drive) {
-  // 合計のみ日報（decisions 8 シンプル500プラン）は明細表示せずバッジ + 合計売上だけ表示
-  if (isSummaryDrive(drive)) {
-    const yen = (Number(drive.summaryFare) || 0).toLocaleString('ja-JP');
-    document.getElementById('tripsCard').innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span class="muted">日報明細</span>
-        <span style="background:#1565c0;color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;">📊 合計のみ登録</span>
-      </div>
-      <div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:12px;">
-        <div style="font-size:11px;color:#0d47a1;margin-bottom:4px;">税込合計売上</div>
-        <div style="font-size:22px;font-weight:700;color:#0d47a1;">¥${yen}</div>
-        <div class="muted" style="font-size:10px;margin-top:8px;line-height:1.5;">
-          明細データなしの合計のみ登録です。営業サポート機能（降車エリア統計・推奨検索・ペース管理）はこの日報のデータでは利用できません。
-        </div>
-      </div>
-    `;
-    return;
-  }
   const trips = drive.trips || [];
   const rests = drive.rests || [];
   // 全エントリを時刻順に (7時始まり、深夜は25時以降扱い)
