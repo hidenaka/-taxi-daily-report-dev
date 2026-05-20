@@ -1,0 +1,58 @@
+# Dependabot 設定 — 依存パッケージの脆弱性自動診断・PR起票
+# クレジット取引セキュリティ対策協議会の「定期的な脆弱性診断」要件への対応
+# 参考: https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  # ルート（GitHub Pages 配信側に開発ツール等が入っている場合）
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+
+  # Cloudflare Worker（Stripe Webhook / Turnstile 検証等）
+  - package-ecosystem: "npm"
+    directory: "/worker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+      - "worker"
+
+  # Firebase Cloud Functions
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+      - "functions"
+
+  # GitHub Actions ワークフロー自体のバージョン更新
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+      - "ci"
