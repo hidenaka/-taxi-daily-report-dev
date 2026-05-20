@@ -351,6 +351,70 @@
       color: #ff5252;
       border-color: rgba(255,82,82,0.4);
     }
+    #history-list .btn-rec-edit {
+      flex: 0 0 auto;
+      min-width: 32px; min-height: 32px;
+      margin-left: 6px;
+      padding: 4px 8px;
+      background: transparent;
+      color: #8a8a92;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      font-size: 14px; line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #history-list .btn-rec-edit:active {
+      background: rgba(124,184,255,0.12);
+      color: #7cb8ff;
+      border-color: rgba(124,184,255,0.4);
+    }
+
+    /* 記録編集ダイアログ */
+    #edit-dialog {
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: #15151c;
+      color: #f0f0f0;
+      padding: 0;
+      max-width: 92vw;
+      width: 320px;
+    }
+    #edit-dialog::backdrop { background: rgba(0,0,0,0.6); }
+    #edit-dialog .dialog-body { padding: 20px; }
+    #edit-dialog h3 { margin: 0 0 14px; font-size: 17px; font-weight: 600; }
+    #edit-dialog .field { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+    #edit-dialog .field label { flex: 0 0 70px; font-size: 14px; color: #c0c0c8; }
+    #edit-dialog .field input[type="time"] {
+      flex: 1; font-size: 17px; padding: 8px 12px;
+      background: #0a0a0f; color: #f0f0f0;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    #edit-dialog .duration-preview {
+      margin: 10px 0 4px; font-size: 13px; color: #8a8a92;
+      text-align: center; min-height: 18px;
+    }
+    #edit-dialog .duration-preview.is-error { color: #ff5252; }
+    #edit-dialog .dialog-actions {
+      display: flex; gap: 8px; margin-top: 16px;
+    }
+    #edit-dialog button {
+      flex: 1; min-height: 44px; min-width: 0;
+      padding: 0 12px; font-size: 14px; font-weight: 600;
+      border: none; border-radius: 10px; cursor: pointer;
+    }
+    #edit-dialog .btn-cancel {
+      background: rgba(255,255,255,0.08); color: #d0d0d8;
+    }
+    #edit-dialog .btn-save {
+      background: linear-gradient(180deg, #4a90e2 0%, #3a7bd5 100%);
+      color: white;
+    }
+    #edit-dialog .btn-save:disabled {
+      background: rgba(255,255,255,0.08) !important;
+      color: #555 !important; cursor: not-allowed;
+    }
 
     .reset { padding: 14px; text-align: center; display: grid; gap: 10px; }
     #btn-reset {
@@ -491,6 +555,25 @@
       <button id="btn-undo-reset" type="button" hidden>↩ 直前のリセットを取り消す</button>
     </section>
   </main>
+
+  <dialog id="edit-dialog">
+    <form method="dialog" class="dialog-body">
+      <h3>休憩記録を修正</h3>
+      <div class="field">
+        <label for="edit-start">開始</label>
+        <input type="time" id="edit-start" required>
+      </div>
+      <div class="field">
+        <label for="edit-end">終了</label>
+        <input type="time" id="edit-end" required>
+      </div>
+      <div class="duration-preview" id="edit-duration-preview"></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" id="edit-cancel">キャンセル</button>
+        <button type="button" class="btn-save" id="edit-save">保存</button>
+      </div>
+    </form>
+  </dialog>
 
 <script>
 // ============================================================
@@ -745,6 +828,13 @@ function renderHistory() {
     nextEl.className = 'rec-next';
     nextEl.textContent = nextDeadline;
 
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn-rec-edit';
+    editBtn.type = 'button';
+    editBtn.textContent = '✎';
+    editBtn.setAttribute('aria-label', '記録を編集');
+    editBtn.addEventListener('click', () => openEditDialog(r));
+
     const delBtn = document.createElement('button');
     delBtn.className = 'btn-rec-delete';
     delBtn.type = 'button';
@@ -760,6 +850,7 @@ function renderHistory() {
     li.appendChild(timeEl);
     li.appendChild(durEl);
     li.appendChild(nextEl);
+    li.appendChild(editBtn);
     li.appendChild(delBtn);
     list.appendChild(li);
   }
@@ -831,6 +922,93 @@ $('shift-start-input').addEventListener('change', (e) => {
   state.shiftStart = e.target.value || '07:00';
   saveState(state);
   renderAll();
+});
+
+// ------------------------------------------------------------
+// 休憩記録の編集ダイアログ
+// ------------------------------------------------------------
+let editingRecordedAt = null;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+function hmFromDate(d) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
+
+function openEditDialog(record) {
+  editingRecordedAt = record.recordedAt;
+  const endDate = new Date(record.recordedAt);
+  const startDate = new Date(endDate.getTime() - record.durationSec * 1000);
+  $('edit-start').value = hmFromDate(startDate);
+  $('edit-end').value = hmFromDate(endDate);
+  updateEditPreview();
+  $('edit-dialog').showModal();
+}
+
+function parseHM(s) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(s || '');
+  if (!m) return null;
+  const h = +m[1], mi = +m[2];
+  if (h < 0 || h > 23 || mi < 0 || mi > 59) return null;
+  return { h, m: mi };
+}
+
+// 編集対象記録の元日付（recordedAt の日付）を基準に、HH:MM を Date に変換
+function dateFromHMOnSameDay(baseDate, hm) {
+  const d = new Date(baseDate);
+  d.setHours(hm.h, hm.m, 0, 0);
+  return d;
+}
+
+function computeEditedRange() {
+  const rec = state.records.find(x => x.recordedAt === editingRecordedAt);
+  if (!rec) return { error: '記録が見つかりません' };
+  const startHM = parseHM($('edit-start').value);
+  const endHM = parseHM($('edit-end').value);
+  if (!startHM || !endHM) return { error: '時刻の形式が不正です' };
+  const baseEnd = new Date(rec.recordedAt);
+  const startDate = dateFromHMOnSameDay(baseEnd, startHM);
+  const endDate = dateFromHMOnSameDay(baseEnd, endHM);
+  if (endDate <= startDate) return { error: '終了は開始より後にしてください' };
+  if (endDate.getTime() > Date.now() + 60 * 1000) return { error: '終了が未来の時刻です' };
+  const durationSec = Math.floor((endDate.getTime() - startDate.getTime()) / 1000);
+  return { startDate, endDate, durationSec };
+}
+
+function updateEditPreview() {
+  const preview = $('edit-duration-preview');
+  const saveBtn = $('edit-save');
+  const r = computeEditedRange();
+  if (r.error) {
+    preview.textContent = r.error;
+    preview.classList.add('is-error');
+    saveBtn.disabled = true;
+    return;
+  }
+  const mins = Math.floor(r.durationSec / 60);
+  preview.textContent = `${mins}分`;
+  preview.classList.remove('is-error');
+  saveBtn.disabled = false;
+}
+
+$('edit-start').addEventListener('input', updateEditPreview);
+$('edit-end').addEventListener('input', updateEditPreview);
+
+$('edit-cancel').addEventListener('click', () => {
+  editingRecordedAt = null;
+  $('edit-dialog').close();
+});
+
+$('edit-save').addEventListener('click', () => {
+  const r = computeEditedRange();
+  if (r.error) return; // disabled時は呼ばれない想定だが念のため
+  const idx = state.records.findIndex(x => x.recordedAt === editingRecordedAt);
+  if (idx < 0) { $('edit-dialog').close(); return; }
+  state.records[idx] = {
+    recordedAt: r.endDate.toISOString(),
+    durationSec: r.durationSec
+  };
+  editingRecordedAt = null;
+  saveState(state);
+  renderAll();
+  $('edit-dialog').close();
 });
 
 function readHMInput(hourId, minId) {
