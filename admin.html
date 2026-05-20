@@ -144,6 +144,39 @@ if (location.hostname.includes('-dev')) {
     </section>
 
     <section class="admin-card">
+      <h3>📨 ヒアリングURL発行</h3>
+      <p class="muted" style="font-size:11px;margin-bottom:8px;">新規導入会社の担当ドライバーにヒアリングフォームのURLを送付します。発行されたURLは1回限り・14日有効。</p>
+
+      <label class="muted">メモ（自分用・サーバには保存されません）</label>
+      <input class="input" id="setupIssueNote" type="text" placeholder="例: ○○組合(山田さん経由)">
+
+      <button class="btn" id="issueSetupUrlBtn" style="width:100%;margin-top:8px;background:var(--primary);color:#fff;">🎲 新規ヒアリングURL発行</button>
+
+      <div id="issuedSetupResult" style="display:none;margin-top:12px;padding:10px;background:#f5f5f5;border-radius:6px;">
+        <p style="font-size:11px;color:#666;margin:0 0 4px;">割当 slug</p>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input class="input" id="issuedSlugDisplay" readonly style="flex:1;font-family:monospace;font-size:12px;background:#fff;">
+          <button class="btn" id="copyIssuedSlugBtn" style="font-size:11px;padding:6px 10px;">📋</button>
+        </div>
+
+        <p style="font-size:11px;color:#666;margin:8px 0 4px;">招待URL（ドライバーに送付）</p>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input class="input" id="issuedUrlDisplay" readonly style="flex:1;font-family:monospace;font-size:11px;background:#fff;">
+          <button class="btn" id="copyIssuedUrlBtn" style="font-size:11px;padding:6px 10px;">📋</button>
+        </div>
+
+        <p id="issuedExpiryDisplay" style="font-size:11px;color:#666;margin:8px 0 0;"></p>
+
+        <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:8px;margin-top:8px;font-size:11px;color:#856404;">
+          ⚠️ slug を Notes.app の暗号化ノート「キャビス slug マップ」に「<span id="issuedSlugInNote"></span> = ○○組合」と記録してください。
+        </div>
+      </div>
+
+      <h4 style="margin:16px 0 6px;font-size:13px;">発行履歴(ローカル)</h4>
+      <ul id="issuedSetupHistory" style="list-style:none;padding:0;font-size:11px;"></ul>
+    </section>
+
+    <section class="admin-card">
       <h3>🏢 会社管理</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">会社プロファイル（歩率テーブル・給与ルール等）を作成・編集します。会社レベル設定の正しい編集口です。</p>
 
@@ -1300,6 +1333,81 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
 
 // 初期表示は新規会社フォーム
 fillCompanyForm(newCompanyTemplate(), true);
+
+// ========== ヒアリングURL発行 ==========
+const ISSUE_HISTORY_KEY = 'cabis_setup_issue_history_v1';
+
+function loadIssueHistory() {
+  try { return JSON.parse(localStorage.getItem(ISSUE_HISTORY_KEY)) || []; }
+  catch { return []; }
+}
+function saveIssueHistory(arr) {
+  try { localStorage.setItem(ISSUE_HISTORY_KEY, JSON.stringify(arr.slice(0, 50))); } catch {}
+}
+function renderIssueHistory() {
+  const list = loadIssueHistory();
+  const ul = document.getElementById('issuedSetupHistory');
+  if (!ul) return;
+  ul.innerHTML = '';
+  for (const item of list) {
+    const li = document.createElement('li');
+    li.style.padding = '4px 0';
+    li.style.borderBottom = '1px solid #eee';
+    li.innerHTML = `<strong>${item.assignedSlug}</strong> ・ ${item.note || '(メモなし)'} ・ <span style="color:#999;">${item.issuedAt}</span>`;
+    ul.appendChild(li);
+  }
+}
+
+document.getElementById('issueSetupUrlBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('issueSetupUrlBtn');
+  btn.disabled = true;
+  btn.textContent = '発行中...';
+  try {
+    const user = getCurrentUser();
+    if (!user) throw new Error('未ログイン');
+    const idToken = await user.getIdToken();
+    const note = document.getElementById('setupIssueNote').value.trim();
+    const WORKER_BASE = location.hostname === 'app.taxicabis.com'
+      ? 'https://cabis-billing.haqei64384.workers.dev'
+      : 'https://cabis-billing-dev.haqei64384.workers.dev';
+    const res = await fetch(`${WORKER_BASE}/setup-request/issue-url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+      body: JSON.stringify({}),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    document.getElementById('issuedSetupResult').style.display = '';
+    document.getElementById('issuedSlugDisplay').value = data.assignedSlug;
+    document.getElementById('issuedUrlDisplay').value = data.url;
+    document.getElementById('issuedSlugInNote').textContent = data.assignedSlug;
+    document.getElementById('issuedExpiryDisplay').textContent = `有効期限: ${new Date(data.expiresAt).toLocaleString('ja-JP')}`;
+
+    const hist = loadIssueHistory();
+    hist.unshift({
+      assignedSlug: data.assignedSlug,
+      note,
+      issuedAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
+    });
+    saveIssueHistory(hist);
+    renderIssueHistory();
+  } catch (err) {
+    alert('発行失敗: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🎲 新規ヒアリングURL発行';
+  }
+});
+
+document.getElementById('copyIssuedSlugBtn')?.addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('issuedSlugDisplay').value);
+});
+document.getElementById('copyIssuedUrlBtn')?.addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('issuedUrlDisplay').value);
+});
+
+renderIssueHistory();
 </script>
 </body>
 </html>
