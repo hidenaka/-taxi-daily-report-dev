@@ -56,14 +56,29 @@ if (location.hostname.includes('-dev')) {
     <div class="muted" id="dateHint" style="margin-top:4px;"></div>
   </section>
 
+  <section class="card" style="border:2px solid #2e7d32;background:#f1f8e9;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span style="font-size:18px;">📷</span>
+      <strong style="font-size:14px;color:#2e7d32;">推奨：写真から取り込み</strong>
+      <span style="font-size:10px;background:#2e7d32;color:#fff;padding:1px 6px;border-radius:3px;">🔒 データ外部に送らない</span>
+    </div>
+    <p class="muted" style="margin:0 0 8px;font-size:11px;line-height:1.5;">営業明細の写真をそのままアップロード。Cabis 自社のOCRで処理し、画像はメモリ上のみ・保存もログ出力もしません。</p>
+    <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:100%;background:#2e7d32;color:#fff;padding:10px;font-size:13px;font-weight:600;">📷 写真から取り込む</a>
+  </section>
+
   <section class="card">
     <label class="muted">日報テキストを貼付（Claude/Gemini/フォーマット済み 自動判別）</label>
     <textarea id="rawTextInput" rows="6" style="width:100%;padding:8px;font-family:monospace;font-size:11px;"></textarea>
     <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
       <button class="btn" id="parseBtn">テキストを読み込む</button>
-      <button class="btn" id="copyPromptBtn" style="background:var(--muted);">プロンプトをコピー</button>
-      <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;">写真から取り込み</a>
     </div>
+    <details style="margin-top:10px;border-top:1px dashed #ddd;padding-top:8px;">
+      <summary style="cursor:pointer;font-size:11px;color:var(--muted);">🤖 上級者向け：外部AI（Gemini）用プロンプト</summary>
+      <div style="background:#fff8e1;border:1px solid #ffd54f;border-radius:4px;padding:8px;margin-top:6px;font-size:11px;line-height:1.6;">
+        <strong>⚠️ 注意</strong>：この方法は <strong>お手元の画像を Google Gemini（外部AI）に送信</strong>します。外部送信の判断は利用者ご自身でお願いします。Cabis は外部AI側でのデータ取り扱いについて責任を負いません。画像を Cabis 外部に出さない方法は上の <strong>「📷 写真から取り込む」</strong> をご利用ください。
+      </div>
+      <button class="btn" id="copyPromptBtn" style="background:var(--muted);margin-top:6px;font-size:11px;">📋 プロンプトをコピー</button>
+    </details>
   </section>
 
   <section class="card" id="previewSection" style="display:none;">
@@ -302,7 +317,7 @@ function applyOcrImport() {
   hint.style.color = '#1565c0';
 }
 
-const GEMINI_PROMPT = `この画面を開いて　プロンプトをコピーしてgemini上でユーザーアップロードした複数のタクシー日報分析写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
+const GEMINI_PROMPT = `アップロードした複数のタクシー日報の写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
 
 【1枚あたりの出力フォーマット】
 日付: YYYY-MM-DD

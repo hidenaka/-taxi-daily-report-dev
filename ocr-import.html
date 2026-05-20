@@ -28,6 +28,10 @@ if (location.hostname.includes('-dev')) {
     <a class="btn" href="input.html" style="background:var(--gray);color:#333;font-size:12px;padding:6px 12px;text-decoration:none;">戻る</a>
   </div>
 
+  <div style="background:#e8f5e9;border:1px solid #2e7d32;border-radius:4px;padding:8px;margin-bottom:10px;font-size:11px;line-height:1.5;color:#1b5e20;">
+    🔒 <strong>画像はメモリ上でのみ処理し、保存もログ出力もしません。</strong>外部AIサービス（Gemini等）には送信されません。
+  </div>
+
   <section class="card">
     <p class="muted" style="margin-top:0;">営業明細の写真を選んでください（撮影・フォトライブラリのどちらでも）。サーバーで読み取り、画像は保存されません。読み取り後、日報入力ページで確認・修正できます。</p>
     <label class="btn" id="pickLabel">

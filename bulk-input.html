@@ -63,6 +63,17 @@ if (location.hostname.includes('-dev')) {
     </p>
   </section>
 
+  <section class="card" style="background:#fff8e1;border:1px solid #ffd54f;">
+    <div style="display:flex;align-items:flex-start;gap:8px;">
+      <span style="font-size:20px;flex:none;">⚠️</span>
+      <div style="font-size:12px;line-height:1.6;">
+        <strong>外部AI（Google Gemini）への送信について</strong><br>
+        この一括取込みは <strong>お手元の日報画像を Google Gemini に送信して</strong> テキスト化する方法です。外部送信の判断は利用者ご自身でお願いします。Cabis は外部AI側でのデータ取り扱いについて責任を負いません。<br>
+        画像を Cabis 外部に出さない方法は <a href="ocr-import.html" style="color:#2e7d32;font-weight:600;">「📷 写真から取り込み」</a>（Cabis自社OCR・画像非保存）をご利用ください。
+      </div>
+    </div>
+  </section>
+
   <section class="card">
     <details>
       <summary style="cursor:pointer;font-weight:600;">📋 Gemini に投げるプロンプト例(クリックで展開)</summary>
@@ -70,7 +81,7 @@ if (location.hostname.includes('-dev')) {
 
       <h4 style="margin-top:14px;margin-bottom:4px;">プロンプト本文</h4>
       <button class="btn btn-secondary" id="copyPromptBtn" style="margin-bottom:6px;font-size:11px;padding:4px 10px;">📋 プロンプトをコピー</button>
-      <pre id="promptText" style="background:#f5f5f5;border:1px solid #ddd;padding:8px;white-space:pre-wrap;font-family:monospace;font-size:11px;line-height:1.5;border-radius:4px;">アップロードした複数のタクシー日報分析写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
+      <pre id="promptText" style="background:#f5f5f5;border:1px solid #ddd;padding:8px;white-space:pre-wrap;font-family:monospace;font-size:11px;line-height:1.5;border-radius:4px;">アップロードした複数のタクシー日報の写真を、以下のテキスト形式で**1枚ずつ独立して**変換してください。コードブロック・前置き・後書きは一切不要、テキストのみを出力してください。
 
 【1枚あたりの出力フォーマット】
 日付: YYYY-MM-DD
