@@ -31,6 +31,7 @@ jobs:
             --exclude='.opencode/' \
             --exclude='.DS_Store' \
             --exclude='node_modules/' \
+            --exclude='CNAME' \
             dev/ prod/
           
       - name: Commit and push to prod
