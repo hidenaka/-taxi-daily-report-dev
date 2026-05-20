@@ -77,6 +77,9 @@ if (location.hostname.includes('-dev')) {
       <div id="loginMsg"></div>
     </section>
 
+    <!-- 新規登録ガード（招待URLなし or 不正 slug 時に表示） -->
+    <div id="signupGuardMsg" style="display:none;"></div>
+
     <!-- 新規登録 -->
     <section id="signupForm" style="display:none;">
       <div class="field">
@@ -111,7 +114,11 @@ if (location.hostname.includes('-dev')) {
 <script type="module">
 import { renderLegalFooter } from './js/legal-footer.js';
 import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase-auth.js';
+import { captureInviteSlug, loadInviteSlug, validateInviteSlug, fetchCompanyExists } from './js/invite-url.js';
 renderLegalFooter();
+
+// 招待URL `?company=<slug>` を localStorage に捕捉（完全招待制・decisions 6）
+captureInviteSlug(new URLSearchParams(location.search), localStorage);
 
 // ===== Cloudflare Turnstile =====
 // Bot対策。token は widget が自動取得し callback で受け取る。
@@ -165,12 +172,69 @@ const tabLogin = document.getElementById('tabLogin');
 const tabSignup = document.getElementById('tabSignup');
 const loginForm = document.getElementById('loginForm');
 const signupForm = document.getElementById('signupForm');
-function setMode(mode) {
+const signupGuardMsg = document.getElementById('signupGuardMsg');
+
+// 招待URL検証は1ページ1回でキャッシュ。タブ切替の度に Firestore を叩かない。
+let inviteCheckPromise = null;
+function checkInvite() {
+  if (inviteCheckPromise) return inviteCheckPromise;
+  const slug = loadInviteSlug(localStorage);
+  if (!slug) {
+    inviteCheckPromise = Promise.resolve({ slug: null, valid: false });
+    return inviteCheckPromise;
+  }
+  inviteCheckPromise = validateInviteSlug(slug, fetchCompanyExists)
+    .then((valid) => ({ slug, valid }));
+  return inviteCheckPromise;
+}
+
+function showGuard(html) {
+  signupGuardMsg.innerHTML = `<div class="msg error">${html}</div>`;
+  signupGuardMsg.style.display = '';
+  signupForm.style.display = 'none';
+}
+function clearGuard() {
+  signupGuardMsg.style.display = 'none';
+  signupGuardMsg.innerHTML = '';
+}
+function showInfo(html) {
+  signupGuardMsg.innerHTML = `<div class="msg info">${html}</div>`;
+  signupGuardMsg.style.display = '';
+}
+
+async function setMode(mode) {
   const signup = mode === 'signup';
   tabSignup.classList.toggle('active', signup);
   tabLogin.classList.toggle('active', !signup);
-  signupForm.style.display = signup ? '' : 'none';
   loginForm.style.display = signup ? 'none' : '';
+  if (!signup) {
+    signupForm.style.display = 'none';
+    clearGuard();
+    return;
+  }
+  // signup タブ表示: 招待URLを検証してフォーム表示 or ガード表示
+  signupForm.style.display = 'none';
+  showInfo('招待URLを確認しています…');
+  const { slug, valid } = await checkInvite();
+  if (!slug) {
+    showGuard(
+      '⚠️ 新規登録には招待URLが必要です。<br>' +
+      '会社や組合からお渡しした招待URL経由でアクセスしてください。<br>' +
+      '招待URLをお持ちでない場合は <a href="mailto:cabis@taxicabis.com" style="color:#991b1b;text-decoration:underline;">cabis@taxicabis.com</a> までお問い合わせください。'
+    );
+    return;
+  }
+  if (!valid) {
+    showGuard(
+      '⚠️ 招待URLが無効です（会社情報が見つかりませんでした）。<br>' +
+      '担当者にURLをご確認のうえ、改めてアクセスしてください。<br>' +
+      'お問い合わせ: <a href="mailto:cabis@taxicabis.com" style="color:#991b1b;text-decoration:underline;">cabis@taxicabis.com</a>'
+    );
+    return;
+  }
+  // 有効: フォーム表示
+  clearGuard();
+  signupForm.style.display = '';
 }
 tabLogin.addEventListener('click', () => setMode('login'));
 tabSignup.addEventListener('click', () => setMode('signup'));

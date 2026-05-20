@@ -149,6 +149,60 @@
 - 全部dev確認後、まとめて origin/main へ cherry-pick（複数コミットになる想定）
 - 本番反映後に Task 10（広報物の文言確定）を反映
 
+### Task 12: 完全招待制 signup ガード（decisions 6 で追加・2026-05-20）
+
+**背景:**
+本人指摘「サービス提供時、まずユーザーがどこの会社の誰かを特定しないと開発・運用ができない」。
+3パターン（自社/他社カスタマイズ済/新規飛び込み）の対応分けを `decisions.md` の「6. 会社識別の3パターン対応設計」で確定。**完全招待制**を採用。
+
+**目的:**
+- 招待URL `?company=<slug>` 経由 = signup 可（`users/{uid}.companyId = <slug>` 確定）
+- 招待URLなしで `login.html?mode=signup` 直叩き = エラー表示 + mailto誘導
+- 不正/未登録 slug = エラー表示 + mailto誘導
+
+**Files:**
+- `js/invite-url.js`(新) — 純関数 `captureInviteSlug(url, storage)` + `loadInviteSlug(storage)` + `validateInviteSlug(slug, companies)` をテスト可能に切り出す
+- `subscribe.html` — ページ読込時に `captureInviteSlug` 呼出（URLに `?company=` あれば localStorage に保存）
+- `login.html` — ページ読込時に `captureInviteSlug` 呼出 + signup タブ表示時に `loadInviteSlug` で招待状況確認 → 空ならフォーム非表示にして「招待URLが必要です」エラー＋ mailto誘導UI、 不正 slug でも同様
+- `index.html` — ページ読込時に `captureInviteSlug` 呼出（トップに `?company=` で着地したケースの捕捉）
+- `js/firebase-auth.js` — `signUp` 関数の冒頭で `loadInviteSlug` + `validateInviteSlug` チェック、空/不正なら `{ success: false, error: 'invite-required' }` を返す（呼出側でUI制御）
+- `tests/invite-url.test.js`(新) — `captureInviteSlug` / `loadInviteSlug` / `validateInviteSlug` の3関数を全パターン（URLあり/なし/不正、localStorage clear時挙動、companies 配列マッチング）でテスト
+
+**動作仕様（招待URLなし signup の挙動）:**
+1. ユーザーが直接 `https://...dev/login.html?mode=signup` を踏む
+2. ページ読込で localStorage.taxi_pending_company を確認 → 空
+3. signup フォーム部分を非表示にし、その位置に警告ボックスを表示:
+   ```
+   ⚠️ 新規登録には招待URLが必要です
+   会社/組合からお渡しした招待URL経由でアクセスしてください。
+   招待URLをお持ちでない場合は、お問い合わせください: cabis@taxicabis.com
+   ```
+4. 「ログイン」タブはそのまま機能させる（既存ユーザーは弾かない）
+
+**動作仕様（不正/未登録 slug の場合）:**
+1. ユーザーが `?company=invalid` で着地
+2. captureInviteSlug は値を localStorage に保存
+3. signup タブ表示時に validateInviteSlug が `companies/{slug}` を Firestore 取得 → 存在しなければ削除＋エラー表示
+4. 「招待URLが無効です。担当者にURLをご確認ください」+ mailto
+
+**動作仕様（招待URLあり・正常 slug）:**
+1. captureInviteSlug が localStorage に保存
+2. signup フォーム表示
+3. `createUserWithCredentials` が `taxi_pending_company` を読んで companyId 確定（既存実装）
+
+**テスト:**
+- `captureInviteSlug` 純関数テスト: URL に `?company=keiho` あり → storage に保存 / URL に無し → storage 触らない / 既存値あり→上書き
+- `loadInviteSlug` 純関数テスト: storage から取得 / 空なら null
+- `validateInviteSlug` 純関数テスト: companies に slug あり → true / 無し → false / null → false
+
+**既存ユーザーへの影響:**
+- 既存 user_self/mm は `companyId=keiho` 付与済み → 影響なし
+- 新仕様は新規 signup のみに適用、login（既存ユーザーのログイン）は影響なし
+
+**並行進行・依存:**
+- Task 9 (申込URLコピー = `?company=<slug>` 配布URL生成) の **対** になる仕組み → Task 9 完了後に Task 12 で受け側を実装する自然な順序
+- Task 1-11 とファイル衝突なし（`js/firebase-auth.js` の `signUp` 関数のみ追加修正、`createUserWithCredentials` は触らない）
+
 ---
 
 ## 依存・順序
@@ -163,11 +217,12 @@ Task 6 (既存マイグレ) — Task 1 直後
 Task 7 (defaultRecArea フィールド)
   └─ Task 8 (populateRecommendArea 配線)
 Task 9 (申込URL UI) — 独立
+  └─ Task 12 (signupガード) — Task 9 完了後（招待URL受け側）
 Task 10 (広報物確定文言) — Task 3 dev完了後
 Task 11 (本番反映) — 全部dev完了後
 ```
 
-並行進行が可能なタスク群: {Task 1, Task 5, Task 7, Task 9} は互いに独立。
+並行進行が可能なタスク群: {Task 1, Task 5, Task 7, Task 9} は互いに独立。Task 12 は Task 9 完了後。
 
 ---
 

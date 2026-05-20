@@ -118,6 +118,7 @@ import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth } from './js/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
+import { captureInviteSlug } from './js/invite-url.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -125,6 +126,9 @@ const inviteProcessed = false;
 // URL パラメータによる自動設定（管理者配布リンク対応）
 const urlParams = new URLSearchParams(location.search);
 const paramUser = urlParams.get('user');
+
+// 招待URL `?company=<slug>` を localStorage に捕捉（完全招待制・decisions 6）
+captureInviteSlug(urlParams, localStorage);
 let autoConfigured = false;
 if (paramUser) {
   const norm = paramUser.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[0-9_]+/, '');

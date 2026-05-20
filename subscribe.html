@@ -157,8 +157,12 @@ if (location.hostname.includes('-dev')) {
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, startCheckout, isPaying, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth } from './js/firebase-auth.js';
+import { captureInviteSlug } from './js/invite-url.js';
 
 renderLegalFooter();
+
+// 招待URL `?company=<slug>` を localStorage に捕捉（完全招待制・decisions 6）
+captureInviteSlug(new URLSearchParams(location.search), localStorage);
 
 // 法務文書の現行バージョン（同意記録に保存される）
 const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };

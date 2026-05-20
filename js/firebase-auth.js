@@ -11,6 +11,7 @@ import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/f
 import { DEFAULT_CONFIG } from './default-config.js';
 import { buildNewUserDoc } from './user-doc.js';
 import { clearSubCache } from './sub-cache.js';
+import { loadInviteSlug } from './invite-url.js';
 
 let currentUser = null;
 let currentUserId = null;
@@ -144,7 +145,14 @@ export async function createUserWithCredentials(userId, password) {
 // セルフサービス新規登録: ユーザーが選んだログインID＋パスワードで新規アカウントを作成する。
 // 成功するとそのアカウントでログイン状態になる。匿名で使っていた場合、匿名セッションは
 // 破棄される（匿名データ＝user_sample 等の共有デモは引き継がない＝まっさらな専用アカウント）。
+//
+// 完全招待制（decisions 6）: localStorage に有効な招待 slug (`taxi_pending_company`) が
+// 無い場合は signup を拒否する。UI 側 (login.html) でも事前にガードしているが、ここでも
+// 二重に防御（フォーム JS をバイパスして直接呼ばれるケース）。
 export async function signUp(userId, password) {
+  if (!loadInviteSlug(localStorage)) {
+    return { success: false, error: '新規登録には招待URLが必要です。会社/組合から配布された招待URL経由でアクセスしてください。' };
+  }
   if (!/^[a-z][a-z0-9_]*$/.test(userId)) {
     return { success: false, error: 'ログインIDは半角英小文字で始め、英小文字・数字・_ のみ使えます' };
   }
