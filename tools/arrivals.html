@@ -93,6 +93,19 @@
     .flight-row.is-delayed { background: rgba(255, 184, 77, 0.08); }
     .flight-row.is-delayed .status { color: var(--warn); }
     .flight-row.is-unknown { opacity: 0.6; }
+    /* 航空会社色（左ボーダー）。色 hex は tools/js/airline-color.js と同期 */
+    .flight-row.airline-jal   { border-left: 3px solid #e60012; padding-left: 7px; }
+    .flight-row.airline-ana   { border-left: 3px solid #013193; padding-left: 7px; }
+    .flight-row.airline-jjp   { border-left: 3px solid #ff5e1f; padding-left: 7px; }
+    .flight-row.airline-sky   { border-left: 3px solid #00b6f0; padding-left: 7px; }
+    .flight-row.airline-ado   { border-left: 3px solid #4ea83a; padding-left: 7px; }
+    .flight-row.airline-sna   { border-left: 3px solid #f4cd00; padding-left: 7px; }
+    .flight-row.airline-sfj   { border-left: 3px solid #4a4a4a; padding-left: 7px; }
+    .flight-row.airline-other { border-left: 3px solid #777777; padding-left: 7px; }
+    /* ターミナル文字タグ。色は会社色と衝突しない単色グレー */
+    .terminal-tag { display: inline-block; padding: 1px 6px; border-radius: 3px;
+      background: rgba(255,255,255,0.08); color: var(--sub); font-size: 11px;
+      font-weight: 600; margin-left: 6px; letter-spacing: 0.5px; }
     footer { padding: 8px 12px; color: var(--sub); font-size: 11px; border-top: 1px solid #222; display: flex; flex-direction: column; gap: 2px; }
     footer.is-stale .updated { color: var(--warn); }
     .empty { color: var(--sub); padding: 12px 0; text-align: center; }
