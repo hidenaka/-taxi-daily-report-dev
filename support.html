@@ -34,6 +34,25 @@
 
 .section-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
 .section-h .desc { font-size: 10px; color: var(--muted); }
+
+.help-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 6px; padding: 0;
+  background: var(--primary); color: #fff; border: none; border-radius: 50%;
+  font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer;
+  vertical-align: 1px;
+}
+.help-btn:hover, .help-btn:focus { opacity: 0.85; outline: none; }
+.help-btn.open { background: #1565c0; }
+.help-content {
+  display: none; margin: 6px 0 8px; padding: 10px 12px;
+  background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px;
+  font-size: 12px; line-height: 1.7; color: #0d47a1;
+}
+.help-content.open { display: block; }
+.help-content ul { margin: 4px 0; padding-left: 18px; }
+.help-content li { margin: 2px 0; }
+.help-content .guide-link { color: #1565c0; text-decoration: underline; font-weight: 600; }
 .detail-tip { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 12px; line-height: 1.5; display:none; }
 .detail-tip.show { display: block; }
 .loading { padding: 30px; text-align: center; color: var(--muted); }
@@ -86,8 +105,19 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="recommendCard">
     <div class="section-h">
-      <strong>次の営業先 推奨検索 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span></strong>
+      <strong>次の営業先 推奨検索 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
       <span class="desc">どこで降ろした×時刻 → 次に行くべきエリア</span>
+    </div>
+    <div class="help-content" id="help-rec-search">
+      💡 <strong>「どこで降ろした後、次にどこで乗車が取れたか」を集計して表示</strong>します。
+      <ul>
+        <li>降ろした場所と時刻を選ぶと、過去に同じ条件で取れた次の乗車履歴が出ます</li>
+        <li>「30分以内に次の乗車が取れた率」が高い順に並びます</li>
+        <li>表記は<strong>「乗った場所→降ろした場所」</strong>。降ろした位置から見た「次にお客様を乗せた場所」と「その人を降ろした場所」</li>
+        <li>「📍 現在地から自動入力」で GPS から降ろし場所を自動セット</li>
+        <li>他のドライバーの匿名集計データも含みます（個人特定情報なし）</li>
+      </ul>
+      <a href="guide.html#ch4" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
@@ -133,8 +163,19 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="highValueCard">
     <div class="section-h">
-      <strong>高期待値エリア × 時間帯 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span></strong>
+      <strong>高期待値エリア × 時間帯 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="high-value" aria-label="ヘルプ">?</button></strong>
       <span class="desc">単価が大きく出る場所と時間</span>
+    </div>
+    <div class="help-content" id="help-high-value">
+      💡 <strong>「単価が高く出るエリア × 時間帯」</strong>のランキングです。
+      <ul>
+        <li>乗車地エリア × 時間帯（4区切り）で<strong>中央単価</strong>が高い順 TOP15</li>
+        <li>中央値ベース＝たまの高額案件で平均が引き上がる影響を排除</li>
+        <li>タップで過去の乗車履歴を表示</li>
+        <li>最低5件以上のデータがあるエリアのみ</li>
+        <li>連続営業登録 <strong>10日以上（スタンダード段階）</strong> で解放されます</li>
+      </ul>
+      <a href="guide.html#ch4" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
     <div id="highValueBody"></div>
     <div class="detail-tip" id="highValueTip"></div>
@@ -143,8 +184,20 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="areaCard">
     <div class="section-h">
-      <strong>降車エリア別 効率(区+町名) <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span></strong>
+      <strong>降車エリア別 効率(区+町名) <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="area-eff" aria-label="ヘルプ">?</button></strong>
       <span class="desc">降ろした後どう動く</span>
+    </div>
+    <div class="help-content" id="help-area-eff">
+      💡 <strong>「降ろした後の動きやすさ」</strong>をエリア別に集計します。
+      <ul>
+        <li><strong>「単価」</strong>＝降ろした次の乗車営収（中央値／平均）</li>
+        <li><strong>「待ち」</strong>＝次乗車までの所要分（中央値／平均）</li>
+        <li>中央値ベース＝高単価営業の外れ値の影響を抑制</li>
+        <li>タップでそのエリアの過去履歴（表記:「乗った場所→降ろした場所」）を表示</li>
+        <li>最低5件以上のデータがあるエリアのみ</li>
+        <li>連続営業登録 <strong>4日以上（ライト段階）</strong> で解放されます</li>
+      </ul>
+      <a href="guide.html#ch4" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
     <div class="sort-tabs" id="areaSortTabs">
       <button data-s="dropoffs" class="active">件数順</button>
@@ -1103,6 +1156,20 @@ function renderArea() {
     };
   });
 }
+
+// ?ヘルプボタンの開閉。タップで対応する .help-content をトグル、再タップで閉じる。
+// event delegation で applyAggregateAccessGate のプレースホルダ差替後も動作する。
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.help-btn');
+  if (!btn) return;
+  const key = btn.getAttribute('data-help-for');
+  if (!key) return;
+  const content = document.getElementById('help-' + key);
+  if (!content) return;
+  const willOpen = !content.classList.contains('open');
+  content.classList.toggle('open', willOpen);
+  btn.classList.toggle('open', willOpen);
+});
 
 // Firebase-only mode
 renderPaceCard();
