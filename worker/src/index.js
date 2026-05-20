@@ -19,6 +19,10 @@
 // 依存パッケージなし（fetch + Web Crypto のみ）。
 // ============================================================
 
+import {
+  handleIssueUrl, handleValidateToken, handleSubmit, handleArchive,
+} from './setup-request/handler.js';
+
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）
 const USER_ID_RE = /^[a-z][a-z0-9_]*$/;
 
@@ -49,6 +53,18 @@ export default {
       }
       if (request.method === 'POST' && path === '/verify-turnstile') {
         return await handleVerifyTurnstile(request, env);
+      }
+      if (request.method === 'POST' && path === '/setup-request/issue-url') {
+        return await handleIssueUrl(request, env, helpersForSetupRequest(env));
+      }
+      if (request.method === 'GET' && path === '/setup-request/validate-token') {
+        return await handleValidateToken(request, env, helpersForSetupRequest(env));
+      }
+      if (request.method === 'POST' && path === '/setup-request/submit') {
+        return await handleSubmit(request, env, helpersForSetupRequest(env));
+      }
+      if (request.method === 'POST' && path === '/setup-request/archive') {
+        return await handleArchive(request, env, helpersForSetupRequest(env));
       }
       return json(env, { error: 'not_found' }, 404);
     } catch (err) {
@@ -534,4 +550,29 @@ function json(env, obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json', ...corsHeaders(env) },
   });
+}
+
+// ============================================================
+// /setup-request/* 用ヘルパー注入（ハンドラを index.js から疎結合に保つ）
+// ============================================================
+
+function helpersForSetupRequest(env) {
+  return {
+    json: (obj, status = 200) => json(env, obj, status),
+    getAccessToken: () => getAccessToken(env),
+    generateUniqueSlug: async () => {
+      const alphabet = '0123456789abcdefghjkmnpqrstvwxyz';
+      const accessToken = await getAccessToken(env);
+      for (let attempt = 0; attempt < 5; attempt++) {
+        let s = 'co-';
+        const buf = new Uint8Array(6);
+        crypto.getRandomValues(buf);
+        for (let i = 0; i < 6; i++) s += alphabet[buf[i] % alphabet.length];
+        const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents/companies/${s}`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+        if (res.status === 404) return s;
+      }
+      throw new Error('slug 衝突回避失敗（5回試行）');
+    },
+  };
 }
