@@ -11,6 +11,6 @@
     "admin:remove": "node scripts/remove-admin-uid.mjs"
   },
   "devDependencies": {
-    "firebase-admin": "^12.7.0"
+    "firebase-admin": "^13.10.0"
   }
 }
