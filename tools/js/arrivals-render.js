@@ -1,5 +1,7 @@
 import { airlineToColorKey } from './airline-color.js';
 
+const VALID_TERMINALS = new Set(['T1', 'T2', 'T3']);
+
 const TIER_INFO = {
   high: { label: '多い', emoji: '🟥' },
   mid:  { label: '普通', emoji: '🟧' },
@@ -202,7 +204,8 @@ export function renderFlightList(container, flights) {
     const lightningBadge = (f.taxiLightningBoost && f.taxiLightningBoost > 1.0)
       ? ` <span class="lightning-boost">⚡ラッシュ</span>`
       : '';
-    const terminalTag = f.terminal ? `<span class="terminal-tag">${f.terminal}</span>` : '';
+    const terminalTag = (f.terminal && VALID_TERMINALS.has(f.terminal))
+      ? `<span class="terminal-tag">${f.terminal}</span>` : '';
     row.innerHTML = `
       <div class="flight-line1">
         <span class="time">${time}</span>
