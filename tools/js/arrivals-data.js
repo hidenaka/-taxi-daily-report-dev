@@ -184,37 +184,3 @@ export function classifyStaleness(updatedAtIso, now) {
   return { level: 'critical', ageMinutes };
 }
 
-// 当日全便を fromName 単位で集計し、totalEstimatedTaxiPax 降順で返す純関数。
-// 各グループには「該当する全便」を flights 配列として保持し、便ごとに時刻順
-// (estimatedTime || scheduledTime 昇順) でソートする。
-// 欠航便・fromName 無し便は除外。estimatedTaxiPax の null/undefined は 0 扱い。
-// グループの並びは totalEstimatedTaxiPax 降順、同点は fromName 昇順で安定化。
-export function aggregateByOrigin(flights) {
-  if (!Array.isArray(flights) || flights.length === 0) return [];
-  const map = new Map();
-  for (const f of flights) {
-    if (f.status === '欠航') continue;
-    if (!f.fromName) continue;
-    const key = f.fromName;
-    if (!map.has(key)) {
-      map.set(key, { fromName: key, flightCount: 0, totalEstimatedTaxiPax: 0, flights: [] });
-    }
-    const g = map.get(key);
-    g.flightCount += 1;
-    g.totalEstimatedTaxiPax += (f.estimatedTaxiPax || 0);
-    g.flights.push(f);
-  }
-  for (const g of map.values()) {
-    g.flights.sort((a, b) => {
-      const ta = a.estimatedTime ?? a.scheduledTime ?? '99:99';
-      const tb = b.estimatedTime ?? b.scheduledTime ?? '99:99';
-      return ta.localeCompare(tb);
-    });
-  }
-  return [...map.values()].sort((a, b) => {
-    if (b.totalEstimatedTaxiPax !== a.totalEstimatedTaxiPax) {
-      return b.totalEstimatedTaxiPax - a.totalEstimatedTaxiPax;
-    }
-    return a.fromName.localeCompare(b.fromName);
-  });
-}
