@@ -63,7 +63,7 @@ if (location.hostname.includes('-dev')) {
       <span style="font-size:10px;background:#2e7d32;color:#fff;padding:1px 6px;border-radius:3px;">🔒 データ外部に送らない</span>
       <button class="help-btn" data-help-for="photo-import" aria-label="ヘルプ">?</button>
     </div>
-    <div class="help-content" id="help-photo-import">
+    <div class="help-content" id="help-photo-import" hidden>
       💡 <strong>営業明細の写真をそのままアップロードして、表の数字を自動取り込みします。</strong>
       <ul>
         <li>Cabis の自社サーバーで OCR（文字認識）を実行</li>
@@ -79,7 +79,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card">
     <label class="muted">日報テキストを貼付（Claude/Gemini/フォーマット済み 自動判別）<button class="help-btn" data-help-for="text-paste" aria-label="ヘルプ">?</button></label>
-    <div class="help-content" id="help-text-paste">
+    <div class="help-content" id="help-text-paste" hidden>
       💡 <strong>すでに別の方法（外部AI・自前ツール等）で日報をテキスト化した方の貼付欄です。</strong>
       <ul>
         <li>Claude / Gemini / フォーマット済みテキストを自動判別して取り込みます</li>

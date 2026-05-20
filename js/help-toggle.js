@@ -11,8 +11,10 @@ function onClick(e) {
   if (!key) return;
   const content = document.getElementById('help-' + key);
   if (!content) return;
-  const willOpen = !content.classList.contains('open');
+  const willOpen = !btn.classList.contains('open');
   content.classList.toggle('open', willOpen);
   btn.classList.toggle('open', willOpen);
+  if (willOpen) content.removeAttribute('hidden');
+  else content.setAttribute('hidden', '');
 }
 document.addEventListener('click', onClick);
