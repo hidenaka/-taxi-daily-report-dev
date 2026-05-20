@@ -4,6 +4,7 @@
 // rename する1回限りの移行。
 // 設計方針（2026-05-20 決定 7）: slug 自体が会社特定の漏洩経路になる（例 `keiho` → 恵豊）ため、
 // slug をランダム base32 に変える。`users/{uid}.companyId` も同時に更新する。
+// rename 完了後の slug マップは Notes.app の暗号化ノートに保存する（FileVault + ノートロック）。
 //
 // 使い方:
 //   SA=<service account json path> node scripts/migrate-anonymize-slug.mjs
@@ -133,7 +134,7 @@ for (const doc of companyDocs) {
 console.log(`\n結果: rename ${renamed}件 / skip ${skipped}件`);
 
 if (slugMap.length > 0) {
-  console.log('\n=== ⚠️ 重要: 以下の slug マップを 1Password / Notes.app 等の暗号化メモに保存してください ===');
+  console.log('\n=== ⚠️ 重要: 以下の slug マップを Notes.app の暗号化ノート（「キャビス slug マップ」等のロック済みノート）に保存してください ===');
   console.log('(これは「どの slug がどの会社か」を後で参照する唯一の手段。サーバーには会社名が残らない設計です)');
   console.log('');
   for (const m of slugMap) {
