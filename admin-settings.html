@@ -111,7 +111,7 @@ if (location.hostname.includes('-dev')) {
   </div>
 </main>
 <div id="navHost"></div>
-<div style="position:fixed;bottom:70px;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:10px 14px;z-index:10;">
+<div style="position:fixed;bottom:calc(56px + env(safe-area-inset-bottom));left:0;right:0;background:#fff;border-top:1px solid #eee;padding:10px 14px;z-index:10;">
   <button class="btn" id="saveConfigBtn" style="width:100%;">💾 設定を保存</button>
 </div>
 
