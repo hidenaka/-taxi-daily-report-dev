@@ -241,15 +241,28 @@ T3便は `stallCandidates: []`、gate 未充填便は `stallCandidates: null`。
 - `tools/js/forecast-section.js`: `renderActualsTable` を `<details>` 形式に改修
 - `tools/arrivals.html`: `<details>` の折りたたみ CSS
 
+## リポジトリ構成
+
+本仕様は**2つの repo にまたがる**:
+
+- **`乗務地図関係` (taxi-ic-helper) repo**: ODPT API から取得して `data/arrivals.json` を生成する側。Phase 3a/3b の `odpt-client.mjs`, `arrival-transformer.mjs`, `gate-to-stall.mjs`, `data/hnd-gate-to-stall.json` の変更はここで実施。生成物は GitHub Actions `relay-taxi-data.yml` で日報 dev/prod repo の `tools/data/` に自動 relay される
+- **`タクシー日報` repo**: ブラウザで表示する側。Phase 1, 2, 3c の `tools/js/*`, `tools/arrivals.html` の変更はここで実施
+
+別 worktree:
+- 日報側: `タクシー日報-wt-arrivals-v2/` (`feat/arrivals-page-v2` branch、本仕様のホーム)
+- 乗務地図側: Phase 3a 開始時に新規作成（例: `乗務地図関係-wt-arrivals-gate/` `feat/arrivals-gate-extraction` branch）
+
 ## データフロー
 
 ```
 ODPT API
-  └→ scripts/fetch-arrivals.mjs (Cron: 数分間隔)
-       └→ scripts/lib/odpt-client.mjs (gate 取得追加)
-            └→ scripts/lib/arrival-transformer.mjs
-                 ├→ scripts/lib/gate-to-stall.mjs (新規)
-                 └→ data/arrivals.json (stallCandidates 追加)
+  └→ 乗務地図関係 repo: scripts/fetch-arrivals.mjs (GitHub Actions schedule)
+       └→ scripts/lib/odpt-client.mjs (gate 取得追加 — Phase 3a)
+            └→ scripts/lib/arrival-transformer.mjs (Phase 3b)
+                 ├→ scripts/lib/gate-to-stall.mjs (新規 — Phase 3b)
+                 └→ data/arrivals.json (stallCandidates 追加 — Phase 3b)
+                      └→ GitHub Actions relay-taxi-data.yml
+                           └→ タクシー日報 dev/prod repo: tools/data/arrivals.json
 
 ブラウザ
   ├→ data/arrivals.json
@@ -286,7 +299,7 @@ TDD で純関数中心にテスト。UI 描画は手動確認。
 
 ## 運用考慮
 
-- **影響範囲:** タクシー日報 アプリのみ。taxi-ic-helper / Mac mini 観測には影響なし
+- **影響範囲:** Phase 1, 2, 3c は タクシー日報 repo のみ。Phase 3a, 3b は 乗務地図関係 (taxi-ic-helper) repo の ODPT 取得・変換側に変更が入る。Mac mini の出庫観測（slot-occupancy-tick.mjs）には影響なし
 - **ODPT_TOKEN:** 既に GitHub Actions secret に登録済（`fetch-arrivals.mjs` で利用中）。追加申請不要
 - **同時並行セッション:** 別 Claude セッション（`external-ai-disclosure`）が main workdir で動作中。本作業は別 worktree（`タクシー日報-wt-arrivals-v2/` `feat/arrivals-page-v2` ブランチ）で進行
 - **デプロイ:** dev/main 反映 → ユーザー承認 → cherry-pick で `deploy/arrivals-v2` ブランチ → origin/main（本番）
