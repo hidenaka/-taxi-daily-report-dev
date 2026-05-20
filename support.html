@@ -34,25 +34,7 @@
 
 .section-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
 .section-h .desc { font-size: 10px; color: var(--muted); }
-
-.help-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; margin-left: 6px; padding: 0;
-  background: var(--primary); color: #fff; border: none; border-radius: 50%;
-  font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer;
-  vertical-align: 1px;
-}
-.help-btn:hover, .help-btn:focus { opacity: 0.85; outline: none; }
-.help-btn.open { background: #1565c0; }
-.help-content {
-  display: none; margin: 6px 0 8px; padding: 10px 12px;
-  background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px;
-  font-size: 12px; line-height: 1.7; color: #0d47a1;
-}
-.help-content.open { display: block; }
-.help-content ul { margin: 4px 0; padding-left: 18px; }
-.help-content li { margin: 2px 0; }
-.help-content .guide-link { color: #1565c0; text-decoration: underline; font-weight: 600; }
+/* .help-btn / .help-content の共通スタイルは css/style.css に集約 */
 .detail-tip { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 12px; line-height: 1.5; display:none; }
 .detail-tip.show { display: block; }
 .loading { padding: 30px; text-align: center; color: var(--muted); }
@@ -224,6 +206,7 @@ import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHi
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
+import './js/help-toggle.js';
 
 const REC_AREA_LS_KEY = 'cabis_rec_area_last';
 const REC_AREA_FALLBACK = '千代田区丸の内';
@@ -1156,20 +1139,6 @@ function renderArea() {
     };
   });
 }
-
-// ?ヘルプボタンの開閉。タップで対応する .help-content をトグル、再タップで閉じる。
-// event delegation で applyAggregateAccessGate のプレースホルダ差替後も動作する。
-document.addEventListener('click', (e) => {
-  const btn = e.target.closest('.help-btn');
-  if (!btn) return;
-  const key = btn.getAttribute('data-help-for');
-  if (!key) return;
-  const content = document.getElementById('help-' + key);
-  if (!content) return;
-  const willOpen = !content.classList.contains('open');
-  content.classList.toggle('open', willOpen);
-  btn.classList.toggle('open', willOpen);
-});
 
 // Firebase-only mode
 renderPaceCard();

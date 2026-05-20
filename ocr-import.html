@@ -24,8 +24,19 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-    <h1 style="margin:0;flex:1;">写真から取り込み</h1>
+    <h1 style="margin:0;flex:1;">写真から取り込み <button class="help-btn" data-help-for="ocr-overview" aria-label="ヘルプ">?</button></h1>
     <a class="btn" href="input.html" style="background:var(--gray);color:#333;font-size:12px;padding:6px 12px;text-decoration:none;">戻る</a>
+  </div>
+
+  <div class="help-content" id="help-ocr-overview">
+    💡 <strong>営業明細の写真から、表の数字を自動取り込みします。</strong>
+    <ul>
+      <li>Cabis 自社サーバーで OCR（文字認識）を実行・<strong>画像は保存もログ出力もしません</strong></li>
+      <li>1日 <strong>100回まで</strong>。読み取り完了時に「残り N/100回」を表示します</li>
+      <li>過去の日報も撮ってためた写真をその場で順次取り込めます（過去6ヶ月分も1日で完結）</li>
+      <li>読み取り後は入力ページで確認・修正できます</li>
+    </ul>
+    <a href="guide.html#ch3" class="guide-link">使い方ガイドで詳しく →</a>
   </div>
 
   <div style="background:#e8f5e9;border:1px solid #2e7d32;border-radius:4px;padding:8px;margin-bottom:10px;font-size:11px;line-height:1.5;color:#1b5e20;">
@@ -38,7 +49,16 @@ if (location.hostname.includes('-dev')) {
       画像を選ぶ
       <input type="file" id="imageInput" accept="image/*" hidden>
     </label>
-    <p class="muted" style="font-size:11px;margin-bottom:0;">明るい場所で、営業明細の全体が入るように撮ってください。</p>
+    <p class="muted" style="font-size:11px;margin-bottom:0;">明るい場所で、営業明細の全体が入るように撮ってください。<button class="help-btn" data-help-for="ocr-tips" aria-label="ヘルプ">?</button></p>
+    <div class="help-content" id="help-ocr-tips">
+      💡 <strong>キレイに撮るコツ</strong>
+      <ul>
+        <li><strong>明るい場所</strong>で撮る（薄暗いと数字が読めません）</li>
+        <li><strong>明細全体</strong>が画面に収まるように引く</li>
+        <li>カメラを<strong>真上から</strong>かざす（斜めだと歪みで誤読が増えます）</li>
+        <li>もし「明細を読み取れませんでした」と出たら、上記3点を見直して撮り直してください</li>
+      </ul>
+    </div>
   </section>
 
   <section class="card">
@@ -46,5 +66,6 @@ if (location.hostname.includes('-dev')) {
   </section>
 </main>
 <script type="module" src="js/ocr-import.js"></script>
+<script type="module" src="js/help-toggle.js"></script>
 </body>
 </html>

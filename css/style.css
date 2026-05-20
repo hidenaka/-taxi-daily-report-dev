@@ -178,3 +178,23 @@ nav.bottom a.active { color: var(--primary); }
   color: #333;
   pointer-events: none;
 }
+
+/* ===== ?ヘルプボタン (共通) — 各ページで data-help-for / id=help-XXX で連動 ===== */
+.help-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; margin-left: 6px; padding: 0;
+  background: var(--primary); color: #fff; border: none; border-radius: 50%;
+  font-size: 11px; font-weight: 700; line-height: 1; cursor: pointer;
+  vertical-align: 1px;
+}
+.help-btn:hover, .help-btn:focus { opacity: 0.85; outline: none; }
+.help-btn.open { background: #1565c0; }
+.help-content {
+  display: none; margin: 6px 0 8px; padding: 10px 12px;
+  background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px;
+  font-size: 12px; line-height: 1.7; color: #0d47a1;
+}
+.help-content.open { display: block; }
+.help-content ul { margin: 4px 0; padding-left: 18px; }
+.help-content li { margin: 2px 0; }
+.help-content .guide-link { color: #1565c0; text-decoration: underline; font-weight: 600; }
