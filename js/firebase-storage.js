@@ -434,21 +434,23 @@ export async function getMyAggregateOnSince() {
 }
 
 // 自分の「連続ON期間中の出番数」を返す
-// = drives/{uid}/daily のうち date が onSince の日付以降のドキュメント数
-// onSince が null（OFF中）なら 0 を返す
+// = drives/{uid}/daily のうち updatedAt が onSince 以降のドキュメント数
+// 「updatedAt」基準なので、過去日付の日報を写真OCRや手入力で後から取り込んでも
+// カウントに反映される（保存・更新した時点で1出番として加算）。
+// 1日報 = 1ドキュメント（date キー）なので、同じ日を何度更新しても1出番扱い。
+// onSince が null（OFF中）なら 0 を返す。
 export async function getMyConsecutiveShiftsCount() {
   await waitForAuth();
   const user = getCurrentUser();
   if (!user) return 0;
   const onSince = await getMyAggregateOnSince();
   if (!onSince) return 0;
-  const sinceDate = String(onSince).slice(0, 10); // ISO8601 → YYYY-MM-DD
   const myUserId = getUserId();
   if (!myUserId) return 0;
   try {
     const q = query(
       collection(db, 'drives', myUserId, 'daily'),
-      where('date', '>=', sinceDate)
+      where('updatedAt', '>=', onSince)
     );
     const snap = await getDocs(q);
     return snap.size;
