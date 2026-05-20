@@ -37,7 +37,10 @@ function render() {
     : { windowHours: 3.5, windowLabel: '直近3時間' };
   const summary = summarizeFlights(visible, summaryOpts);
   const topics = detectTopics(all);
-  // 出発地フィルタは visible 内で更にしぼる。便リストにのみ適用（heatmap・summary はフィルタ前）
+  // 出発地フィルタ select の options を visible から再構築し、選択中の出発地が
+  // 現在の visible に無ければ state.originFilter を '' にリセットする。
+  // フィルタ適用前に呼ぶ必要がある（reset を flightsToShow 計算に反映するため）。
+  syncOriginFilterOptions(visible);
   const flightsToShow = state.originFilter
     ? visible.filter(f => f.fromName === state.originFilter)
     : visible;
@@ -45,7 +48,6 @@ function render() {
   renderTopics(document.getElementById('topics'), topics);
   renderSummary(document.getElementById('summary'), summary);
   renderHeatmap(document.getElementById('heatmap'), bins);
-  syncOriginFilterOptions(visible);
   renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(flightsToShow));
   renderUpdatedAt(
     document.getElementById('arrivals-footer'),
