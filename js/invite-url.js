@@ -62,3 +62,44 @@ export async function fetchCompanyExists(slug) {
   const snap = await getDoc(doc(db, 'companies', slug));
   return snap.exists();
 }
+
+// 簡易 HTML エスケープ（slug を画面表示する用）。
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+// 不正招待 URL を踏んだ時に画面最上部へ表示する警告 banner。
+// 二重表示防止 + ×ボタンでユーザー側からも閉じられる。
+export function showInviteIssueBanner(html) {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById('invite-issue-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'invite-issue-banner';
+  banner.style.cssText =
+    'position:fixed;top:0;left:0;right:0;background:#fee2e2;border-bottom:1px solid #fca5a5;'
+    + 'color:#991b1b;padding:10px 40px 10px 16px;font-size:13px;line-height:1.5;z-index:10000;'
+    + 'text-align:center;font-weight:500;';
+  banner.innerHTML = html
+    + ' <button type="button" aria-label="閉じる" '
+    + 'style="position:absolute;right:8px;top:6px;background:transparent;border:none;color:#991b1b;'
+    + 'font-size:18px;line-height:1;cursor:pointer;padding:4px 8px;">×</button>';
+  banner.querySelector('button').addEventListener('click', () => banner.remove());
+  document.body.appendChild(banner);
+}
+
+// 招待URL を捕捉し、Firestore で存在検証 → 不正なら localStorage クリア + 警告 banner 表示。
+// 全ページ共通の呼出口。fire and forget（await 不要、UI ブロックしない）。
+export async function checkInviteAndWarn(searchParams, storage, fetchCompanyExistsFn) {
+  const slug = captureInviteSlug(searchParams, storage);
+  if (!slug) return; // 招待URLパラメータなし → 何もしない
+  const valid = await validateInviteSlug(slug, fetchCompanyExistsFn);
+  if (valid) return; // 有効 → そのまま localStorage 保持
+  clearInviteSlug(storage);
+  showInviteIssueBanner(
+    '⚠️ 招待URL <code style="background:#fff;padding:1px 4px;border-radius:3px;font-family:monospace;">?company=' + escapeHtml(slug) + '</code> が無効です。'
+    + ' 担当者にURLをご確認のうえ、改めてアクセスしてください。'
+    + ' お問い合わせ: <a href="mailto:cabis@taxicabis.com" style="color:#991b1b;text-decoration:underline;">cabis@taxicabis.com</a>'
+  );
+}

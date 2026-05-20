@@ -114,11 +114,13 @@ if (location.hostname.includes('-dev')) {
 <script type="module">
 import { renderLegalFooter } from './js/legal-footer.js';
 import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase-auth.js';
-import { captureInviteSlug, loadInviteSlug, validateInviteSlug, fetchCompanyExists } from './js/invite-url.js';
+import { loadInviteSlug, validateInviteSlug, fetchCompanyExists, checkInviteAndWarn } from './js/invite-url.js';
 renderLegalFooter();
 
-// 招待URL `?company=<slug>` を localStorage に捕捉（完全招待制・decisions 6）
-captureInviteSlug(new URLSearchParams(location.search), localStorage);
+// 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
+// 不正 slug は localStorage に保存せず、画面上部に警告 banner を表示。
+// （banner = ページ着地の即時警告 / signup タブのガード UI = フォーム展開時の最終ガード、二段構え）
+checkInviteAndWarn(new URLSearchParams(location.search), localStorage, fetchCompanyExists);
 
 // ===== Cloudflare Turnstile =====
 // Bot対策。token は widget が自動取得し callback で受け取る。
