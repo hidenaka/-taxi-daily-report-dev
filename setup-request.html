@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cabis ｜ 会社情報ヒアリング</title>
+  <meta name="description" content="Cabis を貴社で使うための給与設定ヒアリングフォーム">
+  <link rel="stylesheet" href="css/style.css?v=1">
+  <style>
+    body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+    .setup-card { max-width:640px; margin:24px auto; padding:20px; background:#fff;
+      border:1px solid var(--border); border-radius:12px; }
+    .setup-section { margin-top:24px; padding-top:16px; border-top:1px solid var(--border); }
+    .setup-section:first-of-type { border-top:none; padding-top:0; }
+    .setup-section h3 { font-size:15px; margin:0 0 8px; }
+    .help-text { font-size:11px; color:#888; margin-top:4px; }
+    .warn-box { background:#fff3cd; border:1px solid #ffc107; border-radius:6px; padding:10px;
+      font-size:12px; color:#856404; margin:12px 0; }
+    .ok-box { background:#d4edda; border:1px solid #28a745; border-radius:6px; padding:10px;
+      font-size:12px; color:#155724; margin:12px 0; }
+    .err-box { background:#f8d7da; border:1px solid #dc3545; border-radius:6px; padding:10px;
+      font-size:12px; color:#721c24; margin:12px 0; }
+    .rate-row { display:grid; grid-template-columns: 90px 1fr 30px; gap:6px; align-items:center; margin:4px 0; }
+    .attach-list { font-size:11px; color:#555; margin-top:6px; }
+    .attach-list li { margin:2px 0; }
+    .gate-screen { max-width:480px; margin:60px auto; padding:24px; text-align:center; }
+    .gate-screen h2 { font-size:18px; margin:0 0 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- 検証中 -->
+  <div id="gateValidating" class="gate-screen">
+    <p>URLを検証中です...</p>
+  </div>
+
+  <!-- 無効・期限切れ・使用済み -->
+  <div id="gateError" class="gate-screen" style="display:none;">
+    <h2>このURLは無効です</h2>
+    <p class="help-text" id="gateErrorMsg"></p>
+    <p style="margin-top:16px;">
+      <a href="mailto:haqei64384@gmail.com">Cabis 開発者に連絡する</a>
+    </p>
+  </div>
+
+  <!-- 送信完了 -->
+  <div id="gateDone" class="gate-screen" style="display:none;">
+    <h2>✓ 送信しました</h2>
+    <p class="help-text">Cabis 開発者が内容を確認後、<br>
+       ご登録に必要な URL をメールでお送りします。<br>
+       通常 1〜3 営業日です。</p>
+  </div>
+
+  <!-- フォーム本体 -->
+  <main id="setupForm" class="setup-card" style="display:none;">
+    <h2 style="margin:0 0 8px;">🚕 Cabis 会社情報ヒアリング</h2>
+    <p class="help-text">
+      Cabis を貴社で使うための給与設定を教えてください。所要時間: 5〜10分
+    </p>
+    <p class="help-text" style="margin-top:6px;">
+      ・送信先: Cabis 開発者 中野<br>
+      ・送信後の変更: 中野までご連絡
+    </p>
+
+    <!-- 1. 連絡先 -->
+    <section class="setup-section">
+      <h3>1. 連絡先</h3>
+      <p class="help-text">※ サーバには保存しません（メール本文・添付として中野氏に届くのみ）</p>
+
+      <label class="muted">会社名 *</label>
+      <input class="input" id="companyName" type="text" required>
+
+      <label class="muted" style="margin-top:8px;display:block;">お名前 *</label>
+      <input class="input" id="contactName" type="text" required>
+
+      <label class="muted" style="margin-top:8px;display:block;">メール *</label>
+      <input class="input" id="contactEmail" type="email" required>
+
+      <label class="muted" style="margin-top:8px;display:block;">電話（任意）</label>
+      <input class="input" id="contactPhone" type="tel">
+    </section>
+
+    <!-- 2. 給与モード -->
+    <section class="setup-section">
+      <h3>2. 給与の決まり方</h3>
+      <p class="help-text">給与明細を見て「売上 × 一定の率」なら固定、「乗務回数によって率が変わる」なら変動</p>
+
+      <label><input type="radio" name="payrollMode" value="step_rate"> 変動歩率</label><br>
+      <label><input type="radio" name="payrollMode" value="fixed_rate" checked> 固定歩率</label><br>
+      <label><input type="radio" name="payrollMode" value="monthly"> 月給制</label>
+
+      <div id="monthlyNote" class="warn-box" style="display:none;">
+        月給制は現在このフォームでは未対応です。<br>
+        <a href="mailto:haqei64384@gmail.com">直接ご相談</a> いただけますと幸いです。
+      </div>
+    </section>
+
+    <!-- 3. 歩率（モード別動的表示） -->
+    <section class="setup-section" id="rateSection">
+      <h3>3. 歩率</h3>
+
+      <!-- 固定歩率 -->
+      <div id="fixedRateBlock">
+        <label class="muted">固定の歩合率（%）</label>
+        <input class="input" id="fixedRate" type="number" step="0.1" min="0" max="100" value="55">
+      </div>
+
+      <!-- 変動歩率: 数値入力 -->
+      <div id="stepRateBlock" style="display:none;">
+        <p class="help-text">記入方法は3パターン。<strong>1つ以上</strong>埋めてください。</p>
+
+        <details open>
+          <summary>▼ パターン1: 数値で入力</summary>
+          <div id="numericRateRows" style="margin-top:8px;">
+            <!-- 11行を JS で生成 -->
+          </div>
+          <div class="rate-row" style="margin-top:8px;">
+            <label class="muted">12乗務目以降（固定%）</label>
+            <input class="input" id="numericFinalRate" type="number" step="0.1" min="0" max="100" value="">
+            <span>%</span>
+          </div>
+        </details>
+
+        <details>
+          <summary>▼ パターン2: 自由テキストで書く</summary>
+          <textarea id="rateTableText" class="input" rows="6" style="width:100%;margin-top:8px;"
+            placeholder="例: 売上40万未満は1〜11乗務目55%、12乗務目以降50%。売上40万以上60万未満は..."></textarea>
+        </details>
+
+        <details>
+          <summary>▼ パターン3: 給与規程の書類を添付</summary>
+          <p class="help-text">PDF / JPEG / PNG / 最大3枚 / 計10MBまで</p>
+          <input id="attachments" type="file" accept="application/pdf,image/jpeg,image/png" multiple>
+          <ul class="attach-list" id="attachmentList"></ul>
+        </details>
+      </div>
+    </section>
+
+    <!-- 4. その他の給与設定 -->
+    <section class="setup-section">
+      <h3>4. その他の給与設定</h3>
+
+      <label class="muted">手取りに残る割合（%）</label>
+      <input class="input" id="takeHomeRate" type="number" step="0.01" min="50" max="100" value="75">
+      <p class="help-text">通常 70〜80%。分からなければ 75 でOK</p>
+
+      <label class="muted" style="margin-top:8px;display:block;">責任出番数（回/月度）</label>
+      <input class="input" id="responsibilityShifts" type="number" step="1" min="1" max="30" value="11">
+
+      <label class="muted" style="margin-top:8px;display:block;">有給1日あたりの金額（円）</label>
+      <input class="input" id="paidLeaveAmount" type="number" step="100" min="0" value="39340">
+    </section>
+
+    <!-- 5. インセンティブ -->
+    <section class="setup-section">
+      <h3>5. 売上達成インセンティブ</h3>
+      <label class="muted">1日あたり（円・税抜）</label>
+      <input class="input" id="incentiveThreshold" type="number" step="1000" min="0" value="80000">
+
+      <label class="muted" style="margin-top:8px;display:block;">以上売り上げた日、出番ごとに（円）</label>
+      <input class="input" id="incentiveAmount" type="number" step="100" min="0" value="2000">
+
+      <label class="muted" style="margin-top:8px;display:block;">
+        <input type="checkbox" id="incentiveNone"> インセンティブ無し
+      </label>
+    </section>
+
+    <!-- 6. 営業地デフォルト -->
+    <section class="setup-section">
+      <h3>6. 営業地デフォルト（任意）</h3>
+      <input class="input" id="defaultRecArea" type="text" placeholder="千代田区丸の内">
+      <p class="help-text">アプリの「営業サポート」初期表示に使用。空欄なら丸の内</p>
+    </section>
+
+    <!-- 7. プラン -->
+    <section class="setup-section">
+      <h3>7. プラン（中野氏との合意済み）</h3>
+      <select class="select" id="plan">
+        <option value="partner">提携プラン（partner）</option>
+        <option value="normal">通常プラン（normal）</option>
+      </select>
+    </section>
+
+    <!-- 8. 補足 -->
+    <section class="setup-section">
+      <h3>8. その他ご要望・補足（任意）</h3>
+      <textarea id="notes" class="input" rows="4" style="width:100%;"
+        placeholder="繁忙期は歩率1%上乗せ等の補足"></textarea>
+      <p class="help-text">※ サーバには保存しません（メール本文として中野氏に届くのみ）</p>
+    </section>
+
+    <!-- 送信 -->
+    <section class="setup-section">
+      <button class="btn" id="submitBtn" style="width:100%;background:var(--primary);color:#fff;font-size:16px;padding:12px;">
+        📨 送信する
+      </button>
+      <div id="submitStatus" style="font-size:12px;margin-top:8px;"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/setup-request-app.js?v=1"></script>
+</body>
+</html>
