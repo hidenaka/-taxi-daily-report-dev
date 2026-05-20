@@ -25,7 +25,6 @@
       throw new Error('access-denied: redirected');
     }
   </script>
-  <a href="../" style="display:block;padding:8px 14px;background:#0a0a0f;border-bottom:1px solid rgba(255,255,255,0.08);color:#8a8a92;text-decoration:none;font-size:13px;">← 日報に戻る</a>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>
     <a href="ic.html" class="app-tab active" aria-current="page">🛣 IC判定</a>
@@ -149,6 +148,11 @@
         window.location.href = a.getAttribute('href');
       });
     });
+  </script>
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
   </script>
 </body>
 </html>

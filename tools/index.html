@@ -371,6 +371,23 @@
       cursor: pointer;
     }
     #btn-undo-reset:active { background: rgba(240, 192, 96, 0.12); }
+
+    body { padding-bottom: 64px; }
+    nav.bottom {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 56px; background: #1a1a24;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 50;
+    }
+    nav.bottom a {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-decoration: none; color: #8a8a92;
+      font-size: 11px;
+    }
+    nav.bottom a.active { color: #4ea1ff; }
   </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -381,7 +398,6 @@
       throw new Error('access-denied: redirected');
     }
   </script>
-  <a href="../" class="back-link">← 日報に戻る</a>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab active" aria-current="page">⏱ 乗務タイマー</a>
     <a href="ic.html" class="app-tab">🛣 IC判定</a>
@@ -943,6 +959,11 @@ document.querySelectorAll('.app-tab').forEach(a => {
     window.location.href = a.getAttribute('href');
   });
 });
+</script>
+<div id="navHost"></div>
+<script type="module">
+  import { renderBottomNav } from '../js/app.js';
+  document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
 </script>
 </body>
 </html>

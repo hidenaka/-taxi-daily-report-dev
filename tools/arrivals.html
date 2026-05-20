@@ -131,6 +131,23 @@
     .fc-table th:first-child, .fc-table td.fc-time { text-align: left; }
     .fc-table td.fc-time { font-weight: 600; }
     .fc-table td.fc-total { font-weight: 700; color: var(--accent); }
+
+    body { padding-bottom: 64px; }
+    nav.bottom {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 56px; background: #16161c;
+      border-top: 1px solid #222;
+      display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 50;
+    }
+    nav.bottom a {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-decoration: none; color: var(--sub);
+      font-size: 11px;
+    }
+    nav.bottom a.active { color: var(--accent); }
   </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -141,7 +158,6 @@
       throw new Error('access-denied: redirected');
     }
   </script>
-  <a href="../" style="display:block;padding:8px 14px;background:#0a0a0f;border-bottom:1px solid rgba(255,255,255,0.08);color:#8a8a92;text-decoration:none;font-size:13px;">← 日報に戻る</a>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>
     <a href="ic.html" class="app-tab">🛣 IC判定</a>
@@ -197,5 +213,10 @@
   <footer id="arrivals-footer"></footer>
 
   <script type="module" src="./js/arrivals-app.js?v=20260507b"></script>
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+  </script>
 </body>
 </html>
