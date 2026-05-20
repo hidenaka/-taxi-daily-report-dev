@@ -10,12 +10,12 @@ jobs:
     
     steps:
       - name: Checkout dev repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: dev
           
       - name: Checkout prod repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: hidenaka/taxi-daily-report
           token: ${{ secrets.PROD_DEPLOY_TOKEN }}
