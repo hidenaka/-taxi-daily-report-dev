@@ -24,6 +24,7 @@
     if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
       throw new Error('access-denied: redirected');
     }
+    import('../js/gps-privacy-banner.js').then(m => m.showGpsPrivacyBanner());
   </script>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>

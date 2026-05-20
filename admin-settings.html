@@ -117,6 +117,8 @@ if (location.hostname.includes('-dev')) {
 
 <script type="module">
 import { renderBottomNav } from './js/app.js';
+import { showGpsPrivacyBanner } from './js/gps-privacy-banner.js';
+showGpsPrivacyBanner();
 import { getConfig, saveConfig, getMyUserId, setMyUserId } from './js/storage.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';

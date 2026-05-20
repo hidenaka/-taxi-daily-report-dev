@@ -298,6 +298,8 @@ if (location.hostname.includes('-dev')) {
 </div>
 <script type="module">
 import { renderBottomNav } from './js/app.js';
+import { showGpsPrivacyBanner } from './js/gps-privacy-banner.js';
+showGpsPrivacyBanner();
 import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, getUserRoleMap, getMyAggregateAnalysisFlag, setMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
 import { ACCESS_LEVELS, getAccessLevel, getNextThreshold } from './js/aggregate-access.js';
 import { buildReferralUrl } from './js/admin-companies.js';

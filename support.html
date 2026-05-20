@@ -127,11 +127,6 @@ if (location.hostname.includes('-dev')) {
       </label>
       <span class="muted" style="font-size:10px;" id="recNeighborInfo"></span>
     </div>
-    <div id="gpsPrivacyBanner" style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 10px;margin-bottom:8px;font-size:11px;line-height:1.5;color:#075985;position:relative;">
-      <button id="gpsPrivacyClose" aria-label="閉じる" style="position:absolute;right:6px;top:4px;background:transparent;border:none;color:#075985;font-size:16px;line-height:1;cursor:pointer;padding:2px 6px;">×</button>
-      <strong>🛡️ 「📍 現在地から自動入力」は押した時だけ動きます</strong><br>
-      <span style="font-size:10px;">場所は降ろし場所の入力にだけ使い、保存も共有もしません。</span>
-    </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <button id="recGps" style="flex:1;background:#fff;color:var(--primary);border:1px solid var(--primary);padding:8px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;">📍 現在地から自動入力</button>
       <button id="recSearch" style="flex:2;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">推奨を表示</button>
@@ -206,6 +201,8 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, toLocalIso } from './js/app.js';
+import { showGpsPrivacyBanner } from './js/gps-privacy-banner.js';
+showGpsPrivacyBanner();
 import { getDrivesForMonth, getDrivesForMonthCached, getAllUsersDrivesForMonth, getAllUsersDrivesForMonthCached, listActiveUserIds, listActiveUserIdsCached, getMyUserId, getUserDisplayMap, getUserDisplayMapCached, getUserRoleMap, getUserRoleMapCached, getDrive, getConfig, getConfigCached, getMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
 import { ACCESS_LEVELS, getAccessLevel, getAccessLimits, getNextThreshold } from './js/aggregate-access.js';
 import {
@@ -832,23 +829,6 @@ async function runGpsLookup({ silent = false } = {}) {
   }
 }
 document.getElementById('recGps').onclick = () => runGpsLookup({ silent: false });
-
-// GPS プライバシー説明バナーの開閉制御。本人が閉じたら localStorage で記憶し再表示しない。
-(() => {
-  const banner = document.getElementById('gpsPrivacyBanner');
-  if (!banner) return;
-  if (localStorage.getItem('cabis_gps_privacy_dismissed') === '1') {
-    banner.style.display = 'none';
-    return;
-  }
-  const closeBtn = document.getElementById('gpsPrivacyClose');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      banner.style.display = 'none';
-      localStorage.setItem('cabis_gps_privacy_dismissed', '1');
-    });
-  }
-})();
 
 // permissions が granted の時のみページ読込時にサイレント自動取得
 // prompt/denied/未対応ブラウザでは何もせず（許可ダイアログを勝手に出さない）

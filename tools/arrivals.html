@@ -218,7 +218,9 @@
   <div id="navHost"></div>
   <script type="module">
     import { renderBottomNav } from '../js/app.js';
+    import { showGpsPrivacyBanner } from '../js/gps-privacy-banner.js';
     document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+    showGpsPrivacyBanner();
   </script>
 </body>
 </html>
