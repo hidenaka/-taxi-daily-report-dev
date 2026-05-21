@@ -5,7 +5,8 @@
 // 給与/プラン等の運用設定のみを保持する。会社名表示が必要な場面は管理者の頭の中の
 // マップ（または手元のローカルメモ）で扱う。
 
-const SLUG_RE = /^[a-z][a-z0-9_]*$/;
+// 自動発行 slug は `co-xxxxxx` 形式（slug-gen.js / invite-url.js とハイフン許可で揃える）。
+const SLUG_RE = /^[a-z][a-z0-9_-]*$/;
 
 const NUMBER_LABELS = {
   takeHomeRate: '手取り率',
@@ -28,7 +29,7 @@ function num(v) {
 export function buildCompanyDoc(form) {
   const slug = String(form.slug || '').trim();
   if (!SLUG_RE.test(slug) || slug.length < 2 || slug.length > 40) {
-    return { error: '会社ID(slug)は半角英小文字で始まり、英小文字・数字・_ のみ・2〜40文字です' };
+    return { error: '会社ID(slug)は半角英小文字で始まり、英小文字・数字・_・- のみ・2〜40文字です' };
   }
   if (form.plan !== 'partner' && form.plan !== 'normal') {
     return { error: 'プランは partner / normal のいずれかです' };

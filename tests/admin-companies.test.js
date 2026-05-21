@@ -58,8 +58,14 @@ test('buildCompanyDoc: step_rate で rateTable が非オブジェクトならエ
 test('buildCompanyDoc: 不正な slug でエラー', () => {
   assert.ok(buildCompanyDoc(stepForm({ slug: 'Keiho' })).error);  // 大文字
   assert.ok(buildCompanyDoc(stepForm({ slug: '1abc' })).error);   // 数字始まり
-  assert.ok(buildCompanyDoc(stepForm({ slug: 'a-b' })).error);    // 記号
+  assert.ok(buildCompanyDoc(stepForm({ slug: 'a.b' })).error);    // 記号(.)
   assert.ok(buildCompanyDoc(stepForm({ slug: 'a' })).error);      // 短すぎ
+});
+
+test('buildCompanyDoc: 自動発行 slug（co-xxxxxx・ハイフン入り）を受理', () => {
+  const { doc, error } = buildCompanyDoc(stepForm({ slug: 'co-ez889n' }));
+  assert.strictEqual(error, undefined);
+  assert.strictEqual(doc.slug, 'co-ez889n');
 });
 
 test('buildCompanyDoc: 会社名(name)は保存されない — 個人特定リスクの低減', () => {
