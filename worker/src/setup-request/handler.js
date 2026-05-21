@@ -195,6 +195,7 @@ export async function handleSubmit(request, env, helpers) {
   });
 
   const mailResult = await sendMail({
+    apiKey: env.RESEND_API_KEY,
     from: env.MAIL_FROM,
     to: env.MAIL_TO,
     subject: `[Cabis申請] 新規ヒアリング申請が届きました (${found.doc.assignedSlug})`,

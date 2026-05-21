@@ -2,6 +2,11 @@
 
 作成: 2026-05-20 ／ 状態: ドラフト（ユーザーレビュー待ち）
 
+> **【2026-05-21 更新】メール送信は Mail Channels → Resend に変更。**
+> 旧 Cloudflare Mail Channels の無料・無認証送信が 2024 に終了し API キー必須化したため、
+> Resend Email API（`https://api.resend.com/emails`・`Authorization: Bearer <RESEND_API_KEY>`）に移行。
+> 以降の本文で「Mail Channels」とあるのは Resend と読み替える。DNS は SPF + DKIM（Resend のドメイン検証）。
+
 ## 概要
 
 新規導入会社（まだ `companies/{slug}` が作成されていない会社）の給与ルールを、

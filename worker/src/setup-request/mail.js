@@ -1,34 +1,42 @@
 // worker/src/setup-request/mail.js
-// Cloudflare Mail Channels API でメールを送信する（純関数 + fetch）。
-// 添付は base64 で乗せる。
+// Resend Email API でメールを送信する（純関数 + fetch）。
+// 添付は base64 で乗せる。RESEND_API_KEY を Bearer で渡す。
+// （旧 Cloudflare Mail Channels は 2024 に無料提供終了し API キー必須化したため Resend に移行）
 
-const MAIL_API = 'https://api.mailchannels.net/tx/v1/send';
+const MAIL_API = 'https://api.resend.com/emails';
 
 /**
- * Send a notification mail to admin.
+ * Send a notification mail to admin via Resend.
  * @param {Object} args
- * @param {string} args.from
+ * @param {string} args.apiKey  Resend API key（Worker secret RESEND_API_KEY）
+ * @param {string} args.from    検証済みドメインの送信元（例: noreply@taxicabis.com）
  * @param {string} args.to
  * @param {string} args.subject
  * @param {string} args.text
  * @param {Array<{filename:string, contentBase64:string, type:string}>} args.attachments
  * @returns {Promise<{ok:boolean, status:number, body:string}>}
  */
-export async function sendMail({ from, to, subject, text, attachments = [] }) {
+export async function sendMail({ apiKey, from, to, subject, text, attachments = [] }) {
+  if (!apiKey) {
+    return { ok: false, status: 0, body: 'RESEND_API_KEY not configured' };
+  }
   const body = {
-    personalizations: [{ to: [{ email: to }] }],
-    from: { email: from },
+    from,
+    to: [to],
     subject,
-    content: [{ type: 'text/plain', value: text }],
+    text,
     attachments: attachments.map((a) => ({
       filename: a.filename,
-      type: a.type,
       content: a.contentBase64,
+      content_type: a.type,
     })),
   };
   const res = await fetch(MAIL_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify(body),
   });
   return { ok: res.ok, status: res.status, body: await res.text() };

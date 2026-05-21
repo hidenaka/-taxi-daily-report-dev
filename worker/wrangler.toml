@@ -6,7 +6,11 @@
 #   wrangler secret put STRIPE_SECRET_KEY
 #   wrangler secret put STRIPE_WEBHOOK_SECRET
 #   wrangler secret put FIREBASE_SERVICE_ACCOUNT
+#   wrangler secret put RESEND_API_KEY   # ヒアリング申請の通知メール送信（Resend）
 # （prod は各コマンドに --env production を付ける）
+#
+# メール送信元 MAIL_FROM のドメイン(taxicabis.com)は Resend で要ドメイン検証
+# （SPF + DKIM の DNS レコード追加）。
 
 name = "cabis-billing-dev"
 main = "src/index.js"
