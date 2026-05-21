@@ -4,3 +4,5 @@ node_modules/
 *serviceaccount*.json
 *service-account*.json
 .dev.vars
+.env
+.env.*
