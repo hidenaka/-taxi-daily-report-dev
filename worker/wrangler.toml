@@ -34,8 +34,8 @@ name = "cabis-billing"
 
 [env.production.vars]
 FIREBASE_PROJECT_ID = "taxi-dailydata"
-# ↓ Live モードで Product/Price を再作成したら差し替える
-STRIPE_PRICE_ID = "price_LIVE_PLACEHOLDER"
+# Live モードで作成した本番 Price（Cabis 有料プラン ¥1,000/月）。2026-05-22 設定。
+STRIPE_PRICE_ID = "price_1TZfsWGtKUEpwNTvjtEUrZFu"
 APP_BASE_URL = "https://app.taxicabis.com"
 ALLOWED_ORIGIN = "https://app.taxicabis.com"
 MAIL_FROM = "noreply@taxicabis.com"
