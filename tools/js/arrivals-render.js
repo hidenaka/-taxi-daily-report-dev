@@ -135,9 +135,41 @@ export function renderWeatherBanner(container, weather) {
     `;
     return;
   }
+  // 雨・雪・霧などの悪天候は、出庫観測 (夜の行灯/路面反射) にノイズが乗りやすい。
+  // 天気と観測注記を表示して「数値は参考」と分かるようにする。
+  const wx = weatherCodeToLabel(weather.weatherCode);
+  const isBadWeather = wx && wx.advisory;
+  if (isBadWeather) {
+    container.hidden = false;
+    container.classList.remove('is-active', 'is-recovery');
+    container.classList.add('is-weather');
+    const precip = (typeof weather.precipitation === 'number' && weather.precipitation > 0)
+      ? ` ${weather.precipitation}mm/h` : '';
+    const temp = (typeof weather.temperature === 'number')
+      ? ` ・ ${weather.temperature}℃` : '';
+    container.innerHTML = `
+      <span class="weather-icon">${wx.icon}</span>
+      <span class="weather-msg"><strong>${wx.label}${precip}</strong>${temp} — ${wx.advisory}</span>
+    `;
+    return;
+  }
   container.innerHTML = '';
   container.hidden = true;
-  container.classList.remove('is-active', 'is-recovery');
+  container.classList.remove('is-active', 'is-recovery', 'is-weather');
+}
+
+// WMO weather code を アイコン・ラベル・観測注記 (advisory) に変換する純関数。
+// advisory が非 null の天気は「出庫観測に影響しうる悪天候」としてバナー表示する。
+export function weatherCodeToLabel(code) {
+  if (code == null || typeof code !== 'number') return null;
+  if (code >= 95) return { icon: '⛈', label: '雷雨', advisory: '着陸見合わせ・滞留の可能性。観測値も反射ノイズで揺れやすい' };
+  if (code >= 80 && code <= 82) return { icon: '🌦', label: 'にわか雨', advisory: '路面反射で夜間の観測値がやや多めに出ることがある' };
+  if (code >= 71 && code <= 77) return { icon: '❄', label: '雪', advisory: '視界低下で観測精度が落ちる可能性' };
+  if (code >= 61 && code <= 67) return { icon: '☔', label: '雨', advisory: '路面反射で夜間の観測値がやや多めに出ることがある' };
+  if (code >= 51 && code <= 57) return { icon: '🌧', label: '霧雨', advisory: '弱い反射ノイズの可能性' };
+  if (code === 45 || code === 48) return { icon: '🌫', label: '霧', advisory: '視界低下で観測精度が落ちる可能性' };
+  // 快晴〜曇りは advisory なし (バナー非表示)
+  return { icon: '☁', label: '曇り', advisory: null };
 }
 
 export function renderStaleBanner(container, classification) {
