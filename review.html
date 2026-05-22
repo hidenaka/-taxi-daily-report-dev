@@ -309,6 +309,7 @@ async function load() {
     if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {
       renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
         onChange: () => applyVehicleFilterAndRender(''),
+        hidePremium: config?.hidePremium,
       });
     }
   }
@@ -340,6 +341,7 @@ async function load() {
       });
       renderVehicleTabs(document.getElementById('vehicleTabsContainer'), {
         onChange: () => applyVehicleFilterAndRender(''),
+        hidePremium: config?.hidePremium,
       });
     }
 

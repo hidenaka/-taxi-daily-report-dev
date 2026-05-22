@@ -544,6 +544,7 @@ async function load() {
           applyVehicleFilterAndRender('');
           renderPaceCard();
         },
+        hidePremium: cachedConfigSupport?.hidePremium,
       });
     }
   }
@@ -587,6 +588,7 @@ async function load() {
           applyVehicleFilterAndRender('');
           renderPaceCard();
         },
+        hidePremium: getConfigCached?.()?.hidePremium,
       });
     }
     applyLoaded(periods, myParts, allParts, userIds, roleMap, '');

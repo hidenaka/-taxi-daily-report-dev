@@ -225,6 +225,12 @@ async function init() {
   config = await getConfig();
   if (!config) return alert('config.json未取得');
   document.getElementById('vehicleTypeSel').value = config.defaults.vehicleType;
+  if (config.hidePremium) {
+    const o = document.querySelector('#vehicleTypeSel option[value="premium"]');
+    if (o) o.hidden = true;
+    const sel = document.getElementById('vehicleTypeSel');
+    if (sel.value === 'premium') sel.value = 'japantaxi';
+  }
 
   // ?date=YYYY-MM-DD があれば編集モード、既存データを復元
   const editDate = new URLSearchParams(location.search).get('date');
