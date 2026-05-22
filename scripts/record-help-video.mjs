@@ -542,10 +542,10 @@ const SCENARIOS = {
       await ui.caption('③ ストップウォッチが動く。暫定休憩時間も出る');
       await page.waitForTimeout(2600);
 
-      // ④ メトリクスカードへスクロールして帰庫期限・休憩残りを見せる
+      // ④ メトリクスカードへスクロールして連続走行可能時間・休憩残りを見せる
       await page.evaluate(() => document.querySelector('.metrics')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
       await page.waitForTimeout(800);
-      await ui.caption('④ 帰庫期限・残り必要休憩が自動で計算される');
+      await ui.caption('④ 連続走行可能時間・残り必要休憩が自動で計算される');
       await ui.ripple('#deadline-card');
       await page.waitForTimeout(2200);
       await ui.ripple('#break-remaining-card');
@@ -564,6 +564,18 @@ const SCENARIOS = {
       await page.waitForTimeout(800);
       await ui.caption('⑥ 記録が履歴に残る。次の可能時刻もわかる');
       await ui.ripple('#history-list');
+      await page.waitForTimeout(2400);
+
+      // ⑦ 設定を開いて「連続走行可能時間」「必要休憩」が変更できることを見せる
+      await page.evaluate(() => document.querySelector('#settings-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(500);
+      await ui.ripple('#btn-settings-toggle');
+      await page.locator('#btn-settings-toggle').click();
+      await page.waitForTimeout(900);
+      await page.evaluate(() => document.querySelector('#continuous-drive-hour')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      await page.waitForTimeout(600);
+      await ui.caption('⑦ 連続走行可能時間・必要休憩は設定で変えられる');
+      await ui.ripple('#continuous-drive-hour');
       await page.waitForTimeout(2400);
     },
   },
