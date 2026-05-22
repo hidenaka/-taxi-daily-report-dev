@@ -944,9 +944,13 @@ export function evaluateRecommendRow({ efficiency, avgSales, ratio30 }, targetHo
 // 待ち時間制限なし、運賃¥0でも含める。新しい順 max 30件
 // 待ち時間分布の統計も同時に返す
 export function dropoffHistoryAtArea(drives, area, hourCenter = null, hourWindow = 1, neighbors = null, maxEntries = 30) {
-  const targetAreas = new Set([area]);
-  if (neighbors && neighbors[area]) {
-    for (const n of neighbors[area]) targetAreas.add(n);
+  // area は単一エリア(string)でも複数エリア(string[])でも受ける(GPS範囲モード用)
+  const seedAreas = Array.isArray(area) ? area : [area];
+  const targetAreas = new Set(seedAreas);
+  if (neighbors) {
+    for (const a of seedAreas) {
+      if (neighbors[a]) for (const n of neighbors[a]) targetAreas.add(n);
+    }
   }
   const entries = [];
   for (const d of drives) {

@@ -294,3 +294,35 @@ test('stageHeatmap: 平均売上=その曜日のセル売上合計÷該当日数
   assert.equal(dowDayCount[4], 2);
   assert.equal(Math.round(matrix[4][19].avgSales), 5000);
 });
+
+import { dropoffHistoryAtArea } from '../js/chart-helpers.js';
+
+test('dropoffHistoryAtArea: 単一エリア(string)で従来通り集計できる', () => {
+  const drives = [{
+    date: '2026-05-22', departureTime:'07:00', returnTime:'22:00',
+    trips: [
+      { no:1, boardTime:'20:00', alightTime:'20:10', boardPlace:'X1', alightPlace:'大田区蒲田1', amount:3000, isCancel:false },
+    ], rests: [],
+  }];
+  const r = dropoffHistoryAtArea(drives, '大田区蒲田', 20, 1, null, 30);
+  assert.equal(r.stats.totalDropoffs, 1);
+  assert.deepEqual(r.includedAreas, ['大田区蒲田']);
+});
+
+test('dropoffHistoryAtArea: 複数エリア(array)を渡すと範囲全体を集計できる(GPS範囲モード)', () => {
+  const drives = [{
+    date: '2026-05-22', departureTime:'07:00', returnTime:'22:00',
+    trips: [
+      { no:1, boardTime:'20:00', alightTime:'20:10', boardPlace:'X1', alightPlace:'大田区蒲田1', amount:3000, isCancel:false },
+      { no:2, boardTime:'20:30', alightTime:'20:40', boardPlace:'Y1', alightPlace:'大田区羽田空港2', amount:4000, isCancel:false },
+      { no:3, boardTime:'21:00', alightTime:'21:10', boardPlace:'Z1', alightPlace:'新宿区新宿1', amount:5000, isCancel:false },
+    ], rests: [],
+  }];
+  // 蒲田 + 羽田空港 の2エリアを範囲として渡す → 該当2件、範囲外の新宿は除外
+  const r = dropoffHistoryAtArea(drives, ['大田区蒲田', '大田区羽田空港'], 20, 1, null, 30);
+  assert.equal(r.stats.totalDropoffs, 2);
+  assert.equal(r.includedAreas.length, 2);
+  // 単一エリアなら1件のみ(後方互換の確認)
+  const single = dropoffHistoryAtArea(drives, '大田区蒲田', 20, 1, null, 30);
+  assert.equal(single.stats.totalDropoffs, 1);
+});
