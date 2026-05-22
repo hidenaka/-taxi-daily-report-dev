@@ -145,3 +145,8 @@ test('heatmapLegendHtml: scope=all のとき「みんな」を補足', () => {
   assert.ok(heatmapLegendHtml('all').includes('みんな'));
   assert.ok(!heatmapLegendHtml('self').includes('みんな'));
 });
+
+test('heatmapLegendHtml: 数字=時給であることが明記されている', () => {
+  const html = heatmapLegendHtml('self');
+  assert.ok(html.includes('時給'), '「時給」という語が含まれること');
+});

@@ -1299,7 +1299,7 @@ export function zoneDailyValues(drives, zones) {
 export function heatmapLegendHtml(scope) {
   const who = scope === 'all' ? '<b>みんなの傾向</b>です。' : '';
   return `<div class="heat-legend" style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px;">
-    ${who}数字が大きい時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=安定して同じくらい稼げる / <b>△</b>=日によってムラが大きい / 薄いセル=記録がまだ少ない。<br>
+    ${who}数字＝時給（1時間あたりの稼ぎ）。時給が高い時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=安定して稼げる / <b>△</b>=日によってムラが大きい / 薄いセル=記録がまだ少ない。<br>
     👉 休憩は「休憩向き」の時間に取ると、稼ぎ時を逃しません。
   </div>`;
 }
