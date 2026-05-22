@@ -329,6 +329,8 @@ function initExitFavorites() {
 
 function renderExitFavorites() {
   const wrap = document.getElementById('exit-fav-chips');
+  const oldRects = new Map();   // FLIP: 並べ替え前の各チップ位置を記録
+  wrap.querySelectorAll('.fav-chip[data-ic-id]').forEach(c => oldRects.set(c.dataset.icId, c.getBoundingClientRect()));
   wrap.innerHTML = '';
   const COLLAPSED = 3;
   const showAll = exitEditMode || exitFavExpanded;   // 編集中・展開中は全件
@@ -378,6 +380,26 @@ function renderExitFavorites() {
     });
     wrap.appendChild(add);
   }
+  flipExitChips(wrap, oldRects);   // 並べ替えで動いたチップをスライド表示
+}
+
+// FLIP: 旧位置→新位置の差分を transform で復元してから 0 へ遷移＝スライドして見える。
+// 持ち上げ中のチップ(exitDragId)は除外（浮いたまま指側に残す）。
+function flipExitChips(wrap, oldRects) {
+  wrap.querySelectorAll('.fav-chip[data-ic-id]').forEach((c) => {
+    if (c.dataset.icId === exitDragId) return;
+    const old = oldRects.get(c.dataset.icId);
+    if (!old) return;
+    const now = c.getBoundingClientRect();
+    const dx = old.left - now.left, dy = old.top - now.top;
+    if (!dx && !dy) return;
+    c.style.transition = 'none';
+    c.style.transform = `translate(${dx}px, ${dy}px)`;
+    requestAnimationFrame(() => {
+      c.style.transition = 'transform .18s ease';
+      c.style.transform = '';
+    });
+  });
 }
 
 // ---- 出口お気に入りの長押しドラッグ並べ替え ----
