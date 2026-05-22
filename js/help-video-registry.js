@@ -32,4 +32,10 @@ export const HELP_VIDEOS = {
     poster: '../media/help/arrivals.jpg',
     caption: '到着便の予測と便一覧の見方',
   },
+  'ic-route': {
+    // tools/ サブディレクトリ配下のページから使うため ../media/help/ で参照
+    src: '../media/help/ic-route.mp4',
+    poster: '../media/help/ic-route.jpg',
+    caption: 'IC控除距離の出し方（入口・出口を選んで距離を確認）',
+  },
 };

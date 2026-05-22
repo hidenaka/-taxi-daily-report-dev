@@ -432,6 +432,69 @@ const SCENARIOS = {
     },
   },
 
+  'ic-route': {
+    // IC控除距離ページ（tools/ic.html）の使い方。
+    // data-loaderが読む data/*.json はローカルサーバから直接配信されるため mockは不要。
+    // GPS要求はブラウザ上で「拒否」扱いになるのでGPSバナー/GPS提案は出ない。
+    // init() がデフォルト入口=舞浜・出口=霞ヶ関で起動するため、
+    // 画面ロード直後から答えカードが表示された状態になる。
+    path: 'tools/ic.html',
+    async run(page, ui) {
+      // 答えカードが描画されるのを待つ（controls が整ったら答えも出ている）
+      await page.locator('#answer-body').waitFor({ state: 'visible', timeout: 15000 });
+      await page.waitForTimeout(800);
+
+      // ① 画面トップ：入口ICの確認
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await page.waitForTimeout(400);
+      await ui.caption('① 「どこから乗る？」入口ICを選ぶ');
+      await ui.ripple('#step-entry');
+      await page.waitForTimeout(1600);
+
+      // ② 入口IC検索（鶴ヶ島を入力して選択）
+      await ui.caption('② 別のICを検索（例: 鶴ヶ島）');
+      await ui.ripple('#inp-entry-ic');
+      // datalistの値を直接入力して change イベントを発火
+      await page.locator('#inp-entry-ic').fill('鶴ヶ島IC');
+      await page.locator('#inp-entry-ic').dispatchEvent('input');
+      await page.locator('#inp-entry-ic').dispatchEvent('change');
+      await page.waitForTimeout(1200);
+
+      // ③ 出口ICチップから霞ヶ関を選ぶ
+      await page.evaluate(() => document.getElementById('step-exit')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(700);
+      await ui.caption('③ よく使うICがチップで並んでいる');
+      await ui.ripple('#exit-fav-chips');
+      await page.waitForTimeout(1800);
+
+      // ④ 霞ヶ関チップをタップ（デフォルトで既に選択済みだが、視覚的に選択アクションを見せる）
+      await ui.caption('④ チップをタップして出口ICを選ぶ');
+      // 霞ヶ関チップを探してタップ
+      const kasumigasekiChip = page.locator('#exit-fav-chips .fav-chip[data-ic-id="kasumigaseki"]');
+      const chipExists = await kasumigasekiChip.count();
+      if (chipExists > 0) {
+        await ui.ripple('#exit-fav-chips .fav-chip[data-ic-id="kasumigaseki"]');
+        await kasumigasekiChip.click();
+      } else {
+        await ui.ripple('#exit-fav-chips .fav-chip');
+        await page.locator('#exit-fav-chips .fav-chip').first().click();
+      }
+      await page.waitForTimeout(1200);
+
+      // ⑤ 答えカードまでスクロールして控除距離を見せる
+      await page.evaluate(() => document.getElementById('answer-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      await page.waitForTimeout(800);
+      await ui.caption('⑤ 控除距離が片道・往復で出る');
+      await ui.ripple('#answer-body');
+      await page.waitForTimeout(2400);
+
+      // ⑥ 今日のログ保存ボタンを見せる
+      await ui.caption('「片道だけ保存」で今日のログに追加');
+      await ui.ripple('#btn-save-oneway');
+      await page.waitForTimeout(2200);
+    },
+  },
+
   'analysis-view': {
     // 分析ページ(review.html)の「見方」。サンプルデータを流し込んで各カードの数字の読み方を解説。
     path: 'review.html',

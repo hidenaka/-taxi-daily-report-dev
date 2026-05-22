@@ -32,6 +32,10 @@
     <a href="arrivals.html" class="app-tab">✈ 到着便</a>
   </nav>
   <main class="app">
+    <div style="padding:6px 12px 0;">
+      <button class="help-video-btn" data-help-video="ic-route" type="button">▶ 使い方（15秒）</button>
+      <div class="help-video" id="help-video-ic-route"></div>
+    </div>
     <!-- ① 入口IC -->
     <section class="ic-step" id="step-entry">
       <div class="step-head">
@@ -154,6 +158,7 @@
   <div id="navHost"></div>
   <script type="module">
     import { renderBottomNav } from '../js/app.js';
+    import '../js/help-video.js';
     document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
   </script>
 </body>

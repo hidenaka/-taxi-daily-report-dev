@@ -7,6 +7,7 @@ const PAGES = {
   'calendar.html': 'calendar',
   'review.html': 'analysis-view',
   'tools/arrivals.html': 'arrivals',
+  'tools/ic.html': 'ic-route',
 };
 
 for (const [page, key] of Object.entries(PAGES)) {
