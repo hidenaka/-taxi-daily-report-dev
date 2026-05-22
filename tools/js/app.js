@@ -4,6 +4,7 @@ import { haversineKm } from './util.js';
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
+import { loadFavorites, addFavorite, removeFavorite, saveFavorites } from './exit-favorites.js';
 import { buildAdjacency, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
@@ -33,8 +34,7 @@ const geoState = {
 async function init() {
   state.data = await loadAllData();
   icValueIndex = buildSearchIndex();
-  populateExitFavorites();
-  populateAllIcSelects();
+  initExitFavorites();
   setEntryIc('maihama');     // calls updateOuterRouteOptions internally
   setExitIc('kukou_chuou');
   updateShutokoRouteOptions();
@@ -122,6 +122,8 @@ function refreshNearestSuggestions(pos) {
       btn.classList.add('glow');
       btn.title = '会社負担 + 控除あり';
     }
+    btn.dataset.icId = ic.id;
+    if (ic.id === state.selected.entryIcId) btn.classList.add('sel');
     btn.textContent = `${ic.name} ${distKm.toFixed(1)}km`;
     btn.addEventListener('click', () => { setEntryIc(ic.id); update(); });
     buttons.appendChild(btn);
@@ -329,44 +331,78 @@ function buildSearchIndex() {
 
 let icValueIndex = new Map();
 
-// ---- Populate both grouped pulldowns (entry + exit-all) ----
-function populateAllIcSelects() {
-  const entrySel = document.getElementById('sel-entry-ic');
-  const exitSel  = document.getElementById('sel-exit-all');
-  entrySel.innerHTML = '';
-  exitSel.innerHTML = '';
 
-  const groups = buildIcGrouping(state.data);
-  for (const grp of groups) {
-    const emoji = DIRECTION_EMOJI[grp.id] || '';
-    const ogLabel = `${emoji} ${grp.label}`;
-    const ogE = document.createElement('optgroup'); ogE.label = ogLabel;
-    const ogX = document.createElement('optgroup'); ogX.label = ogLabel;
-    for (const { ic } of grp.ics) {
-      const displayName = ic.name.replace(/（[^）]*）/g, '').trim();
-      const txt = `${emoji} ${displayName}`;
-      const e = document.createElement('option'); e.value = ic.id; e.textContent = txt;
-      const x = document.createElement('option'); x.value = ic.id; x.textContent = txt;
-      ogE.appendChild(e); ogX.appendChild(x);
+// ---- 出口お気に入りチップ（localStorage・編集可） ----
+let exitFavorites = [];   // ic_id 配列
+let exitEditMode = false;
+
+function defaultExitFavoriteIds() {
+  return (state.data.favorites.exit_favorites || []).map(f => f.ic_id);
+}
+
+function initExitFavorites() {
+  exitFavorites = loadFavorites(defaultExitFavoriteIds());
+  renderExitFavorites();
+}
+
+function renderExitFavorites() {
+  const wrap = document.getElementById('exit-fav-chips');
+  wrap.innerHTML = '';
+  for (const icId of exitFavorites) {
+    const ic = state.data.ics.find(x => x.id === icId);
+    if (!ic) continue;
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'fav-chip' + (icId === state.selected.exitIcId ? ' sel' : '');
+    chip.dataset.icId = icId;
+    const name = ic.name.replace(/（[^）]*）/g, '').trim();
+    chip.innerHTML = `<span class="star">★</span>${name}` +
+      (exitEditMode ? `<span class="chip-remove" aria-label="削除">×</span>` : '');
+    if (exitEditMode) {
+      chip.querySelector('.chip-remove').addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        exitFavorites = removeFavorite(exitFavorites, icId);
+        saveFavorites(exitFavorites);
+        renderExitFavorites();
+      });
     }
-    entrySel.appendChild(ogE); exitSel.appendChild(ogX);
+    chip.addEventListener('click', () => {
+      if (exitEditMode) return;
+      setExitIc(icId); update();
+    });
+    wrap.appendChild(chip);
+  }
+  if (exitEditMode) {
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.className = 'fav-chip fav-add';
+    add.textContent = '＋追加';
+    add.addEventListener('click', () => {
+      const det = document.getElementById('exit-search');
+      det.open = true;
+      document.getElementById('inp-exit-ic').focus();
+    });
+    wrap.appendChild(add);
   }
 }
 
-// ---- Favorites pulldown ----
-function populateExitFavorites() {
-  const sel = document.getElementById('sel-exit-fav');
-  sel.innerHTML = '';
-  const favorites = state.data.favorites.exit_favorites;
-  for (const f of favorites) {
-    const ic = state.data.ics.find(x => x.id === f.ic_id);
-    if (!ic) continue;
-    const opt = document.createElement('option');
-    opt.value = f.ic_id;
-    opt.textContent = ic.name;
-    sel.appendChild(opt);
-  }
-  sel.value = 'kukou_chuou';
+function renderIcSelected(elId, ic) {
+  const el = document.getElementById(elId);
+  if (!ic) { el.hidden = true; el.textContent = ''; return; }
+  el.textContent = '選択中: ' + ic.name.replace(/（[^）]*）/g, '').trim();
+  el.hidden = false;
+}
+
+function markActiveEntryChip(icId) {
+  document.querySelectorAll('#geo-suggest-buttons .btn-geo-suggest').forEach(b => {
+    b.classList.toggle('sel', b.dataset.icId === icId);
+  });
+}
+
+function refreshAnswerVisibility() {
+  const ready = !!(state.selected.entryIcId && state.selected.exitIcId);
+  document.getElementById('answer-placeholder').hidden = ready;
+  document.getElementById('answer-body').hidden = !ready;
 }
 
 function setEntryIc(icId) {
@@ -374,10 +410,10 @@ function setEntryIc(icId) {
   if (!ic) return;
   state.selected.entryIcId = icId;
 
-  // Determine valid outerRoute options for this entry IC
-  updateOuterRouteOptions();  // also sets state.selected.outerRoute if current is invalid
+  updateOuterRouteOptions();  // 内部で outerRoute を再選択
 
-  document.getElementById('sel-entry-ic').value = icId;
+  renderIcSelected('entry-selected', ic);
+  markActiveEntryChip(icId);
 
   const hint = document.getElementById('entry-ic-hint');
   hint.textContent = (ic.route_name || '').replace(/（[^）]*）/g, '').trim();
@@ -392,12 +428,8 @@ function setExitIc(icId) {
   if (!ic) return;
   state.selected.exitIcId = icId;
 
-  const favSel = document.getElementById('sel-exit-fav');
-  const allSel = document.getElementById('sel-exit-all');
-
-  const favIds = state.data.favorites.exit_favorites.map(f => f.ic_id);
-  favSel.value = favIds.includes(icId) ? icId : '';
-  allSel.value = icId;
+  renderIcSelected('exit-selected', ic);
+  renderExitFavorites();   // 選択チップのハイライト更新
 
   const hint = document.getElementById('exit-ic-hint');
   hint.textContent = (ic.route_name || '').replace(/（[^）]*）/g, '').trim();
@@ -470,10 +502,8 @@ function wireEvents() {
     update();
   });
 
-  // ---- Entry IC: search input + pulldown ----
+  // ---- Entry IC: 検索入力のみ（チップはrefreshNearestSuggestionsが配線） ----
   const entryInput = document.getElementById('inp-entry-ic');
-  const entrySel   = document.getElementById('sel-entry-ic');
-
   function resolveEntryFromSearch() {
     const icId = icValueIndex.get(entryInput.value);
     if (!icId) {
@@ -486,15 +516,8 @@ function wireEvents() {
   }
   entryInput.addEventListener('change', resolveEntryFromSearch);
   entryInput.addEventListener('input',  resolveEntryFromSearch);
-  entrySel.addEventListener('change', (e) => { setEntryIc(e.target.value); update(); });
 
-  // ---- Exit IC: favorites + "別のIC" search + "別のIC" pulldown ----
-  document.getElementById('sel-exit-fav').addEventListener('change', (e) => {
-    setExitIc(e.target.value); update();
-  });
-  document.getElementById('sel-exit-all').addEventListener('change', (e) => {
-    setExitIc(e.target.value); update();
-  });
+  // ---- Exit IC: 検索入力（編集モード中はお気に入りに追加） ----
   const exitInput = document.getElementById('inp-exit-ic');
   function resolveExitFromSearch() {
     const icId = icValueIndex.get(exitInput.value);
@@ -504,10 +527,22 @@ function wireEvents() {
       hint.className = exitInput.value ? 'hint error' : 'hint';
       return;
     }
+    if (exitEditMode) {
+      exitFavorites = addFavorite(exitFavorites, icId);
+      saveFavorites(exitFavorites);
+    }
     setExitIc(icId); update();
   }
   exitInput.addEventListener('change', resolveExitFromSearch);
   exitInput.addEventListener('input',  resolveExitFromSearch);
+
+  // ---- お気に入り編集トグル ----
+  document.getElementById('btn-exit-edit').addEventListener('click', () => {
+    exitEditMode = !exitEditMode;
+    document.getElementById('btn-exit-edit').textContent = exitEditMode ? '✓ 完了' : '⚙ 編集';
+    if (exitEditMode) document.getElementById('exit-search').open = false;
+    renderExitFavorites();
+  });
 
   // ---- Swap entry/exit ----
   document.getElementById('btn-swap-ic').addEventListener('click', () => {
@@ -761,6 +796,7 @@ function calculateAllRoutes(entryIc, exitIc) {
 }
 
 function update() {
+  refreshAnswerVisibility();
   const icById = (id) => state.data.ics.find(x => x.id === id);
   const entryIc = icById(state.selected.entryIcId);
   const exitIc  = icById(state.selected.exitIcId);
