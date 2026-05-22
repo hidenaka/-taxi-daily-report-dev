@@ -91,8 +91,8 @@
   {
    "id": "yotsugi",
    "name": "四ツ木",
-   "route": "6",
-   "route_name": "向島線",
+   "route": "C2",
+   "route_name": "中央環状線",
    "gps": {
     "lat": 35.7455,
     "lng": 139.8395
@@ -928,19 +928,21 @@
   },
   {
    "id": "shiodome_jct",
-   "name": "汐留JCT",
+   "name": "汐留",
    "route": "C1",
    "route_name": "都心環状線",
    "gps": {
-    "lat": 35.66306,
-    "lng": 139.76278
+    "lat": 35.661833,
+    "lng": 139.761528
    },
    "svg": {
     "x": 0,
     "y": 0
    },
-   "entry_type": "transit_only",
-   "boundary_tag": null
+   "entry_type": "both",
+   "boundary_tag": null,
+   "ramp_access": "half",
+   "ramp_note": "都心環状線。汐留JCT(KK線・八重洲線)は2025年廃止だが汐留出入口は存続。浜崎橋JCT方面のみ（外回り入口・内回り出口）のハーフIC。入口はETC専用"
   },
   {
    "id": "ariake_jct",
@@ -3377,8 +3379,8 @@
   {
    "id": "gaien",
    "name": "外苑",
-   "route": "C1",
-   "route_name": "都心環状線",
+   "route": "4",
+   "route_name": "4号新宿線",
    "gps": {
     "lat": 35.6731,
     "lng": 139.7183
