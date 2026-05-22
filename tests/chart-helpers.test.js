@@ -45,3 +45,46 @@ test('hourlyDowEfficiency: hourlyB は削除されている', () => {
   const m = hourlyDowEfficiency(drives);
   assert.equal(m[4][18].hourlyB, undefined, 'hourlyB プロパティは削除済み');
 });
+
+import {
+  coefficientOfVariation, stabilityTier, classifyEarning
+} from '../js/chart-helpers.js';
+
+test('coefficientOfVariation: 標準偏差/平均。全て同値ならCV=0', () => {
+  assert.equal(coefficientOfVariation([100, 100, 100]), 0);
+});
+
+test('coefficientOfVariation: 空配列や平均0は0を返す', () => {
+  assert.equal(coefficientOfVariation([]), 0);
+  assert.equal(coefficientOfVariation([0, 0]), 0);
+});
+
+test('coefficientOfVariation: 既知値（母集団標準偏差）', () => {
+  // values [2,4,4,4,5,5,7,9]: mean=5, 母分散=4, std=2, CV=0.4
+  assert.equal(coefficientOfVariation([2,4,4,4,5,5,7,9]), 0.4);
+});
+
+test('stabilityTier: 3件未満は insufficient', () => {
+  assert.equal(stabilityTier([100, 100]), 'insufficient');
+  assert.equal(stabilityTier([]), 'insufficient');
+});
+
+test('stabilityTier: CV<=0.3=stable, <=0.6=mid, >0.6=volatile', () => {
+  assert.equal(stabilityTier([100, 100, 100]), 'stable');        // CV=0
+  assert.equal(stabilityTier([2,4,4,4,5,5,7,9]), 'mid');          // CV=0.4
+  assert.equal(stabilityTier([10, 50, 100]), 'volatile');        // CV>0.6
+});
+
+test('classifyEarning: 有効値分布の上位1/3=earn, 下位1/3=rest, 中間=normal', () => {
+  const vals = [10, 20, 30, 40, 50, 60, 70, 80, 90]; // 9件
+  assert.equal(classifyEarning(90, vals), 'earn');   // 最上位
+  assert.equal(classifyEarning(80, vals), 'earn');   // pct=7/9>=2/3
+  assert.equal(classifyEarning(50, vals), 'normal'); // pct=4/9
+  assert.equal(classifyEarning(10, vals), 'rest');   // pct=0
+  assert.equal(classifyEarning(20, vals), 'rest');   // pct=1/9<1/3
+});
+
+test('classifyEarning: 値0や有効値3件未満は none', () => {
+  assert.equal(classifyEarning(0, [10, 20, 30]), 'none');
+  assert.equal(classifyEarning(50, [50, 60]), 'none');
+});

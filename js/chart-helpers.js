@@ -1216,3 +1216,36 @@ export function dowAggregation(drives) {
   }
   return result;
 }
+
+// ───────── 意味レイヤー: 安定度・相対ラベル ─────────
+
+// 変動係数 (母標準偏差 / 平均)。空 or 平均0 は 0。
+export function coefficientOfVariation(values) {
+  if (!values || values.length === 0) return 0;
+  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  if (mean === 0) return 0;
+  const variance = values.reduce((a, b) => a + (b - mean) * (b - mean), 0) / values.length;
+  return Math.sqrt(variance) / mean;
+}
+
+// 日別¥/h配列 → 安定度tier。3件未満は判定不可。
+// CV<=0.3:安定 / <=0.6:中 / >0.6:ムラ大
+export function stabilityTier(dailyValues) {
+  if (!dailyValues || dailyValues.length < 3) return 'insufficient';
+  const cv = coefficientOfVariation(dailyValues);
+  if (cv <= 0.3) return 'stable';
+  if (cv <= 0.6) return 'mid';
+  return 'volatile';
+}
+
+// 値を、有効セル値リスト(validValues)の相対順位で earn/normal/rest に分類。
+// 上位1/3=earn, 下位1/3=rest, 中間=normal。値0 or 有効値3件未満は none。
+export function classifyEarning(value, validValues) {
+  if (!(value > 0) || !validValues || validValues.length < 3) return 'none';
+  const n = validValues.length;
+  const rankBelow = validValues.filter(x => x < value).length;
+  const pct = rankBelow / n;
+  if (pct >= 2 / 3) return 'earn';
+  if (pct < 1 / 3) return 'rest';
+  return 'normal';
+}
