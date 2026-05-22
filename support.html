@@ -141,7 +141,8 @@ if (location.hostname.includes('-dev')) {
       <strong>曜日 × 時間の時給 <span style="font-size:10px;color:var(--muted);font-weight:normal;" id="hourEffScopeLabel">(自分のデータ)</span></strong>
       <span class="desc">休憩を除いた実稼働時間あたり売上</span>
     </div>
-    <div class="sort-tabs" id="hourScopeTabs">
+    <!-- 「全員統合(他の乗務員)」はステージ制で再設計中のため一旦非表示。hourScopeは'self'固定で動作。コードは温存し再設計時に戻す -->
+    <div class="sort-tabs" id="hourScopeTabs" style="display:none;">
       <button data-scope="self" class="active">自分のみ</button>
       <button data-scope="all">全員統合</button>
     </div>
