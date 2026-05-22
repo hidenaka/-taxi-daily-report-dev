@@ -99,7 +99,7 @@ function renderTable(bins) {
       <td class="fc-total">${b.total}</td>
     </tr>`).join('');
   return `<table class="fc-table">
-    <thead><tr><th>時間帯</th><th>乗1</th><th>乗2</th><th>乗3</th><th>乗4</th><th>計</th></tr></thead>
+    <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
@@ -113,7 +113,7 @@ export function renderActualsTable(slots) {
       <td class="fc-total">${s.total ?? 0}</td>
     </tr>`).join('');
   return `<table class="fc-table">
-    <thead><tr><th>時間帯</th><th>乗1</th><th>乗2</th><th>乗3</th><th>乗4</th><th>計</th></tr></thead>
+    <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
     <tbody>${rows}</tbody>
   </table>`;
 }
