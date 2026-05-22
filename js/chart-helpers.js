@@ -1249,3 +1249,48 @@ export function classifyEarning(value, validValues) {
   if (pct < 1 / 3) return 'rest';
   return 'normal';
 }
+
+// drives を日付ごとにグループ化（内部用）
+function groupDrivesByDate(drives) {
+  const m = new Map();
+  for (const d of (drives || [])) {
+    if (!d || !d.date) continue;
+    if (!m.has(d.date)) m.set(d.date, []);
+    m.get(d.date).push(d);
+  }
+  return m;
+}
+
+// 7×24 の各セルに「その日の実稼働がある時間帯の ¥/h」を日別配列で返す。
+// 既存 hourlyDowEfficiency を日付グループ単位で呼び直して再利用。
+export function hourlyDowDailyValues(drives) {
+  const result = Array.from({ length: 7 }, () => Array.from({ length: 24 }, () => []));
+  for (const [, dayDrives] of groupDrivesByDate(drives)) {
+    const m = hourlyDowEfficiency(dayDrives);
+    for (let dow = 0; dow < 7; dow++) {
+      for (let h = 0; h < 24; h++) {
+        if (m[dow][h].workingMin > 0) result[dow][h].push(m[dow][h].hourlyA);
+      }
+    }
+  }
+  return result;
+}
+
+// 7×ゾーンキー の各セルに日別 ¥/h を配列で返す（review用）。
+export function zoneDailyValues(drives, zones) {
+  const keys = zones.map(z => z.key);
+  const result = Array.from({ length: 7 }, () => {
+    const o = {};
+    for (const k of keys) o[k] = [];
+    return o;
+  });
+  for (const [, dayDrives] of groupDrivesByDate(drives)) {
+    const { matrix } = dowZoneEfficiency(dayDrives, zones);
+    for (let dow = 0; dow < 7; dow++) {
+      for (const k of keys) {
+        if (matrix[dow][k] > 0) result[dow][k].push(matrix[dow][k]);
+      }
+    }
+  }
+  return result;
+}

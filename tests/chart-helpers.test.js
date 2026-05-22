@@ -88,3 +88,44 @@ test('classifyEarning: 値0や有効値3件未満は none', () => {
   assert.equal(classifyEarning(0, [10, 20, 30]), 'none');
   assert.equal(classifyEarning(50, [50, 60]), 'none');
 });
+
+import { hourlyDowDailyValues, zoneDailyValues } from '../js/chart-helpers.js';
+import { getShiftZones, ZONE_PRESETS } from '../js/chart-helpers.js';
+
+test('hourlyDowDailyValues: 同じ曜日の別日が、その時間帯セルに日別¥/hとして積まれる', () => {
+  // 2026-04-23(木) と 2026-04-30(木) の 19時台。各日 workingMin=60, 売上 6000/3000
+  const mk = (date, amount) => ({
+    date, departureTime: '19:00', returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:30', boardPlace: 'A', alightPlace: 'B', km: 5, amount, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  const drives = [mk('2026-04-23', 6000), mk('2026-04-30', 3000)];
+  const daily = hourlyDowDailyValues(drives);
+  const dow = 4; // 木
+  assert.equal(daily[dow][19].length, 2, '木19時に2日分');
+  assert.deepEqual([...daily[dow][19]].sort((a,b)=>a-b), [3000, 6000]);
+});
+
+test('hourlyDowDailyValues: 実稼働0の時間帯は積まれない', () => {
+  const drives = [{
+    date: '2026-04-23', departureTime: '18:00', returnTime: '19:00',
+    trips: [], rests: [{ startTime: '18:00', endTime: '19:00', place: 'X' }] // 全休憩
+  }];
+  const daily = hourlyDowDailyValues(drives);
+  assert.equal(daily[4][18].length, 0, '休憩で実稼働0なら積まれない');
+});
+
+test('zoneDailyValues: ゾーン単位で日別¥/hが積まれる', () => {
+  const zones = ZONE_PRESETS['human'].zones;
+  const mk = (date) => ({
+    date, departureTime: '19:00', returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:30', boardPlace: 'A', alightPlace: 'B', km: 5, amount: 4000, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  const drives = [mk('2026-04-23'), mk('2026-04-30')];
+  const daily = zoneDailyValues(drives, zones);
+  // 19時が属するゾーンキーを特定して2日分あることを確認
+  const dow = 4;
+  const total = Object.values(daily[dow]).reduce((acc, arr) => acc + arr.length, 0);
+  assert.equal(total, 2, '木曜のいずれかのゾーンに2日分');
+});
