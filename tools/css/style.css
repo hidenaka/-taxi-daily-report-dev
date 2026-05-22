@@ -403,7 +403,7 @@ nav.bottom a.active { color: var(--self-ded); }
   display: inline-flex; align-items: center; gap: 5px;
   background: #e8f1fb; color: #0066cc; border: 1px solid #cfe2f7;
   border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
-  font-family: inherit; cursor: pointer; vertical-align: middle;
+  font-family: inherit; cursor: pointer; vertical-align: middle; min-height: 0; min-width: 0;
 }
 .help-video-btn:hover, .help-video-btn:focus { opacity: 0.8; outline: none; }
 .help-video { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
