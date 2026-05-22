@@ -1935,6 +1935,85 @@
    "routes": [
     "yokoyoko"
    ]
+  },
+  {
+   "id": "daishi",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "hamakawasaki",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "asada",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "moriyacho",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "koyasu",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "higashi_kanagawa",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "yokohamaeki_higashi",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "minatomirai",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "yokohama_koen",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "yamashitacho",
+   "routes": [
+    "K1"
+   ]
+  },
+  {
+   "id": "shin_yamashita",
+   "routes": [
+    "K3"
+   ]
+  },
+  {
+   "id": "ishikawacho",
+   "routes": [
+    "K3"
+   ]
+  },
+  {
+   "id": "daikoku_futo",
+   "routes": [
+    "K5",
+    "B"
+   ]
   }
  ],
  "edges": [
@@ -2133,13 +2212,13 @@
   {
    "from": "matsugaoka",
    "to": "omiya_togane",
-   "km": 5.0,
+   "km": 5,
    "route": "keiyo"
   },
   {
    "from": "boso_takada",
    "to": "homuda",
-   "km": 2.0,
+   "km": 2,
    "route": "keiyo"
   },
   {
@@ -2193,7 +2272,7 @@
   {
    "from": "kisarazu_kita",
    "to": "anegasaki_sodegaura",
-   "km": 7.0,
+   "km": 7,
    "route": "aqua"
   },
   {
@@ -2217,7 +2296,7 @@
   {
    "from": "soga",
    "to": "ichihara_aqua",
-   "km": 10.0,
+   "km": 10,
    "route": "aqua"
   },
   {
@@ -2235,7 +2314,7 @@
   {
    "from": "inagi",
    "to": "kunitachi_fuchu",
-   "km": 7.0,
+   "km": 7,
    "route": "chuo"
   },
   {
@@ -2301,7 +2380,7 @@
   {
    "from": "nirasaki",
    "to": "sutama",
-   "km": 7.0,
+   "km": 7,
    "route": "chuo"
   },
   {
@@ -2343,7 +2422,7 @@
   {
    "from": "akiruno",
    "to": "hinode",
-   "km": 2.0,
+   "km": 2,
    "route": "chuo"
   },
   {
@@ -2397,7 +2476,7 @@
   {
    "from": "higashimatsuyama",
    "to": "ranzan_ogawa",
-   "km": 8.0,
+   "km": 8,
    "route": "kanetsu"
   },
   {
@@ -2589,7 +2668,7 @@
   {
    "from": "ami_higashi",
    "to": "inashiki",
-   "km": 6.0,
+   "km": 6,
    "route": "joban"
   },
   {
@@ -2649,7 +2728,7 @@
   {
    "from": "sakura_tokan",
    "to": "shisui",
-   "km": 7.0,
+   "km": 7,
    "route": "tokan"
   },
   {
@@ -2685,7 +2764,7 @@
   {
    "from": "iwatsuki",
    "to": "kuki",
-   "km": 15.0,
+   "km": 15,
    "route": "tohoku"
   },
   {
@@ -2697,7 +2776,7 @@
   {
    "from": "kazo",
    "to": "hanyu",
-   "km": 6.0,
+   "km": 6,
    "route": "tohoku"
   },
   {
@@ -2709,7 +2788,7 @@
   {
    "from": "tatebayashi",
    "to": "sano_fujioka",
-   "km": 9.0,
+   "km": 9,
    "route": "tohoku"
   },
   {
@@ -2757,7 +2836,7 @@
   {
    "from": "kawaguchi_jct",
    "to": "soka_tohoku",
-   "km": 4.0,
+   "km": 4,
    "route": "tohoku"
   },
   {
@@ -2823,7 +2902,7 @@
   {
    "from": "hiratsuka",
    "to": "oiso",
-   "km": 6.0,
+   "km": 6,
    "route": "tomei"
   },
   {
@@ -2835,7 +2914,7 @@
   {
    "from": "ninomiya",
    "to": "odawara_higashi",
-   "km": 7.0,
+   "km": 7,
    "route": "tomei"
   },
   {
@@ -2859,7 +2938,7 @@
   {
    "from": "atsugi",
    "to": "chigasaki_chuo",
-   "km": 12.0,
+   "km": 12,
    "route": "tomei"
   },
   {
@@ -2937,13 +3016,13 @@
   {
    "from": "gaikan_urawa",
    "to": "kawaguchi_nishi",
-   "km": 2.0,
+   "km": 2,
    "route": "gaikan"
   },
   {
    "from": "anagawa",
    "to": "chiba_kita",
-   "km": 5.0,
+   "km": 5,
    "route": "keiyo"
   },
   {
@@ -2955,7 +3034,7 @@
   {
    "from": "okegawa_kitamoto",
    "to": "kuki_shiraoka_jct",
-   "km": 13.0,
+   "km": 13,
    "route": "C3"
   },
   {
@@ -2985,13 +3064,13 @@
   {
    "from": "edobashi_jct",
    "to": "kyobashi",
-   "km": 1.0,
+   "km": 1,
    "route": "C1"
   },
   {
    "from": "kyobashi",
    "to": "ginza",
-   "km": 1.0,
+   "km": 1,
    "route": "C1"
   },
   {
@@ -3051,7 +3130,7 @@
   {
    "from": "takebashi_jct",
    "to": "kanda_bashi",
-   "km": 1.0,
+   "km": 1,
    "route": "C1"
   },
   {
@@ -3081,7 +3160,7 @@
   {
    "from": "ohashi_jct",
    "to": "tomigaya",
-   "km": 2.0,
+   "km": 2,
    "route": "C2"
   },
   {
@@ -3237,7 +3316,7 @@
   {
    "from": "shibuya",
    "to": "tamagawa_dori",
-   "km": 1.0,
+   "km": 1,
    "route": "3"
   },
   {
@@ -3249,7 +3328,7 @@
   {
    "from": "ohashi_jct",
    "to": "ikejiri",
-   "km": 1.0,
+   "km": 1,
    "route": "3"
   },
   {
@@ -3417,7 +3496,7 @@
   {
    "from": "toda",
    "to": "bijogi_jct",
-   "km": 1.0,
+   "km": 1,
    "route": "5"
   },
   {
@@ -3471,7 +3550,7 @@
   {
    "from": "tsutsumidori",
    "to": "horikiri_jct",
-   "km": 2.0,
+   "km": 2,
    "route": "6"
   },
   {
@@ -3495,7 +3574,7 @@
   {
    "from": "komatsugawa",
    "to": "ichinoe",
-   "km": 2.0,
+   "km": 2,
    "route": "7"
   },
   {
@@ -3549,7 +3628,7 @@
   {
    "from": "ukishima_jct",
    "to": "kukou_chuou",
-   "km": 5.0,
+   "km": 5,
    "route": "B"
   },
   {
@@ -3585,7 +3664,7 @@
   {
    "from": "ariake_jct",
    "to": "kasai_jct",
-   "km": 6.0,
+   "km": 6,
    "route": "B"
   },
   {
@@ -3649,12 +3728,6 @@
    "route": "6_mukojima"
   },
   {
-   "from": "daishi_jct",
-   "to": "shioiri",
-   "km": 7.6,
-   "route": "K1"
-  },
-  {
    "from": "shioiri",
    "to": "namamugi_jct",
    "km": 3.3,
@@ -3664,18 +3737,6 @@
    "from": "namamugi_jct",
    "to": "namamugi",
    "km": 0.9,
-   "route": "K1"
-  },
-  {
-   "from": "namamugi",
-   "to": "kinko_jct",
-   "km": 6.8,
-   "route": "K1"
-  },
-  {
-   "from": "kinko_jct",
-   "to": "ishikawacho_jct",
-   "km": 4.0,
    "route": "K1"
   },
   {
@@ -3695,12 +3756,6 @@
    "to": "mitsuzawa_jct",
    "km": 0.8,
    "route": "K2"
-  },
-  {
-   "from": "ishikawacho_jct",
-   "to": "bandobashi",
-   "km": 2.9,
-   "route": "K3"
   },
   {
    "from": "bandobashi",
@@ -3735,7 +3790,7 @@
   {
    "from": "tonomachi",
    "to": "daishi_jct",
-   "km": 2.0,
+   "km": 2,
    "route": "K6"
   },
   {
@@ -3825,7 +3880,7 @@
   {
    "from": "mitsuzawa_jct",
    "to": "hodogaya",
-   "km": 1.0,
+   "km": 1,
    "route": "third_keihin"
   },
   {
@@ -3885,7 +3940,7 @@
   {
    "from": "shinonome_jct",
    "to": "tatsumi_jct",
-   "km": 2.0,
+   "km": 2,
    "route": "10"
   },
   {
@@ -3949,16 +4004,118 @@
    "route": "yokoyoko"
   },
   {
-   "from": "honmoku_jct",
-   "to": "ishikawacho_jct",
-   "km": 2.5,
-   "route": "K3"
-  },
-  {
    "from": "shin_hodogaya_jct",
    "to": "kariba_jct",
    "km": 3.9,
    "route": "yokoyoko"
+  },
+  {
+   "from": "daishi_jct",
+   "to": "daishi",
+   "km": 0.3,
+   "route": "K1"
+  },
+  {
+   "from": "daishi",
+   "to": "hamakawasaki",
+   "km": 4.2,
+   "route": "K1"
+  },
+  {
+   "from": "hamakawasaki",
+   "to": "asada",
+   "km": 2.4,
+   "route": "K1"
+  },
+  {
+   "from": "asada",
+   "to": "shioiri",
+   "km": 2.1,
+   "route": "K1"
+  },
+  {
+   "from": "namamugi",
+   "to": "moriyacho",
+   "km": 2.5,
+   "route": "K1"
+  },
+  {
+   "from": "moriyacho",
+   "to": "koyasu",
+   "km": 0.9,
+   "route": "K1"
+  },
+  {
+   "from": "koyasu",
+   "to": "higashi_kanagawa",
+   "km": 2.5,
+   "route": "K1"
+  },
+  {
+   "from": "higashi_kanagawa",
+   "to": "kinko_jct",
+   "km": 1.2,
+   "route": "K1"
+  },
+  {
+   "from": "kinko_jct",
+   "to": "yokohamaeki_higashi",
+   "km": 0.9,
+   "route": "K1"
+  },
+  {
+   "from": "yokohamaeki_higashi",
+   "to": "minatomirai",
+   "km": 1,
+   "route": "K1"
+  },
+  {
+   "from": "minatomirai",
+   "to": "yokohama_koen",
+   "km": 1.7,
+   "route": "K1"
+  },
+  {
+   "from": "yokohama_koen",
+   "to": "yamashitacho",
+   "km": 1.7,
+   "route": "K1"
+  },
+  {
+   "from": "yamashitacho",
+   "to": "ishikawacho_jct",
+   "km": 0.8,
+   "route": "K1"
+  },
+  {
+   "from": "honmoku_jct",
+   "to": "shin_yamashita",
+   "km": 1.6,
+   "route": "K3"
+  },
+  {
+   "from": "shin_yamashita",
+   "to": "ishikawacho_jct",
+   "km": 1.2,
+   "route": "K3"
+  },
+  {
+   "from": "ishikawacho_jct",
+   "to": "ishikawacho",
+   "km": 0.3,
+   "route": "K3"
+  },
+  {
+   "from": "ishikawacho",
+   "to": "bandobashi",
+   "km": 3,
+   "route": "K3"
+  },
+  {
+   "from": "daikoku_jct",
+   "to": "daikoku_futo",
+   "km": 1,
+   "route": "K5"
   }
  ]
 }

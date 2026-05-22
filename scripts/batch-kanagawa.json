@@ -1,0 +1,27 @@
+{
+  "newICs": [
+    { "id": "daishi", "name": "大師", "route": "K1", "route_name": "横羽線", "lat": 35.538912, "lng": 139.739524, "ramp_access": "full", "ramp_note": "横羽線。大師JCT併設。K1/K6共用の出入口（東京方面・横浜方面）" },
+    { "id": "hamakawasaki", "name": "浜川崎", "route": "K1", "route_name": "横羽線", "lat": 35.512979, "lng": 139.717697, "ramp_access": "half", "ramp_note": "横羽線。上り（羽田・銀座方面）入口・下り出口のハーフIC" },
+    { "id": "asada", "name": "浅田", "route": "K1", "route_name": "横羽線", "lat": 35.503054, "lng": 139.699745, "ramp_access": "half", "ramp_note": "横羽線。下り（横浜方面）入口・上り出口のハーフIC" },
+    { "id": "moriyacho", "name": "守屋町", "route": "K1", "route_name": "横羽線", "lat": 35.486184, "lng": 139.657419, "ramp_access": "half", "ramp_note": "横羽線。上り（羽田・銀座方面）からの出口のみ" },
+    { "id": "koyasu", "name": "子安", "route": "K1", "route_name": "横羽線", "lat": 35.483999, "lng": 139.650250, "ramp_access": "full", "ramp_note": "横羽線。国道15号（第一京浜）接続のフルIC" },
+    { "id": "higashi_kanagawa", "name": "東神奈川", "route": "K1", "route_name": "横羽線", "lat": 35.472388, "lng": 139.632422, "ramp_access": "full", "ramp_note": "横羽線。国道15号接続。入口はETC専用" },
+    { "id": "yokohamaeki_higashi", "name": "横浜駅東口", "route": "K1", "route_name": "横羽線", "lat": 35.460991, "lng": 139.623798, "ramp_access": "half", "ramp_note": "横羽線。下り入口・上り出口のハーフIC。入口はETC専用" },
+    { "id": "minatomirai", "name": "みなとみらい", "route": "K1", "route_name": "横羽線", "lat": 35.454585, "lng": 139.628219, "ramp_access": "full", "ramp_note": "横羽線。みなとみらい・桜木町方面。入口はETC専用" },
+    { "id": "yokohama_koen", "name": "横浜公園", "route": "K1", "route_name": "横羽線", "lat": 35.443762, "lng": 139.635844, "ramp_access": "half", "ramp_note": "横羽線。上り入口・下り出口のハーフIC" },
+    { "id": "yamashitacho", "name": "山下町", "route": "K1", "route_name": "横羽線", "lat": 35.442161, "lng": 139.650989, "ramp_access": "half", "ramp_note": "横羽線。K1下り（横浜方面）からの出口のみ（K3上りからは不可）" },
+    { "id": "shin_yamashita", "name": "新山下", "route": "K3", "route_name": "狩場線", "lat": 35.443226, "lng": 139.654410, "ramp_access": "full", "ramp_note": "狩場線。本牧JCT寄りのフルIC。入口は上下ともETC専用" },
+    { "id": "ishikawacho", "name": "石川町", "route": "K3", "route_name": "狩場線", "lat": 35.438939, "lng": 139.643184, "ramp_access": "half", "ramp_note": "狩場線。本牧JCT方面への入口のみ。ETC専用" },
+    { "id": "daikoku_futo", "name": "大黒ふ頭", "route": "K5", "route_name": "大黒線", "lat": 35.466100, "lng": 139.685600, "ramp_access": "full", "ramp_note": "大黒線。湾岸線（B）と共用のフルIC。大黒JCT併設", "graph_routes": ["K5", "B"] }
+  ],
+  "chains": [
+    { "route": "K1", "removeEdges": [["daishi_jct", "shioiri"]], "sequence": ["daishi_jct", "daishi", "hamakawasaki", "asada", "shioiri"] },
+    { "route": "K1", "removeEdges": [["namamugi", "kinko_jct"]], "sequence": ["namamugi", "moriyacho", "koyasu", "higashi_kanagawa", "kinko_jct"] },
+    { "route": "K1", "removeEdges": [["kinko_jct", "ishikawacho_jct"]], "sequence": ["kinko_jct", "yokohamaeki_higashi", "minatomirai", "yokohama_koen", "yamashitacho", "ishikawacho_jct"] },
+    { "route": "K3", "removeEdges": [["honmoku_jct", "ishikawacho_jct"]], "sequence": ["honmoku_jct", "shin_yamashita", "ishikawacho_jct"] },
+    { "route": "K3", "removeEdges": [["ishikawacho_jct", "bandobashi"]], "sequence": ["ishikawacho_jct", "ishikawacho", "bandobashi"] }
+  ],
+  "addEdges": [
+    { "from": "daikoku_jct", "to": "daikoku_futo", "route": "K5" }
+  ]
+}
