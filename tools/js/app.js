@@ -316,6 +316,7 @@ let exitFavorites = [];   // ic_id 配列
 let exitEditMode = false;
 let exitDragId = null;        // 並べ替えドラッグ中の ic_id（null=非ドラッグ）
 let suppressNextClick = false; // ドラッグ終了直後のタップ(click)を1回抑止
+let exitFavExpanded = false;   // お気に入りを全件展開しているか（既定=上位3件のみ）
 
 function defaultExitFavoriteIds() {
   return (state.data.favorites.exit_favorites || []).map(f => f.ic_id);
@@ -329,7 +330,10 @@ function initExitFavorites() {
 function renderExitFavorites() {
   const wrap = document.getElementById('exit-fav-chips');
   wrap.innerHTML = '';
-  for (const icId of exitFavorites) {
+  const COLLAPSED = 3;
+  const showAll = exitEditMode || exitFavExpanded;   // 編集中・展開中は全件
+  const visible = showAll ? exitFavorites : exitFavorites.slice(0, COLLAPSED);
+  for (const icId of visible) {
     const ic = state.data.ics.find(x => x.id === icId);
     if (!ic) continue;
     const chip = document.createElement('button');
@@ -355,6 +359,14 @@ function renderExitFavorites() {
       setExitIc(icId); update();
     });
     wrap.appendChild(chip);
+  }
+  if (!exitEditMode && exitFavorites.length > COLLAPSED) {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'fav-chip fav-more';
+    toggle.textContent = exitFavExpanded ? '▴ 閉じる' : `▾ 他${exitFavorites.length - COLLAPSED}件`;
+    toggle.addEventListener('click', () => { exitFavExpanded = !exitFavExpanded; renderExitFavorites(); });
+    wrap.appendChild(toggle);
   }
   if (exitEditMode) {
     const add = document.createElement('button');
