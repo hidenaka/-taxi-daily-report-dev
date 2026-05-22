@@ -57,6 +57,7 @@ const STATIC_FILES = [
   './tools/js/arrivals-render.js',
   './tools/js/forecast-section.js',
   './tools/js/airline-color.js',
+  './tools/js/exit-favorites.js',
   './legal/tokuteishou.html',
   './legal/terms.html',
   './legal/privacy.html',
