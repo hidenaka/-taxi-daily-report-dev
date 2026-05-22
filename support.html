@@ -138,7 +138,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="hourEffCard">
     <div class="section-h">
-      <strong>曜日 × 時間 ¥/h <span style="font-size:10px;color:var(--muted);font-weight:normal;" id="hourEffScopeLabel">(自分のデータ)</span></strong>
+      <strong>曜日 × 時間の時給 <span style="font-size:10px;color:var(--muted);font-weight:normal;" id="hourEffScopeLabel">(自分のデータ)</span></strong>
       <span class="desc">休憩を除いた実稼働時間あたり売上</span>
     </div>
     <div class="sort-tabs" id="hourScopeTabs">
@@ -147,7 +147,7 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="hourEffBody"></div>
     <div class="detail-tip" id="hourEffTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">¥/h = 売上 ÷ 実稼働時間(休憩除外)。サンプル少(&lt;3件)はグレー、タップで詳細</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">時給 = 売上 ÷ 実稼働時間(休憩除外)。サンプル少(&lt;3件)はグレー、タップで詳細</p>
   </section>
 
   <section class="card" id="highValueCard">
@@ -1087,7 +1087,7 @@ function renderHourEff() {
         r = Math.round(244 - t * (244 - 76)); g = Math.round(193 + t * (175 - 193)); b = Math.round(7 + t * (80 - 7));
       }
       const lowSample = c.days < 3 ? ' low-sample' : '';
-      const display = v >= 1000 ? Math.round(v / 100) / 10 + 'k' : Math.round(v);
+      const display = Math.round(v / 100) * 100;
       const stab = stabilityTier(daily[dow][h]);
       const stabMark = stab === 'stable' ? '<span class="stab" style="color:#1b5e20;">◎</span>'
         : stab === 'volatile' ? '<span class="stab" style="color:#b71c1c;">△</span>' : '';
@@ -1117,7 +1117,7 @@ function renderHourEff() {
       tip.innerHTML = `
         <strong>${DOW_LABELS[dow]} ${h}時台</strong> (${scopeLabel}・乗務した日数 ${c.days}日)<br>
         ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-        ¥/h <strong>${formatYen(c.hourlyA)}</strong> (=売上÷実稼働時間)・日別レンジ ${range}<br>
+        時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
         <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
       `;
     };

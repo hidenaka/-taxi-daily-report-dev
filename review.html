@@ -130,12 +130,12 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="heatCard"
     <div class="section-h">
-      <strong>曜日 × 時間帯 平均時間単価（¥/h）</strong>
+      <strong>曜日 × 時間帯の時給</strong>
       <span class="desc">時間帯別の時間単価平均</span>
     </div>
     <div id="heatBody"></div>
     <div class="detail-tip" id="heatTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">数字は<strong>1時間あたり平均営収（¥/h）</strong>。実稼働時間（休憩除く）で換算。タップで詳細</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">数字は<strong>時給（1時間あたりの稼ぎ）</strong>。実稼働時間（休憩除く）で換算。タップで詳細</p>
   </section>
 
   <section class="card" id="weatherCard">
@@ -659,7 +659,7 @@ function renderHeatmap() {
         const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong><br>
           ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-          平均時間単価: <strong>${formatYen(v)}/h</strong> (${days}日ベース)・日別レンジ ${range}`;
+          時給: <strong>${formatYen(v)}</strong> (${days}日ベース)・日別レンジ ${range}`;
       } else {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong>: データなし`;
       }

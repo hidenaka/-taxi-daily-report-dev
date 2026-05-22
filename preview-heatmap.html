@@ -80,7 +80,7 @@ h1, h2, h3 { margin: 0 0 8px; }
   <section class="card">
     <div class="section-h">
       <strong>時間帯×曜日ゾーン効率</strong>
-      <span class="desc">ゾーン別 平均¥/h</span>
+      <span class="desc">ゾーン別 平均時給</span>
     </div>
     <div id="heatBody">読み込み中…</div>
     <div id="heatTip" class="detail-tip"></div>
@@ -90,7 +90,7 @@ h1, h2, h3 { margin: 0 0 8px; }
   <section class="card">
     <div class="section-h">
       <strong>時間帯別効率ヒートマップ</strong>
-      <span class="desc">時間帯×曜日 ¥/h</span>
+      <span class="desc">時間帯×曜日の時給</span>
     </div>
     <div class="scope-tabs" id="scopeTabs">
       <button class="active" data-scope="self">自分</button>
@@ -334,7 +334,7 @@ function renderHeatmap() {
         const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong><br>
           ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-          平均時間単価: <strong>${formatYen(v)}/h</strong> (${days}日ベース)・日別レンジ ${range}`;
+          時給: <strong>${formatYen(v)}</strong> (${days}日ベース)・日別レンジ ${range}`;
       } else {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong>: データなし`;
       }
@@ -380,7 +380,7 @@ function renderHourEff() {
         r = Math.round(244 - t * (244 - 76)); g = Math.round(193 + t * (175 - 193)); b = Math.round(7 + t * (80 - 7));
       }
       const lowSample = c.days < 3 ? ' low-sample' : '';
-      const display = v >= 1000 ? Math.round(v / 100) / 10 + 'k' : Math.round(v);
+      const display = Math.round(v / 100) * 100;
       const stab = stabilityTier(daily[dow][h]);
       const stabMark = stab === 'stable' ? '<span class="stab" style="color:#1b5e20;">◎</span>'
         : stab === 'volatile' ? '<span class="stab" style="color:#b71c1c;">△</span>' : '';
@@ -410,7 +410,7 @@ function renderHourEff() {
       tip.innerHTML = `
         <strong>${DOW_LABELS[dow]} ${h}時台</strong> (${scopeLabel}・乗務した日数 ${c.days}日)<br>
         ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-        ¥/h <strong>${formatYen(c.hourlyA)}</strong> (=売上÷実稼働時間)・日別レンジ ${range}<br>
+        時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
         <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
       `;
     };
