@@ -1108,9 +1108,9 @@ function renderHourEff() {
         return;
       }
       const scopeLabel = hourScope === 'all' ? '全員統合' : '自分';
-      const tier = classifyEarning(c.hourlyA, validValues);
-      const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
       const dv = daily[dow][h];
+      const tier = dv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
+      const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
       const stab2 = stabilityTier(dv);
       const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
       const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';

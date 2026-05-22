@@ -598,8 +598,8 @@ function renderHeatmap() {
   const { matrix, days } = dowZoneEfficiency(allDrives, preset.zones);
   const dailyZ = zoneDailyValues(allDrives, preset.zones);
   const validValues = [];
-  for (let dw = 0; dw < 7; dw++) for (const z of preset.zones) {
-    if (dailyZ[dw][z.key].length >= 3 && matrix[dw][z.key] > 0) validValues.push(matrix[dw][z.key]);
+  for (let dow = 0; dow < 7; dow++) for (const z of preset.zones) {
+    if (dailyZ[dow][z.key].length >= 3 && matrix[dow][z.key] > 0) validValues.push(matrix[dow][z.key]);
   }
   const keys = preset.zones.map(z => z.key);
   const flat = matrix.flatMap(r => keys.map(k => r[k])).filter(v => v > 0);
@@ -651,9 +651,9 @@ function renderHeatmap() {
       const tip = document.getElementById('heatTip');
       tip.classList.add('show');
       if (v > 0) {
-        const tier = classifyEarning(v, validValues);
-        const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
         const dv = dailyZ[dow][k];
+        const tier = dv.length >= 3 ? classifyEarning(v, validValues) : 'none';
+        const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
         const stab = stabilityTier(dv);
         const stabTxt = stab === 'stable' ? '◎ 安定して稼げる' : stab === 'mid' ? '○ ややムラ' : stab === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
         const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';

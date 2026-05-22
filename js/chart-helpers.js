@@ -1269,7 +1269,7 @@ export function hourlyDowDailyValues(drives) {
     const m = hourlyDowEfficiency(dayDrives);
     for (let dow = 0; dow < 7; dow++) {
       for (let h = 0; h < 24; h++) {
-        if (m[dow][h].workingMin > 0) result[dow][h].push(m[dow][h].hourlyA);
+        if (m[dow][h].workingMin > 0 && m[dow][h].hourlyA > 0) result[dow][h].push(m[dow][h].hourlyA);
       }
     }
   }
