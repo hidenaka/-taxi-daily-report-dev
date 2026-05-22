@@ -125,6 +125,12 @@ if (location.hostname.includes('-dev')) {
     </div>
     <a href="guide.html#ch6" style="display:inline-block;margin-top:6px;background:#f57c00;color:#fff;padding:5px 12px;border-radius:4px;text-decoration:none;font-size:11px;font-weight:600;">追加手順を見る →</a>
   </section>
+  <section class="card" id="firstRunCard" style="display:none;background:#fff7ed;border:1px solid #fdba74;padding:14px;">
+    <div style="font-size:15px;font-weight:700;color:#9a3412;margin-bottom:6px;">最初の日報を入れてみましょう</div>
+    <p style="font-size:13px;line-height:1.6;color:#7c2d12;margin:0 0 10px;">営業明細（日報）の写真があれば、ボタンから選ぶだけで自動入力できます。</p>
+    <a href="input.html" style="display:inline-block;background:#ea580c;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">📷 明細の写真から入力</a>
+    <p style="font-size:11px;line-height:1.6;color:#9a6a4a;margin:10px 0 0;">まだ写真が無い方は、次の乗務のあとに明細の写真を撮っておきましょう。</p>
+  </section>
   <section class="card" id="todayHintCard" style="display:none;"></section>
   <section class="card" id="summaryCard">読み込み中…</section>
   <section class="card" id="targetCard" style="display:none;"></section>
@@ -146,6 +152,7 @@ import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus }
 import { isEmailAuth } from './js/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
 import { checkInviteAndWarn, fetchCompanyExists } from './js/invite-url.js';
+import { shouldShowFirstRunCard } from './js/first-run.js';
 import './js/help-video.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
@@ -270,6 +277,34 @@ function wireFolds() {
   });
 }
 
+// 初回行動カード: 日報が1件も無い新規ユーザーにのみ表示。データが入ると消える。
+async function maybeShowFirstRunCard(isCurrent, currentCount) {
+  const card = document.getElementById('firstRunCard');
+  if (!card) return;
+  // 当期にデータあり → 既存ユーザー。marker をセットして隠す
+  if (currentCount > 0) {
+    try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+    card.style.display = 'none';
+    return;
+  }
+  // 当期0件でも、現在月度でなければ出さない（過去/未来の閲覧時）
+  if (!isCurrent) { card.style.display = 'none'; return; }
+  // marker があれば既存ユーザー
+  let hasAnyDrive = false;
+  try { hasAnyDrive = localStorage.getItem('cabis_has_drive') === '1'; } catch (e) {}
+  // marker 無ければ前期も確認（安全側: 取得失敗時は出さない）
+  if (!hasAnyDrive) {
+    try {
+      const prev = await getDrivesForMonth(shiftBillingPeriod(viewPeriod, -1));
+      if (prev && prev.length > 0) {
+        hasAnyDrive = true;
+        try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+      }
+    } catch (e) { card.style.display = 'none'; return; }
+  }
+  card.style.display = shouldShowFirstRunCard({ hasAnyDrive }) ? 'block' : 'none';
+}
+
 async function render() {
   const rawDrives = await getDrivesForMonth(viewPeriod);
   rawDrives.sort((a, b) => a.date.localeCompare(b.date));
@@ -280,6 +315,7 @@ async function render() {
   const isPast = range.end < today;
   const isFuture = range.start > today;
   const isCurrent = !isPast && !isFuture;
+  await maybeShowFirstRunCard(isCurrent, rawDrives.length);
 
   // 今日の傾向(当月度表示時のみ・過去データから) ← 後追いで非同期実行(UIをブロックしない)
   if (isCurrent) renderTodayHint();
