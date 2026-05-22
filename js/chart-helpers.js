@@ -710,12 +710,55 @@ function withOfficeStart(drive) {
   }, ...trips];
 }
 
-// 配列の中央値
-function median(arr) {
+// 配列の中央値（export: peerMedianHourlyDow・テスト用）
+export function median(arr) {
   if (arr.length === 0) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// 人ごと中央値ヒートマップ集計
+// drives: 各要素に _userId または userId が付いている前提（getAllUsersDrivesForMonth 付与済み）
+// 戻り値: 7×24 matrix。各セル = { hourlyA: number, days: number (=人数), peerValues: number[] }
+export function peerMedianHourlyDow(drives) {
+  // userId でグループ化
+  const userMap = new Map();
+  for (const d of drives) {
+    const uid = d._userId ?? d.userId;
+    if (!uid) continue;
+    if (!userMap.has(uid)) userMap.set(uid, []);
+    userMap.get(uid).push(d);
+  }
+
+  // 各セルに各ユーザーの hourlyA を積む
+  const peerValuesMatrix = Array.from({ length: 7 }, () =>
+    Array.from({ length: 24 }, () => [])
+  );
+
+  for (const [, userDrives] of userMap) {
+    const m = hourlyDowEfficiency(userDrives);
+    for (let dow = 0; dow < 7; dow++) {
+      for (let h = 0; h < 24; h++) {
+        if (m[dow][h].workingMin > 0 && m[dow][h].hourlyA > 0) {
+          peerValuesMatrix[dow][h].push(m[dow][h].hourlyA);
+        }
+      }
+    }
+  }
+
+  // 中央値 matrix 組み立て
+  const result = Array.from({ length: 7 }, (_, dow) =>
+    Array.from({ length: 24 }, (__, h) => {
+      const peerValues = peerValuesMatrix[dow][h];
+      return {
+        hourlyA: peerValues.length > 0 ? median(peerValues) : 0,
+        days: peerValues.length,
+        peerValues,
+      };
+    })
+  );
+  return result;
 }
 
 // エリア × 時刻(0-23時) 別の実労働時間効率マップ
@@ -1297,9 +1340,14 @@ export function zoneDailyValues(drives, zones) {
 
 // ヒートマップ凡例＋使い方1行。scope: 'self' | 'all'
 export function heatmapLegendHtml(scope) {
-  const who = scope === 'all' ? '<b>みんなの傾向</b>です。' : '';
+  if (scope === 'all') {
+    return `<div class="heat-legend" style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px;">
+      <b>みんなの傾向（各ドライバーの中央値）</b>。数字＝時給（1時間あたりの稼ぎ）。時給が高い時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=みんな揃って稼げる / <b>△</b>=人によって差が大きい / 薄いセル=人数がまだ少ない。<br>
+      👉 休憩は「休憩向き」の時間に取ると、稼ぎ時を逃しません。
+    </div>`;
+  }
   return `<div class="heat-legend" style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px;">
-    ${who}数字＝時給（1時間あたりの稼ぎ）。時給が高い時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=安定して稼げる / <b>△</b>=日によってムラが大きい / 薄いセル=記録がまだ少ない。<br>
+    数字＝時給（1時間あたりの稼ぎ）。時給が高い時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=安定して稼げる / <b>△</b>=日によってムラが大きい / 薄いセル=記録がまだ少ない。<br>
     👉 休憩は「休憩向き」の時間に取ると、稼ぎ時を逃しません。
   </div>`;
 }

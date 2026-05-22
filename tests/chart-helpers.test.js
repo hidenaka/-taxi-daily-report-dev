@@ -150,3 +150,97 @@ test('heatmapLegendHtml: 数字=時給であることが明記されている', 
   const html = heatmapLegendHtml('self');
   assert.ok(html.includes('時給'), '「時給」という語が含まれること');
 });
+
+test('heatmapLegendHtml: scope=all のとき「中央値」が含まれる', () => {
+  assert.ok(heatmapLegendHtml('all').includes('中央値'));
+});
+
+import { median, peerMedianHourlyDow } from '../js/chart-helpers.js';
+
+test('median: 奇数個の配列は中央値を返す', () => {
+  assert.equal(median([1, 3, 2]), 2);
+});
+
+test('median: 偶数個の配列は中央2値の平均を返す', () => {
+  assert.equal(median([1, 2, 3, 9]), 2.5);
+});
+
+test('median: 空配列は0を返す', () => {
+  assert.equal(median([]), 0);
+});
+
+test('peerMedianHourlyDow: 3人が木19時に各々時給4000/6000/8000 → hourlyA=6000, days=3, peerValues.length=3', () => {
+  const mkDrive = (userId, amount) => ({
+    _userId: userId,
+    date: '2026-04-23', // 木曜
+    departureTime: '19:00',
+    returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:50', boardPlace: 'A', alightPlace: 'B', km: 5, amount, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  // workingMin=60 per driver: hourlyA = amount/(60/60) = amount
+  // driver-a: amount=4000 → hourlyA=4000
+  // driver-b: amount=6000 → hourlyA=6000
+  // driver-c: amount=8000 → hourlyA=8000
+  // median([4000,6000,8000]) = 6000
+  const drives = [mkDrive('driver-a', 4000), mkDrive('driver-b', 6000), mkDrive('driver-c', 8000)];
+  const m = peerMedianHourlyDow(drives);
+  const dow = 4; // 木曜
+  assert.equal(m[dow][19].hourlyA, 6000, '中央値=6000');
+  assert.equal(m[dow][19].days, 3, '3人分');
+  assert.equal(m[dow][19].peerValues.length, 3, 'peerValues に3件');
+});
+
+test('peerMedianHourlyDow: 多数のdriveを持つ1人が他の少量ドライバーを圧倒しない（人数で中央値）', () => {
+  // driver-heavy: 木19時に3日分の乗務だが hourlyA ≈ 10000（高時給）
+  // driver-low: 木19時に1日分、hourlyA ≈ 2000
+  // driver-mid: 木19時に1日分、hourlyA ≈ 5000
+  // pool集計なら heavy に引っ張られるが、peer中央値は [10000, 2000, 5000] の中央値=5000
+  const mkDrive = (userId, date, amount) => ({
+    _userId: userId,
+    date,
+    departureTime: '19:00',
+    returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:50', boardPlace: 'A', alightPlace: 'B', km: 5, amount, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  const drives = [
+    mkDrive('heavy', '2026-04-23', 10000),
+    mkDrive('heavy', '2026-04-30', 10000),
+    mkDrive('heavy', '2026-05-07', 10000),
+    mkDrive('low',   '2026-04-23', 2000),
+    mkDrive('mid',   '2026-04-23', 5000),
+  ];
+  const m = peerMedianHourlyDow(drives);
+  // heavy の hourlyA = 10000, low = 2000, mid = 5000 → median=5000
+  assert.equal(m[4][19].hourlyA, 5000, 'pool非偏重: 中央値=5000');
+});
+
+test('peerMedianHourlyDow: 2人のみのセル → days=2', () => {
+  const mkDrive = (userId, amount) => ({
+    _userId: userId,
+    date: '2026-04-23',
+    departureTime: '19:00',
+    returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:50', boardPlace: 'A', alightPlace: 'B', km: 5, amount, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  const drives = [mkDrive('u1', 4000), mkDrive('u2', 6000)];
+  const m = peerMedianHourlyDow(drives);
+  assert.equal(m[4][19].days, 2, '2人 → days=2');
+});
+
+test('peerMedianHourlyDow: userId フォールバックでもグループ化される', () => {
+  const mkDrive = (uid, amount) => ({
+    userId: uid, // _userId なし、userId フォールバック
+    date: '2026-04-23',
+    departureTime: '19:00',
+    returnTime: '20:00',
+    trips: [{ no: 1, boardTime: '19:10', alightTime: '19:50', boardPlace: 'A', alightPlace: 'B', km: 5, amount, isPickup: false, isCancel: false, waitTime: '' }],
+    rests: []
+  });
+  const drives = [mkDrive('ua', 3000), mkDrive('ub', 9000)];
+  const m = peerMedianHourlyDow(drives);
+  assert.equal(m[4][19].days, 2, 'userId フォールバックで2人認識');
+  assert.equal(m[4][19].hourlyA, 6000, 'median([3000,9000])=6000');
+});
