@@ -262,23 +262,23 @@ test('dailySalesList: キャンセル・summary除外、sales/dow正確', () => 
   assert.equal(list[0].count, 1);
 });
 
-test('salesStages: 5千円刻み境界・端バケット・空ステージ除外', () => {
+test('salesStages: 1万円刻み境界・端バケット・空ステージ除外', () => {
   const mk = (date, amount) => ({ date, trips:[{boardTime:'10:00',alightTime:'10:10',amount,isCancel:false}], rests:[] });
   const drives = [
     mk('2026-04-01', 48000),  // 〜5万
-    mk('2026-04-02', 60000),  // 6.0–6.5万 (idx2)
-    mk('2026-04-03', 64999),  // 6.0–6.5万 (同じ)
-    mk('2026-04-04', 65000),  // 6.5–7万 (idx3)
+    mk('2026-04-02', 60000),  // 6–7万 (idx1)
+    mk('2026-04-03', 69999),  // 6–7万 (同じ)
+    mk('2026-04-04', 70000),  // 7–8万 (idx2)
     mk('2026-04-05', 125000), // 12万+
   ];
   const stages = salesStages(drives);
   const byKey = Object.fromEntries(stages.map(s => [s.label, s.count]));
   assert.equal(byKey['〜5万'], 1);
-  assert.equal(byKey['6–6.5万'], 2);
-  assert.equal(byKey['6.5–7万'], 1);
+  assert.equal(byKey['6–7万'], 2);
+  assert.equal(byKey['7–8万'], 1);
   assert.equal(byKey['12万+'], 1);
-  // 空ステージ(5–5.5万等)は含まれない
-  assert.equal(stages.some(s => s.label === '5–5.5万'), false);
+  // 空ステージ(5–6万等)は含まれない
+  assert.equal(stages.some(s => s.label === '5–6万'), false);
   // lower昇順
   assert.deepEqual(stages.map(s => s.lower), [...stages.map(s=>s.lower)].sort((a,b)=>a-b));
 });

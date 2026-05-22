@@ -1371,7 +1371,7 @@ export function dailySalesList(drives) {
 export function salesStages(drives, opts = {}) {
   const min = opts.min ?? 50000;
   const max = opts.max ?? 120000;
-  const step = opts.step ?? 5000;
+  const step = opts.step ?? 10000;
   const man = n => {
     const v = n / 10000;
     return Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10);
