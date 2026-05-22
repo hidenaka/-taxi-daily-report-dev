@@ -197,4 +197,41 @@ nav.bottom a.active { color: var(--primary); }
 .help-content.open { display: block; }
 .help-content ul { margin: 4px 0; padding-left: 18px; }
 .help-content li { margin: 2px 0; }
+
+/* === 使い方動画（インライン展開） === */
+.help-video-btn {
+  display: inline-flex; align-items: center; gap: 5px; margin-left: 6px;
+  background: #e8f1fb; color: var(--primary); border: 1px solid #cfe2f7;
+  border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+  font-family: inherit; cursor: pointer; vertical-align: middle;
+}
+.help-video-btn:hover, .help-video-btn:focus { opacity: 0.85; outline: none; }
+.help-video { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.help-video.open { max-height: 640px; margin: 8px 0; }
+.hv-player {
+  position: relative; width: 100%; max-width: 230px; margin: 0 auto;
+  aspect-ratio: 9 / 16; background: #11151a; border-radius: 12px; overflow: hidden;
+}
+.hv-poster { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hv-play {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.95);
+  color: var(--primary); border: none; font-size: 18px; padding-left: 3px; cursor: pointer;
+}
+.hv-fallback {
+  display: none; position: absolute; inset: 0; align-items: center; justify-content: center;
+  color: #fff; font-size: 12px; text-align: center; padding: 12px;
+}
+.hv-player.hv-error .hv-poster, .hv-player.hv-error .hv-play { display: none; }
+.hv-player.hv-error .hv-fallback { display: flex; }
+.hv-video {
+  width: 100%; max-width: 230px; margin: 0 auto; display: block;
+  border-radius: 12px; background: #000; aspect-ratio: 9 / 16; object-fit: contain;
+}
+.hv-cap { font-size: 11px; color: var(--muted); text-align: center; margin: 8px 0 0; }
+.hv-close {
+  display: block; width: 100%; margin-top: 10px; padding: 9px;
+  background: #e8f1fb; color: var(--primary); border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+}
 .help-content .guide-link { color: #1565c0; text-decoration: underline; font-weight: 600; }
