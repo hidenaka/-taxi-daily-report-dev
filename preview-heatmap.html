@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>【プレビュー】ヒートマップ確認用 - Cabis</title>
+<style>
+/* ===== CSS変数 (css/style.css より) ===== */
+:root {
+  --primary: #0066cc;
+  --bg: #f5f5f5;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #888;
+  --border: #ddd;
+  --green: #4caf50;
+  --gray: #9e9e9e;
+  --orange: #ff9800;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { margin: 0; padding: 0 0 32px; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); }
+h1, h2, h3 { margin: 0 0 8px; }
+.card { background: var(--surface); border-radius: 8px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); }
+.muted { color: var(--muted); font-size: 12px; }
+
+/* ===== 警告バナー ===== */
+.preview-banner {
+  background: #fff3e0;
+  border-bottom: 2px solid #ff9800;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e65100;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* ===== zone ヒートマップ (review.html より) ===== */
+.heat { display: grid; grid-template-columns: 30px repeat(4, 1fr); gap: 2px; font-size: 11px; }
+.heat .h { padding: 4px 2px; text-align: center; color: var(--muted); font-size: 10px; }
+.heat .lbl { padding: 6px 2px; color: var(--muted); font-weight: 600; text-align: center; font-size: 11px; }
+.heat .cell { padding: 8px 2px; text-align: center; border-radius: 3px; font-weight: 600; }
+.heat .cell, .heat-touch { cursor: pointer; }
+.heat-touch { transform: scale(1); transition: transform 0.1s; }
+.heat-touch:active { transform: scale(0.95); }
+
+/* ===== 時間ヒートマップ (support.html より) ===== */
+.heatgrid { display: grid; grid-template-columns: 24px repeat(24, 1fr); gap: 1px; font-size: 9px; }
+.heatgrid .hh { text-align: center; color: var(--muted); font-size: 8px; padding: 2px 0; }
+.heatgrid .dlbl { text-align: center; color: var(--muted); font-size: 9px; padding: 4px 0; font-weight: 600; }
+.heatgrid .cell { aspect-ratio: 1; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #fff; cursor: pointer; min-height: 22px; font-weight: 600; }
+.heatgrid .cell.empty { background: #eceff1; color: #b0bec5; }
+.heatgrid .cell.low-sample { opacity: 0.4; }
+
+/* ===== ツールチップ ===== */
+.detail-tip { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 12px; line-height: 1.5; display: none; }
+.detail-tip.show { display: block; }
+.detail-tip strong { color: #f57f17; }
+
+/* ===== scope タブ ===== */
+.scope-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.scope-tabs button { flex: 1; background: #f0f0f0; color: #333; border: none; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.scope-tabs button.active { background: var(--primary); color: #fff; font-weight: 600; }
+
+.section-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.section-h .desc { font-size: 10px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  ⚠️ これはレイアウト確認用のサンプルデータ・プレビューです。実データではありません。確認後に削除します。
+</div>
+
+<main style="padding:14px;">
+  <h1 style="margin-top:8px;font-size:18px;">ヒートマップ プレビュー</h1>
+
+  <!-- ===== Section 1: ゾーンヒートマップ (review.html) ===== -->
+  <section class="card">
+    <div class="section-h">
+      <strong>時間帯×曜日ゾーン効率</strong>
+      <span class="desc">ゾーン別 平均¥/h</span>
+    </div>
+    <div id="heatBody">読み込み中…</div>
+    <div id="heatTip" class="detail-tip"></div>
+  </section>
+
+  <!-- ===== Section 2: 時間別ヒートマップ (support.html) ===== -->
+  <section class="card">
+    <div class="section-h">
+      <strong>時間帯別効率ヒートマップ</strong>
+      <span class="desc">時間帯×曜日 ¥/h</span>
+    </div>
+    <div class="scope-tabs" id="scopeTabs">
+      <button class="active" data-scope="self">自分</button>
+      <button data-scope="all">みんな</button>
+    </div>
+    <div id="hourEffBody">読み込み中…</div>
+    <div id="hourEffTip" class="detail-tip"></div>
+  </section>
+</main>
+
+<script type="module">
+import {
+  hourlyDowEfficiency,
+  hourlyDowDailyValues,
+  dowZoneEfficiency,
+  zoneDailyValues,
+  classifyEarning,
+  stabilityTier,
+  heatmapLegendHtml,
+  ZONE_PRESETS,
+  DOW_LABELS,
+  formatMin,
+  getShiftZones,
+  formatZoneRange
+} from './js/chart-helpers.js';
+
+// ===== formatYen (app.js の代替定義) =====
+function formatYen(v) {
+  if (v == null || isNaN(v)) return '¥0';
+  return '¥' + Math.round(v).toLocaleString();
+}
+
+// ===== HOUR_ORDER (support.html ローカル定数) =====
+const HOUR_ORDER = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,1,2,3,4,5,6];
+
+// ===== サンプルデータ生成 =====
+// 目標: 全表示状態を網羅
+//   earn ◎ (安定稼ぎ時): 木〜土の18-21時 → 高単価・低CV
+//   earn △ (ムラ稼ぎ時): 月〜水の19時  → 高単価・高CV
+//   rest ◎ (安定休憩向き): 月〜木の13-15時 → 低単価・低CV
+//   normal: 中間帯
+//   low-sample: 日曜の深夜帯 (2日分のみ)
+//   empty: 一部の早朝帯
+
+function mkTrip(no, boardTime, alightTime, amount) {
+  return { no, boardTime, alightTime, boardPlace: 'A', alightPlace: 'B', km: Math.round(amount/300), amount, isPickup: false, isCancel: false, waitTime: '' };
+}
+
+function mkDrive(date, dep, ret, trips, rests = []) {
+  return { date, departureTime: dep, returnTime: ret, trips, rests };
+}
+
+// dateオフセット(月曜=0の週から何日目か)を指定してISO日付文字列を返す
+// anchor: 2026-01-05 は月曜日
+const ANCHOR = new Date('2026-01-05');
+function dateOf(weekOffset, dayOfWeek) {
+  const d = new Date(ANCHOR);
+  d.setDate(d.getDate() + weekOffset * 7 + dayOfWeek);
+  return d.toISOString().slice(0,10);
+}
+// dayOfWeek: 0=日,1=月,2=火,3=水,4=木,5=金,6=土
+
+const drives = [];
+
+// ==================================================
+// 昼番乗務 (08:00-17:00)
+// 昼は稼ぎが低め(13-15時が最低)
+// ==================================================
+function addDayShift(weekOffset, dow, morningAmt, lunchAmt, afternoonAmt) {
+  const date = dateOf(weekOffset, dow);
+  const trips = [
+    mkTrip(1, '08:10', '08:35', morningAmt),
+    mkTrip(2, '09:00', '09:30', Math.round(morningAmt * 0.8)),
+    mkTrip(3, '09:45', '10:20', Math.round(morningAmt * 0.9)),
+    mkTrip(4, '11:00', '11:40', Math.round(lunchAmt * 1.1)),
+    mkTrip(5, '12:00', '12:30', lunchAmt),
+    mkTrip(6, '13:30', '13:50', Math.round(lunchAmt * 0.6)),
+    mkTrip(7, '14:00', '14:20', Math.round(lunchAmt * 0.5)),
+    mkTrip(8, '15:30', '16:10', afternoonAmt),
+    mkTrip(9, '16:30', '16:55', Math.round(afternoonAmt * 1.1)),
+  ];
+  const rests = [{ startTime: '12:30', endTime: '13:30', place: '休憩所' }];
+  drives.push(mkDrive(date, '08:00', '17:00', trips, rests));
+}
+
+// ==================================================
+// 夜番乗務 (17:00-03:00)
+// 夜は稼ぎが高め(18-22時がピーク)
+// ==================================================
+function addNightShift(weekOffset, dow, eveningAmt, midnightAmt) {
+  const date = dateOf(weekOffset, dow);
+  const trips = [
+    mkTrip(1, '17:20', '17:45', Math.round(eveningAmt * 0.8)),
+    mkTrip(2, '18:05', '18:40', eveningAmt),
+    mkTrip(3, '19:00', '19:30', Math.round(eveningAmt * 1.2)),
+    mkTrip(4, '19:45', '20:20', Math.round(eveningAmt * 1.1)),
+    mkTrip(5, '20:40', '21:10', eveningAmt),
+    mkTrip(6, '21:30', '22:00', Math.round(eveningAmt * 0.9)),
+    mkTrip(7, '22:30', '23:00', midnightAmt),
+    mkTrip(8, '23:20', '23:50', Math.round(midnightAmt * 1.1)),
+    mkTrip(9, '00:10', '00:40', midnightAmt),
+    mkTrip(10, '01:00', '01:30', Math.round(midnightAmt * 0.9)),
+    mkTrip(11, '02:00', '02:30', Math.round(midnightAmt * 0.8)),
+  ];
+  const rests = [{ startTime: '21:00', endTime: '21:30', place: '休憩所' }];
+  drives.push(mkDrive(date, '17:00', '03:00', trips, rests));
+}
+
+// ==================================================
+// 深夜専従 (22:00-05:00) — 土日のみ、2〜3件で low-sample 演出用
+// ==================================================
+function addLateShift(weekOffset, dow, amt) {
+  const date = dateOf(weekOffset, dow);
+  const trips = [
+    mkTrip(1, '22:30', '23:10', amt),
+    mkTrip(2, '23:40', '00:20', Math.round(amt * 1.2)),
+  ];
+  drives.push(mkDrive(date, '22:00', '05:00', trips, []));
+}
+
+// ---- 昼班: 月〜木 × 8週 ----
+// 朝は高め・昼は低め・夕方は中
+for (let w = 0; w < 8; w++) {
+  // 月(1): 安定した低昼単価
+  addDayShift(w, 1, 4200, 2800, 3600);
+  // 火(2): 安定した低昼単価
+  addDayShift(w, 2, 4000, 2700, 3500);
+  // 水(3): 安定した低昼単価
+  addDayShift(w, 3, 4100, 2600, 3400);
+  // 木(4): やや高め
+  addDayShift(w, 4, 4400, 2900, 3800);
+}
+
+// ---- 夜班: 木〜土 × 8週 ----
+// 木金土の夜は高単価安定
+for (let w = 0; w < 8; w++) {
+  addNightShift(w, 4, 5800, 4500); // 木
+  addNightShift(w, 5, 6200, 4800); // 金 — 最高値
+  addNightShift(w, 6, 5900, 4600); // 土
+}
+
+// ---- 夜班 月〜水: ムラのある夜 (volatile演出) ----
+// 週ごとに高低を交互にすることでCVを上げる
+for (let w = 0; w < 8; w++) {
+  const high = w % 2 === 0;
+  addNightShift(w, 1, high ? 7000 : 3200, high ? 5200 : 2400); // 月
+  addNightShift(w, 2, high ? 6800 : 3000, high ? 5000 : 2200); // 火
+  addNightShift(w, 3, high ? 6500 : 3400, high ? 4800 : 2600); // 水
+}
+
+// ---- 日曜昼: 5週分 (朝高め) ----
+for (let w = 0; w < 5; w++) {
+  addDayShift(w, 0, 5000, 3200, 4000);
+}
+
+// ---- 日曜夜: 4週分 ----
+for (let w = 0; w < 4; w++) {
+  addNightShift(w, 0, 5500, 4200);
+}
+
+// ---- 深夜専従 (日・土) × 2週 → low-sample ----
+addLateShift(0, 0, 6000);
+addLateShift(1, 0, 6200);
+addLateShift(0, 6, 5800);
+addLateShift(1, 6, 5900);
+
+// ===== 状態変数 =====
+let heatZonePreset = 'human';
+let hourScope = 'self';
+
+// allDrives と myDrives は同一 (プレビューはシングルユーザー)
+const allDrives = drives;
+const myDrives = drives;
+
+// ===== zone ヒートマップ (review.html renderHeatmap 完全複製) =====
+function renderHeatmap() {
+  const preset = heatZonePreset === 'shift' && false /* configなし */
+    ? { label: 'シフト別', zones: getShiftZones('17:00') }
+    : ZONE_PRESETS[heatZonePreset];
+  const { matrix, days } = dowZoneEfficiency(allDrives, preset.zones);
+  const dailyZ = zoneDailyValues(allDrives, preset.zones);
+  const validValues = [];
+  for (let dow = 0; dow < 7; dow++) for (const z of preset.zones) {
+    if (dailyZ[dow][z.key].length >= 3 && matrix[dow][z.key] > 0) validValues.push(matrix[dow][z.key]);
+  }
+  const keys = preset.zones.map(z => z.key);
+  const flat = matrix.flatMap(r => keys.map(k => r[k])).filter(v => v > 0);
+  const max = Math.max(...flat, 1);
+  const colCount = preset.zones.length;
+  let cellsHtml = '<div class="h"></div>';
+  for (const z of preset.zones) cellsHtml += `<div class="h">${z.label}<br><span style="font-size:8px;color:var(--muted);font-weight:400;">${formatZoneRange(z)}</span></div>`;
+  for (let dow = 0; dow < 7; dow++) {
+    const dowColor = dow === 0 ? '#d32f2f' : dow === 6 ? '#1976d2' : '';
+    cellsHtml += `<div class="lbl" style="${dowColor ? 'color:' + dowColor : ''}">${DOW_LABELS[dow]}</div>`;
+    for (const z of preset.zones) {
+      const v = matrix[dow][z.key];
+      const intensity = v > 0 ? Math.min(1, v / max) : 0;
+      const bg = v > 0 ? `rgba(76, 175, 80, ${0.15 + 0.7 * intensity})` : '#fafafa';
+      const text = v > 0 ? formatYen(v).replace('¥','') : '—';
+      const color = intensity > 0.6 ? '#fff' : '#222';
+      const tier = classifyEarning(v, validValues);
+      const stab = stabilityTier(dailyZ[dow][z.key]);
+      const tierTag = tier === 'earn' ? '稼ぎ時' : tier === 'rest' ? '休憩向き' : '';
+      const stabMark = stab === 'stable' ? '◎' : stab === 'volatile' ? '△' : '';
+      const sub = (tierTag || stabMark)
+        ? `<br><span style="font-size:8px;font-weight:600;opacity:.85;">${tierTag}${stabMark ? ' ' + stabMark : ''}</span>` : '';
+      cellsHtml += `<div class="cell heat-touch" data-dow="${dow}" data-k="${z.key}" data-v="${v}" data-days="${days[dow]}" style="background:${bg};color:${color};">${text}${sub}</div>`;
+    }
+  }
+  const presetTabs = Object.entries(ZONE_PRESETS).map(([key, p]) => {
+    const active = key === heatZonePreset;
+    const style = active ? 'background:var(--primary);color:#fff;font-weight:600;' : 'background:#f0f0f0;color:#333;';
+    return `<button data-preset="${key}" class="heat-preset" style="${style}border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;font-family:inherit;">${p.label}</button>`;
+  }).join('');
+  document.getElementById('heatBody').innerHTML = `
+    ${heatmapLegendHtml('self')}
+    <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px;">${presetTabs}</div>
+    <div style="overflow-x:auto;">
+      <div class="heat" style="grid-template-columns: 30px repeat(${colCount}, 1fr);">${cellsHtml}</div>
+    </div>
+  `;
+  document.getElementById('heatTip').classList.remove('show');
+  document.querySelectorAll('#heatBody .heat-preset').forEach(b => {
+    b.onclick = () => { heatZonePreset = b.dataset.preset; renderHeatmap(); };
+  });
+  document.querySelectorAll('#heatBody .cell').forEach(el => {
+    el.addEventListener('click', () => {
+      const dow = parseInt(el.dataset.dow);
+      const k = el.dataset.k;
+      const v = parseFloat(el.dataset.v);
+      const days = parseInt(el.dataset.days);
+      const zone = preset.zones.find(z => z.key === k);
+      const tip = document.getElementById('heatTip');
+      tip.classList.add('show');
+      if (v > 0) {
+        const dv = dailyZ[dow][k];
+        const tier = dv.length >= 3 ? classifyEarning(v, validValues) : 'none';
+        const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
+        const stab = stabilityTier(dv);
+        const stabTxt = stab === 'stable' ? '◎ 安定して稼げる' : stab === 'mid' ? '○ ややムラ' : stab === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
+        const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
+        tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong><br>
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
+          平均時間単価: <strong>${formatYen(v)}/h</strong> (${days}日ベース)・日別レンジ ${range}`;
+      } else {
+        tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong>: データなし`;
+      }
+    });
+  });
+}
+
+// ===== 時間別ヒートマップ (support.html renderHourEff 完全複製) =====
+function renderHourEff() {
+  const sourceDrives = hourScope === 'all' ? allDrives : myDrives;
+  const matrix = hourlyDowEfficiency(sourceDrives);
+  const daily = hourlyDowDailyValues(sourceDrives);
+  const validValues = [];
+  for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) {
+    if (matrix[dow][h].days >= 3 && matrix[dow][h].hourlyA > 0) validValues.push(matrix[dow][h].hourlyA);
+  }
+  let max = 0;
+  for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) {
+    if (matrix[dow][h].days >= 3 && matrix[dow][h].hourlyA > max) max = matrix[dow][h].hourlyA;
+  }
+  if (max === 0) max = 1;
+  let html = heatmapLegendHtml(hourScope);
+  html += '<div style="overflow-x:auto;"><div class="heatgrid" style="min-width:560px;">';
+  html += '<div></div>';
+  for (const h of HOUR_ORDER) html += `<div class="hh">${h}</div>`;
+  for (let dow = 0; dow < 7; dow++) {
+    const dowColor = dow === 0 ? '#d32f2f' : dow === 6 ? '#1976d2' : '#333';
+    html += `<div class="dlbl" style="color:${dowColor};">${DOW_LABELS[dow]}</div>`;
+    for (const h of HOUR_ORDER) {
+      const c = matrix[dow][h];
+      if (c.days === 0) {
+        html += `<div class="cell empty" data-dow="${dow}" data-h="${h}">·</div>`;
+        continue;
+      }
+      const v = c.hourlyA;
+      const ratio = Math.min(1, v / max);
+      let r, g, b;
+      if (ratio < 0.5) {
+        const t = ratio * 2;
+        r = 244; g = Math.round(67 + t * (193 - 67)); b = Math.round(54 + t * (7 - 54));
+      } else {
+        const t = (ratio - 0.5) * 2;
+        r = Math.round(244 - t * (244 - 76)); g = Math.round(193 + t * (175 - 193)); b = Math.round(7 + t * (80 - 7));
+      }
+      const lowSample = c.days < 3 ? ' low-sample' : '';
+      const display = v >= 1000 ? Math.round(v / 100) / 10 + 'k' : Math.round(v);
+      const stab = stabilityTier(daily[dow][h]);
+      const stabMark = stab === 'stable' ? '<span class="stab" style="color:#1b5e20;">◎</span>'
+        : stab === 'volatile' ? '<span class="stab" style="color:#b71c1c;">△</span>' : '';
+      html += `<div class="cell${lowSample}" style="background:rgb(${r},${g},${b});position:relative;" data-dow="${dow}" data-h="${h}"><span style="position:relative;z-index:1;">${display}</span><span style="position:absolute;top:0;right:1px;font-size:8px;line-height:1;">${stabMark}</span></div>`;
+    }
+  }
+  html += '</div></div>';
+  document.getElementById('hourEffBody').innerHTML = html;
+  document.querySelectorAll('#hourEffBody .cell').forEach(el => {
+    el.onclick = () => {
+      const dow = parseInt(el.dataset.dow);
+      const h = parseInt(el.dataset.h);
+      const c = matrix[dow][h];
+      const tip = document.getElementById('hourEffTip');
+      tip.classList.add('show');
+      if (c.days === 0) {
+        tip.innerHTML = `<strong>${DOW_LABELS[dow]} ${h}時</strong>: 乗務データなし`;
+        return;
+      }
+      const scopeLabel = hourScope === 'all' ? '全員統合' : '自分';
+      const dv = daily[dow][h];
+      const tier = dv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
+      const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
+      const stab2 = stabilityTier(dv);
+      const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
+      const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
+      tip.innerHTML = `
+        <strong>${DOW_LABELS[dow]} ${h}時台</strong> (${scopeLabel}・乗務した日数 ${c.days}日)<br>
+        ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
+        ¥/h <strong>${formatYen(c.hourlyA)}</strong> (=売上÷実稼働時間)・日別レンジ ${range}<br>
+        <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
+      `;
+    };
+  });
+}
+
+// ===== scope タブ =====
+document.querySelectorAll('#scopeTabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    hourScope = btn.dataset.scope;
+    document.querySelectorAll('#scopeTabs button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderHourEff();
+  });
+});
+
+// ===== 初期描画 =====
+renderHeatmap();
+renderHourEff();
+</script>
+</body>
+</html>
