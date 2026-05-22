@@ -433,43 +433,43 @@ const SCENARIOS = {
   },
 
   'ic-route': {
-    // IC控除距離ページ（tools/ic.html）の使い方。
-    // data-loaderが読む data/*.json はローカルサーバから直接配信されるため mockは不要。
-    // GPS要求はブラウザ上で「拒否」扱いになるのでGPSバナー/GPS提案は出ない。
-    // init() がデフォルト入口=舞浜・出口=霞ヶ関で起動するため、
-    // 画面ロード直後から答えカードが表示された状態になる。
+    // IC控除距離ページ（tools/ic.html）の使い方（リメイク版）。
+    // 1) できること（会社負担/控除距離）→ 2) 入口IC選択 → 3) 出口IC選択→控除距離表示
+    // 4) GPS ONで近いIC候補 → 5) プライバシー安心の一言
+    // 6) お気に入り長押し並べ替え → 7) ⚙編集からIC追加
+    //
+    // GPS: geolocation を許可＋東京タワー付近の座標をセット（舞浜より都心に近いICが候補に出る）
+    // 長押しドラッグ: pointerdown → wait 500ms → move段階的 → pointerup で並べ替えを見せる
     path: 'tools/ic.html',
+    geoPermission: true,  // main()でgeolocationを許可してからページを開く
     async run(page, ui) {
-      // 答えカードが描画されるのを待つ（controls が整ったら答えも出ている）
+      // 答えカードが描画されるのを待つ（初期値: 入口=舞浜、出口=羽田空港中央）
       await page.locator('#answer-body').waitFor({ state: 'visible', timeout: 15000 });
       await page.waitForTimeout(800);
 
-      // ① 画面トップ：入口ICの確認
+      // ── ① できること（核心価値）──────────────────────────────────
       await page.evaluate(() => window.scrollTo({ top: 0 }));
-      await page.waitForTimeout(400);
-      await ui.caption('① 「どこから乗る？」入口ICを選ぶ');
-      await ui.ripple('#step-entry');
-      await page.waitForTimeout(1600);
+      await page.waitForTimeout(300);
+      await ui.caption('① 区域外でも、会社負担の高速か・控除が何kmか一発で分かる');
+      await page.waitForTimeout(2800);
 
-      // ② 入口IC検索（鶴ヶ島を入力して選択）
-      await ui.caption('② 別のICを検索（例: 鶴ヶ島）');
-      await ui.ripple('#inp-entry-ic');
-      // datalistの値を直接入力して change イベントを発火
+      // ── ② 入口ICを選ぶ ───────────────────────────────────────────
+      await ui.caption('② 入口ICを選ぶ');
+      await ui.ripple('#step-entry');
+      await page.waitForTimeout(1400);
+
+      // 入口IC検索: 鶴ヶ島を入力して選択（関越道から乗る例）
+      await page.locator('#inp-entry-ic').scrollIntoViewIfNeeded();
       await page.locator('#inp-entry-ic').fill('鶴ヶ島IC');
       await page.locator('#inp-entry-ic').dispatchEvent('input');
       await page.locator('#inp-entry-ic').dispatchEvent('change');
-      await page.waitForTimeout(1200);
+      await page.waitForTimeout(1000);
 
-      // ③ 出口ICチップから霞ヶ関を選ぶ
+      // ── ③ 出口ICを選ぶ → 控除距離表示 ──────────────────────────────
       await page.evaluate(() => document.getElementById('step-exit')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-      await page.waitForTimeout(700);
-      await ui.caption('③ よく使うICがチップで並んでいる');
-      await ui.ripple('#exit-fav-chips');
-      await page.waitForTimeout(1800);
-
-      // ④ 霞ヶ関チップをタップ（デフォルトで既に選択済みだが、視覚的に選択アクションを見せる）
-      await ui.caption('④ チップをタップして出口ICを選ぶ');
-      // 霞ヶ関チップを探してタップ
+      await page.waitForTimeout(600);
+      await ui.caption('③ 出口ICを選ぶと控除距離（片道/往復）が出る');
+      // 霞ヶ関チップをタップ（デフォルトお気に入り1番目）
       const kasumigasekiChip = page.locator('#exit-fav-chips .fav-chip[data-ic-id="kasumigaseki"]');
       const chipExists = await kasumigasekiChip.count();
       if (chipExists > 0) {
@@ -479,19 +479,95 @@ const SCENARIOS = {
         await ui.ripple('#exit-fav-chips .fav-chip');
         await page.locator('#exit-fav-chips .fav-chip').first().click();
       }
-      await page.waitForTimeout(1200);
-
-      // ⑤ 答えカードまでスクロールして控除距離を見せる
-      await page.evaluate(() => document.getElementById('answer-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
       await page.waitForTimeout(800);
-      await ui.caption('⑤ 控除距離が片道・往復で出る');
+
+      // 答えカードへスクロールして控除距離を強調
+      await page.evaluate(() => document.getElementById('answer-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      await page.waitForTimeout(600);
       await ui.ripple('#answer-body');
+      await page.waitForTimeout(2200);
+
+      // ── ④ GPS ONで近いIC候補 ─────────────────────────────────────
+      // GPS は既に許可済み（geoPermission:true）+ 座標セット済み。
+      // ページロード時に位置情報が取得されて geo-suggest が表示されているはず。
+      // 見えていなければ「再取得」を押す。
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await page.waitForTimeout(400);
+
+      const geoSuggestVisible = await page.locator('#geo-suggest').isVisible().catch(() => false);
+      if (!geoSuggestVisible) {
+        // 再取得ボタンを押してGPSを起動
+        await page.locator('#btn-geo-refresh').click();
+        await page.waitForTimeout(1200);
+      }
+
+      await ui.caption('④ GPSをONにすると近くのICが候補に出て入力がラク');
+      await ui.ripple('#geo-suggest');
       await page.waitForTimeout(2400);
 
-      // ⑥ 今日のログ保存ボタンを見せる
-      await ui.caption('「片道だけ保存」で今日のログに追加');
-      await ui.ripple('#btn-save-oneway');
-      await page.waitForTimeout(2200);
+      // ── ⑤ プライバシー安心の一言 ─────────────────────────────────
+      await ui.caption('⑤ GPSは近くのIC探しだけに使用。場所がサーバーに送られる等の心配はありません');
+      await page.waitForTimeout(3000);
+
+      // ── ⑥ お気に入り長押し並べ替え ──────────────────────────────
+      await page.evaluate(() => document.getElementById('step-exit')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(600);
+      await ui.caption('⑥ お気に入りは長押しで並べ替え');
+
+      // 1番目チップ（霞ヶ関）を長押しして2番目チップ（外苑）の位置へドラッグ
+      const chip0 = page.locator('#exit-fav-chips .fav-chip[data-ic-id]').nth(0);
+      const chip1 = page.locator('#exit-fav-chips .fav-chip[data-ic-id]').nth(1);
+      const box0 = await chip0.boundingBox();
+      const box1 = await chip1.boundingBox();
+
+      if (box0 && box1) {
+        const cx0 = box0.x + box0.width / 2;
+        const cy0 = box0.y + box0.height / 2;
+        const cx1 = box1.x + box1.width / 2;
+        const cy1 = box1.y + box1.height / 2;
+
+        // pointerdown で長押し開始（0.5秒保持で beginExitDrag 発火）
+        await page.mouse.move(cx0, cy0);
+        await page.mouse.down();
+        // 長押しタイマーは450ms。600ms待って確実に発火させる
+        await page.waitForTimeout(600);
+        // 段階的にドラッグして隣のチップの位置へ移動
+        const steps = 8;
+        for (let i = 1; i <= steps; i++) {
+          const t = i / steps;
+          await page.mouse.move(
+            cx0 + (cx1 - cx0) * t,
+            cy0 + (cy1 - cy0) * t,
+            { steps: 1 }
+          );
+          await page.waitForTimeout(60);
+        }
+        await page.waitForTimeout(400);
+        await page.mouse.up();
+        await page.waitForTimeout(600);
+      } else {
+        await page.waitForTimeout(1200);
+      }
+      await page.waitForTimeout(1200);
+
+      // ── ⑦ ⚙編集からIC追加 ───────────────────────────────────────
+      await ui.caption('⑥ ⚙編集から追加もできる');
+      await ui.ripple('#btn-exit-edit');
+      await page.locator('#btn-exit-edit').click();
+      await page.waitForTimeout(800);
+
+      // 編集モードになったことを確認。IC検索フィールドに入力して追加
+      // 検索値は datalist の表示名と完全一致が必要（search.js buildSearchEntries が生成する形式）
+      await page.locator('#inp-exit-ic').scrollIntoViewIfNeeded();
+      await page.locator('#inp-exit-ic').fill('渋谷');
+      await page.locator('#inp-exit-ic').dispatchEvent('input');
+      await page.locator('#inp-exit-ic').dispatchEvent('change');
+      await page.waitForTimeout(800);
+
+      // ✓完了ボタンで編集終了
+      await ui.ripple('#btn-exit-edit');
+      await page.locator('#btn-exit-edit').click();
+      await page.waitForTimeout(1400);
     },
   },
 
@@ -698,11 +774,19 @@ async function main() {
 
   const videoDir = mkdtempSync(join(tmpdir(), 'hvrec-'));
   const browser = await chromium.launch();
-  const context = await browser.newContext({
+
+  // GPS対応シナリオ: geolocation 許可＋東京タワー付近の座標（35.6585, 139.7454）を設定
+  // → 都心に近いIC（霞ヶ関・外苑など）が GPS 候補に出る
+  const contextOptions = {
     viewport: VIEWPORT,
     deviceScaleFactor: 2,
     recordVideo: { dir: videoDir, size: VIEWPORT },
-  });
+  };
+  if (sc.geoPermission) {
+    contextOptions.permissions = ['geolocation'];
+    contextOptions.geolocation = { latitude: 35.6585, longitude: 139.7454 };
+  }
+  const context = await browser.newContext(contextOptions);
   // アクセスゲートを通すための seed（有効サブスク）＋ 字幕/波紋ヘルパー注入
   await context.addInitScript(() => {
     try {
