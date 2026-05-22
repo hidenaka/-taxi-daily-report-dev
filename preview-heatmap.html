@@ -104,6 +104,7 @@ h1, h2, h3 { margin: 0 0 8px; }
 <script type="module">
 import {
   hourlyDowEfficiency,
+  peerMedianHourlyDow,
   hourlyDowDailyValues,
   dowZoneEfficiency,
   zoneDailyValues,
@@ -139,8 +140,10 @@ function mkTrip(no, boardTime, alightTime, amount) {
   return { no, boardTime, alightTime, boardPlace: 'A', alightPlace: 'B', km: Math.round(amount/300), amount, isPickup: false, isCancel: false, waitTime: '' };
 }
 
-function mkDrive(date, dep, ret, trips, rests = []) {
-  return { date, departureTime: dep, returnTime: ret, trips, rests };
+function mkDrive(date, dep, ret, trips, rests = [], userId = null) {
+  const d = { date, departureTime: dep, returnTime: ret, trips, rests };
+  if (userId) d._userId = userId;
+  return d;
 }
 
 // dateオフセット(月曜=0の週から何日目か)を指定してISO日付文字列を返す
@@ -159,7 +162,7 @@ const drives = [];
 // 昼番乗務 (08:00-17:00)
 // 昼は稼ぎが低め(13-15時が最低)
 // ==================================================
-function addDayShift(weekOffset, dow, morningAmt, lunchAmt, afternoonAmt) {
+function addDayShift(weekOffset, dow, morningAmt, lunchAmt, afternoonAmt, userId = null) {
   const date = dateOf(weekOffset, dow);
   const trips = [
     mkTrip(1, '08:10', '08:35', morningAmt),
@@ -173,14 +176,14 @@ function addDayShift(weekOffset, dow, morningAmt, lunchAmt, afternoonAmt) {
     mkTrip(9, '16:30', '16:55', Math.round(afternoonAmt * 1.1)),
   ];
   const rests = [{ startTime: '12:30', endTime: '13:30', place: '休憩所' }];
-  drives.push(mkDrive(date, '08:00', '17:00', trips, rests));
+  drives.push(mkDrive(date, '08:00', '17:00', trips, rests, userId));
 }
 
 // ==================================================
 // 夜番乗務 (17:00-03:00)
 // 夜は稼ぎが高め(18-22時がピーク)
 // ==================================================
-function addNightShift(weekOffset, dow, eveningAmt, midnightAmt) {
+function addNightShift(weekOffset, dow, eveningAmt, midnightAmt, userId = null) {
   const date = dateOf(weekOffset, dow);
   const trips = [
     mkTrip(1, '17:20', '17:45', Math.round(eveningAmt * 0.8)),
@@ -196,74 +199,98 @@ function addNightShift(weekOffset, dow, eveningAmt, midnightAmt) {
     mkTrip(11, '02:00', '02:30', Math.round(midnightAmt * 0.8)),
   ];
   const rests = [{ startTime: '21:00', endTime: '21:30', place: '休憩所' }];
-  drives.push(mkDrive(date, '17:00', '03:00', trips, rests));
+  drives.push(mkDrive(date, '17:00', '03:00', trips, rests, userId));
 }
 
 // ==================================================
 // 深夜専従 (22:00-05:00) — 土日のみ、2〜3件で low-sample 演出用
 // ==================================================
-function addLateShift(weekOffset, dow, amt) {
+function addLateShift(weekOffset, dow, amt, userId = null) {
   const date = dateOf(weekOffset, dow);
   const trips = [
     mkTrip(1, '22:30', '23:10', amt),
     mkTrip(2, '23:40', '00:20', Math.round(amt * 1.2)),
   ];
-  drives.push(mkDrive(date, '22:00', '05:00', trips, []));
+  drives.push(mkDrive(date, '22:00', '05:00', trips, [], userId));
 }
 
-// ---- 昼班: 月〜木 × 8週 ----
+// ---- 自分 (driver-self) : 昼班: 月〜木 × 8週 ----
 // 朝は高め・昼は低め・夕方は中
 for (let w = 0; w < 8; w++) {
   // 月(1): 安定した低昼単価
-  addDayShift(w, 1, 4200, 2800, 3600);
+  addDayShift(w, 1, 4200, 2800, 3600, 'driver-self');
   // 火(2): 安定した低昼単価
-  addDayShift(w, 2, 4000, 2700, 3500);
+  addDayShift(w, 2, 4000, 2700, 3500, 'driver-self');
   // 水(3): 安定した低昼単価
-  addDayShift(w, 3, 4100, 2600, 3400);
+  addDayShift(w, 3, 4100, 2600, 3400, 'driver-self');
   // 木(4): やや高め
-  addDayShift(w, 4, 4400, 2900, 3800);
+  addDayShift(w, 4, 4400, 2900, 3800, 'driver-self');
 }
 
-// ---- 夜班: 木〜土 × 8週 ----
+// ---- 自分 : 夜班: 木〜土 × 8週 ----
 // 木金土の夜は高単価安定
 for (let w = 0; w < 8; w++) {
-  addNightShift(w, 4, 5800, 4500); // 木
-  addNightShift(w, 5, 6200, 4800); // 金 — 最高値
-  addNightShift(w, 6, 5900, 4600); // 土
+  addNightShift(w, 4, 5800, 4500, 'driver-self'); // 木
+  addNightShift(w, 5, 6200, 4800, 'driver-self'); // 金 — 最高値
+  addNightShift(w, 6, 5900, 4600, 'driver-self'); // 土
 }
 
-// ---- 夜班 月〜水: ムラのある夜 (volatile演出) ----
+// ---- 自分 : 夜班 月〜水: ムラのある夜 (volatile演出) ----
 // 週ごとに高低を交互にすることでCVを上げる
 for (let w = 0; w < 8; w++) {
   const high = w % 2 === 0;
-  addNightShift(w, 1, high ? 7000 : 3200, high ? 5200 : 2400); // 月
-  addNightShift(w, 2, high ? 6800 : 3000, high ? 5000 : 2200); // 火
-  addNightShift(w, 3, high ? 6500 : 3400, high ? 4800 : 2600); // 水
+  addNightShift(w, 1, high ? 7000 : 3200, high ? 5200 : 2400, 'driver-self'); // 月
+  addNightShift(w, 2, high ? 6800 : 3000, high ? 5000 : 2200, 'driver-self'); // 火
+  addNightShift(w, 3, high ? 6500 : 3400, high ? 4800 : 2600, 'driver-self'); // 水
 }
 
-// ---- 日曜昼: 5週分 (朝高め) ----
+// ---- 自分 : 日曜昼: 5週分 (朝高め) ----
 for (let w = 0; w < 5; w++) {
-  addDayShift(w, 0, 5000, 3200, 4000);
+  addDayShift(w, 0, 5000, 3200, 4000, 'driver-self');
 }
 
-// ---- 日曜夜: 4週分 ----
+// ---- 自分 : 日曜夜: 4週分 ----
 for (let w = 0; w < 4; w++) {
-  addNightShift(w, 0, 5500, 4200);
+  addNightShift(w, 0, 5500, 4200, 'driver-self');
 }
 
 // ---- 深夜専従 (日・土) × 2週 → low-sample ----
-addLateShift(0, 0, 6000);
-addLateShift(1, 0, 6200);
-addLateShift(0, 6, 5800);
-addLateShift(1, 6, 5900);
+addLateShift(0, 0, 6000, 'driver-self');
+addLateShift(1, 0, 6200, 'driver-self');
+addLateShift(0, 6, 5800, 'driver-self');
+addLateShift(1, 6, 5900, 'driver-self');
+
+// ---- 仲間ドライバー B (夜番中心・高時給) ----
+for (let w = 0; w < 8; w++) {
+  addNightShift(w, 4, 6500, 5000, 'driver-b'); // 木
+  addNightShift(w, 5, 7000, 5400, 'driver-b'); // 金
+  addNightShift(w, 6, 6600, 5100, 'driver-b'); // 土
+  addNightShift(w, 1, 5800, 4400, 'driver-b'); // 月
+  addNightShift(w, 2, 5600, 4200, 'driver-b'); // 火
+}
+for (let w = 0; w < 5; w++) {
+  addNightShift(w, 0, 6200, 4800, 'driver-b'); // 日
+}
+
+// ---- 仲間ドライバー C (昼番中心・低め) ----
+for (let w = 0; w < 8; w++) {
+  addDayShift(w, 1, 3800, 2500, 3200, 'driver-c'); // 月
+  addDayShift(w, 2, 3600, 2400, 3100, 'driver-c'); // 火
+  addDayShift(w, 3, 3700, 2300, 3000, 'driver-c'); // 水
+  addDayShift(w, 4, 4000, 2600, 3400, 'driver-c'); // 木
+  addDayShift(w, 5, 4200, 2700, 3600, 'driver-c'); // 金
+}
+for (let w = 0; w < 5; w++) {
+  addDayShift(w, 0, 4400, 2900, 3800, 'driver-c'); // 日
+}
 
 // ===== 状態変数 =====
 let heatZonePreset = 'human';
 let hourScope = 'self';
 
-// allDrives と myDrives は同一 (プレビューはシングルユーザー)
+// myDrives = 自分のみ / allDrives = 全ドライバー（_userId付き）
+const myDrives = drives.filter(d => d._userId === 'driver-self');
 const allDrives = drives;
-const myDrives = drives;
 
 // ===== zone ヒートマップ (review.html renderHeatmap 完全複製) =====
 function renderHeatmap() {
@@ -344,9 +371,11 @@ function renderHeatmap() {
 
 // ===== 時間別ヒートマップ (support.html renderHourEff 完全複製) =====
 function renderHourEff() {
-  const sourceDrives = hourScope === 'all' ? allDrives : myDrives;
-  const matrix = hourlyDowEfficiency(sourceDrives);
-  const daily = hourlyDowDailyValues(sourceDrives);
+  const isAll = hourScope === 'all';
+  const sourceDrives = isAll ? allDrives : myDrives;
+  const matrix = isAll ? peerMedianHourlyDow(sourceDrives) : hourlyDowEfficiency(sourceDrives);
+  const daily = isAll ? null : hourlyDowDailyValues(sourceDrives);
+  const statVals = (dow, h) => isAll ? matrix[dow][h].peerValues : daily[dow][h];
   const validValues = [];
   for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) {
     if (matrix[dow][h].days >= 3 && matrix[dow][h].hourlyA > 0) validValues.push(matrix[dow][h].hourlyA);
@@ -381,7 +410,7 @@ function renderHourEff() {
       }
       const lowSample = c.days < 3 ? ' low-sample' : '';
       const display = Math.round(v / 100) * 100;
-      const stab = stabilityTier(daily[dow][h]);
+      const stab = stabilityTier(statVals(dow, h));
       const stabMark = stab === 'stable' ? '<span class="stab" style="color:#1b5e20;">◎</span>'
         : stab === 'volatile' ? '<span class="stab" style="color:#b71c1c;">△</span>' : '';
       html += `<div class="cell${lowSample}" style="background:rgb(${r},${g},${b});position:relative;" data-dow="${dow}" data-h="${h}"><span style="position:relative;z-index:1;">${display}</span><span style="position:absolute;top:0;right:1px;font-size:8px;line-height:1;">${stabMark}</span></div>`;
@@ -400,19 +429,28 @@ function renderHourEff() {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]} ${h}時</strong>: 乗務データなし`;
         return;
       }
-      const scopeLabel = hourScope === 'all' ? '全員統合' : '自分';
-      const dv = daily[dow][h];
-      const tier = dv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
+      const sv = statVals(dow, h);
+      const tier = sv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
       const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
-      const stab2 = stabilityTier(dv);
-      const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
-      const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
-      tip.innerHTML = `
-        <strong>${DOW_LABELS[dow]} ${h}時台</strong> (${scopeLabel}・乗務した日数 ${c.days}日)<br>
-        ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-        時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
-        <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
-      `;
+      const stab2 = stabilityTier(sv);
+      if (isAll) {
+        const stabTxt = stab2 === 'stable' ? '◎ みんな揃って稼げる' : stab2 === 'mid' ? '○ やや差あり' : stab2 === 'volatile' ? '△ 人によって差が大きい' : '— 人数がまだ少ない';
+        const range = sv.length ? `${formatYen(Math.min(...sv))}〜${formatYen(Math.max(...sv))}/h` : '—';
+        tip.innerHTML = `
+          <strong>${DOW_LABELS[dow]} ${h}時台</strong>（みんな ${c.days}人の中央値）<br>
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}人によるばらつき: ${stabTxt}<br>
+          時給 <strong>${formatYen(c.hourlyA)}</strong>（中央値・1時間あたりの稼ぎ）・人レンジ ${range}
+        `;
+      } else {
+        const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
+        const range = sv.length ? `${formatYen(Math.min(...sv))}〜${formatYen(Math.max(...sv))}/h` : '—';
+        tip.innerHTML = `
+          <strong>${DOW_LABELS[dow]} ${h}時台</strong> (自分・乗務した日数 ${c.days}日)<br>
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
+          時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
+          <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
+        `;
+      }
     };
   });
 }
