@@ -3,8 +3,8 @@ import { readFileSync } from 'node:fs';
 
 const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
 
-test('CACHE_NAME が v185 にbumpされている', () => {
-  assert.ok(sw.includes("CACHE_PREFIX + 'v185'"), 'v185 へ bump');
+test('CACHE_NAME が v186 にbumpされている', () => {
+  assert.ok(sw.includes("CACHE_PREFIX + 'v186'"), 'v186 へ bump');
 });
 
 test('新規JS2本が STATIC_FILES に登録されている', () => {
