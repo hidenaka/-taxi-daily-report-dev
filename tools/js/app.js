@@ -395,7 +395,7 @@ function setEntryIc(icId) {
   markActiveEntryChip(icId);
 
   const hint = document.getElementById('entry-ic-hint');
-  hint.textContent = (ic.route_name || '').replace(/（[^）]*）/g, '').trim();
+  hint.textContent = '';
   hint.className = 'hint';
 
   toggleGaikanCheckbox();
@@ -411,7 +411,7 @@ function setExitIc(icId) {
   renderExitFavorites();   // 選択チップのハイライト更新
 
   const hint = document.getElementById('exit-ic-hint');
-  hint.textContent = (ic.route_name || '').replace(/（[^）]*）/g, '').trim();
+  hint.textContent = '';
   hint.className = 'hint';
 
   updateOuterRouteOptions();
