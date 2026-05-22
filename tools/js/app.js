@@ -224,28 +224,6 @@ const DIRECTION_ORDER = [
   'gaikan', 'shutoko_inner'
 ];
 
-const DIRECTION_EMOJI = {
-  'tomei':          '🔵',
-  'chuo':           '🟡',
-  'kanetsu':        '🟢',
-  'tohoku':         '🟣',
-  'joban':          '🟠',
-  'keiyo':          '🟤',
-  'tokan':          '🔴',
-  'aqua':           '🟦',
-  'tateyama':       '🟧',
-  'third_keihin':   '🔶',
-  'yokoyoko':       '🔷',
-  'yokohane_route': '🟥',
-  'kariba_route':   '🟨',
-  'wangan_route':   '🟩',
-  'hodogaya_route': '🟫',
-  'hokuseisen_route':'⬛',
-  'kitasen_route':  '🟪',
-  'gaikan':         '⚪',
-  'shutoko_inner':  '⚫'
-};
-
 const DIRECTION_LABELS = {
   'tomei':          '東名',
   'chuo':           '中央道',
