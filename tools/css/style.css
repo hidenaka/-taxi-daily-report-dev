@@ -316,3 +316,69 @@ nav.bottom a {
   font-size: 11px;
 }
 nav.bottom a.active { color: var(--self-ded); }
+
+/* === 案A: ステップ型レイアウト === */
+.ic-step {
+  padding: 12px 16px; background: var(--surface);
+  border-bottom: 1px solid var(--border); display: grid; gap: 8px;
+}
+.step-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.step-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.step-title small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 4px; }
+.step-num { color: var(--self-ded); }
+.ic-selected { font-size: 14px; color: var(--text); font-weight: 600; }
+
+/* 入口GPSチップを主役サイズに */
+#geo-suggest { padding: 2px 0; }
+.geo-suggest-buttons .btn-geo-suggest { min-height: 40px; font-size: 15px; padding: 8px 14px; }
+.btn-geo-suggest.sel {
+  background: rgba(52,152,219,.30); border-color: var(--self-ded);
+  color: #fff; font-weight: 700;
+}
+
+/* 検索折りたたみ */
+.ic-search summary { cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px 0; }
+.ic-search[open] summary { color: var(--text); }
+.ic-search .input-search { margin-top: 6px; width: 100%; }
+
+/* 出口お気に入りチップ */
+.fav-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+.fav-chip {
+  min-height: 40px; padding: 8px 14px; font-size: 15px;
+  background: rgba(201,162,74,.14); color: var(--text);
+  border: 1px solid rgba(201,162,74,.5); border-radius: 18px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.fav-chip .star { color: #c9a24a; }
+.fav-chip.sel {
+  background: rgba(46,204,113,.18); border-color: rgba(46,204,113,.65);
+  color: #fff; font-weight: 700;
+}
+.fav-chip .chip-remove { color: #e74c3c; font-weight: 700; margin-left: 2px; }
+.fav-chip.fav-add { background: transparent; border-style: dashed; color: var(--muted); }
+.btn-edit-fav {
+  min-height: 32px; padding: 4px 12px; font-size: 13px;
+  background: var(--border); color: var(--text); border: none; border-radius: 6px;
+}
+
+/* 答えカード */
+.answer-card { padding: 16px; }
+.answer-placeholder {
+  padding: 18px; text-align: center; color: var(--muted); font-size: 15px;
+  background: var(--surface); border: 1px dashed var(--border); border-radius: 12px;
+}
+.answer-body {
+  display: grid; gap: 10px; padding: 16px;
+  background: #16243a; border: 2px solid var(--company); border-radius: 12px;
+}
+.answer-body .badge-main { font-size: 32px; }
+.answer-body .save-buttons { display: flex; gap: 8px; margin-top: 4px; }
+.answer-body .save-buttons button {
+  flex: 1; min-height: 48px; font-size: 16px; font-weight: 700; border-radius: 8px;
+}
+
+/* ルート詳細の集約折りたたみ */
+.route-detail-collapse > summary {
+  cursor: pointer; font-size: 14px; color: var(--muted); padding: 6px 0;
+}
+.route-detail-collapse[open] > summary { color: var(--text); }
