@@ -72,3 +72,21 @@ test('saveFavorites: localStorage へ永続化', () => {
   saveFavorites(['m', 'n'], s);
   assert.deepEqual(JSON.parse(s._raw(EXIT_FAVORITES_KEY)), ['m', 'n']);
 });
+
+test('seedFavorites: defaults内の非文字列を除外する', () => {
+  const s = fakeStorage();
+  assert.deepEqual(seedFavorites([1, 'a', null, 'b'], s), ['a', 'b']);
+});
+
+test('loadFavorites: getItem が例外を投げても defaults でseed', () => {
+  const s = {
+    getItem: () => { throw new Error('SecurityError'); },
+    setItem: () => {},
+  };
+  assert.deepEqual(loadFavorites(['d'], s), ['d']);
+});
+
+test('saveFavorites: setItem が例外を投げても落ちず list を返す', () => {
+  const s = { setItem: () => { throw new Error('QuotaExceeded'); } };
+  assert.deepEqual(saveFavorites(['m'], s), ['m']);
+});
