@@ -32,103 +32,105 @@
     <a href="arrivals.html" class="app-tab">✈ 到着便</a>
   </nav>
   <main class="app">
-    <header class="header">
-      <div class="geo-status" id="geo-status">
-        <span id="geo-location">📍 現在地: 未取得</span>
-        <span id="geo-accuracy"></span>
-      </div>
-      <div class="geo-actions">
-        <button id="btn-geo-refresh" type="button">再取得</button>
-        <button id="btn-geo-toggle" type="button" aria-pressed="true">GPSオフ</button>
-      </div>
-    </header>
-
-    <section class="ic-select">
-      <div class="field">
-        <div class="input-kind-label"><span class="kind-icon">🔍</span> 自由入力（候補を予想変換から選択）</div>
-        <input type="text" id="inp-entry-ic" list="ic-list-all"
-               placeholder="例: 鶴ヶ島" autocomplete="off" class="input-search">
-        <div class="input-kind-label"><span class="kind-icon">▾</span> プルダウンから選ぶ</div>
-        <select id="sel-entry-ic" class="input-pulldown"></select>
-        <div class="hint" id="entry-ic-hint"></div>
-        <div class="geo-suggest" id="geo-suggest" hidden>
-          <span class="geo-suggest-label">📍 GPS近い順</span>
-          <div class="geo-suggest-buttons" id="geo-suggest-buttons"></div>
+    <!-- ① 入口IC -->
+    <section class="ic-step" id="step-entry">
+      <div class="step-head">
+        <span class="step-title"><span class="step-num">①</span> どこから乗った？<small>入口IC</small></span>
+        <div class="geo-status" id="geo-status">
+          <span id="geo-location">📍 未取得</span>
+          <span id="geo-accuracy"></span>
+        </div>
+        <div class="geo-actions">
+          <button id="btn-geo-refresh" type="button">再取得</button>
+          <button id="btn-geo-toggle" type="button" aria-pressed="true">GPSオフ</button>
         </div>
       </div>
-
-      <div class="field swap-field">
-        <button type="button" id="btn-swap-ic" class="btn-swap" title="入口と出口を入れ替える">
-          ⇅ 入口と出口を入れ替える
-        </button>
+      <div class="ic-selected" id="entry-selected" hidden></div>
+      <div class="geo-suggest" id="geo-suggest" hidden>
+        <span class="geo-suggest-label">📍 GPS近い順</span>
+        <div class="geo-suggest-buttons" id="geo-suggest-buttons"></div>
       </div>
-
-      <div class="field">
-        <label for="sel-exit-fav" class="label-text">出口IC（お気に入り）</label>
-        <select id="sel-exit-fav" class="input-pulldown"></select>
-        <details class="exit-other">
-          <summary>別のICを探す</summary>
-          <div class="input-kind-label"><span class="kind-icon">🔍</span> 自由入力（候補を予想変換から選択）</div>
-          <input type="text" id="inp-exit-ic" list="ic-list-all"
-                 placeholder="IC名で検索" autocomplete="off" class="input-search">
-          <div class="input-kind-label"><span class="kind-icon">▾</span> プルダウン</div>
-          <select id="sel-exit-all" class="input-pulldown"></select>
-          <div class="hint" id="exit-ic-hint"></div>
-        </details>
-      </div>
-
-      <datalist id="ic-list-all"></datalist>
+      <details class="ic-search" id="entry-search">
+        <summary>🔍 別のICを検索</summary>
+        <input type="text" id="inp-entry-ic" list="ic-list-all"
+               placeholder="例: 鶴ヶ島" autocomplete="off" class="input-search">
+        <div class="hint" id="entry-ic-hint"></div>
+      </details>
     </section>
 
-    <!-- 経路選択 (経路セレクト / 外環経由 / 首都高内ルート) は「ルート比較（上位3候補）」
-         カードに一本化。 section全体を hidden にし、 中の要素は app.js が内部状態として
-         参照・更新するため残す (hidden section内なので画面非表示)。 -->
+    <div class="swap-field">
+      <button type="button" id="btn-swap-ic" class="btn-swap" title="入口と出口を入れ替える">
+        ⇅ 入口と出口を入れ替える
+      </button>
+    </div>
+
+    <!-- ② 出口IC -->
+    <section class="ic-step" id="step-exit">
+      <div class="step-head">
+        <span class="step-title"><span class="step-num">②</span> どこで降りた？<small>出口IC</small></span>
+        <button type="button" id="btn-exit-edit" class="btn-edit-fav">⚙ 編集</button>
+      </div>
+      <div class="ic-selected" id="exit-selected" hidden></div>
+      <div class="fav-chips" id="exit-fav-chips"></div>
+      <details class="ic-search" id="exit-search">
+        <summary>🔍 別のICを検索</summary>
+        <input type="text" id="inp-exit-ic" list="ic-list-all"
+               placeholder="IC名で検索" autocomplete="off" class="input-search">
+        <div class="hint" id="exit-ic-hint"></div>
+      </details>
+    </section>
+
+    <datalist id="ic-list-all"></datalist>
+
+    <!-- 経路の内部state（画面非表示・app.jsが参照） -->
     <section class="route-select" hidden>
-      <label>
-        <span class="label-text">経路（入口ICから自動選択）</span>
-        <select id="sel-outer-route"></select>
-      </label>
+      <select id="sel-outer-route"></select>
       <label id="label-via-gaikan" hidden>
         <input type="checkbox" id="chk-via-gaikan"> 外環経由
       </label>
       <label id="label-shutoko-route" hidden>
-        <span class="label-text">首都高内ルート（複数候補あり）</span>
         <select id="sel-shutoko-route" class="input-pulldown"></select>
       </label>
     </section>
 
+    <!-- ③ 答えカード -->
+    <section class="answer-card" id="answer-card">
+      <div class="answer-placeholder" id="answer-placeholder">入口と出口を選ぶと控除距離が出ます</div>
+      <div class="answer-body" id="answer-body" hidden>
+        <div class="badge-main" id="badge-main">—</div>
+        <div class="badge-deduction" id="badge-deduction">—</div>
+        <div class="badge-distance" id="badge-distance">—</div>
+        <div class="route-notes" id="route-notes" hidden></div>
+        <div class="save-buttons">
+          <button id="btn-save-oneway" type="button" class="btn-save-oneway">片道だけ保存</button>
+          <button id="btn-save-roundtrip" type="button" class="btn-save-roundtrip">往復で保存</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ ルート候補（複数時のみ） -->
     <section class="route-comparison" id="route-comparison-section" hidden>
-      <h3 class="route-comparison-label">📊 ルート比較（上位3候補）</h3>
+      <h3 class="route-comparison-label">📊 ルート候補</h3>
       <div class="route-tabs" id="route-tabs"></div>
       <div class="route-tab-content" id="route-tab-content"></div>
     </section>
 
+    <!-- ④詳細 通るルート / 通過IC・JCT / 区間内訳（1つの折りたたみに集約） -->
     <section class="route-path" id="route-path-section" hidden>
-      <h3 class="route-path-label">🚗 通るルート</h3>
-      <div id="route-path" class="route-path-display"></div>
-      <details id="route-jct-details" class="route-jct-details" open hidden>
-        <summary>通過 IC / JCT (経路詳細)</summary>
-        <div id="route-jct-list" class="route-jct-list"></div>
-      </details>
-    </section>
-
-    <section class="verdict" id="verdict">
-      <div class="badge-main" id="badge-main">—</div>
-      <div class="badge-deduction" id="badge-deduction">—</div>
-      <div class="badge-distance" id="badge-distance">—</div>
-      <div class="route-notes" id="route-notes" hidden></div>
-      <details>
-        <summary>区間内訳</summary>
+      <details class="route-detail-collapse" id="route-detail-collapse">
+        <summary>🚗 通るルート / 通過IC・JCT / 区間内訳</summary>
+        <div id="route-path" class="route-path-display"></div>
+        <details id="route-jct-details" class="route-jct-details" open hidden>
+          <summary>通過 IC / JCT</summary>
+          <div id="route-jct-list" class="route-jct-list"></div>
+        </details>
         <ul id="segment-breakdown"></ul>
       </details>
     </section>
 
+    <!-- ⑤ 今日のログ -->
     <section class="session-log" id="session-log">
-      <h3 class="session-log-title">📝 今日の控除距離 一時保存 <span class="session-log-date" id="session-log-date"></span></h3>
-      <div class="save-buttons">
-        <button id="btn-save-oneway" type="button" class="btn-save-oneway">片道だけ保存</button>
-        <button id="btn-save-roundtrip" type="button" class="btn-save-roundtrip">往復保存</button>
-      </div>
+      <h3 class="session-log-title">📝 今日の控除距離 <span class="session-log-date" id="session-log-date"></span></h3>
       <ul id="session-log-list" class="session-log-list"></ul>
       <div class="session-totals">
         <div class="total-line" id="total-deduction">今日の控除距離合計: <strong>0.0</strong>km</div>
@@ -136,7 +138,6 @@
       </div>
       <button id="btn-clear-log" type="button" class="btn-clear-log">今日のログを消去</button>
     </section>
-
   </main>
 
   <script type="module" src="js/app.js?v=20250430"></script>
