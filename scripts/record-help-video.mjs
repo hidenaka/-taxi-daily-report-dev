@@ -60,25 +60,33 @@ const SCENARIOS = {
     },
   },
   'ocr-import': {
-    path: 'ocr-import.html',
+    // 日報入力ページから「写真から取り込む」をタップして遷移するところから見せる。
+    path: 'input.html',
     async run(page, ui) {
-      // 写真選択はOSのダイアログで録画に写せず、読み取りは認証+サーバが要るため、
-      // 画面に出る状態（解析中→読み取り完了）をモックして一連の流れを見せる。
-      await ui.caption('①「画像を選ぶ」をタップ');
+      // ① input.html で「📷 写真から取り込む」をタップ → ページ遷移
+      await page.locator('a.btn[href="ocr-import.html"]').scrollIntoViewIfNeeded();
+      await ui.caption('①「写真から取り込む」をタップ');
+      await ui.ripple('a.btn[href="ocr-import.html"]');
+      await page.locator('a.btn[href="ocr-import.html"]').click();
+      await page.waitForURL('**/ocr-import.html', { timeout: 15000 });
+      await page.waitForTimeout(1000);
+      // ② 取り込みページで「画像を選ぶ」
+      await ui.caption('②「画像を選ぶ」をタップ');
       await ui.ripple('#pickLabel');
       await page.waitForTimeout(700);
+      // 写真選択はOSダイアログで写せず読み取りは認証+サーバ要のため、画面状態をモック
       await page.evaluate(() => {
         const s = document.getElementById('ocrStatus');
         if (s) s.textContent = '解析中…（営業明細を自動で読み取っています）';
       });
-      await ui.caption('② 写真を撮る/選ぶと自動で読み取り');
+      await ui.caption('③ 写真を撮る/選ぶと自動で読み取り');
       await page.waitForTimeout(2400);
       await page.evaluate(() => {
         const s = document.getElementById('ocrStatus');
         if (s) s.innerHTML = '読み取り完了: 乗車 2件 ・ 休憩 1回'
           + '<br><span style="color:#2e7d32;font-weight:700;">✓ 本日の残り 99/100回</span>';
       });
-      await ui.caption('③ 読み取り完了！入力ページで確認・保存');
+      await ui.caption('④ 読み取り完了！入力ページで確認・保存');
       await page.waitForTimeout(2800);
     },
   },
