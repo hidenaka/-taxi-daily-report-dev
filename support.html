@@ -211,7 +211,7 @@ import {
   filterDrivesByVehicle,
   renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
-import { hourlyDowEfficiency, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml } from './js/chart-helpers.js';
+import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml } from './js/chart-helpers.js';
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
@@ -1051,9 +1051,11 @@ function renderBoardHistoryHTML(area, zoneKey) {
 }
 
 function renderHourEff() {
-  const sourceDrives = hourScope === 'all' ? allDrives : myDrives;
-  const matrix = hourlyDowEfficiency(sourceDrives);
-  const daily = hourlyDowDailyValues(sourceDrives);
+  const isAll = hourScope === 'all';
+  const sourceDrives = isAll ? allDrives : myDrives;
+  const matrix = isAll ? peerMedianHourlyDow(sourceDrives) : hourlyDowEfficiency(sourceDrives);
+  const daily = isAll ? null : hourlyDowDailyValues(sourceDrives);
+  const statVals = (dow, h) => isAll ? matrix[dow][h].peerValues : daily[dow][h];
   const validValues = [];
   for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) {
     if (matrix[dow][h].days >= 3 && matrix[dow][h].hourlyA > 0) validValues.push(matrix[dow][h].hourlyA);
@@ -1088,7 +1090,7 @@ function renderHourEff() {
       }
       const lowSample = c.days < 3 ? ' low-sample' : '';
       const display = Math.round(v / 100) * 100;
-      const stab = stabilityTier(daily[dow][h]);
+      const stab = stabilityTier(statVals(dow, h));
       const stabMark = stab === 'stable' ? '<span class="stab" style="color:#1b5e20;">◎</span>'
         : stab === 'volatile' ? '<span class="stab" style="color:#b71c1c;">△</span>' : '';
       html += `<div class="cell${lowSample}" style="background:rgb(${r},${g},${b});position:relative;" data-dow="${dow}" data-h="${h}"><span style="position:relative;z-index:1;">${display}</span><span style="position:absolute;top:0;right:1px;font-size:8px;line-height:1;">${stabMark}</span></div>`;
@@ -1107,19 +1109,28 @@ function renderHourEff() {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]} ${h}時</strong>: 乗務データなし`;
         return;
       }
-      const scopeLabel = hourScope === 'all' ? '全員統合' : '自分';
-      const dv = daily[dow][h];
-      const tier = dv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
+      const sv = statVals(dow, h);
+      const tier = sv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
       const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
-      const stab2 = stabilityTier(dv);
-      const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
-      const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
-      tip.innerHTML = `
-        <strong>${DOW_LABELS[dow]} ${h}時台</strong> (${scopeLabel}・乗務した日数 ${c.days}日)<br>
-        ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
-        時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
-        <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
-      `;
+      const stab2 = stabilityTier(sv);
+      if (isAll) {
+        const stabTxt = stab2 === 'stable' ? '◎ みんな揃って稼げる' : stab2 === 'mid' ? '○ やや差あり' : stab2 === 'volatile' ? '△ 人によって差が大きい' : '— 人数がまだ少ない';
+        const range = sv.length ? `${formatYen(Math.min(...sv))}〜${formatYen(Math.max(...sv))}/h` : '—';
+        tip.innerHTML = `
+          <strong>${DOW_LABELS[dow]} ${h}時台</strong>（みんな ${c.days}人の中央値）<br>
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}人によるばらつき: ${stabTxt}<br>
+          時給 <strong>${formatYen(c.hourlyA)}</strong>（中央値・1時間あたりの稼ぎ）・人レンジ ${range}
+        `;
+      } else {
+        const stabTxt = stab2 === 'stable' ? '◎ 安定して稼げる' : stab2 === 'mid' ? '○ ややムラ' : stab2 === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
+        const range = sv.length ? `${formatYen(Math.min(...sv))}〜${formatYen(Math.max(...sv))}/h` : '—';
+        tip.innerHTML = `
+          <strong>${DOW_LABELS[dow]} ${h}時台</strong> (自分・乗務した日数 ${c.days}日)<br>
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
+          時給 <strong>${formatYen(c.hourlyA)}</strong>（1時間あたりの稼ぎ）・日別レンジ ${range}<br>
+          <span style="font-size:11px;color:var(--muted);">${c.count}件 ・ 売上計${formatYen(c.sales)} ・ 乗務計${formatMin(c.presentMin)} ・ 休憩計${formatMin(c.restMin)} ・ 実稼働${formatMin(c.workingMin)}</span>
+        `;
+      }
     };
   });
 }
