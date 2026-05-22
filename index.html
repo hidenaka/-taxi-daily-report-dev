@@ -98,6 +98,11 @@ if (location.hostname.includes('-dev')) {
   </div>
 </div>
 <main style="padding:14px;">
+  <div style="text-align:center;margin-bottom:10px;">
+    <button class="help-video-btn" data-help-video="home" type="button">▶ ホーム画面の使い方（14秒）</button>
+  </div>
+  <div class="help-video" id="help-video-home"></div>
+
   <section class="card" id="guideOnboardBanner" style="display:none;background:#e3f2fd;border:1px solid #90caf9;padding:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="font-size:13px;line-height:1.5;color:#1565c0;">
@@ -141,6 +146,7 @@ import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus }
 import { isEmailAuth } from './js/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
 import { checkInviteAndWarn, fetchCompanyExists } from './js/invite-url.js';
+import './js/help-video.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;

@@ -1,6 +1,11 @@
 // 使い方動画の登録表。動画追加はここに1行足すだけ。
 // src/poster はページ(ルート直下のhtml)からの相対パス。
 export const HELP_VIDEOS = {
+  'home': {
+    src: 'media/help/home.mp4',
+    poster: 'media/help/home.jpg',
+    caption: 'ホーム画面の見方（手取り目標・出番・カレンダー）',
+  },
   'input-paste': {
     src: 'media/help/input-paste.mp4',
     poster: 'media/help/input-paste.jpg',
