@@ -1351,3 +1351,64 @@ export function heatmapLegendHtml(scope) {
     👉 休憩は「休憩向き」の時間に取ると、稼ぎ時を逃しません。
   </div>`;
 }
+
+// ───────── ステージ制お手本 ─────────
+
+// 日別の税込営収リスト（rankDrivesBySales と同じ売上定義: 非キャンセルtripのamount合計）
+export function dailySalesList(drives) {
+  return (drives || [])
+    .filter(d => d && !isSummaryOnly(d) && d.date)
+    .map(d => {
+      const valid = (d.trips || []).filter(t => !t.isCancel);
+      const sales = valid.reduce((s, t) => s + (t.amount || 0), 0);
+      return { date: d.date, sales, count: valid.length, dow: dowOf(d.date) };
+    })
+    .filter(d => d.sales > 0);
+}
+
+// 1日の税込営収を5千円刻みステージに分ける。該当日(>=1)のステージのみ、lower昇順で返す。
+// 端: min未満は「〜{min}万」、max以上は「{max}万+」。
+export function salesStages(drives, opts = {}) {
+  const min = opts.min ?? 50000;
+  const max = opts.max ?? 120000;
+  const step = opts.step ?? 5000;
+  const man = n => {
+    const v = n / 10000;
+    return Number.isInteger(v) ? String(v) : String(Math.round(v * 10) / 10);
+  };
+  const classify = (sales) => {
+    if (sales < min) return { key: 'lt', lower: 0, upper: min, label: `〜${man(min)}万` };
+    if (sales >= max) return { key: 'gte', lower: max, upper: Infinity, label: `${man(max)}万+` };
+    const idx = Math.floor((sales - min) / step);
+    const lower = min + idx * step;
+    return { key: `b${idx}`, lower, upper: lower + step, label: `${man(lower)}–${man(lower + step)}万` };
+  };
+  const map = new Map();
+  for (const d of dailySalesList(drives)) {
+    const st = classify(d.sales);
+    if (!map.has(st.key)) map.set(st.key, { ...st, dates: [] });
+    map.get(st.key).dates.push(d.date);
+  }
+  return [...map.values()]
+    .map(s => ({ ...s, count: s.dates.length }))
+    .sort((a, b) => a.lower - b.lower);
+}
+
+// 選択ステージの drives から 曜日×時間 の平均売上行列を作る。
+// 平均売上 = その曜日のセル売上合計(按分) ÷ その曜日の該当日数。既存 hourlyDowEfficiency を流用。
+export function stageHeatmap(stageDrives) {
+  const hm = hourlyDowEfficiency(stageDrives);
+  const dowDayCount = Array(7).fill(0);
+  for (const d of (stageDrives || [])) {
+    if (!d || isSummaryOnly(d) || !d.date) continue;
+    dowDayCount[dowOf(d.date)]++;
+  }
+  const matrix = Array.from({ length: 7 }, (_, dow) =>
+    Array.from({ length: 24 }, (_, h) => {
+      const c = hm[dow][h];
+      const dc = dowDayCount[dow];
+      return { avgSales: dc > 0 ? c.sales / dc : 0, avgCount: dc > 0 ? c.count / dc : 0, dowDays: dc };
+    })
+  );
+  return { matrix, dowDayCount };
+}

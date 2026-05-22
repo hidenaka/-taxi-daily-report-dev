@@ -244,3 +244,53 @@ test('peerMedianHourlyDow: userId フォールバックでもグループ化さ�
   assert.equal(m[4][19].days, 2, 'userId フォールバックで2人認識');
   assert.equal(m[4][19].hourlyA, 6000, 'median([3000,9000])=6000');
 });
+
+import { dailySalesList, salesStages, stageHeatmap } from '../js/chart-helpers.js';
+
+test('dailySalesList: キャンセル・summary除外、sales/dow正確', () => {
+  const drives = [
+    { date: '2026-04-23', trips: [ // 木
+      { boardTime:'19:00', alightTime:'19:20', amount: 4000, isCancel:false },
+      { boardTime:'19:30', alightTime:'19:40', amount: 2000, isCancel:true } // キャンセルは除外
+    ], rests: [] },
+    { date: '2026-04-24', summaryOnly: true, trips: [], rests: [] } // summary除外
+  ];
+  const list = dailySalesList(drives);
+  assert.equal(list.length, 1);
+  assert.equal(list[0].sales, 4000);
+  assert.equal(list[0].dow, 4);
+  assert.equal(list[0].count, 1);
+});
+
+test('salesStages: 5千円刻み境界・端バケット・空ステージ除外', () => {
+  const mk = (date, amount) => ({ date, trips:[{boardTime:'10:00',alightTime:'10:10',amount,isCancel:false}], rests:[] });
+  const drives = [
+    mk('2026-04-01', 48000),  // 〜5万
+    mk('2026-04-02', 60000),  // 6.0–6.5万 (idx2)
+    mk('2026-04-03', 64999),  // 6.0–6.5万 (同じ)
+    mk('2026-04-04', 65000),  // 6.5–7万 (idx3)
+    mk('2026-04-05', 125000), // 12万+
+  ];
+  const stages = salesStages(drives);
+  const byKey = Object.fromEntries(stages.map(s => [s.label, s.count]));
+  assert.equal(byKey['〜5万'], 1);
+  assert.equal(byKey['6–6.5万'], 2);
+  assert.equal(byKey['6.5–7万'], 1);
+  assert.equal(byKey['12万+'], 1);
+  // 空ステージ(5–5.5万等)は含まれない
+  assert.equal(stages.some(s => s.label === '5–5.5万'), false);
+  // lower昇順
+  assert.deepEqual(stages.map(s => s.lower), [...stages.map(s=>s.lower)].sort((a,b)=>a-b));
+});
+
+test('stageHeatmap: 平均売上=その曜日のセル売上合計÷該当日数', () => {
+  // 木曜の2日。各日 19時に売上(4000, 6000) → 木19時 平均5000
+  const mk = (date, amount) => ({
+    date, departureTime:'19:00', returnTime:'20:00',
+    trips:[{ boardTime:'19:10', alightTime:'19:30', amount, isCancel:false }], rests:[]
+  });
+  const drives = [ mk('2026-04-23', 4000), mk('2026-04-30', 6000) ]; // 両方木曜
+  const { matrix, dowDayCount } = stageHeatmap(drives);
+  assert.equal(dowDayCount[4], 2);
+  assert.equal(Math.round(matrix[4][19].avgSales), 5000);
+});
