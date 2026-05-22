@@ -3775,6 +3775,63 @@
    "ramp_note": "横羽線。横浜公園・横浜新道方面のみのハーフIC"
   },
   {
+   "id": "kishiya_namamugi",
+   "name": "岸谷生麦",
+   "route": "K7",
+   "route_name": "横浜北線",
+   "gps": {
+    "lat": 35.49125,
+    "lng": 139.66339
+   },
+   "svg": {
+    "x": 476,
+    "y": 917
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "横浜北線。生麦JCT方面・横浜港北JCT方面の双方に出入口があるフルIC"
+  },
+  {
+   "id": "baba",
+   "name": "馬場",
+   "route": "K7",
+   "route_name": "横浜北線",
+   "gps": {
+    "lat": 35.506528,
+    "lng": 139.640917
+   },
+   "svg": {
+    "x": 466,
+    "y": 911
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "横浜北線。両方向に出入口（入口はETC専用。第三京浜・湾岸線方面へ分岐）"
+  },
+  {
+   "id": "shin_yokohama",
+   "name": "新横浜",
+   "route": "K7",
+   "route_name": "横浜北線",
+   "gps": {
+    "lat": 35.5165861,
+    "lng": 139.605675
+   },
+   "svg": {
+    "x": 454,
+    "y": 903
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "横浜北線。生麦JCT方面・横浜港北JCT方面の双方に出入口（入口はETC専用）"
+  },
+  {
    "id": "daikoku_jct",
    "name": "大黒JCT",
    "route": "K5",
