@@ -38,4 +38,10 @@ export const HELP_VIDEOS = {
     poster: '../media/help/ic-route.jpg',
     caption: 'IC控除距離の出し方（入口・出口を選んで距離を確認）',
   },
+  'timer': {
+    // tools/ サブディレクトリ配下のページから使うため ../media/help/ で参照
+    src: '../media/help/timer.mp4',
+    poster: '../media/help/timer.jpg',
+    caption: '乗務タイマーの使い方（スタート・帰庫期限・休憩記録）',
+  },
 };

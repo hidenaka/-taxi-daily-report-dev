@@ -473,6 +473,11 @@
       <p id="today-date">----/--/-- (-)</p>
     </header>
 
+    <div style="padding:0 4px 4px;">
+      <button class="help-video-btn" data-help-video="timer" type="button">▶ 使い方（30秒）</button>
+      <div class="help-video" id="help-video-timer"></div>
+    </div>
+
     <section class="stopwatch">
       <div id="stopwatch-display">00:00:00</div>
       <div id="stopwatch-started" class="stopwatch-started"></div>
@@ -1144,6 +1149,7 @@ document.querySelectorAll('.app-tab').forEach(a => {
   import { showGpsPrivacyBanner } from '../js/gps-privacy-banner.js';
   document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
   showGpsPrivacyBanner();
+  import '../js/help-video.js';
 </script>
 </body>
 </html>

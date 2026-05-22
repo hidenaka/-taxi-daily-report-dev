@@ -495,6 +495,79 @@ const SCENARIOS = {
     },
   },
 
+  'timer': {
+    // 乗務タイマーページ（tools/index.html）の使い方。
+    // addInitScript でページ初回ロード前に localStorage を seed して
+    // 乗務開始済み（2時間前出庫・休憩記録1件あり）の状態から録画を始める。
+    // breakCountMin=0 にして「記録」ボタンをすぐ有効化する。
+    path: 'tools/index.html',
+    async run(page, ui) {
+      // --- まず localStorage を seed してリロードで状態を反映 ---
+      await page.evaluate(() => {
+        const now = Date.now();
+        const shiftStartAt = now - 2 * 60 * 60 * 1000; // 2時間前に出庫
+        // 休憩記録1件（45分前に25分休憩）
+        const rec1End = now - 45 * 60 * 1000;
+        const rec1 = { recordedAt: new Date(rec1End).toISOString(), durationSec: 25 * 60 };
+        const timerState = {
+          shiftStart: '07:00',
+          records: [rec1],
+          runningStartedAt: null,
+          targetBreakMin: 180,
+          continuousDriveMin: 360,
+          shiftStartAt,
+          lastResetSnapshot: null,
+          breakCountMin: 0, // 録画用: 直後にでも「記録」できるようにする
+        };
+        localStorage.setItem('taxi-timer-v1', JSON.stringify(timerState));
+      });
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await page.waitForTimeout(1200);
+      await page.locator('#stopwatch-display').waitFor({ state: 'visible', timeout: 10000 });
+      await page.waitForTimeout(600);
+
+      // ① タイマー画面のトップ：乗務開始済み状態を見せる
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await page.waitForTimeout(400);
+      await ui.caption('① 休憩のスタート・記録ができるタイマー');
+      await page.waitForTimeout(2200);
+
+      // ② スタートをタップ（休憩タイマーを開始）
+      await ui.caption('② 休憩に入ったら「スタート」をタップ');
+      await ui.ripple('#btn-start');
+      await page.locator('#btn-start').click();
+      await page.waitForTimeout(1800);
+
+      // ③ ストップウォッチが動いているのを見せる
+      await ui.caption('③ ストップウォッチが動く。暫定休憩時間も出る');
+      await page.waitForTimeout(2600);
+
+      // ④ メトリクスカードへスクロールして帰庫期限・休憩残りを見せる
+      await page.evaluate(() => document.querySelector('.metrics')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(800);
+      await ui.caption('④ 帰庫期限・残り必要休憩が自動で計算される');
+      await ui.ripple('#deadline-card');
+      await page.waitForTimeout(2200);
+      await ui.ripple('#break-remaining-card');
+      await page.waitForTimeout(1800);
+
+      // ⑤ トップに戻って「記録」をタップ（休憩を記録）
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await page.waitForTimeout(700);
+      await ui.caption('⑤ 休憩が終わったら「記録」をタップ');
+      await ui.ripple('#btn-record');
+      await page.locator('#btn-record').click();
+      await page.waitForTimeout(1600);
+
+      // ⑥ 記録履歴セクションへスクロール
+      await page.evaluate(() => document.querySelector('.history')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(800);
+      await ui.caption('⑥ 記録が履歴に残る。次の可能時刻もわかる');
+      await ui.ripple('#history-list');
+      await page.waitForTimeout(2400);
+    },
+  },
+
   'analysis-view': {
     // 分析ページ(review.html)の「見方」。サンプルデータを流し込んで各カードの数字の読み方を解説。
     path: 'review.html',

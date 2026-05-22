@@ -8,6 +8,7 @@ const PAGES = {
   'review.html': 'analysis-view',
   'tools/arrivals.html': 'arrivals',
   'tools/ic.html': 'ic-route',
+  'tools/index.html': 'timer',
 };
 
 for (const [page, key] of Object.entries(PAGES)) {
