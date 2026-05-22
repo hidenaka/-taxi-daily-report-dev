@@ -37,6 +37,8 @@ const STATIC_FILES = [
   './js/qr-code.js',
   './js/aggregate-access.js',
   './js/help-toggle.js',
+  './js/help-video.js',
+  './js/help-video-registry.js',
   './js/legal-footer.js',
   './js/subscription-state.js',
   './js/access-control.js',
@@ -100,6 +102,8 @@ self.addEventListener('fetch', e => {
   // GitHub API・天候API・migrate/admin はキャッシュせず素通し
   if (url.hostname === 'api.github.com' || url.hostname.includes('open-meteo')) return;
   if (url.pathname.includes('/migrate.html') || url.pathname.includes('/admin.html')) return;
+  // 使い方動画は素通し（キャッシュしない）。<video> の range/シークを壊さないため・オフライン非対応。
+  if (/\.(mp4|webm|mov)$/i.test(url.pathname)) return;
 
   // データJSON（arrivals 等、デプロイ外で随時更新される）はネットワーク優先で即反映
   if (/\.json$/i.test(url.pathname)) {
