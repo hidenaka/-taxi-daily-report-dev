@@ -24,7 +24,7 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;">
-    <h1 style="margin:0;flex:1;">写真から取り込み <button class="help-btn" data-help-for="ocr-overview" aria-label="ヘルプ">?</button></h1>
+    <h1 style="margin:0;flex:1;">写真から取り込み <button class="help-btn" data-help-for="ocr-overview" aria-label="ヘルプ">?</button><button class="help-video-btn" data-help-video="ocr-import" type="button">▶ 使い方（15秒）</button></h1>
     <a class="btn" href="input.html" style="background:var(--gray);color:#333;font-size:12px;padding:6px 12px;text-decoration:none;">戻る</a>
   </div>
 
@@ -38,6 +38,7 @@ if (location.hostname.includes('-dev')) {
     </ul>
     <a href="guide.html#ch3" class="guide-link">使い方ガイドで詳しく →</a>
   </div>
+  <div class="help-video" id="help-video-ocr-import"></div>
 
   <div style="background:#e8f5e9;border:1px solid #2e7d32;border-radius:4px;padding:8px;margin-bottom:10px;font-size:11px;line-height:1.5;color:#1b5e20;">
     🔒 <strong>画像はメモリ上でのみ処理し、保存もログ出力もしません。</strong>外部AIサービス（Gemini等）には送信されません。
@@ -67,5 +68,6 @@ if (location.hostname.includes('-dev')) {
 </main>
 <script type="module" src="js/ocr-import.js"></script>
 <script type="module" src="js/help-toggle.js"></script>
+<script type="module" src="js/help-video.js"></script>
 </body>
 </html>
