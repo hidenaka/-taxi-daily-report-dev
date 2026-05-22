@@ -183,7 +183,7 @@ import {
   renderVehicleTabs,
 } from './js/vehicle-filter.js';
 import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js';
-import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown } from './js/chart-helpers.js';
+import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown, zoneDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml } from './js/chart-helpers.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 
@@ -596,6 +596,11 @@ function renderHeatmap() {
     ? { label: 'シフト別', zones: getShiftZones(config.defaults.departureTime) }
     : ZONE_PRESETS[heatZonePreset];
   const { matrix, days } = dowZoneEfficiency(allDrives, preset.zones);
+  const dailyZ = zoneDailyValues(allDrives, preset.zones);
+  const validValues = [];
+  for (let dw = 0; dw < 7; dw++) for (const z of preset.zones) {
+    if (dailyZ[dw][z.key].length >= 3 && matrix[dw][z.key] > 0) validValues.push(matrix[dw][z.key]);
+  }
   const keys = preset.zones.map(z => z.key);
   const flat = matrix.flatMap(r => keys.map(k => r[k])).filter(v => v > 0);
   const max = Math.max(...flat, 1);
@@ -611,7 +616,13 @@ function renderHeatmap() {
       const bg = v > 0 ? `rgba(76, 175, 80, ${0.15 + 0.7 * intensity})` : '#fafafa';
       const text = v > 0 ? formatYen(v).replace('¥','') : '—';
       const color = intensity > 0.6 ? '#fff' : '#222';
-      cellsHtml += `<div class="cell heat-touch" data-dow="${dow}" data-k="${z.key}" data-v="${v}" data-days="${days[dow]}" style="background:${bg};color:${color};">${text}</div>`;
+      const tier = classifyEarning(v, validValues);
+      const stab = stabilityTier(dailyZ[dow][z.key]);
+      const tierTag = tier === 'earn' ? '稼ぎ時' : tier === 'rest' ? '休憩向き' : '';
+      const stabMark = stab === 'stable' ? '◎' : stab === 'volatile' ? '△' : '';
+      const sub = (tierTag || stabMark)
+        ? `<br><span style="font-size:8px;font-weight:600;opacity:.85;">${tierTag}${stabMark ? ' ' + stabMark : ''}</span>` : '';
+      cellsHtml += `<div class="cell heat-touch" data-dow="${dow}" data-k="${z.key}" data-v="${v}" data-days="${days[dow]}" style="background:${bg};color:${color};">${text}${sub}</div>`;
     }
   }
   const presetTabs = Object.entries(ZONE_PRESETS).map(([key, p]) => {
@@ -620,6 +631,7 @@ function renderHeatmap() {
     return `<button data-preset="${key}" class="heat-preset" style="${style}border:none;padding:4px 8px;border-radius:4px;font-size:11px;cursor:pointer;">${p.label}</button>`;
   }).join('');
   document.getElementById('heatBody').innerHTML = `
+    ${heatmapLegendHtml('self')}
     <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px;">${presetTabs}</div>
     <div style="overflow-x:auto;">
       <div class="heat" style="grid-template-columns: 30px repeat(${colCount}, 1fr);">${cellsHtml}</div>
@@ -639,8 +651,15 @@ function renderHeatmap() {
       const tip = document.getElementById('heatTip');
       tip.classList.add('show');
       if (v > 0) {
+        const tier = classifyEarning(v, validValues);
+        const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
+        const dv = dailyZ[dow][k];
+        const stab = stabilityTier(dv);
+        const stabTxt = stab === 'stable' ? '◎ 安定して稼げる' : stab === 'mid' ? '○ ややムラ' : stab === 'volatile' ? '△ 日によりムラ大' : '— 記録が少なく判定不可';
+        const range = dv.length ? `${formatYen(Math.min(...dv))}〜${formatYen(Math.max(...dv))}/h` : '—';
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong><br>
-          平均時間単価: <strong>${formatYen(v)}/h</strong> (${days}日ベース)`;
+          ${tierTxt ? '<strong>' + tierTxt + '</strong>　' : ''}安定度: ${stabTxt}<br>
+          平均時間単価: <strong>${formatYen(v)}/h</strong> (${days}日ベース)・日別レンジ ${range}`;
       } else {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong>: データなし`;
       }
