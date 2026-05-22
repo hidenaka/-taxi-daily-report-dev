@@ -20,6 +20,110 @@ const { chromium } = require('playwright');
 
 const VIEWPORT = { width: 380, height: 780 };
 
+// ============================================================
+// 分析ページ(review.html)録画用のサンプルデータ生成（決定論的）
+// review.html は js/storage.js 経由でFirebaseからdriveやConfigを読む。
+// 録画時は storage.js をスタブに差し替え、現実的なサンプルを流し込んで
+// 推移グラフ／ヒートマップ／ステージ別お手本が意味のある形で描画されるようにする。
+// ============================================================
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const _pad2 = (n) => String(n).padStart(2, '0');
+const _hhmm = (mins) => {
+  const h = ((Math.floor(mins / 60) % 24) + 24) % 24;
+  return _pad2(h) + ':' + _pad2(((mins % 60) + 60) % 60);
+};
+
+// 曜日ごとの「時間帯×お金の重み」。早朝/昼/夕方〜夜/深夜のゾーンに濃淡を作る。
+function _hourWeights(dow) {
+  const W = new Array(24).fill(0);
+  const put = (obj) => { for (const k in obj) W[(+k + 24) % 24] = obj[k]; };
+  if (dow >= 1 && dow <= 4) {        // 月〜木: 朝が稼ぎ時・昼は休憩向き
+    put({ 7: 6, 8: 7, 9: 5, 10: 3, 11: 2, 12: 1.5, 13: 1.5, 14: 2, 15: 2, 16: 2.5, 17: 3, 18: 3.5, 19: 3, 20: 2.5, 21: 2, 22: 1.5, 23: 1 });
+  } else if (dow === 5) {            // 金: 夜〜深夜が稼ぎ時
+    put({ 7: 3, 8: 4, 9: 2, 12: 1.5, 13: 1.5, 14: 1.5, 15: 2, 16: 2, 17: 3.5, 18: 5, 19: 5, 20: 5.5, 21: 5.5, 22: 6, 23: 6, 0: 6, 1: 5, 2: 3 });
+  } else if (dow === 6) {            // 土: 夜〜深夜が最も濃い
+    put({ 9: 2, 10: 2.5, 11: 3, 12: 3, 13: 3, 14: 2.5, 15: 2.5, 16: 3, 17: 4, 18: 5, 19: 5.5, 20: 6, 21: 6, 22: 7, 23: 7, 0: 7, 1: 6, 2: 4 });
+  } else {                          // 日: 昼中心・夜は薄い
+    put({ 8: 2, 9: 3, 10: 4, 11: 4, 12: 4, 13: 4, 14: 3.5, 15: 3, 16: 3, 17: 3, 18: 2.5, 19: 2, 20: 1.5 });
+  }
+  return W;
+}
+
+function _genDrive(dateStr, seed) {
+  const rnd = mulberry32(seed);
+  const dow = new Date(dateStr + 'T12:00:00').getDay();
+  const W = _hourWeights(dow);
+  const BASE = [44000, 50000, 51000, 52000, 53000, 84000, 93000]; // 日〜土の1日税込目安
+  const target = Math.round((BASE[dow] * (0.82 + rnd() * 0.34)) / 100) * 100;
+  const hours = [];
+  for (let h = 0; h < 24; h++) if (W[h] > 0) hours.push(h);
+  const wsum = hours.reduce((s, h) => s + W[h], 0);
+  const isWeekend = dow === 0 || dow === 5 || dow === 6;
+  const trips = [];
+  for (const h of hours) {
+    const hourAmt = target * (W[h] / wsum);
+    const n = hourAmt > 5000 ? 2 : 1;
+    for (let i = 0; i < n; i++) {
+      const startM = h * 60 + 4 + Math.floor(rnd() * 51);
+      const dur = 8 + Math.floor(rnd() * 24);
+      let amt = (hourAmt / n) * (0.78 + rnd() * 0.44);
+      if ((dow === 5 || dow === 6) && (h >= 22 || h < 3)) amt *= 0.5 + rnd() * 1.2; // 週末深夜はムラ大→安定度△
+      amt = Math.max(710, Math.round(amt / 10) * 10);
+      trips.push({ boardTime: _hhmm(startM), alightTime: _hhmm(startM + dur), amount: amt, isCancel: false, boardPlace: '', alightPlace: '' });
+    }
+  }
+  const fromDep = (t) => { const [hh, mm] = t.boardTime.split(':').map(Number); let x = hh * 60 + mm; if (x < 7 * 60) x += 1440; return x; };
+  trips.sort((a, b) => fromDep(a) - fromDep(b));
+  const lastDep = trips.length ? fromDep(trips[trips.length - 1]) : 8 * 60;
+  const returnM = lastDep + 40 + Math.floor(rnd() * 40);
+  const wr = rnd();
+  const weather = wr < 0.6 ? 'sunny' : wr < 0.8 ? 'cloudy' : 'rainy';
+  const rests = [{ startTime: '12:30', endTime: _hhmm(12 * 60 + 50 + Math.floor(rnd() * 30)) }];
+  if (isWeekend) rests.push({ startTime: '18:30', endTime: '18:55' });
+  return { date: dateStr, vehicleType: 'premium', departureTime: '07:00', returnTime: _hhmm(returnM), trips, rests, weather };
+}
+
+// review.html の getBillingPeriod / shiftBillingPeriod と同じ月度ロジック
+function _billingPeriodOf(y, m, d) {
+  if (m === 2) return d <= 13 ? `${y}-02` : `${y}-03`;
+  if (d >= 16) { const nm = m === 12 ? 1 : m + 1; const ny = m === 12 ? y + 1 : y; return `${ny}-${_pad2(nm)}`; }
+  return `${y}-${_pad2(m)}`;
+}
+function _shiftPeriod(ym, delta) {
+  let [y, m] = ym.split('-').map(Number);
+  m += delta;
+  while (m <= 0) { m += 12; y--; }
+  while (m > 12) { m -= 12; y++; }
+  return `${y}-${_pad2(m)}`;
+}
+
+function buildSampleData() {
+  const now = new Date();
+  const current = _billingPeriodOf(now.getFullYear(), now.getMonth() + 1, now.getDate());
+  const periods = [];
+  for (let i = 5; i >= 0; i--) periods.push(_shiftPeriod(current, -i)); // 直近6ヶ月度
+  const DATA = {};
+  let seed = 20260522;
+  for (const ym of periods) {
+    const [y, m] = ym.split('-').map(Number);
+    const arr = [];
+    for (let day = 1; day <= 28; day++) {
+      seed += 7;
+      if (mulberry32(seed)() > 0.5) continue; // 約半分を乗務日に（各曜日3日以上を確保）
+      arr.push(_genDrive(`${y}-${_pad2(m)}-${_pad2(day)}`, seed * 13 + day));
+    }
+    DATA[ym] = arr;
+  }
+  return DATA;
+}
+
 // ---- シナリオ定義（fn は page と ui を受け取り、操作＋字幕＋波紋を行う）----
 const SCENARIOS = {
   'input-paste': {
@@ -96,25 +200,88 @@ const SCENARIOS = {
     mockFirebase: true, // configが要るのでデータ層をmock（DEFAULT_CONFIGベース）
     async run(page, ui) {
       await page.locator('#calGrid .cal-cell:not(.dim)').first().waitFor({ timeout: 15000 });
-      // ① 日付をタップして出番予定を入れる（タップで車種が循環）
+      const daySel = '#calGrid .cal-cell:not(.dim):not(.actual):not(.today) >> nth=12';
       const day = page.locator('#calGrid .cal-cell:not(.dim):not(.actual):not(.today)').nth(12);
+      // 同じ日をタップしていくと 未→JT予定→プレ予定→有給→未 と循環するのを見せる
       await ui.caption('① 日付をタップして出番予定を入れる');
-      await ui.ripple('#calGrid .cal-cell:not(.dim):not(.actual):not(.today) >> nth=12');
-      await day.click();
-      await page.waitForTimeout(900);
-      await ui.caption('（タップで車種→有給→未と切り替わる）');
-      await day.click();
-      await page.waitForTimeout(1400);
-      // ② 曜日でまとめて追加
+      await ui.ripple(daySel);
+      await day.click();                       // → JT予定
+      await page.waitForTimeout(1000);
+      await ui.caption('② もう一度タップで車種が変わる');
+      await day.click();                       // → プレ予定
+      await page.waitForTimeout(1100);
+      await ui.caption('③ さらにタップで「有給（休み）」になる');
+      await ui.ripple(daySel);
+      await day.click();                       // → 有給
+      await page.waitForTimeout(1300);
+      await ui.caption('④ もう一度タップで予定を消す（未に戻る）');
+      await ui.ripple(daySel);
+      await day.click();                       // → 未（消える）
+      await page.waitForTimeout(1300);
+      // ⑤ 曜日でまとめて追加
       await page.locator('#dowToggles .dow-toggle').first().scrollIntoViewIfNeeded();
-      await ui.caption('② 曜日でまとめて追加（例：金曜）');
+      await ui.caption('⑤ 曜日でまとめて追加（例：金曜）');
       await ui.ripple('#dowToggles .dow-toggle >> nth=5');
       await page.locator('#dowToggles .dow-toggle >> nth=5').click();
-      await page.waitForTimeout(1600);
-      // ③ 月サマリーで確認
+      await page.waitForTimeout(1500);
+      // ⑥ 月サマリーで確認
       await page.locator('#summary').scrollIntoViewIfNeeded();
-      await ui.caption('③ 月サマリーで予定数を確認');
+      await ui.caption('⑥ 月サマリーで予定数を確認');
+      await page.waitForTimeout(2200);
+    },
+  },
+
+  'analysis-view': {
+    // 分析ページ(review.html)の「見方」。サンプルデータを流し込んで各カードの数字の読み方を解説。
+    path: 'review.html',
+    mockFirebase: true,
+    sampleData: true,
+    async run(page, ui) {
+      // チャート描画を待つ（ヒートマップ/ステージが組み上がるまで）
+      await page.locator('#heatBody .cell').first().waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await ui.caption('「分析」は“走り方”を見直す画面');
       await page.waitForTimeout(2400);
+
+      // ① 推移グラフ＝売上の流れ
+      await page.evaluate(() => document.getElementById('trendCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+      await page.waitForTimeout(1200);
+      await ui.caption('① 推移グラフ＝売上が上がってるか下がってるか');
+      await ui.ripple('#trendCard');
+      await page.waitForTimeout(2200);
+
+      // ② ヒートマップ：色の濃さ＝稼げた時間帯
+      await page.evaluate(() => document.getElementById('heatCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(1300);
+      await ui.caption('② 色が濃いマス＝あなたが稼げた時間帯');
+      await page.waitForTimeout(2600);
+      await ui.caption('「稼ぎ時」と出た時間に動くのが基本');
+      await page.waitForTimeout(2400);
+      await ui.caption('③「◎○△」はその稼ぎの“安定度”。◎＝毎回安定');
+      await page.waitForTimeout(2600);
+
+      // 「稼ぎ時」のマスをタップして意味の吹き出しを表示
+      const cell = await page.evaluate(() => {
+        const c = [...document.querySelectorAll('#heatBody .cell')].find((el) => /稼ぎ時/.test(el.innerHTML));
+        if (!c) return null;
+        c.scrollIntoView({ block: 'center' });
+        const r = c.getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      });
+      if (cell) {
+        await page.evaluate(([x, y]) => window.__hvRipple(x, y), [cell.x, cell.y]);
+        await page.mouse.click(cell.x, cell.y);
+        await page.waitForTimeout(2600);
+      }
+
+      // ④ ステージ別お手本＝目標額の人の動き方
+      await page.evaluate(() => document.getElementById('stageCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(1300);
+      await ui.caption('④ ステージ別お手本＝目標額の人の動き方');
+      await page.waitForTimeout(2600);
+      await ui.caption('狙う売上のチップを選ぶと、その日の稼ぎ方が見える');
+      await page.waitForTimeout(2800);
     },
   },
 };
@@ -156,6 +323,14 @@ const OVERLAY_INIT = () => {
 };
 
 async function main() {
+  if (process.env.HV_DUMP) {
+    const d = buildSampleData();
+    const k = Object.keys(d);
+    console.log('periods:', k);
+    console.log('counts:', k.map((x) => `${x}=${Array.isArray(d[x]) ? d[x].length : 'NOT-ARRAY'}`).join(' '));
+    console.log('sample drive:', JSON.stringify(d[k[k.length - 1]][0], null, 1));
+    process.exit(0);
+  }
   const scenarioId = process.argv[2];
   const outMp4 = process.argv[3];
   const baseUrl = process.argv[4] || 'http://localhost:8782';
@@ -202,6 +377,8 @@ async function main() {
       export function getUserId(){ return 'demo-help'; }
       export const auth = { currentUser: { uid:'demo-help', getIdToken: async()=>'x' }, authStateReady: async()=>{}, onAuthStateChanged:(cb)=>{ try{cb&&cb({uid:'demo-help'});}catch(e){} return ()=>{}; } };
     `;
+    // 分析ページ等、過去データが要る画面はサンプルdriveを注入する。
+    const driveData = sc.sampleData ? JSON.stringify(buildSampleData()) : '{}';
     const storageStub = `
       import { DEFAULT_CONFIG } from './default-config.js';
       let cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -210,11 +387,13 @@ async function main() {
       cfg.shifts.plannedVehicles = cfg.shifts.plannedVehicles || {};
       cfg.shifts.paidLeaveDates = cfg.shifts.paidLeaveDates || [];
       cfg.shifts.patterns = cfg.shifts.patterns || [];
+      ${sc.sampleData ? "cfg.defaults = cfg.defaults || {}; cfg.defaults.vehicleType = 'all'; cfg.defaults.departureTime = '07:00';" : ''}
+      const DRIVES = ${driveData};
       export async function getConfig(){ return cfg; }
       export function getConfigCached(){ return cfg; }
       export async function saveConfig(c){ if(c) cfg = c; }
-      export async function getDrivesForMonth(){ return []; }
-      export async function getDrivesForMonthCached(){ return []; }
+      export async function getDrivesForMonth(ym){ return DRIVES[ym] || []; }
+      export async function getDrivesForMonthCached(ym){ return DRIVES[ym] || []; }
       export async function getDrive(){ return null; }
       export async function saveDriveSafe(){ }
       export function getMyUserId(){ return 'demo-help'; }
@@ -226,6 +405,11 @@ async function main() {
   }
 
   const page = await context.newPage();
+  if (process.env.HV_DEBUG) {
+    page.on('console', (m) => console.log('[console]', m.type(), m.text()));
+    page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+    page.on('requestfailed', (r) => console.log('[reqfail]', r.url(), r.failure()?.errorText));
+  }
   const ui = {
     async caption(t) { await page.evaluate((x) => window.__hvCaption(x), t); await page.waitForTimeout(500); },
     async ripple(sel) {
