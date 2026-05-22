@@ -19,8 +19,11 @@ test('graph: 2号目黒線本線が ichinohashi_jct を起点に再構成され�
   assert.equal(oldEdge, undefined, '旧 shibaura↔togoshi edge が残存');
 
   // 新 edges (Wikipedia公式km値): 戸越と荏原は分岐 (本線を共有しない)
+  // 2026-05-22: 天現寺(営業1.8km)を ichinohashi_jct→meguro 間に追加。直辺3.6kmは
+  // ichinohashi_jct→天現寺(1.7)→目黒(1.9)=合計3.6km のチェーンに分割された。
   const needed = [
-    { from: 'ichinohashi_jct', to: 'meguro', km: 3.6 },
+    { from: 'ichinohashi_jct', to: 'tengenji', km: 1.7 },
+    { from: 'tengenji', to: 'meguro', km: 1.9 },
     { from: 'meguro', to: 'ebara', km: 2.2 },
     { from: 'togoshi', to: 'meguro', km: 2.3 },
     { from: 'ichinohashi_jct', to: 'iikura', km: 0.6 },

@@ -1,0 +1,32 @@
+{
+  "newICs": [
+    { "id": "takaracho", "name": "宝町", "route": "C1", "route_name": "都心環状線", "lat": 35.6783, "lng": 139.7751, "ramp_access": "half", "ramp_note": "都心環状線。江戸橋JCT方面（外回り）のみのハーフIC。入口はETC専用" },
+    { "id": "shintomicho", "name": "新富町", "route": "C1", "route_name": "都心環状線", "lat": 35.6720, "lng": 139.7722, "ramp_access": "half", "ramp_note": "都心環状線。出口のみ（入口なし）" },
+    { "id": "daikancho", "name": "代官町", "route": "C1", "route_name": "都心環状線", "lat": 35.6894, "lng": 139.7484, "ramp_access": "half", "ramp_note": "都心環状線。三宅坂JCT方面（内回り）のみのハーフIC。入口はETC専用" },
+    { "id": "kitanomaru", "name": "北の丸", "route": "C1", "route_name": "都心環状線", "lat": 35.6909, "lng": 139.7549, "ramp_access": "half", "ramp_note": "都心環状線。出口のみ（入口なし）" },
+    { "id": "tengenji", "name": "天現寺", "route": "2", "route_name": "目黒線", "lat": 35.6470, "lng": 139.7294, "ramp_access": "half", "ramp_note": "2号目黒線。都心環状線方面（上り）のみのハーフIC。入口はETC専用" },
+    { "id": "takamatsu", "name": "高松", "route": "C2", "route_name": "中央環状線", "lat": 35.737194, "lng": 139.702806, "ramp_access": "half", "ramp_note": "中央環状線。外回りのみのハーフIC（入口）。ETC専用" },
+    { "id": "shin_itabashi", "name": "新板橋", "route": "C2", "route_name": "中央環状線", "lat": 35.7492281, "lng": 139.7159049, "ramp_access": "half", "ramp_note": "中央環状線。出口のみ（外回り）" },
+    { "id": "takinogawa", "name": "滝野川", "route": "C2", "route_name": "中央環状線", "lat": 35.7492188, "lng": 139.7158918, "ramp_access": "half", "ramp_note": "中央環状線。入口のみ（内回り）。ETC専用" },
+    { "id": "oji_minami", "name": "王子南", "route": "C2", "route_name": "中央環状線", "lat": 35.7527915, "lng": 139.7411066, "ramp_access": "half", "ramp_note": "中央環状線。板橋JCT・5号池袋線方面のみのハーフIC。入口はETC専用" },
+    { "id": "oji_kita", "name": "王子北", "route": "C2", "route_name": "中央環状線", "lat": 35.7573624, "lng": 139.7461122, "ramp_access": "half", "ramp_note": "中央環状線。江北JCT・川口線方面のみのハーフIC。ETC専用" },
+    { "id": "ogi_ohashi", "name": "扇大橋", "route": "C2", "route_name": "中央環状線", "lat": 35.7626586, "lng": 139.7653428, "ramp_access": "full", "ramp_note": "中央環状線。内回り・外回り両方のフルIC。ETC専用" },
+    { "id": "senju_shinbashi", "name": "千住新橋", "route": "C2", "route_name": "中央環状線", "lat": 35.7592116, "lng": 139.8100899, "ramp_access": "full", "ramp_note": "中央環状線。内回り・外回り両方のフルIC。ETC専用" },
+    { "id": "kosuge", "name": "小菅", "route": "C2", "route_name": "中央環状線", "lat": 35.7507722, "lng": 139.8210092, "ramp_access": "half", "ramp_note": "中央環状線。堀切JCT方面のみのハーフIC。入口はETC専用" },
+    { "id": "hirai_ohashi", "name": "平井大橋", "route": "C2", "route_name": "中央環状線", "lat": 35.7176263, "lng": 139.8474099, "ramp_access": "half", "ramp_note": "中央環状線。堀切JCT方面のみのハーフIC" },
+    { "id": "chukan_komatsugawa", "name": "中環小松川", "route": "C2", "route_name": "中央環状線", "lat": 35.698972, "lng": 139.860694, "ramp_access": "half", "ramp_note": "中央環状線。内回り入口のみ（小松川JCT付近）" },
+    { "id": "funaboribashi", "name": "船堀橋", "route": "C2", "route_name": "中央環状線", "lat": 35.6845708, "lng": 139.8553253, "ramp_access": "half", "ramp_note": "中央環状線。葛西JCT方面のみのハーフIC。ETC専用" },
+    { "id": "seishincho", "name": "清新町", "route": "C2", "route_name": "中央環状線", "lat": 35.6692892, "lng": 139.8496293, "ramp_access": "half", "ramp_note": "中央環状線。堀切JCT方面のみのハーフIC。ETC専用" }
+  ],
+  "chains": [
+    { "route": "C1", "removeEdges": [["edobashi_jct", "kyobashi"]], "sequence": ["edobashi_jct", "takaracho", "kyobashi"] },
+    { "route": "C1", "removeEdges": [["kyobashi", "ginza"]], "sequence": ["kyobashi", "shintomicho", "ginza"] },
+    { "route": "C1", "removeEdges": [["miyakezaka_jct", "takebashi_jct"]], "sequence": ["miyakezaka_jct", "daikancho", "kitanomaru", "takebashi_jct"] },
+    { "route": "2", "removeEdges": [["ichinohashi_jct", "meguro"]], "sequence": ["ichinohashi_jct", "tengenji", "meguro"] },
+    { "route": "C2", "removeEdges": [["kumanocho_jct", "itabashi_jct"]], "sequence": ["kumanocho_jct", "takamatsu", "itabashi_jct"] },
+    { "route": "C2", "removeEdges": [["itabashi_jct", "kohoku_jct"]], "sequence": ["itabashi_jct", "shin_itabashi", "takinogawa", "oji_minami", "oji_kita", "kohoku_jct"] },
+    { "route": "C2", "removeEdges": [["kohoku_jct", "kosuge_jct"]], "sequence": ["kohoku_jct", "ogi_ohashi", "senju_shinbashi", "kosuge_jct"] },
+    { "route": "C2", "removeEdges": [["kosuge_jct", "horikiri_jct"]], "sequence": ["kosuge_jct", "kosuge", "horikiri_jct"] },
+    { "route": "C2", "removeEdges": [["yotsugi", "kasai_jct"]], "sequence": ["yotsugi", "hirai_ohashi", "chukan_komatsugawa", "funaboribashi", "seishincho", "kasai_jct"] }
+  ]
+}
