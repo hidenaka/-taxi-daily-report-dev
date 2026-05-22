@@ -395,10 +395,10 @@ const SCENARIOS = {
 
   'arrivals': {
     // 到着便予測ページ（tools/arrivals.html）の使い方。
-    // loadArrivals() / loadActuals() / loadEnsemble() を context.route でモックして
-    // フライト一覧・予測テーブルが綺麗に表示された状態で操作を見せる。
+    // 実データ(tools/data/arrivals.json 等)をローカルサーバからそのまま配信して録画。
+    // = 本番(app.taxicabis.com)と同じ見え方にする（架空データのモックは使わない）。
     path: 'tools/arrivals.html',
-    mockArrivals: true,
+    mockArrivals: false,
     async run(page, ui) {
       // 予測セクションとフライト一覧が描画されるのを待つ
       await page.locator('#forecast-table-wrap table').waitFor({ timeout: 15000 });
