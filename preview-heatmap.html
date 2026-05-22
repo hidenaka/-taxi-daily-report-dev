@@ -46,10 +46,10 @@ h1, h2, h3 { margin: 0 0 8px; }
 .heat-touch:active { transform: scale(0.95); }
 
 /* ===== 時間ヒートマップ (support.html より) ===== */
-.heatgrid { display: grid; grid-template-columns: 24px repeat(24, 1fr); gap: 1px; font-size: 9px; }
+.heatgrid { display: grid; grid-template-columns: 28px repeat(24, minmax(34px, 1fr)); gap: 1px; font-size: 9px; }
 .heatgrid .hh { text-align: center; color: var(--muted); font-size: 8px; padding: 2px 0; }
 .heatgrid .dlbl { text-align: center; color: var(--muted); font-size: 9px; padding: 4px 0; font-weight: 600; }
-.heatgrid .cell { aspect-ratio: 1; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #fff; cursor: pointer; min-height: 22px; font-weight: 600; }
+.heatgrid .cell { border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; cursor: pointer; min-height: 30px; font-weight: 600; }
 .heatgrid .cell.empty { background: #eceff1; color: #b0bec5; }
 .heatgrid .cell.low-sample { opacity: 0.4; }
 
