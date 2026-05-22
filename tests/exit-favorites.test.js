@@ -1,6 +1,6 @@
 import { test, assert } from './run.js';
 import {
-  seedFavorites, loadFavorites, addFavorite, removeFavorite, moveFavorite, saveFavorites, EXIT_FAVORITES_KEY,
+  seedFavorites, loadFavorites, addFavorite, removeFavorite, moveToIndex, saveFavorites, EXIT_FAVORITES_KEY,
 } from '../tools/js/exit-favorites.js';
 
 function fakeStorage(initial = {}) {
@@ -91,21 +91,25 @@ test('saveFavorites: setItem が例外を投げても落ちず list を返す', 
   assert.deepEqual(saveFavorites(['m'], s), ['m']);
 });
 
-test('moveFavorite: 後ろへ(+1)移動・元配列不変', () => {
+test('moveToIndex: 先頭を末尾へ移動・元配列不変', () => {
   const base = ['a', 'b', 'c'];
-  assert.deepEqual(moveFavorite(base, 'a', 1), ['b', 'a', 'c']);
+  assert.deepEqual(moveToIndex(base, 'a', 2), ['b', 'c', 'a']);
   assert.deepEqual(base, ['a', 'b', 'c']);
 });
 
-test('moveFavorite: 前へ(-1)移動', () => {
-  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'c', -1), ['a', 'c', 'b']);
+test('moveToIndex: 末尾を先頭へ移動', () => {
+  assert.deepEqual(moveToIndex(['a', 'b', 'c'], 'c', 0), ['c', 'a', 'b']);
 });
 
-test('moveFavorite: 先頭をさらに前へ・末尾をさらに後ろへ は変更なし', () => {
-  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'a', -1), ['a', 'b', 'c']);
-  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'c', 1), ['a', 'b', 'c']);
+test('moveToIndex: 中間へ移動', () => {
+  assert.deepEqual(moveToIndex(['a', 'b', 'c', 'd'], 'd', 1), ['a', 'd', 'b', 'c']);
 });
 
-test('moveFavorite: 未存在icIdは変更なし', () => {
-  assert.deepEqual(moveFavorite(['a', 'b'], 'z', 1), ['a', 'b']);
+test('moveToIndex: 範囲外indexはクランプ', () => {
+  assert.deepEqual(moveToIndex(['a', 'b', 'c'], 'a', 99), ['b', 'c', 'a']);
+  assert.deepEqual(moveToIndex(['a', 'b', 'c'], 'c', -5), ['c', 'a', 'b']);
+});
+
+test('moveToIndex: 未存在icIdは変更なし', () => {
+  assert.deepEqual(moveToIndex(['a', 'b'], 'z', 0), ['a', 'b']);
 });

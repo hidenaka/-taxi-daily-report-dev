@@ -40,15 +40,15 @@ export function removeFavorite(list, icId) {
   return list.filter(id => id !== icId);
 }
 
-// icId を delta(-1=前へ / +1=後ろへ) 方向に1つ移動した新配列を返す（純関数・元配列不変）。
-// 未存在・端で移動不可なら元配列をそのまま返す。
-export function moveFavorite(list, icId, delta) {
+// icId を targetIndex の位置へ移動した新配列を返す（純関数・元配列不変）。
+// targetIndex は除去後の配列に対する挿入位置で、範囲外はクランプ。未存在は元配列。
+export function moveToIndex(list, icId, targetIndex) {
   const i = list.indexOf(icId);
   if (i < 0) return list;
-  const j = i + delta;
-  if (j < 0 || j >= list.length) return list;
   const next = [...list];
-  [next[i], next[j]] = [next[j], next[i]];
+  next.splice(i, 1);
+  const at = Math.max(0, Math.min(targetIndex, next.length));
+  next.splice(at, 0, icId);
   return next;
 }
 

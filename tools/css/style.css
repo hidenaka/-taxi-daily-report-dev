@@ -355,7 +355,9 @@ nav.bottom a.active { color: var(--self-ded); }
   color: #fff; font-weight: 700;
 }
 .fav-chip .chip-remove { color: #e74c3c; font-weight: 700; margin-left: 2px; }
-.fav-chip .chip-move { color: var(--self-ded); font-weight: 700; padding: 0 3px; margin-left: 2px; }
+/* 長押しドラッグ並べ替え：タッチ中の選択/コールアウト/スクロールを抑止 */
+.fav-chip { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; transition: transform .12s, box-shadow .12s; }
+.fav-chip.dragging { opacity: .9; transform: scale(1.08); box-shadow: 0 4px 14px rgba(0,0,0,.55); pointer-events: none; z-index: 5; }
 .fav-chip.fav-add { background: transparent; border-style: dashed; color: var(--muted); }
 .btn-edit-fav {
   min-height: 32px; padding: 4px 12px; font-size: 13px;

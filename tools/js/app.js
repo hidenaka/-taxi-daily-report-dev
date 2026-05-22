@@ -4,7 +4,7 @@ import { haversineKm } from './util.js';
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
-import { loadFavorites, addFavorite, removeFavorite, moveFavorite, saveFavorites } from './exit-favorites.js';
+import { loadFavorites, addFavorite, removeFavorite, moveToIndex, saveFavorites } from './exit-favorites.js';
 import { buildAdjacency, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
@@ -313,6 +313,8 @@ let icValueIndex = new Map();
 // ---- 出口お気に入りチップ（localStorage・編集可） ----
 let exitFavorites = [];   // ic_id 配列
 let exitEditMode = false;
+let exitDragId = null;        // 並べ替えドラッグ中の ic_id（null=非ドラッグ）
+let suppressNextClick = false; // ドラッグ終了直後のタップ(click)を1回抑止
 
 function defaultExitFavoriteIds() {
   return (state.data.favorites.exit_favorites || []).map(f => f.ic_id);
@@ -335,11 +337,7 @@ function renderExitFavorites() {
     chip.dataset.icId = icId;
     const name = ic.name.replace(/（[^）]*）/g, '').trim();
     chip.innerHTML = `<span class="star">★</span>${name}` +
-      (exitEditMode
-        ? `<span class="chip-move" data-dir="-1" aria-label="前へ">◀</span>` +
-          `<span class="chip-move" data-dir="1" aria-label="後ろへ">▶</span>` +
-          `<span class="chip-remove" aria-label="削除">×</span>`
-        : '');
+      (exitEditMode ? `<span class="chip-remove" aria-label="削除">×</span>` : '');
     if (exitEditMode) {
       chip.querySelector('.chip-remove').addEventListener('click', (ev) => {
         ev.stopPropagation();
@@ -347,16 +345,11 @@ function renderExitFavorites() {
         saveFavorites(exitFavorites);
         renderExitFavorites();
       });
-      chip.querySelectorAll('.chip-move').forEach((b) => {
-        b.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          exitFavorites = moveFavorite(exitFavorites, icId, Number(b.dataset.dir));
-          saveFavorites(exitFavorites);
-          renderExitFavorites();
-        });
-      });
     }
+    if (icId === exitDragId) chip.classList.add('dragging');  // 並べ替え中のチップを再描画後も浮かせ続ける
+    attachChipDrag(chip, icId);  // 長押し→ドラッグで並べ替え
     chip.addEventListener('click', () => {
+      if (suppressNextClick) { suppressNextClick = false; return; }  // ドラッグ直後のタップ抑止
       if (exitEditMode) return;
       setExitIc(icId); update();
     });
@@ -372,6 +365,62 @@ function renderExitFavorites() {
     });
     wrap.appendChild(add);
   }
+}
+
+// ---- 出口お気に入りの長押しドラッグ並べ替え ----
+// 長押し(約450ms)で持ち上げ→ドラッグ中に指の位置のチップへ並べ替え→離して保存。
+// 普通のタップは選択のまま（450ms未満 or 10px以上動いたら長押し不成立）。
+function attachChipDrag(chip, icId) {
+  let pressTimer = null;
+  let sx = 0, sy = 0;
+  const clearTimer = () => { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+  chip.addEventListener('pointerdown', (ev) => {
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    sx = ev.clientX; sy = ev.clientY;
+    clearTimer();
+    pressTimer = setTimeout(() => { pressTimer = null; beginExitDrag(icId); }, 450);
+  });
+  chip.addEventListener('pointermove', (ev) => {
+    if (pressTimer && (Math.abs(ev.clientX - sx) > 10 || Math.abs(ev.clientY - sy) > 10)) clearTimer();
+  });
+  chip.addEventListener('pointerup', clearTimer);
+  chip.addEventListener('pointercancel', clearTimer);
+  chip.addEventListener('contextmenu', (ev) => { if (exitDragId) ev.preventDefault(); });
+}
+
+function beginExitDrag(icId) {
+  exitDragId = icId;
+  document.addEventListener('pointermove', onExitDragMove, { passive: false });
+  document.addEventListener('pointerup', endExitDrag);
+  document.addEventListener('pointercancel', endExitDrag);
+  renderExitFavorites();   // 持ち上げ表示（dragging クラス）
+}
+
+function onExitDragMove(ev) {
+  if (!exitDragId) return;
+  ev.preventDefault();   // ドラッグ中のスクロールを止める
+  const overChip = document.elementFromPoint(ev.clientX, ev.clientY)?.closest('.fav-chip');
+  const overId = overChip?.dataset.icId;
+  if (!overId || overId === exitDragId) return;
+  const target = exitFavorites.indexOf(overId);
+  if (target < 0) return;
+  const next = moveToIndex(exitFavorites, exitDragId, target);
+  if (next.join('|') !== exitFavorites.join('|')) {
+    exitFavorites = next;
+    renderExitFavorites();   // ライブ並べ替え（move追跡は document 側なので再描画OK）
+  }
+}
+
+function endExitDrag() {
+  document.removeEventListener('pointermove', onExitDragMove);
+  document.removeEventListener('pointerup', endExitDrag);
+  document.removeEventListener('pointercancel', endExitDrag);
+  if (!exitDragId) return;
+  exitDragId = null;
+  suppressNextClick = true;
+  setTimeout(() => { suppressNextClick = false; }, 400);   // クリック未発火でも自動解除
+  saveFavorites(exitFavorites);
+  renderExitFavorites();
 }
 
 function renderIcSelected(elId, ic) {
