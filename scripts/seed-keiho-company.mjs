@@ -1,9 +1,20 @@
 // scripts/seed-keiho-company.mjs
-// 使い方: SA=<service account json path> node scripts/seed-keiho-company.mjs
-// companies/keiho ドキュメントを Firestore に作成する。
+// 使い方:
+//   新規発行(匿名slug自動生成):   SA=<service account json> node scripts/seed-keiho-company.mjs
+//   既存会社を更新(slug固定):      SA=<...> SLUG=co-xxxxxx node scripts/seed-keiho-company.mjs
+// companies/<匿名slug> ドキュメントを Firestore に作成/更新する。
+// slug は必ず co-xxxxxx 形式(平文の会社名は使わない・decisions 7)。SLUG 未指定なら自動生成。
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { buildKeihoProfile } from '../js/company-profiles.js';
+import { generateSlug, isAnonymizedSlug } from '../js/slug-gen.js';
+
+// 既存会社の更新は SLUG=co-xxxxxx で固定指定。未指定なら新規の匿名 slug を発行。
+const slug = process.env.SLUG || generateSlug();
+if (!isAnonymizedSlug(slug)) {
+  console.error(`SLUG は co-xxxxxx 形式で指定してください (受領: ${slug})`);
+  process.exit(1);
+}
 
 const sa = JSON.parse(fs.readFileSync(process.env.SA, 'utf8'));
 const b = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
@@ -33,14 +44,16 @@ const tr = await fetch('https://oauth2.googleapis.com/token', {
   body: 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=' + unsigned + '.' + sig });
 const token = (await tr.json()).access_token;
 
-const profile = buildKeihoProfile();
+const profile = buildKeihoProfile(slug);
 const fields = {};
 for (const k of Object.keys(profile)) fields[k] = toFirestoreValue(profile[k]);
 
 const url = `https://firestore.googleapis.com/v1/projects/${sa.project_id}`
-  + `/databases/(default)/documents/companies?documentId=keiho`;
+  + `/databases/(default)/documents/companies?documentId=${encodeURIComponent(slug)}`;
 const res = await fetch(url, {
   method: 'POST',
   headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
   body: JSON.stringify({ fields }) });
-console.log('HTTP', res.status, res.status === 200 ? 'companies/keiho 作成OK' : await res.text());
+console.log('HTTP', res.status, res.status === 200
+  ? `companies/${slug} 作成OK (ログイン: ?company=${slug})`
+  : await res.text());

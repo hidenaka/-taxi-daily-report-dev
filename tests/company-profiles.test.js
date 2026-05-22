@@ -3,6 +3,18 @@ import assert from 'node:assert';
 import { buildKeihoProfile } from '../js/company-profiles.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 import { COMPANY_LEVEL_KEYS, mergeCompanyConfig } from '../js/company-config.js';
+import { isAnonymizedSlug } from '../js/slug-gen.js';
+
+test('buildKeihoProfile: slug 未指定なら匿名化形式(co-xxxxxx)を自動生成する(平文slugを作らない)', () => {
+  const p = buildKeihoProfile();
+  assert.ok(isAnonymizedSlug(p.slug), `slug が匿名化形式でない: ${p.slug}`);
+  assert.notStrictEqual(p.slug, 'keiho');
+});
+
+test('buildKeihoProfile: slug を渡したらそれを使う', () => {
+  const p = buildKeihoProfile('co-abc123');
+  assert.strictEqual(p.slug, 'co-abc123');
+});
 
 test('buildKeihoProfile: 会社レベル項目を DEFAULT_CONFIG と等価に持つ', () => {
   const p = buildKeihoProfile();
