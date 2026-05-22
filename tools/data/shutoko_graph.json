@@ -2170,6 +2170,54 @@
    "routes": [
     "C2"
    ]
+  },
+  {
+   "id": "ayase_sic",
+   "routes": [
+    "tomei"
+   ]
+  },
+  {
+   "id": "fuchu_sic",
+   "routes": [
+    "chuo"
+   ]
+  },
+  {
+   "id": "nagasaka_ic",
+   "routes": [
+    "chuo"
+   ]
+  },
+  {
+   "id": "miyoshi_sic",
+   "routes": [
+    "kanetsu"
+   ]
+  },
+  {
+   "id": "sakado_nishi_sic",
+   "routes": [
+    "kanetsu"
+   ]
+  },
+  {
+   "id": "hasuda_sic",
+   "routes": [
+    "tohoku"
+   ]
+  },
+  {
+   "id": "iwama_ic",
+   "routes": [
+    "joban"
+   ]
+  },
+  {
+   "id": "misato_ryokinjo_sic",
+   "routes": [
+    "joban"
+   ]
   }
  ],
  "edges": [
@@ -2468,12 +2516,6 @@
    "route": "chuo"
   },
   {
-   "from": "inagi",
-   "to": "kunitachi_fuchu",
-   "km": 7,
-   "route": "chuo"
-  },
-  {
    "from": "kunitachi_fuchu",
    "to": "hachioji",
    "km": 8.8,
@@ -2540,12 +2582,6 @@
    "route": "chuo"
   },
   {
-   "from": "sutama",
-   "to": "kobuchizawa",
-   "km": 16.9,
-   "route": "chuo"
-  },
-  {
    "from": "kobuchizawa",
    "to": "suwa_minami",
    "km": 12.6,
@@ -2606,12 +2642,6 @@
    "route": "kanetsu"
   },
   {
-   "from": "tokorozawa",
-   "to": "kawagoe",
-   "km": 11.8,
-   "route": "kanetsu"
-  },
-  {
    "from": "kawagoe",
    "to": "tsurugashima_jct",
    "km": 6.6,
@@ -2621,12 +2651,6 @@
    "from": "tsurugashima_jct",
    "to": "tsurugashima",
    "km": 1.8,
-   "route": "kanetsu"
-  },
-  {
-   "from": "tsurugashima",
-   "to": "higashimatsuyama",
-   "km": 9.8,
    "route": "kanetsu"
   },
   {
@@ -2714,12 +2738,6 @@
    "route": "kanetsu"
   },
   {
-   "from": "misato_jct",
-   "to": "nagareyama",
-   "km": 6.1,
-   "route": "joban"
-  },
-  {
    "from": "nagareyama",
    "to": "kashiwa",
    "km": 4.7,
@@ -2759,12 +2777,6 @@
    "from": "tsuchiura_kita",
    "to": "chiyoda_ishioka",
    "km": 8.1,
-   "route": "joban"
-  },
-  {
-   "from": "chiyoda_ishioka",
-   "to": "mito",
-   "km": 27.3,
    "route": "joban"
   },
   {
@@ -2918,12 +2930,6 @@
    "route": "tohoku"
   },
   {
-   "from": "iwatsuki",
-   "to": "kuki",
-   "km": 15,
-   "route": "tohoku"
-  },
-  {
    "from": "kuki",
    "to": "kazo",
    "km": 7.9,
@@ -3023,12 +3029,6 @@
    "from": "yokohama_machida",
    "to": "ebina",
    "km": 6.8,
-   "route": "tomei"
-  },
-  {
-   "from": "ebina",
-   "to": "atsugi",
-   "km": 8.5,
    "route": "tomei"
   },
   {
@@ -4422,6 +4422,102 @@
    "to": "kasai_jct",
    "km": 4.1,
    "route": "C2"
+  },
+  {
+   "from": "ebina",
+   "to": "ayase_sic",
+   "km": 3.4,
+   "route": "tomei"
+  },
+  {
+   "from": "ayase_sic",
+   "to": "atsugi",
+   "km": 6.8,
+   "route": "tomei"
+  },
+  {
+   "from": "inagi",
+   "to": "fuchu_sic",
+   "km": 1.9,
+   "route": "chuo"
+  },
+  {
+   "from": "fuchu_sic",
+   "to": "kunitachi_fuchu",
+   "km": 6.3,
+   "route": "chuo"
+  },
+  {
+   "from": "sutama",
+   "to": "nagasaka_ic",
+   "km": 14.5,
+   "route": "chuo"
+  },
+  {
+   "from": "nagasaka_ic",
+   "to": "kobuchizawa",
+   "km": 15,
+   "route": "chuo"
+  },
+  {
+   "from": "tokorozawa",
+   "to": "miyoshi_sic",
+   "km": 5.4,
+   "route": "kanetsu"
+  },
+  {
+   "from": "miyoshi_sic",
+   "to": "kawagoe",
+   "km": 8.5,
+   "route": "kanetsu"
+  },
+  {
+   "from": "tsurugashima",
+   "to": "sakado_nishi_sic",
+   "km": 3.4,
+   "route": "kanetsu"
+  },
+  {
+   "from": "sakado_nishi_sic",
+   "to": "higashimatsuyama",
+   "km": 8.2,
+   "route": "kanetsu"
+  },
+  {
+   "from": "iwatsuki",
+   "to": "hasuda_sic",
+   "km": 6.1,
+   "route": "tohoku"
+  },
+  {
+   "from": "hasuda_sic",
+   "to": "kuki",
+   "km": 11.2,
+   "route": "tohoku"
+  },
+  {
+   "from": "chiyoda_ishioka",
+   "to": "iwama_ic",
+   "km": 16.6,
+   "route": "joban"
+  },
+  {
+   "from": "iwama_ic",
+   "to": "mito",
+   "km": 15.3,
+   "route": "joban"
+  },
+  {
+   "from": "misato_jct",
+   "to": "misato_ryokinjo_sic",
+   "km": 4.8,
+   "route": "joban"
+  },
+  {
+   "from": "misato_ryokinjo_sic",
+   "to": "nagareyama",
+   "km": 2.5,
+   "route": "joban"
   }
  ]
 }

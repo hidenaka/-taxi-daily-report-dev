@@ -1,0 +1,32 @@
+{
+  "newICs": [
+    { "id": "ayase_sic", "name": "綾瀬", "route": "tomei", "route_name": "東名高速", "lat": 35.4475, "lng": 139.418222, "ramp_access": "full", "ramp_note": "東名高速。綾瀬スマートIC（ETC専用）" },
+    { "id": "fuchu_sic", "name": "府中", "route": "chuo", "route_name": "中央道", "lat": 35.66, "lng": 139.4961, "ramp_access": "full", "ramp_note": "中央道。府中スマートIC（ETC専用）" },
+    { "id": "nagasaka_ic", "name": "長坂", "route": "chuo", "route_name": "中央道", "lat": 35.8792, "lng": 138.4497, "ramp_access": "full", "ramp_note": "中央道。長坂IC（本線フルIC）" },
+    { "id": "miyoshi_sic", "name": "三芳", "route": "kanetsu", "route_name": "関越道", "lat": 35.84175, "lng": 139.503278, "ramp_access": "full", "ramp_note": "関越道。三芳スマートIC（ETC専用・PA併設）" },
+    { "id": "sakado_nishi_sic", "name": "坂戸西", "route": "kanetsu", "route_name": "関越道", "lat": 35.966472, "lng": 139.380417, "ramp_access": "full", "ramp_note": "関越道。坂戸西スマートIC（ETC専用）" },
+    { "id": "hasuda_sic", "name": "蓮田", "route": "tohoku", "route_name": "東北道", "lat": 35.978167, "lng": 139.666444, "ramp_access": "full", "ramp_note": "東北道。蓮田スマートIC（ETC専用・SA併設）" },
+    { "id": "iwama_ic", "name": "岩間", "route": "joban", "route_name": "常磐道", "lat": 36.28225, "lng": 140.319517, "ramp_access": "full", "ramp_note": "常磐道。岩間IC（本線フルIC）" },
+    { "id": "misato_ryokinjo_sic", "name": "三郷料金所", "route": "joban", "route_name": "常磐道", "lat": 35.865447, "lng": 139.8831, "ramp_access": "full", "ramp_note": "常磐道。三郷料金所スマートIC（ETC専用）" }
+  ],
+  "chains": [
+    { "route": "tomei", "removeEdges": [["ebina", "atsugi"]], "sequence": ["ebina", "ayase_sic", "atsugi"] },
+    { "route": "chuo", "removeEdges": [["inagi", "kunitachi_fuchu"]], "sequence": ["inagi", "fuchu_sic", "kunitachi_fuchu"] },
+    { "route": "chuo", "removeEdges": [["sutama", "kobuchizawa"]], "sequence": ["sutama", "nagasaka_ic", "kobuchizawa"] },
+    { "route": "kanetsu", "removeEdges": [["tokorozawa", "kawagoe"]], "sequence": ["tokorozawa", "miyoshi_sic", "kawagoe"] },
+    { "route": "kanetsu", "removeEdges": [["tsurugashima", "higashimatsuyama"]], "sequence": ["tsurugashima", "sakado_nishi_sic", "higashimatsuyama"] },
+    { "route": "tohoku", "removeEdges": [["iwatsuki", "kuki"]], "sequence": ["iwatsuki", "hasuda_sic", "kuki"] },
+    { "route": "joban", "removeEdges": [["chiyoda_ishioka", "mito"]], "sequence": ["chiyoda_ishioka", "iwama_ic", "mito"] },
+    { "route": "joban", "removeEdges": [["misato_jct", "nagareyama"]], "sequence": ["misato_jct", "misato_ryokinjo_sic", "nagareyama"] }
+  ],
+  "deductions": [
+    { "direction": "tomei", "ic_id": "ayase_sic", "name": "綾瀬", "km": 28.8 },
+    { "direction": "chuo", "ic_id": "fuchu_sic", "name": "府中", "km": 11.2 },
+    { "direction": "chuo", "ic_id": "nagasaka_ic", "name": "長坂", "km": 140.1 },
+    { "direction": "kanetsu", "ic_id": "miyoshi_sic", "name": "三芳", "km": 14.0 },
+    { "direction": "kanetsu", "ic_id": "sakado_nishi_sic", "name": "坂戸西", "km": 32.5 },
+    { "direction": "tohoku", "ic_id": "hasuda_sic", "name": "蓮田", "km": 15.6 },
+    { "direction": "joban", "ic_id": "iwama_ic", "name": "岩間", "km": 69.1 },
+    { "direction": "joban", "ic_id": "misato_ryokinjo_sic", "name": "三郷料金所", "km": 4.2 }
+  ]
+}

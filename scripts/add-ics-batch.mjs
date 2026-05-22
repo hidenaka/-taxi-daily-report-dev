@@ -62,6 +62,20 @@ for (const e of batch.addEdges ?? []) {
   graph.edges.push({ from: e.from, to: e.to, km: roadKm(e.from, e.to), route: e.route });
 }
 
+// 4) deduction.json（控除距離表）への追加
+const DEDUCTION = 'tools/data/deduction.json';
+if (batch.deductions && batch.deductions.length) {
+  const ded = JSON.parse(readFileSync(DEDUCTION, 'utf8'));
+  for (const dd of batch.deductions) {
+    const dir = ded.directions.find(x => x.id === dd.direction);
+    if (!dir) { console.log('WARN: deduction direction not found', dd.direction); continue; }
+    if (dir.entries.some(e => e.ic_id === dd.ic_id)) { console.log('SKIP existing deduction', dd.ic_id); continue; }
+    dir.entries.push({ ic_id: dd.ic_id, name: dd.name, km: dd.km });
+  }
+  writeFileSync(DEDUCTION, JSON.stringify(ded, null, 1));
+  console.log('deduction.json updated:', batch.deductions.length, 'entries');
+}
+
 writeFileSync(ICS, JSON.stringify(ics, null, 1));
 writeFileSync(GRAPH, JSON.stringify(graph, null, 1));
 console.log(`Done. ics=${ics.ics.length} nodes=${graph.nodes.length} edges=${graph.edges.length}`);

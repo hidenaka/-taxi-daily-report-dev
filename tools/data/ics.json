@@ -6018,6 +6018,158 @@
    "is_split_point": false,
    "ramp_access": "half",
    "ramp_note": "中央環状線。堀切JCT方面のみのハーフIC。ETC専用"
+  },
+  {
+   "id": "ayase_sic",
+   "name": "綾瀬",
+   "route": "tomei",
+   "route_name": "東名高速",
+   "gps": {
+    "lat": 35.4475,
+    "lng": 139.418222
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "東名高速。綾瀬スマートIC（ETC専用）"
+  },
+  {
+   "id": "fuchu_sic",
+   "name": "府中",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.66,
+    "lng": 139.4961
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "中央道。府中スマートIC（ETC専用）"
+  },
+  {
+   "id": "nagasaka_ic",
+   "name": "長坂",
+   "route": "chuo",
+   "route_name": "中央道",
+   "gps": {
+    "lat": 35.8792,
+    "lng": 138.4497
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "中央道。長坂IC（本線フルIC）"
+  },
+  {
+   "id": "miyoshi_sic",
+   "name": "三芳",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.84175,
+    "lng": 139.503278
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "関越道。三芳スマートIC（ETC専用・PA併設）"
+  },
+  {
+   "id": "sakado_nishi_sic",
+   "name": "坂戸西",
+   "route": "kanetsu",
+   "route_name": "関越道",
+   "gps": {
+    "lat": 35.966472,
+    "lng": 139.380417
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "関越道。坂戸西スマートIC（ETC専用）"
+  },
+  {
+   "id": "hasuda_sic",
+   "name": "蓮田",
+   "route": "tohoku",
+   "route_name": "東北道",
+   "gps": {
+    "lat": 35.978167,
+    "lng": 139.666444
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "東北道。蓮田スマートIC（ETC専用・SA併設）"
+  },
+  {
+   "id": "iwama_ic",
+   "name": "岩間",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 36.28225,
+    "lng": 140.319517
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "常磐道。岩間IC（本線フルIC）"
+  },
+  {
+   "id": "misato_ryokinjo_sic",
+   "name": "三郷料金所",
+   "route": "joban",
+   "route_name": "常磐道",
+   "gps": {
+    "lat": 35.865447,
+    "lng": 139.8831
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "常磐道。三郷料金所スマートIC（ETC専用）"
   }
  ]
 }
