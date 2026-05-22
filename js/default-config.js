@@ -1,4 +1,7 @@
 export const DEFAULT_CONFIG = {
+  // プレミアム車種を選択UI/カレンダー循環/車種フィルタ/デフォルト車種から隠す。
+  // 既存のプレミアム実績データの表示には影響しない。
+  hidePremium: false,
   shifts: {
     patterns: [],
     exceptions: { added: [], removed: [], swapped: [] },

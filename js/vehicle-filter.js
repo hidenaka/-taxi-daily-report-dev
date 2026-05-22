@@ -31,6 +31,9 @@ export function filterDrivesByVehicle(drives, type) {
 }
 
 export function pickDefaultVehicleType(todayDrive, config) {
+  // プレミアム非表示時は常にジャパンタクシーを既定にする。
+  if (config?.hidePremium) return 'japantaxi';
+
   const todayType = normalizeType(todayDrive?.vehicleType);
   if (todayType === 'japantaxi' || todayType === 'premium') return todayType;
 
@@ -88,15 +91,23 @@ export async function resolveDefaultVehicleType(deps) {
   }
 }
 
+// 表示する車種タブの key 配列（純関数・テスト対象）。hidePremium 時は premium を除外。
+export function vehicleTabKeys(showAll, hidePremium) {
+  const keys = [];
+  if (showAll) keys.push('all');
+  keys.push('japantaxi');
+  if (!hidePremium) keys.push('premium');
+  return keys;
+}
+
+const VEHICLE_TAB_LABELS = { all: 'すべて', japantaxi: 'ジャパンタクシー', premium: 'プレミアム' };
+
 export function renderVehicleTabs(container, options = {}) {
   if (!container) return;
   const onChange = options.onChange || (() => {});
   const showAll = options.showAll !== false;
 
-  const tabs = [];
-  if (showAll) tabs.push({ key: 'all', label: 'すべて' });
-  tabs.push({ key: 'japantaxi', label: 'ジャパンタクシー' });
-  tabs.push({ key: 'premium', label: 'プレミアム' });
+  const tabs = vehicleTabKeys(showAll, options.hidePremium).map(key => ({ key, label: VEHICLE_TAB_LABELS[key] }));
 
   const current = getActiveVehicleType();
   container.innerHTML = `<div class="vehicle-tabs" role="tablist">${
@@ -124,7 +135,7 @@ export function renderTodayVehicleToggle(container, options = {}) {
   const tabs = [
     { key: 'japantaxi', label: 'ジャパン' },
     { key: 'premium', label: 'プレミアム' },
-  ];
+  ].filter(t => !(options.hidePremium && t.key === 'premium'));
 
   container.innerHTML = `
     <div class="today-vehicle">

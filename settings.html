@@ -106,6 +106,14 @@ if (location.hostname.includes('-dev')) {
     </div>
 
     <div class="setting-group">
+      <label class="setting-label" for="hidePremiumChk">プレミアムを使わない</label>
+      <label style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);line-height:1.6;">
+        <input type="checkbox" id="hidePremiumChk" style="margin-top:2px;flex:none;">
+        <span>オンにすると、車種の選択・カレンダーの予定・車種フィルタから「プレミアム」を隠します。過去のプレミアム実績の表示はそのまま残ります。</span>
+      </label>
+    </div>
+
+    <div class="setting-group">
       <label class="setting-label" for="departureInput">出庫時刻</label>
       <input class="setting-input" id="departureInput" type="time" value="07:00">
     </div>
@@ -470,6 +478,8 @@ async function loadConfig() {
       currentConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     }
     document.getElementById('vehicleTypeSel').value = currentConfig.defaults.vehicleType;
+    document.getElementById('hidePremiumChk').checked = !!currentConfig.hidePremium;
+    applyHidePremiumUI();
     document.getElementById('departureInput').value = currentConfig.defaults.departureTime;
     document.getElementById('takeHomeRateInput').value = currentConfig.takeHomeRate ?? 0.75;
     document.getElementById('takeHomeTargetInput').value = currentConfig.takeHomeTarget ?? 500000;
@@ -612,9 +622,20 @@ document.getElementById('logoutBtn').onclick = async () => {
   location.href = 'login.html';
 };
 
+// プレミアム非表示チェック時は乗務種別の「プレミアム」を選べなくする（選択中なら japantaxi へ）
+function applyHidePremiumUI() {
+  const hide = document.getElementById('hidePremiumChk').checked;
+  const sel = document.getElementById('vehicleTypeSel');
+  const premOpt = sel.querySelector('option[value="premium"]');
+  if (premOpt) premOpt.disabled = hide;
+  if (hide && sel.value === 'premium') sel.value = 'japantaxi';
+}
+document.getElementById('hidePremiumChk').addEventListener('change', applyHidePremiumUI);
+
 document.getElementById('saveConfigBtn').onclick = async () => {
   if (!currentConfig) { alert('設定が読み込まれていません'); return; }
-  currentConfig.defaults.vehicleType = document.getElementById('vehicleTypeSel').value;
+  currentConfig.hidePremium = document.getElementById('hidePremiumChk').checked;
+  currentConfig.defaults.vehicleType = currentConfig.hidePremium ? 'japantaxi' : document.getElementById('vehicleTypeSel').value;
   currentConfig.defaults.departureTime = document.getElementById('departureInput').value;
   currentConfig.takeHomeRate = parseFloat(document.getElementById('takeHomeRateInput').value);
   currentConfig.takeHomeTarget = parseInt(document.getElementById('takeHomeTargetInput').value);

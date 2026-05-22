@@ -98,6 +98,22 @@ test('cycleShiftState プレ: プレ予定 → JT予定', () => {
   assert.deepEqual(next, { planned: true, vehicle: 'japantaxi', paid: false });
 });
 
+// --- cycleShiftState (hidePremium=true): プレミアムをスキップ ---
+test('cycleShiftState hidePremium: 未 → ジャパンタクシー予定', () => {
+  const next = cycleShiftState({ planned: false, vehicle: null, paid: false }, 'japantaxi', true);
+  assert.deepEqual(next, { planned: true, vehicle: 'japantaxi', paid: false });
+});
+
+test('cycleShiftState hidePremium: ジャパンタクシー予定 → 有給（プレをスキップ）', () => {
+  const next = cycleShiftState({ planned: true, vehicle: 'japantaxi', paid: false }, 'japantaxi', true);
+  assert.deepEqual(next, { planned: false, vehicle: null, paid: true });
+});
+
+test('cycleShiftState hidePremium: 有給 → 未', () => {
+  const next = cycleShiftState({ planned: false, vehicle: null, paid: true }, 'japantaxi', true);
+  assert.deepEqual(next, { planned: false, vehicle: null, paid: false });
+});
+
 // --- applyShiftState ---
 test('applyShiftState: 未 → 予定 で expandedDates と plannedVehicles に追加', () => {
   const cfg = makeConfig();

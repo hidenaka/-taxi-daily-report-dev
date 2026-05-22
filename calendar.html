@@ -57,12 +57,12 @@ if (location.hostname.includes('-dev')) {
     <div class="cal-grid" id="calGrid"></div>
     <div style="margin-top:12px;font-size:11px;display:flex;gap:8px;flex-wrap:wrap;">
       <span><span style="display:inline-block;width:10px;height:10px;background:var(--primary);border-radius:2px;"></span> 実績</span>
-      <span><span style="display:inline-block;width:10px;height:10px;background:#26c6da;border-radius:2px;"></span> JT予定</span>
-      <span><span style="display:inline-block;width:10px;height:10px;background:#1976d2;border-radius:2px;"></span> プレ予定</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#26c6da;border-radius:2px;"></span> ジャパンタクシー予定</span>
+      <span id="legendPremium"><span style="display:inline-block;width:10px;height:10px;background:#1976d2;border-radius:2px;"></span> プレ予定</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#ce93d8;border-radius:2px;"></span> 有給</span>
       <span><span style="display:inline-block;width:10px;height:10px;background:#fff;box-shadow:0 0 0 2px #f57f17 inset;border-radius:2px;"></span> 今日</span>
     </div>
-    <p class="help">タップで「未 → デフォルト車種予定 → もう一方の車種予定 → 有給 → 未」と循環。デフォルト車種は設定で変更。実績入力済の日は変更不可。</p>
+    <p class="help" id="cycleHelp">タップで「未 → デフォルト車種予定 → もう一方の車種予定 → 有給 → 未」と循環。デフォルト車種は設定で変更。実績入力済の日は変更不可。</p>
   </section>
 
   <section class="card">
@@ -121,6 +121,18 @@ async function render() {
   renderGrid();
   renderDowToggles();
   renderSummary();
+  updateVehicleLegend();
+}
+
+// プレミアム非表示時は凡例の「プレ予定」を隠し、循環の説明文も簡略化する。
+function updateVehicleLegend() {
+  const hide = !!config?.hidePremium;
+  const lp = document.getElementById('legendPremium');
+  if (lp) lp.style.display = hide ? 'none' : '';
+  const ch = document.getElementById('cycleHelp');
+  if (ch) ch.textContent = hide
+    ? 'タップで「未 → 出番予定 → 有給 → 未」と循環。実績入力済の日は変更不可。'
+    : 'タップで「未 → デフォルト車種予定 → もう一方の車種予定 → 有給 → 未」と循環。デフォルト車種は設定で変更。実績入力済の日は変更不可。';
 }
 
 function isPlanned(date) {
@@ -192,7 +204,7 @@ async function cycleStatus(iso) {
   if (isActual(iso)) return alert('実績入力済の日は変更できません');
   const defaultType = config?.defaults?.vehicleType || 'japantaxi';
   const current = getShiftStateForDate(iso, config);
-  const next = cycleShiftState(current, defaultType);
+  const next = cycleShiftState(current, defaultType, !!config?.hidePremium);
   applyShiftState(config, iso, next);
   await saveConfig(config);
   await render();

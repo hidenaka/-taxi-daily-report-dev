@@ -3,7 +3,24 @@ import {
   filterDrivesByVehicle,
   pickDefaultVehicleType,
   isValidVehicleType,
+  vehicleTabKeys,
 } from '../js/vehicle-filter.js';
+
+// --- vehicleTabKeys (プレミアム非表示) ---
+test('vehicleTabKeys: 通常は all/japantaxi/premium', () => {
+  assert.deepEqual(vehicleTabKeys(true, false), ['all', 'japantaxi', 'premium']);
+});
+test('vehicleTabKeys: hidePremium で premium を除外', () => {
+  assert.deepEqual(vehicleTabKeys(true, true), ['all', 'japantaxi']);
+});
+test('vehicleTabKeys: showAll=false かつ hidePremium で japantaxi のみ', () => {
+  assert.deepEqual(vehicleTabKeys(false, true), ['japantaxi']);
+});
+
+// --- pickDefaultVehicleType (プレミアム非表示) ---
+test('pickDefaultVehicleType: hidePremium なら常に japantaxi', () => {
+  assert.equal(pickDefaultVehicleType({ vehicleType: 'premium' }, { hidePremium: true }), 'japantaxi');
+});
 
 // --- isValidVehicleType ---
 test('isValidVehicleType: 有効な値を受け入れる', () => {

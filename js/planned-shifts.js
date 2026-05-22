@@ -25,7 +25,21 @@ export function getShiftStateForDate(date, config) {
   return { planned, vehicle, paid };
 }
 
-export function cycleShiftState(current, defaultType) {
+// hidePremium=true のときはプレミアムを循環から除外し、
+// 未 → ジャパンタクシー予定 → 有給 → 未 の3状態で回す（defaultは強制的にjapantaxi扱い）。
+export function cycleShiftState(current, defaultType, hidePremium = false) {
+  if (hidePremium) {
+    if (!current.planned && !current.paid) {
+      return { planned: true, vehicle: 'japantaxi', paid: false };
+    }
+    if (current.planned) {
+      return { planned: false, vehicle: null, paid: true };
+    }
+    if (current.paid) {
+      return { planned: false, vehicle: null, paid: false };
+    }
+    return { planned: false, vehicle: null, paid: false };
+  }
   const def = isValidVehicle(defaultType) ? defaultType : 'japantaxi';
   const other = def === 'japantaxi' ? 'premium' : 'japantaxi';
   if (!current.planned && !current.paid) {
