@@ -22,6 +22,7 @@ const STATIC_FILES = [
   './css/style.css',
   './css/ocr-import.css',
   './js/app.js',
+  './js/first-run.js',
   './js/parser.js',
   './js/payroll.js',
   './js/storage.js',
