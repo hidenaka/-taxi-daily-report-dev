@@ -2014,6 +2014,60 @@
     "K5",
     "B"
    ]
+  },
+  {
+   "id": "chidoricho",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "urayasu",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "shinkiba",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "ariake",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "rinkai_fukutoshin",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "ukishima",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "higashi_ogishima",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "honmoku_futo",
+   "routes": [
+    "B"
+   ]
+  },
+  {
+   "id": "minami_honmoku_futo",
+   "routes": [
+    "B"
+   ]
   }
  ],
  "edges": [
@@ -3656,18 +3710,6 @@
    "route": "B"
   },
   {
-   "from": "ohi_jct",
-   "to": "ariake_jct",
-   "km": 3.8,
-   "route": "B"
-  },
-  {
-   "from": "ariake_jct",
-   "to": "kasai_jct",
-   "km": 6,
-   "route": "B"
-  },
-  {
    "from": "kasai_jct",
    "to": "kasai",
    "km": 1.4,
@@ -3677,18 +3719,6 @@
    "from": "kasai",
    "to": "maihama",
    "km": 3.5,
-   "route": "B"
-  },
-  {
-   "from": "maihama",
-   "to": "takaya_jct",
-   "km": 9.9,
-   "route": "B"
-  },
-  {
-   "from": "daikoku_jct",
-   "to": "ukishima_jct",
-   "km": 12.1,
    "route": "B"
   },
   {
@@ -3968,12 +3998,6 @@
    "route": "B"
   },
   {
-   "from": "sankeien",
-   "to": "honmoku_jct",
-   "km": 3.4,
-   "route": "B"
-  },
-  {
    "from": "honmoku_jct",
    "to": "daikoku_jct",
    "km": 3.1,
@@ -4116,6 +4140,90 @@
    "to": "daikoku_futo",
    "km": 1,
    "route": "K5"
+  },
+  {
+   "from": "takaya_jct",
+   "to": "chidoricho",
+   "km": 4.6,
+   "route": "B"
+  },
+  {
+   "from": "chidoricho",
+   "to": "urayasu",
+   "km": 6.2,
+   "route": "B"
+  },
+  {
+   "from": "urayasu",
+   "to": "maihama",
+   "km": 0.9,
+   "route": "B"
+  },
+  {
+   "from": "kasai_jct",
+   "to": "shinkiba",
+   "km": 3,
+   "route": "B"
+  },
+  {
+   "from": "shinkiba",
+   "to": "ariake",
+   "km": 3.2,
+   "route": "B"
+  },
+  {
+   "from": "ariake",
+   "to": "ariake_jct",
+   "km": 1.6,
+   "route": "B"
+  },
+  {
+   "from": "ohi_jct",
+   "to": "rinkai_fukutoshin",
+   "km": 2.1,
+   "route": "B"
+  },
+  {
+   "from": "rinkai_fukutoshin",
+   "to": "ariake_jct",
+   "km": 2.4,
+   "route": "B"
+  },
+  {
+   "from": "daikoku_jct",
+   "to": "higashi_ogishima",
+   "km": 8.1,
+   "route": "B"
+  },
+  {
+   "from": "higashi_ogishima",
+   "to": "ukishima",
+   "km": 6.2,
+   "route": "B"
+  },
+  {
+   "from": "ukishima",
+   "to": "ukishima_jct",
+   "km": 0.6,
+   "route": "B"
+  },
+  {
+   "from": "honmoku_jct",
+   "to": "honmoku_futo",
+   "km": 0.3,
+   "route": "B"
+  },
+  {
+   "from": "honmoku_futo",
+   "to": "minami_honmoku_futo",
+   "km": 3,
+   "route": "B"
+  },
+  {
+   "from": "minami_honmoku_futo",
+   "to": "sankeien",
+   "km": 0.5,
+   "route": "B"
   }
  ]
 }

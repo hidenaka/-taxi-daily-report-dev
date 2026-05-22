@@ -1,0 +1,20 @@
+{
+  "newICs": [
+    { "id": "chidoricho", "name": "千鳥町", "route": "B", "route_name": "湾岸線", "lat": 35.6717, "lng": 139.9263, "ramp_access": "half", "ramp_note": "湾岸線。葛西JCT方面のみ（西行き入口・東行き出口）のハーフIC。湾岸線最東端" },
+    { "id": "urayasu", "name": "浦安", "route": "B", "route_name": "湾岸線", "lat": 35.6383, "lng": 139.8877, "ramp_access": "full", "ramp_note": "湾岸線。東西両方向のフルIC" },
+    { "id": "shinkiba", "name": "新木場", "route": "B", "route_name": "湾岸線", "lat": 35.6467, "lng": 139.8254, "ramp_access": "full", "ramp_note": "湾岸線。東西両方向のフルIC。入口はETC専用" },
+    { "id": "ariake", "name": "有明", "route": "B", "route_name": "湾岸線", "lat": 35.6390, "lng": 139.7983, "ramp_access": "half", "ramp_note": "湾岸線。辰巳JCT方面（東行き入口・西行き出口）のみのハーフIC" },
+    { "id": "rinkai_fukutoshin", "name": "臨海副都心", "route": "B", "route_name": "湾岸線", "lat": 35.6229, "lng": 139.7701, "ramp_access": "half", "ramp_note": "湾岸線。東海JCT方面（西行き）のみのハーフIC。入口はETC専用" },
+    { "id": "ukishima", "name": "浮島", "route": "B", "route_name": "湾岸線", "lat": 35.5198, "lng": 139.7889, "ramp_access": "full", "ramp_note": "湾岸線。川崎浮島JCT併設の東西両方向フルIC" },
+    { "id": "higashi_ogishima", "name": "東扇島", "route": "B", "route_name": "湾岸線", "lat": 35.4917, "lng": 139.7436, "ramp_access": "full", "ramp_note": "湾岸線。東西両方向のフルIC" },
+    { "id": "honmoku_futo", "name": "本牧ふ頭", "route": "B", "route_name": "湾岸線", "lat": 35.4371, "lng": 139.6685, "ramp_access": "half", "ramp_note": "湾岸線。東行き入口・西行き出口のハーフIC" },
+    { "id": "minami_honmoku_futo", "name": "南本牧ふ頭", "route": "B", "route_name": "湾岸線", "lat": 35.4149, "lng": 139.6671, "ramp_access": "half", "ramp_note": "湾岸線。本牧JCT方面のみのハーフIC" }
+  ],
+  "chains": [
+    { "route": "B", "removeEdges": [["takaya_jct", "maihama"]], "sequence": ["takaya_jct", "chidoricho", "urayasu", "maihama"] },
+    { "route": "B", "removeEdges": [["kasai_jct", "ariake_jct"]], "sequence": ["kasai_jct", "shinkiba", "ariake", "ariake_jct"] },
+    { "route": "B", "removeEdges": [["ohi_jct", "ariake_jct"]], "sequence": ["ohi_jct", "rinkai_fukutoshin", "ariake_jct"] },
+    { "route": "B", "removeEdges": [["daikoku_jct", "ukishima_jct"]], "sequence": ["daikoku_jct", "higashi_ogishima", "ukishima", "ukishima_jct"] },
+    { "route": "B", "removeEdges": [["sankeien", "honmoku_jct"]], "sequence": ["honmoku_jct", "honmoku_futo", "minami_honmoku_futo", "sankeien"] }
+  ]
+}

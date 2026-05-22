@@ -5522,6 +5522,177 @@
    "is_split_point": false,
    "ramp_access": "full",
    "ramp_note": "大黒線。湾岸線（B）と共用のフルIC。大黒JCT併設"
+  },
+  {
+   "id": "chidoricho",
+   "name": "千鳥町",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.6717,
+    "lng": 139.9263
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線。葛西JCT方面のみ（西行き入口・東行き出口）のハーフIC。湾岸線最東端"
+  },
+  {
+   "id": "urayasu",
+   "name": "浦安",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.6383,
+    "lng": 139.8877
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "湾岸線。東西両方向のフルIC"
+  },
+  {
+   "id": "shinkiba",
+   "name": "新木場",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.6467,
+    "lng": 139.8254
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "湾岸線。東西両方向のフルIC。入口はETC専用"
+  },
+  {
+   "id": "ariake",
+   "name": "有明",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.639,
+    "lng": 139.7983
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線。辰巳JCT方面（東行き入口・西行き出口）のみのハーフIC"
+  },
+  {
+   "id": "rinkai_fukutoshin",
+   "name": "臨海副都心",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.6229,
+    "lng": 139.7701
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線。東海JCT方面（西行き）のみのハーフIC。入口はETC専用"
+  },
+  {
+   "id": "ukishima",
+   "name": "浮島",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.5198,
+    "lng": 139.7889
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "湾岸線。川崎浮島JCT併設の東西両方向フルIC"
+  },
+  {
+   "id": "higashi_ogishima",
+   "name": "東扇島",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.4917,
+    "lng": 139.7436
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "full",
+   "ramp_note": "湾岸線。東西両方向のフルIC"
+  },
+  {
+   "id": "honmoku_futo",
+   "name": "本牧ふ頭",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.4371,
+    "lng": 139.6685
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線。東行き入口・西行き出口のハーフIC"
+  },
+  {
+   "id": "minami_honmoku_futo",
+   "name": "南本牧ふ頭",
+   "route": "B",
+   "route_name": "湾岸線",
+   "gps": {
+    "lat": 35.4149,
+    "lng": 139.6671
+   },
+   "svg": {
+    "x": 600,
+    "y": 600
+   },
+   "entry_type": "both",
+   "boundary_tag": null,
+   "is_split_point": false,
+   "ramp_access": "half",
+   "ramp_note": "湾岸線。本牧JCT方面のみのハーフIC"
   }
  ]
 }
