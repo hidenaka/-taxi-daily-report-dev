@@ -211,10 +211,9 @@
   </nav>
 
   <div class="terminal-tabs">
-    <button class="terminal-tab" data-terminal="T1">T1</button>
-    <button class="terminal-tab" data-terminal="T2">T2</button>
+    <!-- T1/T2 の個別タブは非表示（合計のみ表示）。T3(国際)は実績・予測の仕組みが整ったら表示する -->
     <button class="terminal-tab is-active" data-terminal="T1T2">T1+T2 合計</button>
-    <button class="terminal-tab" data-terminal="T3">T3 (国際)</button>
+    <button class="terminal-tab" data-terminal="T3" style="display:none;">T3 (国際)</button>
     <button id="arrivals-reload" style="margin-left:auto; background:transparent; color:var(--sub); border:none; cursor:pointer;">↻</button>
   </div>
 

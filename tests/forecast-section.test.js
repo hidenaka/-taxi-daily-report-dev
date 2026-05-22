@@ -144,14 +144,14 @@ test('loadActuals: fetch 例外も error に記録し例外を投げない', asy
 
 // --- renderActualsTable: 実績スロットのテーブル描画 ---
 
-test('renderActualsTable: 乗り場別スロットを時刻＋乗1-4＋計の表にする', () => {
+test('renderActualsTable: 乗り場別スロットを時刻＋1-4号＋計の表にする', () => {
   const html = renderActualsTable([
     { slotStart: '18:00', slotEnd: '18:15', stall1: 2, stall2: 1, stall3: 0, stall4: 2, total: 5 },
   ]);
   assert.ok(html.includes('18:00-18:15'), '時間帯ラベルを含む');
   assert.ok(html.includes('<table'), 'table 要素で描画する');
   assert.ok(html.includes('>5<'), '合計 5 を含む');
-  assert.ok(html.includes('乗1') && html.includes('乗4'), '乗り場別の見出しを含む');
+  assert.ok(html.includes('1号') && html.includes('4号'), '乗り場別の見出しを含む');
 });
 
 test('renderActualsTable: 空配列はデータなし表示', () => {
