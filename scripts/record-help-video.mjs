@@ -577,30 +577,10 @@ const SCENARIOS = {
     // 乗務開始済み（2時間前出庫・休憩記録1件あり）の状態から録画を始める。
     // breakCountMin=0 にして「記録」ボタンをすぐ有効化する。
     path: 'tools/index.html',
+    seedTimer: true, // 初回ロード前にaddInitScriptでseed済み＝乗務開始済み状態で即描画（謎の間なし）
     async run(page, ui) {
-      // --- まず localStorage を seed してリロードで状態を反映 ---
-      await page.evaluate(() => {
-        const now = Date.now();
-        const shiftStartAt = now - 2 * 60 * 60 * 1000; // 2時間前に出庫
-        // 休憩記録1件（45分前に25分休憩）
-        const rec1End = now - 45 * 60 * 1000;
-        const rec1 = { recordedAt: new Date(rec1End).toISOString(), durationSec: 25 * 60 };
-        const timerState = {
-          shiftStart: '07:00',
-          records: [rec1],
-          runningStartedAt: null,
-          targetBreakMin: 180,
-          continuousDriveMin: 360,
-          shiftStartAt,
-          lastResetSnapshot: null,
-          breakCountMin: 0, // 録画用: 直後にでも「記録」できるようにする
-        };
-        localStorage.setItem('taxi-timer-v1', JSON.stringify(timerState));
-      });
-      await page.reload({ waitUntil: 'domcontentloaded' });
-      await page.waitForTimeout(1200);
       await page.locator('#stopwatch-display').waitFor({ state: 'visible', timeout: 10000 });
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(400);
 
       // ① タイマー画面のトップ：乗務開始済み状態を見せる
       await page.evaluate(() => window.scrollTo({ top: 0 }));
@@ -751,6 +731,13 @@ const OVERLAY_INIT = () => {
     document.body.appendChild(r);
     setTimeout(() => r.remove(), 2100);
   };
+  // セレクタから「描画する瞬間」に座標を計算（getBoundingClientRect=ビューポート座標）。波紋ズレ防止。
+  window.__hvRippleSel = (sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const b = el.getBoundingClientRect();
+    window.__hvRipple(b.left + b.width / 2, b.top + b.height / 2);
+  };
 };
 
 async function main() {
@@ -798,6 +785,21 @@ async function main() {
     } catch {}
   });
   await context.addInitScript(OVERLAY_INIT);
+
+  // タイマー: 初回ロード前に localStorage を seed（reload/乗務未開始フラッシュなし＝謎の間を解消）
+  if (sc.seedTimer) {
+    await context.addInitScript(() => {
+      const now = Date.now();
+      const shiftStartAt = now - 2 * 60 * 60 * 1000;
+      const rec1End = now - 45 * 60 * 1000;
+      localStorage.setItem('taxi-timer-v1', JSON.stringify({
+        shiftStart: '07:00',
+        records: [{ recordedAt: new Date(rec1End).toISOString(), durationSec: 25 * 60 }],
+        runningStartedAt: null, targetBreakMin: 180, continuousDriveMin: 360,
+        shiftStartAt, lastResetSnapshot: null, breakCountMin: 0,
+      }));
+    });
+  }
 
   // 録画用にアクセスゲートを無害化（Firebase 不要・常に許可）＋ SW 無効化（キャッシュ干渉防止）。
   const accessSrc = readFileSync('js/access-control.js', 'utf8').replace(
@@ -865,9 +867,8 @@ async function main() {
   const ui = {
     async caption(t) { await page.evaluate((x) => window.__hvCaption(x), t); await page.waitForTimeout(500); },
     async ripple(sel) {
-      const box = await page.locator(sel).boundingBox();
-      if (box) await page.evaluate(([x, y]) => window.__hvRipple(x, y),
-        [box.x + box.width / 2, box.y + box.height / 2]);
+      // 描画の瞬間にブラウザ内で getBoundingClientRect から座標計算＝スクロール/タイミングに関係なく必ず合う
+      await page.evaluate((s) => window.__hvRippleSel(s), sel);
       await page.waitForTimeout(900);
     },
   };
