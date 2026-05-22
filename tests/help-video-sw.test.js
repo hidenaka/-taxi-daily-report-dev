@@ -15,3 +15,7 @@ test('新規JS2本が STATIC_FILES に登録されている', () => {
 test('動画は素通し（キャッシュしない）ルールがある', () => {
   assert.ok(/mp4/.test(sw), '動画拡張子の分岐');
 });
+
+test('使い方動画のサムネ(media/help/)も素通し対象', () => {
+  assert.ok(sw.includes('/media/help/'), 'media/help/ の素通しルール');
+});

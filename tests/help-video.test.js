@@ -28,4 +28,6 @@ test('buildVideoTag: src付きの video を返す（autoplay/muted/playsinline�
   assert.ok(tag.includes('autoplay'), 'autoplay');
   assert.ok(tag.includes('muted'), 'muted');
   assert.ok(tag.includes('playsinline'), 'playsinline');
+  assert.ok(tag.includes('controls'), 'controls');
+  assert.ok(tag.includes('hv-close'), '折りたたむボタン');
 });
