@@ -90,6 +90,33 @@ const SCENARIOS = {
       await page.waitForTimeout(2800);
     },
   },
+
+  'calendar': {
+    path: 'calendar.html',
+    mockFirebase: true, // configが要るのでデータ層をmock（DEFAULT_CONFIGベース）
+    async run(page, ui) {
+      await page.locator('#calGrid .cal-cell:not(.dim)').first().waitFor({ timeout: 15000 });
+      // ① 日付をタップして出番予定を入れる（タップで車種が循環）
+      const day = page.locator('#calGrid .cal-cell:not(.dim):not(.actual):not(.today)').nth(12);
+      await ui.caption('① 日付をタップして出番予定を入れる');
+      await ui.ripple('#calGrid .cal-cell:not(.dim):not(.actual):not(.today) >> nth=12');
+      await day.click();
+      await page.waitForTimeout(900);
+      await ui.caption('（タップで車種→有給→未と切り替わる）');
+      await day.click();
+      await page.waitForTimeout(1400);
+      // ② 曜日でまとめて追加
+      await page.locator('#dowToggles .dow-toggle').first().scrollIntoViewIfNeeded();
+      await ui.caption('② 曜日でまとめて追加（例：金曜）');
+      await ui.ripple('#dowToggles .dow-toggle >> nth=5');
+      await page.locator('#dowToggles .dow-toggle >> nth=5').click();
+      await page.waitForTimeout(1600);
+      // ③ 月サマリーで確認
+      await page.locator('#summary').scrollIntoViewIfNeeded();
+      await ui.caption('③ 月サマリーで予定数を確認');
+      await page.waitForTimeout(2400);
+    },
+  },
 };
 
 // ---- 画面に注入する字幕＆波紋ヘルパー（録画に写る）----
@@ -166,6 +193,37 @@ async function main() {
     r.fulfill({ contentType: 'application/javascript; charset=utf-8', body: accessSrc }));
   await context.route('**/sw.js', (r) =>
     r.fulfill({ contentType: 'application/javascript; charset=utf-8', body: '/* sw disabled for recording */' }));
+
+  // データが要る画面用: Firebase 層を DEFAULT_CONFIG ベースの mock に差し替え（オフラインで描画）。
+  if (sc.mockFirebase) {
+    const jsHeader = { contentType: 'application/javascript; charset=utf-8' };
+    const authStub = `
+      export async function initAuth(){}
+      export function getUserId(){ return 'demo-help'; }
+      export const auth = { currentUser: { uid:'demo-help', getIdToken: async()=>'x' }, authStateReady: async()=>{}, onAuthStateChanged:(cb)=>{ try{cb&&cb({uid:'demo-help'});}catch(e){} return ()=>{}; } };
+    `;
+    const storageStub = `
+      import { DEFAULT_CONFIG } from './default-config.js';
+      let cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+      cfg.shifts = cfg.shifts || {};
+      cfg.shifts.expandedDates = cfg.shifts.expandedDates || [];
+      cfg.shifts.plannedVehicles = cfg.shifts.plannedVehicles || {};
+      cfg.shifts.paidLeaveDates = cfg.shifts.paidLeaveDates || [];
+      cfg.shifts.patterns = cfg.shifts.patterns || [];
+      export async function getConfig(){ return cfg; }
+      export function getConfigCached(){ return cfg; }
+      export async function saveConfig(c){ if(c) cfg = c; }
+      export async function getDrivesForMonth(){ return []; }
+      export async function getDrivesForMonthCached(){ return []; }
+      export async function getDrive(){ return null; }
+      export async function saveDriveSafe(){ }
+      export function getMyUserId(){ return 'demo-help'; }
+      export function setMyUserId(){ }
+      export async function waitForAuth(){ }
+    `;
+    await context.route('**/js/firebase-auth.js', (r) => r.fulfill({ ...jsHeader, body: authStub }));
+    await context.route('**/js/firebase-storage.js', (r) => r.fulfill({ ...jsHeader, body: storageStub }));
+  }
 
   const page = await context.newPage();
   const ui = {

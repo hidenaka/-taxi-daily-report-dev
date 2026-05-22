@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 const PAGES = {
   'input.html': 'input-paste',
   'ocr-import.html': 'ocr-import',
+  'calendar.html': 'calendar',
 };
 
 for (const [page, key] of Object.entries(PAGES)) {

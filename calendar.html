@@ -42,7 +42,8 @@ if (location.hostname.includes('-dev')) {
 }
 </script>
 <main style="padding:14px;">
-  <h1>シフトカレンダー</h1>
+  <h1>シフトカレンダー <button class="help-video-btn" data-help-video="calendar" type="button">▶ 使い方（15秒）</button></h1>
+  <div class="help-video" id="help-video-calendar"></div>
 
   <section class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -89,6 +90,7 @@ import {
 } from './js/planned-shifts.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
+import './js/help-video.js';
 
 if (!(await enforceAccess('core'))) {
   throw new Error('access-denied: redirected');

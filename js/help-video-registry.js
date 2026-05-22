@@ -11,4 +11,9 @@ export const HELP_VIDEOS = {
     poster: 'media/help/ocr-import.jpg',
     caption: '写真を撮って取り込む手順',
   },
+  'calendar': {
+    src: 'media/help/calendar.mp4',
+    poster: 'media/help/calendar.jpg',
+    caption: 'シフトカレンダーで出番予定を入れる手順',
+  },
 };
