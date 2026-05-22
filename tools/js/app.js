@@ -388,6 +388,7 @@ function renderExitFavorites() {
 
 function renderIcSelected(elId, ic) {
   const el = document.getElementById(elId);
+  if (!el) return;
   if (!ic) { el.hidden = true; el.textContent = ''; return; }
   el.textContent = '選択中: ' + ic.name.replace(/（[^）]*）/g, '').trim();
   el.hidden = false;
@@ -528,8 +529,12 @@ function wireEvents() {
       return;
     }
     if (exitEditMode) {
+      // 編集モード中はお気に入りに追加するだけ（現在の選択は変えない）
       exitFavorites = addFavorite(exitFavorites, icId);
       saveFavorites(exitFavorites);
+      exitInput.value = '';
+      renderExitFavorites();
+      return;
     }
     setExitIc(icId); update();
   }
