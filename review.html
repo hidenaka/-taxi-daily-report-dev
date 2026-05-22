@@ -57,6 +57,14 @@
 .heat .cell, .wbar .bar, .trend-dot, .heat-touch { cursor: pointer; }
 .heat-touch { transform: scale(1); transition: transform 0.1s; }
 .heat-touch:active { transform: scale(0.95); }
+
+.heatgrid { display: grid; grid-template-columns: 28px repeat(24, minmax(34px, 1fr)); gap: 1px; font-size: 9px; }
+.heatgrid .hh { text-align: center; color: var(--muted); font-size: 8px; padding: 2px 0; }
+.heatgrid .dlbl { text-align: center; color: var(--muted); font-size: 9px; padding: 4px 0; font-weight: 600; }
+.heatgrid .cell { border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; cursor: pointer; min-height: 30px; font-weight: 600; }
+.heatgrid .cell.empty { background: #eceff1; color: #b0bec5; }
+.heatgrid .cell.low-sample { opacity: 0.4; }
+.stage-chip { margin: 2px; }
 </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -138,6 +146,16 @@ if (location.hostname.includes('-dev')) {
     <p class="muted" style="font-size:10px;margin-top:6px;">数字は<strong>時給（1時間あたりの稼ぎ）</strong>。実稼働時間（休憩除く）で換算。タップで詳細</p>
   </section>
 
+  <section class="card" id="stageCard">
+    <div class="section-h">
+      <strong>目標ステージ別の稼ぎ方</strong>
+      <span class="desc">その売上だった日の曜日×時間 平均売上</span>
+    </div>
+    <div id="stageBody"></div>
+    <div class="detail-tip" id="stageTip"></div>
+    <p class="muted" style="font-size:10px;margin-top:6px;">1日の税込営収でステージ分け（全期間・自分のデータ）。マスは平均売上、タップで詳細</p>
+  </section>
+
   <section class="card" id="weatherCard">
     <div class="section-h">
       <strong>天気別 平均日売上</strong>
@@ -183,7 +201,7 @@ import {
   renderVehicleTabs,
 } from './js/vehicle-filter.js';
 import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js';
-import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown, zoneDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml } from './js/chart-helpers.js';
+import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown, zoneDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, salesStages, stageHeatmap } from './js/chart-helpers.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 
@@ -194,6 +212,8 @@ if (!(await enforceAccess('analysis'))) {
 document.getElementById('navHost').innerHTML = renderBottomNav('analytics');
 renderLegalFooter();
 
+const HOUR_ORDER = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,1,2,3,4,5,6];
+let selectedStageKey = null;
 let monthsRange = 6;
 let allDrives = [];
 let monthSummaries = []; // [{ym, drives, totalSales, totalShifts, totalPay, totalTripMin, ...}]
@@ -259,6 +279,7 @@ function renderAll(periods, label) {
   renderHeatmap();
   renderWeather();
   renderRanks();
+  renderStageBenchmark();
   renderMemos();
 }
 
@@ -664,6 +685,58 @@ function renderHeatmap() {
         tip.innerHTML = `<strong>${DOW_LABELS[dow]}曜 × ${zone.label}</strong>: データなし`;
       }
     });
+  });
+}
+
+function renderStageBenchmark() {
+  const body = document.getElementById('stageBody');
+  const tip = document.getElementById('stageTip');
+  tip.classList.remove('show');
+  const stages = salesStages(allDrives);
+  if (!stages.length) {
+    body.innerHTML = '<p class="muted" style="font-size:12px;">まだデータがありません</p>';
+    return;
+  }
+  let sel = stages.find(s => s.key === selectedStageKey);
+  if (!sel) { sel = stages.reduce((a, b) => b.count > a.count ? b : a); selectedStageKey = sel.key; }
+  const dateSet = new Set(sel.dates);
+  const stageDrives = allDrives.filter(d => dateSet.has(d.date));
+  const { matrix, dowDayCount } = stageHeatmap(stageDrives);
+  let max = 0;
+  for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) if (matrix[dow][h].avgSales > max) max = matrix[dow][h].avgSales;
+  if (max === 0) max = 1;
+  const chips = stages.map(s => {
+    const active = s.key === selectedStageKey;
+    const style = active ? 'background:var(--primary);color:#fff;font-weight:600;' : 'background:#f0f0f0;color:#333;';
+    return `<button data-stage="${s.key}" class="stage-chip" style="${style}border:none;padding:5px 9px;border-radius:14px;font-size:11px;cursor:pointer;">${s.label}<span style="opacity:.8;font-size:10px;"> ${s.count}日</span></button>`;
+  }).join('');
+  let grid = '<div style="overflow-x:auto;"><div class="heatgrid" style="min-width:840px;"><div></div>';
+  for (const h of HOUR_ORDER) grid += `<div class="hh">${h}</div>`;
+  for (let dow = 0; dow < 7; dow++) {
+    const dowColor = dow === 0 ? '#d32f2f' : dow === 6 ? '#1976d2' : '#333';
+    grid += `<div class="dlbl" style="color:${dowColor};">${DOW_LABELS[dow]}</div>`;
+    const lowDow = dowDayCount[dow] > 0 && dowDayCount[dow] < 3;
+    for (const h of HOUR_ORDER) {
+      if (dowDayCount[dow] === 0) { grid += `<div class="cell empty" data-dow="${dow}" data-h="${h}">·</div>`; continue; }
+      const v = matrix[dow][h].avgSales;
+      const ratio = Math.min(1, v / max);
+      const bg = v > 0 ? `rgba(76,175,80,${0.12 + 0.78 * ratio})` : '#fafafa';
+      const disp = v >= 100 ? Math.round(v / 100) * 100 : (v > 0 ? Math.round(v) : '');
+      grid += `<div class="cell${lowDow ? ' low-sample' : ''}" style="background:${bg};color:${ratio > 0.6 ? '#fff' : '#222'};" data-dow="${dow}" data-h="${h}">${disp}</div>`;
+    }
+  }
+  grid += '</div></div>';
+  body.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;margin-bottom:8px;">${chips}</div>
+    <p class="muted" style="font-size:11px;margin:0 0 6px;">「${sel.label}」の日（${sel.count}日）の曜日×時間 平均売上。濃い＝その時間に稼いでた。薄いグレー＝その曜日の該当日が3日未満</p>
+    ${grid}`;
+  body.querySelectorAll('.stage-chip').forEach(b => b.onclick = () => { selectedStageKey = b.dataset.stage; renderStageBenchmark(); });
+  body.querySelectorAll('.heatgrid .cell').forEach(el => el.onclick = () => {
+    const dow = parseInt(el.dataset.dow), h = parseInt(el.dataset.h);
+    tip.classList.add('show');
+    if (dowDayCount[dow] === 0) { tip.innerHTML = `<strong>${DOW_LABELS[dow]} ${h}時</strong>: この曜日に該当日なし`; return; }
+    const c = matrix[dow][h];
+    tip.innerHTML = `<strong>${DOW_LABELS[dow]} ${h}時台</strong>（${sel.label}・${DOW_LABELS[dow]}の該当${dowDayCount[dow]}日）<br>平均売上 <strong>${formatYen(c.avgSales)}</strong>・平均${c.avgCount.toFixed(1)}件`;
   });
 }
 
