@@ -226,6 +226,14 @@
     <h2>🚕 タクシー出庫（実績／予測）<button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
     <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
+    <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
+      <summary style="cursor:pointer; color:var(--accent);">ⓘ 実績・予測の仕組みと注意</summary>
+      <div style="margin-top:6px;">
+        <p style="margin:0 0 4px;"><strong>実績</strong>：タクシーセンターのライブカメラの車の動きをAIに学習させ、検知した「動いた台数」です。</p>
+        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて出す予測システムを構築中（学習中）です。</p>
+        <p style="margin:0;">※どちらも仕組みを開発・学習している途中のため、<strong>数値の正確性を保証するものではありません</strong>。あくまで目安としてご利用ください。</p>
+      </div>
+    </details>
     <div class="fc-controls">
       <select id="forecast-mode" class="fc-mode">
         <option value="actuals">実績</option>
