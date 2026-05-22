@@ -40,6 +40,7 @@ async function init() {
   updateShutokoRouteOptions();
   wireEvents();
   update();
+  answerFlashReady = true;   // 初期表示後は、選択変更で答えカードを光らせる
   renderSessionLog();
   initGeo();
 }
@@ -443,6 +444,16 @@ function refreshAnswerVisibility() {
   document.getElementById('answer-body').hidden = !ready;
 }
 
+let answerFlashReady = false;   // 初期表示では光らせない。最初のupdate後にtrue
+// 答えカードを一瞬光らせて「結果が更新された」と分かるようにする
+function flashAnswer() {
+  const card = document.getElementById('answer-body');
+  if (!card || card.hidden) return;
+  card.classList.remove('flash');
+  void card.offsetWidth;   // リフローでアニメ再起動
+  card.classList.add('flash');
+}
+
 function setEntryIc(icId) {
   const ic = state.data.ics.find(x => x.id === icId);
   if (!ic) return;
@@ -543,14 +554,20 @@ function wireEvents() {
   // ---- Entry IC: 検索入力のみ（チップはrefreshNearestSuggestionsが配線） ----
   const entryInput = document.getElementById('inp-entry-ic');
   function resolveEntryFromSearch() {
-    const icId = icValueIndex.get(entryInput.value);
+    const v = entryInput.value;
+    const hint = document.getElementById('entry-ic-hint');
+    if (!v) return;   // 空は何もしない（確定後の自動クリアで確認表示を消さないため）
+    const icId = icValueIndex.get(v);
     if (!icId) {
-      const hint = document.getElementById('entry-ic-hint');
-      hint.textContent = entryInput.value ? '候補から選択してください' : '';
-      hint.className = entryInput.value ? 'hint error' : 'hint';
+      hint.textContent = '候補から選択してください';
+      hint.className = 'hint error';
       return;
     }
     setEntryIc(icId); update();
+    const ic = state.data.ics.find(x => x.id === icId);
+    hint.textContent = '✓ ' + ic.name.replace(/（[^）]*）/g, '').trim() + ' を選択';
+    hint.className = 'hint confirm';
+    entryInput.value = '';   // 確定→検索欄をクリア（入力完了の合図）
   }
   entryInput.addEventListener('change', resolveEntryFromSearch);
   entryInput.addEventListener('input',  resolveEntryFromSearch);
@@ -558,22 +575,30 @@ function wireEvents() {
   // ---- Exit IC: 検索入力（編集モード中はお気に入りに追加） ----
   const exitInput = document.getElementById('inp-exit-ic');
   function resolveExitFromSearch() {
-    const icId = icValueIndex.get(exitInput.value);
+    const v = exitInput.value;
+    const hint = document.getElementById('exit-ic-hint');
+    if (!v) return;   // 空は何もしない（確定後の自動クリアで確認表示を消さないため）
+    const icId = icValueIndex.get(v);
     if (!icId) {
-      const hint = document.getElementById('exit-ic-hint');
-      hint.textContent = exitInput.value ? '候補から選択してください' : '';
-      hint.className = exitInput.value ? 'hint error' : 'hint';
+      hint.textContent = '候補から選択してください';
+      hint.className = 'hint error';
       return;
     }
+    const clean = (state.data.ics.find(x => x.id === icId)?.name || '').replace(/（[^）]*）/g, '').trim();
     if (exitEditMode) {
       // 編集モード中はお気に入りに追加するだけ（現在の選択は変えない）
       exitFavorites = addFavorite(exitFavorites, icId);
       saveFavorites(exitFavorites);
-      exitInput.value = '';
       renderExitFavorites();
+      hint.textContent = '✓ ' + clean + ' を追加';
+      hint.className = 'hint confirm';
+      exitInput.value = '';
       return;
     }
     setExitIc(icId); update();
+    hint.textContent = '✓ ' + clean + ' を選択';
+    hint.className = 'hint confirm';
+    exitInput.value = '';   // 確定→検索欄をクリア（入力完了の合図）
   }
   exitInput.addEventListener('change', resolveExitFromSearch);
   exitInput.addEventListener('input',  resolveExitFromSearch);
@@ -856,6 +881,7 @@ function update() {
   renderBreakdown(current.result);
   renderRoutePath(current.result);
   renderRouteComparison(allRoutes);
+  if (answerFlashReady) flashAnswer();   // 結果が更新されたことを一瞬の発光で知らせる
 }
 
 function renderRouteComparison(allRoutes) {

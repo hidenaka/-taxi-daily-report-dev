@@ -112,6 +112,10 @@ button:active { background: var(--muted); }
 }
 .field .hint { font-size: 13px; color: var(--muted); min-height: 1.2em; }
 .field .hint.error { color: #c0392b; }
+/* 検索欄(.ic-search)内のヒントなど、.field外のhint用の汎用スタイル */
+.hint { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+.hint.error { color: #c0392b; }
+.hint.confirm { color: var(--company); font-weight: 600; }
 .exit-other { margin-top: 8px; }
 .exit-other summary { cursor: pointer; font-size: 14px; color: var(--muted); }
 .exit-other[open] summary { color: var(--text); }
@@ -374,6 +378,13 @@ nav.bottom a.active { color: var(--self-ded); }
   display: grid; gap: 10px; padding: 16px;
   background: #16243a; border: 2px solid var(--company); border-radius: 12px;
 }
+/* 結果更新時の発光（入力完了→結果が出たことを知らせる） */
+@keyframes answer-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+  25%  { box-shadow: 0 0 18px 4px rgba(46,204,113,.65); border-color: #2ecc71; }
+  100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+}
+.answer-body.flash { animation: answer-flash 0.7s ease; }
 .answer-body .badge-main { font-size: 32px; }
 .answer-body .save-buttons { display: flex; gap: 8px; margin-top: 4px; }
 .answer-body .save-buttons button {
