@@ -62,6 +62,8 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <h1 style="margin-top:0;">分析</h1>
+  <button class="help-video-btn" data-help-video="sales-support" type="button">▶ 使い方（40秒）</button>
+  <div class="help-video" id="help-video-sales-support"></div>
   <div style="display:flex;gap:4px;margin-bottom:12px;">
     <a href="support.html" style="flex:1;background:var(--primary);color:#fff;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">営業サポート</a>
     <a href="review.html" style="flex:1;background:#f0f0f0;color:#333;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">振り返り</a>
@@ -212,6 +214,7 @@ import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js'
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 import './js/help-toggle.js';
+import './js/help-video.js'; // ▶使い方動画のインライン展開プレイヤー
 
 const REC_AREA_LS_KEY = 'cabis_rec_area_last';
 const REC_AREA_FALLBACK = '千代田区丸の内';

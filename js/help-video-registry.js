@@ -26,6 +26,11 @@ export const HELP_VIDEOS = {
     poster: 'media/help/analysis-view.jpg',
     caption: '分析ページの見方（数字の読み方）',
   },
+  'sales-support': {
+    src: 'media/help/sales-support.mp4',
+    poster: 'media/help/sales-support.jpg',
+    caption: '営業サポートの見方（次の営業先・時給・エリア効率）',
+  },
   'arrivals': {
     // tools/ サブディレクトリ配下のページから使うため ../media/help/ で参照
     src: '../media/help/arrivals.mp4',

@@ -6,6 +6,7 @@ const PAGES = {
   'ocr-import.html': 'ocr-import',
   'calendar.html': 'calendar',
   'review.html': 'analysis-view',
+  'support.html': 'sales-support',
   'tools/arrivals.html': 'arrivals',
   'tools/ic.html': 'ic-route',
   'tools/index.html': 'timer',

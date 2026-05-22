@@ -125,6 +125,55 @@ function buildSampleData() {
 }
 
 // ============================================================
+// 「営業サポート」(support.html) ページ全体 録画用サンプルデータ生成（決定論的）
+// support.html は全カード（出庫ペース/次の営業先 推奨検索/曜日×時間¥/h/高期待値エリア/
+// 降車エリア別効率）が「全員データ統合」で動く。buildSampleData の時間×金額の濃淡を土台に、
+// 各 trip へ実在エリア名の board/alight を割り当て、さらに「千代田区丸の内を20時台に降車→
+// 大手町/銀座/六本木で次乗車」のチェーンを仕込んで、推奨検索の結果表が必ず描画されるようにする。
+// ============================================================
+function buildSupportSampleData() {
+  const data = buildSampleData(); // 時間×金額の濃淡（ペース/時給/ヒートマップ用）が土台
+  const tm = (s) => { const [a, b] = s.split(':').map(Number); return a * 60 + b; };
+  // 降車エリアを少数のホットエリアに集約（各エリアが5件以上たまり、高期待値/エリア効率が描画される）
+  const POOL = ['新宿区新宿', '千代田区丸の内', '中央区銀座', '港区六本木', '渋谷区道玄坂', '品川区港南', '大田区蒲田', '江東区豊洲', '世田谷区桜新町', '目黒区自由が丘'];
+  // 丸の内降車後に「次に乗れたエリア」の分布（大手町が多め＝取得率トップに出る）
+  const NEXT = [
+    { board: '千代田区大手町', wait: 9, drop: '世田谷区桜新町' },
+    { board: '千代田区大手町', wait: 11, drop: '目黒区自由が丘' },
+    { board: '中央区銀座', wait: 16, drop: '江東区豊洲' },
+    { board: '港区六本木', wait: 13, drop: '渋谷区広尾' },
+  ];
+  const USERS = ['demo-help', 'peer-1', 'peer-2']; // 全員データ統合（自分＋他ドライバー）
+  let gi = 0, ni = 0;
+  for (const ym of Object.keys(data)) {
+    for (const d of data[ym]) {
+      const uid = USERS[gi % USERS.length];
+      d.userId = uid; d._userId = uid;
+      const trips = d.trips || [];
+      // まず全 trip に実在エリア名の board/alight を決定論的に割り当て
+      for (let i = 0; i < trips.length; i++) {
+        trips[i].boardPlace = POOL[(gi + i) % POOL.length] + ((i % 4) + 1);
+        trips[i].alightPlace = POOL[(gi + i + 3) % POOL.length] + ((i % 3) + 1);
+      }
+      // 19〜21時台に降車する trip を「千代田区丸の内」に固定し、その次の trip を NEXT パターンへ
+      const ai = trips.findIndex((t) => { const ah = parseInt(t.alightTime.split(':')[0]); return ah >= 19 && ah <= 21; });
+      if (ai >= 0 && ai + 1 < trips.length) {
+        trips[ai].alightPlace = '千代田区丸の内2';
+        const pat = NEXT[ni % NEXT.length]; ni++;
+        const dropM = tm(trips[ai].alightTime);
+        trips[ai + 1].boardTime = _hhmm(dropM + pat.wait);     // 待ち wait 分（30分以内）
+        trips[ai + 1].alightTime = _hhmm(dropM + pat.wait + 25); // 次乗車は25分実車
+        trips[ai + 1].boardPlace = pat.board + '8';
+        trips[ai + 1].alightPlace = pat.drop + '3';
+        if (!(trips[ai + 1].amount > 0)) trips[ai + 1].amount = 5600;
+      }
+      gi++;
+    }
+  }
+  return data;
+}
+
+// ============================================================
 // arrivals シナリオ用サンプルデータ生成
 // tools/arrivals.html が fetch する 3 つの JSON を録画時にモックする。
 // 現実的な便数・時刻・乗客数を持たせて画面が空にならないようにする。
@@ -695,6 +744,82 @@ const SCENARIOS = {
       await page.waitForTimeout(2800);
     },
   },
+
+  'sales-support': {
+    // 営業サポート(support.html)ページ全体の見方ツアー。全員データ統合のサンプルを流し込む。
+    path: 'support.html',
+    mockFirebase: true,
+    supportSample: true,
+    async run(page, ui) {
+      const scrollTo = (id) => page.evaluate((x) => document.getElementById(x)?.scrollIntoView({ block: 'start' }), id);
+      // 推奨カードのプルダウンが埋まる＝データ反映完了を待つ（option は closed select 内で hidden 扱いなので attached を待つ）
+      await page.locator('#recArea option').first().waitFor({ state: 'attached', timeout: 15000 });
+      await page.waitForTimeout(800);
+      await page.evaluate(() => window.scrollTo({ top: 0 }));
+      await ui.caption('「営業サポート」＝次にどこへ行けば稼げるかを全員データで提案する画面');
+      await page.waitForTimeout(2800);
+
+      // ① 出庫ペース（録画時刻に依存せず数字が出るよう、全曜日＋経過8時間時点に切替）
+      await scrollTo('paceCard');
+      await page.waitForTimeout(500);
+      await page.evaluate(() => {
+        const dall = document.querySelector('#paceCard .pace-dtab[data-d=""]'); if (dall) dall.click();
+        const e8 = [...document.querySelectorAll('#paceCard .pace-etab')].find((b) => b.textContent.trim() === '8h'); if (e8) e8.click();
+      });
+      await page.waitForTimeout(700);
+      await ui.caption('① 出庫ペース＝今の累積営収が平均より速いか遅いか');
+      await ui.ripple('#paceCard');
+      await page.waitForTimeout(2600);
+
+      // ② 次の営業先 推奨検索（実演）
+      await scrollTo('recommendCard');
+      await page.waitForTimeout(800);
+      await ui.caption('② 次の営業先 推奨検索＝降ろした場所×時刻 → 次に取れるエリア');
+      await page.waitForTimeout(2600);
+      await ui.caption('降ろした場所を選ぶ');
+      await ui.ripple('#recArea');
+      await page.selectOption('#recArea', '千代田区丸の内');
+      await page.waitForTimeout(1400);
+      await ui.caption('降ろした時刻を入れて「推奨を表示」をタップ');
+      await page.evaluate(() => { const t = document.getElementById('recTime'); if (t) t.value = '20:00'; });
+      await ui.ripple('#recSearch');
+      await page.click('#recSearch');
+      await page.locator('#recBody table').first().waitFor({ timeout: 8000 });
+      await page.evaluate(() => document.getElementById('recBody')?.scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(1600);
+      await ui.caption('「30分内」が高い順＝次の仕事が見つかりやすいエリア');
+      await page.waitForTimeout(2800);
+      await ui.caption('「次運賃」＝次に取れた乗車の単価。行をタップで根拠の履歴も見られる');
+      await page.waitForTimeout(2800);
+      // GPS ボタンの紹介（プライバシー注記つき・タップはしない）
+      await page.evaluate(() => document.getElementById('recGps')?.scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(400);
+      await ui.caption('📍現在地から自動入力＝GPSで降ろし場所をセット（場所はサーバーに送られません）');
+      await ui.ripple('#recGps');
+      await page.waitForTimeout(2800);
+
+      // ③ 曜日×時間の時給
+      await scrollTo('hourEffCard');
+      await page.waitForTimeout(800);
+      await ui.caption('③ 曜日×時間の時給＝自分が稼げている時間帯（高い時間に動く）');
+      await ui.ripple('#hourEffCard');
+      await page.waitForTimeout(2800);
+
+      // ④ 高期待値エリア×時間帯
+      await scrollTo('highValueCard');
+      await page.waitForTimeout(800);
+      await ui.caption('④ 高期待値エリア×時間帯＝単価が大きく出る場所と時間');
+      await ui.ripple('#highValueCard');
+      await page.waitForTimeout(2800);
+
+      // ⑤ 降車エリア別 効率
+      await scrollTo('areaCard');
+      await page.waitForTimeout(800);
+      await ui.caption('⑤ 降車エリア別 効率＝降ろした後の動きやすさ（単価・待ち時間）');
+      await ui.ripple('#areaCard');
+      await page.waitForTimeout(2800);
+    },
+  },
 };
 
 // ---- 画面に注入する字幕＆波紋ヘルパー（録画に写る）----
@@ -820,7 +945,12 @@ async function main() {
       export const auth = { currentUser: { uid:'demo-help', getIdToken: async()=>'x' }, authStateReady: async()=>{}, onAuthStateChanged:(cb)=>{ try{cb&&cb({uid:'demo-help'});}catch(e){} return ()=>{}; } };
     `;
     // 分析ページ等、過去データが要る画面はサンプルdriveを注入する。
-    const driveData = sc.sampleData ? JSON.stringify(buildSampleData()) : '{}';
+    // support.html（営業サポート全体）は「全員データ統合」なので buildSupportSampleData を使い、
+    //   全員データ＝全drive / 自分データ＝demo-help分 を返し分ける。
+    const wantsData = sc.sampleData || sc.supportSample;
+    const driveData = sc.supportSample
+      ? JSON.stringify(buildSupportSampleData())
+      : (sc.sampleData ? JSON.stringify(buildSampleData()) : '{}');
     const storageStub = `
       import { DEFAULT_CONFIG } from './default-config.js';
       let cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -829,13 +959,24 @@ async function main() {
       cfg.shifts.plannedVehicles = cfg.shifts.plannedVehicles || {};
       cfg.shifts.paidLeaveDates = cfg.shifts.paidLeaveDates || [];
       cfg.shifts.patterns = cfg.shifts.patterns || [];
-      ${sc.sampleData ? "cfg.defaults = cfg.defaults || {}; cfg.defaults.vehicleType = 'all'; cfg.defaults.departureTime = '07:00';" : ''}
+      ${wantsData ? "cfg.defaults = cfg.defaults || {}; cfg.defaults.vehicleType = 'all'; cfg.defaults.departureTime = '07:00';" : ''}
       const DRIVES = ${driveData};
+      const SUPPORT = ${sc.supportSample ? 'true' : 'false'};
+      const monthAll = (ym) => DRIVES[ym] || [];
+      const monthMine = (ym) => SUPPORT ? (DRIVES[ym] || []).filter(d => (d._userId || d.userId) === 'demo-help') : (DRIVES[ym] || []);
       export async function getConfig(){ return cfg; }
       export function getConfigCached(){ return cfg; }
       export async function saveConfig(c){ if(c) cfg = c; }
-      export async function getDrivesForMonth(ym){ return DRIVES[ym] || []; }
-      export function getDrivesForMonthCached(ym){ return DRIVES[ym] || []; } // Cached系は同期（Promiseを返すと呼び側が配列扱いして壊れる）
+      export async function getDrivesForMonth(ym){ return monthMine(ym); }
+      export function getDrivesForMonthCached(ym){ return monthMine(ym); } // Cached系は同期（Promiseを返すと呼び側が配列扱いして壊れる）
+      export async function getAllUsersDrivesForMonth(ym){ return monthAll(ym); }
+      export function getAllUsersDrivesForMonthCached(ym){ return monthAll(ym); }
+      export async function listActiveUserIds(){ return ${sc.supportSample ? "['demo-help','peer-1','peer-2']" : '[]'}; }
+      export function listActiveUserIdsCached(){ return ${sc.supportSample ? "['demo-help','peer-1','peer-2']" : '[]'}; }
+      export async function getUserRoleMap(){ return {}; }
+      export function getUserRoleMapCached(){ return {}; }
+      export async function getMyAggregateAnalysisFlag(){ return true; }
+      export async function getMyConsecutiveShiftsCount(){ return 30; }
       export async function getDrive(){ return null; }
       export async function saveDriveSafe(){ }
       export function getMyUserId(){ return 'demo-help'; }
