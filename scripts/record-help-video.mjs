@@ -237,6 +237,7 @@ const SCENARIOS = {
     mockFirebase: true,
     sampleData: true,
     async run(page, ui) {
+      const scrollTo = (id) => page.evaluate((x) => { const el = document.getElementById(x); if (el) el.scrollIntoView({ block: 'start' }); }, id);
       // チャート描画を待つ（ヒートマップ/ステージが組み上がるまで）
       await page.locator('#heatBody .cell').first().waitFor({ timeout: 15000 });
       await page.waitForTimeout(800);
@@ -245,23 +246,21 @@ const SCENARIOS = {
       await page.waitForTimeout(2400);
 
       // ① 推移グラフ＝売上の流れ
-      await page.evaluate(() => document.getElementById('trendCard')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-      await page.waitForTimeout(1200);
+      await page.evaluate(() => document.getElementById('trendCard')?.scrollIntoView({ block: 'center' }));
+      await page.waitForTimeout(900);
       await ui.caption('① 推移グラフ＝売上が上がってるか下がってるか');
       await ui.ripple('#trendCard');
       await page.waitForTimeout(2200);
 
       // ② ヒートマップ：色の濃さ＝稼げた時間帯
-      await page.evaluate(() => document.getElementById('heatCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-      await page.waitForTimeout(1300);
+      await scrollTo('heatCard');
+      await page.waitForTimeout(900);
       await ui.caption('② 色が濃いマス＝あなたが稼げた時間帯');
       await page.waitForTimeout(2600);
-      await ui.caption('「稼ぎ時」と出た時間に動くのが基本');
-      await page.waitForTimeout(2400);
-      await ui.caption('③「◎○△」はその稼ぎの“安定度”。◎＝毎回安定');
+      await ui.caption('濃い時間に動く・薄い時間（休憩向き）で休む');
       await page.waitForTimeout(2600);
 
-      // 「稼ぎ時」のマスをタップして意味の吹き出しを表示
+      // 「稼ぎ時」のマスをタップ → 意味の吹き出しを表示
       const cell = await page.evaluate(() => {
         const c = [...document.querySelectorAll('#heatBody .cell')].find((el) => /稼ぎ時/.test(el.innerHTML));
         if (!c) return null;
@@ -270,14 +269,21 @@ const SCENARIOS = {
         return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
       });
       if (cell) {
+        await page.waitForTimeout(400);
         await page.evaluate(([x, y]) => window.__hvRipple(x, y), [cell.x, cell.y]);
         await page.mouse.click(cell.x, cell.y);
-        await page.waitForTimeout(2600);
+        await page.waitForTimeout(600);
+        await page.evaluate(() => document.getElementById('heatTip')?.scrollIntoView({ block: 'center' })); // 吹き出しを画面内に
+        await page.waitForTimeout(700);
       }
+      await ui.caption('③ マスをタップ＝時給と「安定度◎○△」が出る');
+      await page.waitForTimeout(2800);
+      await ui.caption('◎＝毎回安定して稼げる／△＝日によってムラ大');
+      await page.waitForTimeout(2600);
 
       // ④ ステージ別お手本＝目標額の人の動き方
-      await page.evaluate(() => document.getElementById('stageCard')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-      await page.waitForTimeout(1300);
+      await scrollTo('stageCard');
+      await page.waitForTimeout(900);
       await ui.caption('④ ステージ別お手本＝目標額の人の動き方');
       await page.waitForTimeout(2600);
       await ui.caption('狙う売上のチップを選ぶと、その日の稼ぎ方が見える');
@@ -393,7 +399,7 @@ async function main() {
       export function getConfigCached(){ return cfg; }
       export async function saveConfig(c){ if(c) cfg = c; }
       export async function getDrivesForMonth(ym){ return DRIVES[ym] || []; }
-      export async function getDrivesForMonthCached(ym){ return DRIVES[ym] || []; }
+      export function getDrivesForMonthCached(ym){ return DRIVES[ym] || []; } // Cached系は同期（Promiseを返すと呼び側が配列扱いして壊れる）
       export async function getDrive(){ return null; }
       export async function saveDriveSafe(){ }
       export function getMyUserId(){ return 'demo-help'; }
@@ -407,7 +413,7 @@ async function main() {
   const page = await context.newPage();
   if (process.env.HV_DEBUG) {
     page.on('console', (m) => console.log('[console]', m.type(), m.text()));
-    page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+    page.on('pageerror', (e) => console.log('[pageerror]', e.message, '\n', e.stack));
     page.on('requestfailed', (r) => console.log('[reqfail]', r.url(), r.failure()?.errorText));
   }
   const ui = {

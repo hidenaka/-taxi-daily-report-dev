@@ -21,4 +21,9 @@ export const HELP_VIDEOS = {
     poster: 'media/help/calendar.jpg',
     caption: 'シフトカレンダーで出番予定を入れる手順',
   },
+  'analysis-view': {
+    src: 'media/help/analysis-view.mp4',
+    poster: 'media/help/analysis-view.jpg',
+    caption: '分析ページの見方（数字の読み方）',
+  },
 };

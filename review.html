@@ -89,6 +89,8 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;">
   <h1 style="margin-top:0;">分析</h1>
+  <button class="help-video-btn" data-help-video="analysis-view" type="button">▶ 使い方（30秒）</button>
+  <div class="help-video" id="help-video-analysis-view"></div>
   <div id="vehicleTabsContainer"></div>
   <div style="display:flex;gap:4px;margin-bottom:12px;">
     <a href="support.html" style="flex:1;background:#f0f0f0;color:#333;text-align:center;padding:8px;border-radius:4px;font-size:12px;font-weight:600;text-decoration:none;">営業サポート</a>
@@ -204,6 +206,7 @@ import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js'
 import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown, zoneDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, salesStages, stageHeatmap } from './js/chart-helpers.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
+import './js/help-video.js'; // ▶使い方動画のインライン展開プレイヤー
 
 if (!(await enforceAccess('analysis'))) {
   throw new Error('access-denied: redirected');
