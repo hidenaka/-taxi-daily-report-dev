@@ -1,16 +1,25 @@
 // scripts/seed-keiho-company.mjs
-// 使い方:
-//   新規発行(匿名slug自動生成):   SA=<service account json> node scripts/seed-keiho-company.mjs
-//   既存会社を更新(slug固定):      SA=<...> SLUG=co-xxxxxx node scripts/seed-keiho-company.mjs
-// companies/<匿名slug> ドキュメントを Firestore に作成/更新する。
-// slug は必ず co-xxxxxx 形式(平文の会社名は使わない・decisions 7)。SLUG 未指定なら自動生成。
+// ⚠️ 取扱注意: companies コレクションへ直接書き込む。意図を明示しないと中止する設計。
+//   - 既存会社の更新:  SA=<鍵> SLUG=co-xxxxxx node scripts/seed-keiho-company.mjs
+//       本番の既存会社 = co-swyg3o / dev の既存会社 = co-7q7ros
+//   - 新規会社の発行:  SA=<鍵> NEW=1 node scripts/seed-keiho-company.mjs   (匿名slugを自動生成)
+//   どちらも指定しないと「中止」する(SLUG忘れで重複会社docを作る事故を防ぐため)。
+//   slug は必ず co-xxxxxx 形式。平文の会社名は使わない(decisions 7)。
+//   ※ 実行前に必ず .company/engineering/docs/danger-company-seed.md を読み、本人に確認すること。
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import { buildKeihoProfile } from '../js/company-profiles.js';
 import { generateSlug, isAnonymizedSlug } from '../js/slug-gen.js';
 
-// 既存会社の更新は SLUG=co-xxxxxx で固定指定。未指定なら新規の匿名 slug を発行。
-const slug = process.env.SLUG || generateSlug();
+// 意図の明示を必須にする: SLUG(更新) か NEW=1(新規) のどちらかが無ければ中止。
+const envSlug = process.env.SLUG;
+const wantNew = process.env.NEW === '1';
+if (!envSlug && !wantNew) {
+  console.error('中止: 意図が不明です。既存会社の更新は SLUG=co-xxxxxx を、新規発行は NEW=1 を指定してください。');
+  console.error('(SLUG 忘れで別の重複会社 doc を作る事故を防ぐためのガードです)');
+  process.exit(1);
+}
+const slug = envSlug || generateSlug();
 if (!isAnonymizedSlug(slug)) {
   console.error(`SLUG は co-xxxxxx 形式で指定してください (受領: ${slug})`);
   process.exit(1);
