@@ -1,6 +1,6 @@
 import { test, assert } from './run.js';
 import {
-  seedFavorites, loadFavorites, addFavorite, removeFavorite, saveFavorites, EXIT_FAVORITES_KEY,
+  seedFavorites, loadFavorites, addFavorite, removeFavorite, moveFavorite, saveFavorites, EXIT_FAVORITES_KEY,
 } from '../tools/js/exit-favorites.js';
 
 function fakeStorage(initial = {}) {
@@ -89,4 +89,23 @@ test('loadFavorites: getItem が例外を投げても defaults でseed', () => {
 test('saveFavorites: setItem が例外を投げても落ちず list を返す', () => {
   const s = { setItem: () => { throw new Error('QuotaExceeded'); } };
   assert.deepEqual(saveFavorites(['m'], s), ['m']);
+});
+
+test('moveFavorite: 後ろへ(+1)移動・元配列不変', () => {
+  const base = ['a', 'b', 'c'];
+  assert.deepEqual(moveFavorite(base, 'a', 1), ['b', 'a', 'c']);
+  assert.deepEqual(base, ['a', 'b', 'c']);
+});
+
+test('moveFavorite: 前へ(-1)移動', () => {
+  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'c', -1), ['a', 'c', 'b']);
+});
+
+test('moveFavorite: 先頭をさらに前へ・末尾をさらに後ろへ は変更なし', () => {
+  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'a', -1), ['a', 'b', 'c']);
+  assert.deepEqual(moveFavorite(['a', 'b', 'c'], 'c', 1), ['a', 'b', 'c']);
+});
+
+test('moveFavorite: 未存在icIdは変更なし', () => {
+  assert.deepEqual(moveFavorite(['a', 'b'], 'z', 1), ['a', 'b']);
 });

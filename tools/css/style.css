@@ -355,6 +355,7 @@ nav.bottom a.active { color: var(--self-ded); }
   color: #fff; font-weight: 700;
 }
 .fav-chip .chip-remove { color: #e74c3c; font-weight: 700; margin-left: 2px; }
+.fav-chip .chip-move { color: var(--self-ded); font-weight: 700; padding: 0 3px; margin-left: 2px; }
 .fav-chip.fav-add { background: transparent; border-style: dashed; color: var(--muted); }
 .btn-edit-fav {
   min-height: 32px; padding: 4px 12px; font-size: 13px;

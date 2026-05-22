@@ -4,7 +4,7 @@ import { haversineKm } from './util.js';
 import { createGeoWatcher, findNearestICs, entryGivesCompanyPayDeduction } from './geo.js';
 import { buildSearchEntries, buildValueToIcIdMap } from './search.js';
 import { getOuterRouteOptionsForIc } from './route-options.js';
-import { loadFavorites, addFavorite, removeFavorite, saveFavorites } from './exit-favorites.js';
+import { loadFavorites, addFavorite, removeFavorite, moveFavorite, saveFavorites } from './exit-favorites.js';
 import { buildAdjacency, shortestPathVia, kShortestPaths } from './shutoko-graph.js';
 
 let _routeDetailsAdj = null;
@@ -335,13 +335,25 @@ function renderExitFavorites() {
     chip.dataset.icId = icId;
     const name = ic.name.replace(/（[^）]*）/g, '').trim();
     chip.innerHTML = `<span class="star">★</span>${name}` +
-      (exitEditMode ? `<span class="chip-remove" aria-label="削除">×</span>` : '');
+      (exitEditMode
+        ? `<span class="chip-move" data-dir="-1" aria-label="前へ">◀</span>` +
+          `<span class="chip-move" data-dir="1" aria-label="後ろへ">▶</span>` +
+          `<span class="chip-remove" aria-label="削除">×</span>`
+        : '');
     if (exitEditMode) {
       chip.querySelector('.chip-remove').addEventListener('click', (ev) => {
         ev.stopPropagation();
         exitFavorites = removeFavorite(exitFavorites, icId);
         saveFavorites(exitFavorites);
         renderExitFavorites();
+      });
+      chip.querySelectorAll('.chip-move').forEach((b) => {
+        b.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          exitFavorites = moveFavorite(exitFavorites, icId, Number(b.dataset.dir));
+          saveFavorites(exitFavorites);
+          renderExitFavorites();
+        });
       });
     }
     chip.addEventListener('click', () => {
