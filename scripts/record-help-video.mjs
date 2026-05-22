@@ -559,6 +559,7 @@ async function main() {
   await context.addInitScript(() => {
     try {
       localStorage.setItem('taxi_user_id', 'demo-help');
+      localStorage.setItem('cabis_gps_privacy_dismissed', '1'); // 録画では初回GPSバナーを出さない
       sessionStorage.setItem('taxi_sub_cache_v1', JSON.stringify({
         v: 1, userId: 'demo-help', sub: { status: 'active', plan: 'full' }, cachedAt: Date.now(),
       }));
