@@ -129,3 +129,19 @@ test('zoneDailyValues: ゾーン単位で日別¥/hが積まれる', () => {
   const total = Object.values(daily[dow]).reduce((acc, arr) => acc + arr.length, 0);
   assert.equal(total, 2, '木曜のいずれかのゾーンに2日分');
 });
+
+import { heatmapLegendHtml } from '../js/chart-helpers.js';
+
+test('heatmapLegendHtml: 稼ぎ時/休憩向き/安定/ムラの語と使い方を含む', () => {
+  const html = heatmapLegendHtml('self');
+  assert.ok(html.includes('稼ぎ時'));
+  assert.ok(html.includes('休憩向き'));
+  assert.ok(html.includes('◎'));
+  assert.ok(html.includes('△'));
+  assert.ok(html.includes('休憩'));
+});
+
+test('heatmapLegendHtml: scope=all のとき「みんな」を補足', () => {
+  assert.ok(heatmapLegendHtml('all').includes('みんな'));
+  assert.ok(!heatmapLegendHtml('self').includes('みんな'));
+});
