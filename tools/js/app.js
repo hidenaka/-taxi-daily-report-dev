@@ -356,8 +356,6 @@ function renderExitFavorites() {
     add.className = 'fav-chip fav-add';
     add.textContent = '＋追加';
     add.addEventListener('click', () => {
-      const det = document.getElementById('exit-search');
-      det.open = true;
       document.getElementById('inp-exit-ic').focus();
     });
     wrap.appendChild(add);
@@ -523,7 +521,6 @@ function wireEvents() {
   document.getElementById('btn-exit-edit').addEventListener('click', () => {
     exitEditMode = !exitEditMode;
     document.getElementById('btn-exit-edit').textContent = exitEditMode ? '✓ 完了' : '⚙ 編集';
-    if (exitEditMode) document.getElementById('exit-search').open = false;
     renderExitFavorites();
   });
 

@@ -50,12 +50,12 @@
         <span class="geo-suggest-label">📍 GPS近い順</span>
         <div class="geo-suggest-buttons" id="geo-suggest-buttons"></div>
       </div>
-      <details class="ic-search" id="entry-search">
-        <summary>🔍 別のICを検索</summary>
+      <div class="ic-search" id="entry-search">
+        <div class="search-label">🔍 別のICを検索</div>
         <input type="text" id="inp-entry-ic" list="ic-list-all"
                placeholder="例: 鶴ヶ島" autocomplete="off" class="input-search">
         <div class="hint" id="entry-ic-hint"></div>
-      </details>
+      </div>
     </section>
 
     <div class="swap-field">
@@ -72,12 +72,12 @@
       </div>
       <div class="ic-selected" id="exit-selected" hidden></div>
       <div class="fav-chips" id="exit-fav-chips"></div>
-      <details class="ic-search" id="exit-search">
-        <summary>🔍 別のICを検索</summary>
+      <div class="ic-search" id="exit-search">
+        <div class="search-label">🔍 別のICを検索</div>
         <input type="text" id="inp-exit-ic" list="ic-list-all"
                placeholder="IC名で検索" autocomplete="off" class="input-search">
         <div class="hint" id="exit-ic-hint"></div>
-      </details>
+      </div>
     </section>
 
     <datalist id="ic-list-all"></datalist>

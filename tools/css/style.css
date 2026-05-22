@@ -336,10 +336,10 @@ nav.bottom a.active { color: var(--self-ded); }
   color: #fff; font-weight: 700;
 }
 
-/* 検索折りたたみ */
-.ic-search summary { cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px 0; }
-.ic-search[open] summary { color: var(--text); }
-.ic-search .input-search { margin-top: 6px; width: 100%; }
+/* 別のICを検索（常時表示） */
+.ic-search { margin-top: 4px; }
+.ic-search .search-label { font-size: 13px; color: var(--muted); padding: 2px 0; }
+.ic-search .input-search { margin-top: 4px; width: 100%; }
 
 /* 出口お気に入りチップ */
 .fav-chips { display: flex; flex-wrap: wrap; gap: 7px; }
