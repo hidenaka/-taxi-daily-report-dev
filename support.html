@@ -68,7 +68,6 @@ if (location.hostname.includes('-dev')) {
   </div>
   <div id="todayVehicleContainer"></div>
   <div id="dataSourceInfo" style="font-size:11px;color:var(--muted);margin-bottom:12px;"></div>
-  <p class="muted" style="font-size:11px;margin-top:-6px;">過去データから「効率の悪い時間/降ろし方」を可視化して営業スタイルを最適化</p>
 
   <section class="card">
     <div class="section-h">
@@ -88,7 +87,6 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="recommendCard">
     <div class="section-h">
       <strong>次の営業先 推奨検索 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
-      <span class="desc">どこで降ろした×時刻 → 次に行くべきエリア</span>
     </div>
     <div class="help-content" id="help-rec-search">
       💡 <strong>「どこで降ろした後、次にどこで乗車が取れたか」を集計して表示</strong>します。
@@ -139,7 +137,6 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="hourEffCard">
     <div class="section-h">
       <strong>曜日 × 時間の時給 <span style="font-size:10px;color:var(--muted);font-weight:normal;" id="hourEffScopeLabel">(自分のデータ)</span></strong>
-      <span class="desc">休憩を除いた実稼働時間あたり売上</span>
     </div>
     <!-- 「全員統合(他の乗務員)」はステージ制で再設計中のため一旦非表示。hourScopeは'self'固定で動作。コードは温存し再設計時に戻す -->
     <div class="sort-tabs" id="hourScopeTabs" style="display:none;">
@@ -154,7 +151,6 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="highValueCard">
     <div class="section-h">
       <strong>高期待値エリア × 時間帯 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="high-value" aria-label="ヘルプ">?</button></strong>
-      <span class="desc">単価が大きく出る場所と時間</span>
     </div>
     <div class="help-content" id="help-high-value">
       💡 <strong>「単価が高く出るエリア × 時間帯」</strong>のランキングです。
@@ -169,13 +165,12 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="highValueBody"></div>
     <div class="detail-tip" id="highValueTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">乗車地エリア × 時間帯(4区切り)で<strong>中央単価</strong>が高い順TOP15。中央値ベースのため、たまの高額案件で平均が引き上がる影響を排除。タップで過去乗車履歴を表示。最低5件以上</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">お客様を乗せた場所×時間帯ごとに、1回の運賃が高い順 TOP15。タップで履歴。5件以上のエリアだけ表示</p>
   </section>
 
   <section class="card" id="areaCard">
     <div class="section-h">
       <strong>降車エリア別 効率(区+町名) <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="area-eff" aria-label="ヘルプ">?</button></strong>
-      <span class="desc">降ろした後どう動く</span>
     </div>
     <div class="help-content" id="help-area-eff">
       💡 <strong>「降ろした後の動きやすさ」</strong>をエリア別に集計します。
@@ -196,7 +191,7 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="areaBody"></div>
     <div class="detail-tip" id="areaTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">「単価」=降ろした次の乗車営収の中央値/平均、「待ち」=次乗車までの中央値/平均(中央値ベースで高単価営業の外れ値の影響を抑制)。タップでそのエリアの過去履歴を表示。最低5件以上のみ</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">「単価」＝降ろした後 次に乗せた運賃／「待ち」＝次に乗せるまでの時間。タップで履歴。5件以上のエリアだけ</p>
   </section>
 </main>
 <div id="navHost"></div>
@@ -483,8 +478,7 @@ document.querySelectorAll('#hourScopeTabs button').forEach(b => {
 function updateDataSourceInfo() {
   const el = document.getElementById('dataSourceInfo');
   if (!el) return;
-  const nUsers = activeUserIds.length;
-  el.textContent = `全員モード: ${nUsers}ユーザー / 合計${allDrives.length}乗務(自分: ${myDrives.length}乗務)`;
+  el.textContent = '';
 }
 
 function applyLoaded(periods, myParts, allParts, userIds, roleMap, label) {
