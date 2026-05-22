@@ -6,6 +6,7 @@ const PAGES = {
   'ocr-import.html': 'ocr-import',
   'calendar.html': 'calendar',
   'review.html': 'analysis-view',
+  'tools/arrivals.html': 'arrivals',
 };
 
 for (const [page, key] of Object.entries(PAGES)) {

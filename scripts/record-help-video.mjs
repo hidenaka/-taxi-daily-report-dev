@@ -124,6 +124,168 @@ function buildSampleData() {
   return DATA;
 }
 
+// ============================================================
+// arrivals シナリオ用サンプルデータ生成
+// tools/arrivals.html が fetch する 3 つの JSON を録画時にモックする。
+// 現実的な便数・時刻・乗客数を持たせて画面が空にならないようにする。
+// ============================================================
+function buildArrivalsData() {
+  const now = new Date();
+  const hh = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  const h0 = now.getHours();
+  // 現在時刻前後2時間帯を中心に T1/T2 各15便ほど配置
+  const airlines = [
+    { airline: 'JAL', prefix: 'JL', terminal: 'T1', color: 'airline-jal' },
+    { airline: 'JAL', prefix: 'JL', terminal: 'T1', color: 'airline-jal' },
+    { airline: 'ANA', prefix: 'NH', terminal: 'T2', color: 'airline-ana' },
+    { airline: 'ANA', prefix: 'NH', terminal: 'T2', color: 'airline-ana' },
+    { airline: 'JJP', prefix: 'GK', terminal: 'T1', color: 'airline-jjp' },
+    { airline: 'SKY', prefix: 'BC', terminal: 'T2', color: 'airline-sky' },
+  ];
+  const origins = [
+    { from: 'ITM', fromName: '伊丹', seats: 200 },
+    { from: 'CTS', fromName: '新千歳', seats: 165 },
+    { from: 'FUK', fromName: '福岡', seats: 189 },
+    { from: 'OKA', fromName: '那覇', seats: 210 },
+    { from: 'KIX', fromName: '関西', seats: 158 },
+    { from: 'NGO', fromName: '中部', seats: 172 },
+    { from: 'HIJ', fromName: '広島', seats: 84 },
+    { from: 'KMJ', fromName: '熊本', seats: 74 },
+    { from: 'SDJ', fromName: '仙台', seats: 78 },
+    { from: 'KOJ', fromName: '鹿児島', seats: 84 },
+  ];
+  const flights = [];
+  let fNum = 100;
+  for (let i = -6; i <= 12; i++) {
+    const al = airlines[(fNum + i) % airlines.length];
+    const or = origins[(fNum + i * 3) % origins.length];
+    const baseMin = h0 * 60 + now.getMinutes() + i * 18;
+    const hh2 = Math.floor(((baseMin % 1440) + 1440) % 1440 / 60);
+    const mm2 = ((baseMin % 60) + 60) % 60;
+    const delayMin = i % 5 === 0 ? 35 : 0;
+    const estMin = baseMin + delayMin;
+    const eh = Math.floor(((estMin % 1440) + 1440) % 1440 / 60);
+    const em = ((estMin % 60) + 60) % 60;
+    const status = baseMin + 10 < h0 * 60 + now.getMinutes() ? '到着' : delayMin > 0 ? '遅延' : '飛行中';
+    const actualTime = status === '到着' ? hh(hh2, mm2 + 10 > 59 ? 0 : mm2 + 10) : null;
+    const lf = 0.68 + (i % 4) * 0.07;
+    const estPax = Math.round(or.seats * lf);
+    flights.push({
+      flightNumber: `${al.prefix}${fNum + i * 7}`,
+      airline: al.airline,
+      from: or.from, fromName: or.fromName,
+      terminal: al.terminal,
+      isInternational: false,
+      scheduledTime: hh(hh2, mm2),
+      estimatedTime: hh(eh, em),
+      actualTime,
+      status,
+      aircraftCode: '789',
+      seatCount: or.seats,
+      loadFactor: lf,
+      loadFactorSource: 'route',
+      estimatedPax: estPax,
+      lobbyExitTime: hh(eh, em + 15 > 59 ? em - 44 : em + 15),
+      reachRate: 1,
+      reachTier: lf > 0.75 ? 'high' : 'mid',
+      estimatedTaxiPax: Math.round(estPax * 0.055),
+      taxiBucket: 'daytime',
+      taxiBaseRate: 0.055,
+      taxiBoost: 1, taxiDelayBoost: delayMin > 0 ? 1.2 : 1,
+      taxiLightningBoost: 1, taxiClamped: false,
+    });
+    fNum += 13;
+  }
+  // T3 国際線も数便追加
+  const intlOrigins = [
+    { from: 'ICN', fromName: 'ソウル(仁川)', seats: 280 },
+    { from: 'PVG', fromName: '上海(浦東)', seats: 320 },
+    { from: 'HKG', fromName: '香港', seats: 248 },
+    { from: 'SIN', fromName: 'シンガポール', seats: 280 },
+  ];
+  for (let i = 0; i < 4; i++) {
+    const o = intlOrigins[i];
+    const baseMin = h0 * 60 + now.getMinutes() + (i - 1) * 45;
+    const hh2 = Math.floor(((baseMin % 1440) + 1440) % 1440 / 60);
+    const mm2 = ((baseMin % 60) + 60) % 60;
+    const lf = 0.72 + i * 0.04;
+    const estPax = Math.round(o.seats * lf);
+    flights.push({
+      flightNumber: `JL${700 + i * 3}`,
+      airline: 'JAL', from: o.from, fromName: o.fromName,
+      terminal: 'T3', isInternational: true,
+      scheduledTime: hh(hh2, mm2), estimatedTime: hh(hh2, mm2),
+      actualTime: null, status: '飛行中',
+      aircraftCode: '77W', seatCount: o.seats, loadFactor: lf, loadFactorSource: 'default',
+      estimatedPax: estPax, lobbyExitTime: hh(hh2, mm2 + 20 > 59 ? mm2 - 39 : mm2 + 20),
+      reachRate: 1, reachTier: 'high', estimatedTaxiPax: Math.round(estPax * 0.09),
+      taxiBucket: 'daytime', taxiBaseRate: 0.09, taxiBoost: 1, taxiDelayBoost: 1,
+      taxiLightningBoost: 1, taxiClamped: false,
+    });
+  }
+  const updatedAt = new Date().toISOString().replace('Z', '+09:00');
+  return {
+    updatedAt,
+    source: 'sample',
+    flights,
+    weather: { lightningActive: false, lightningRecoveryStartHHMM: null, weatherCode: 2, temperature: 18.5, precipitation: 0, cloudCover: 40 },
+    stats: {
+      totalFlights: flights.length,
+      unknownAircraft: 0,
+      internationalFlights: 4,
+      byTerminal: { T1: flights.filter(f => f.terminal === 'T1').length, T2: flights.filter(f => f.terminal === 'T2').length, T3: 4 },
+      totalEstimatedTaxiPax: flights.reduce((s, f) => s + f.estimatedTaxiPax, 0),
+    },
+  };
+}
+
+function buildArrivalsActuals() {
+  const now = new Date();
+  const h0 = now.getHours();
+  const pad = (n) => String(n).padStart(2, '0');
+  const slots = [];
+  // 直前4時間の15分実績スロットを生成（タクシー出庫台数）
+  for (let i = -16; i <= 0; i++) {
+    const baseMin = h0 * 60 + Math.floor(now.getMinutes() / 15) * 15 + i * 15;
+    if (baseMin < 8 * 60) continue; // 8:00起点
+    const bm = ((baseMin % 1440) + 1440) % 1440;
+    const h = Math.floor(bm / 60);
+    const m = bm % 60;
+    const end = bm + 15;
+    const eh = Math.floor(end / 60);
+    const em = end % 60;
+    const base = 8 + Math.abs(i % 5);
+    slots.push({
+      slotStart: `${pad(h)}:${pad(m)}`,
+      slotEnd: `${pad(eh)}:${pad(em)}`,
+      stall1: base + 3, stall2: base + 2, stall3: 0, stall4: base + 1,
+      total: (base + 3) + (base + 2) + (base + 1),
+    });
+  }
+  return { schemaVersion: 1, generatedAt: new Date().toISOString(), slots };
+}
+
+function buildArrivalsEnsemble() {
+  const now = new Date();
+  const h0 = now.getHours();
+  const pad = (n) => String(n).padStart(2, '0');
+  const slots = [];
+  // 今後2時間の5分予測スロットを生成
+  for (let i = 0; i <= 24; i++) {
+    const baseMin = h0 * 60 + Math.floor(now.getMinutes() / 5) * 5 + i * 5;
+    const bm = ((baseMin % 1440) + 1440) % 1440;
+    const h = Math.floor(bm / 60);
+    const m = bm % 60;
+    const base = 2 + Math.abs((i + 2) % 4);
+    slots.push({
+      slotStart: `${pad(h)}:${pad(m)}`,
+      stall1: base + 1, stall2: base, stall3: 0, stall4: Math.max(1, base - 1),
+      total: (base + 1) + base + Math.max(1, base - 1),
+    });
+  }
+  return { schemaVersion: 1, generatedAt: new Date().toISOString(), slots };
+}
+
 // ---- シナリオ定義（fn は page と ui を受け取り、操作＋字幕＋波紋を行う）----
 const SCENARIOS = {
   'input-paste': {
@@ -228,6 +390,45 @@ const SCENARIOS = {
       await page.locator('#summary').scrollIntoViewIfNeeded();
       await ui.caption('⑥ 月サマリーで予定数を確認');
       await page.waitForTimeout(2200);
+    },
+  },
+
+  'arrivals': {
+    // 到着便予測ページ（tools/arrivals.html）の使い方。
+    // loadArrivals() / loadActuals() / loadEnsemble() を context.route でモックして
+    // フライト一覧・予測テーブルが綺麗に表示された状態で操作を見せる。
+    path: 'tools/arrivals.html',
+    mockArrivals: true,
+    async run(page, ui) {
+      // 予測セクションとフライト一覧が描画されるのを待つ
+      await page.locator('#forecast-table-wrap table').waitFor({ timeout: 15000 });
+      await page.locator('#flight-list .flight-row').first().waitFor({ timeout: 15000 });
+      await page.waitForTimeout(800);
+      // ① 予測セクション
+      await page.evaluate(() => document.getElementById('forecast-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(600);
+      await ui.caption('① ここに タクシー出庫の実績／予測 が出る');
+      await ui.ripple('#forecast-section');
+      await page.waitForTimeout(2400);
+      // ② スコープボタンの切替（直近2時間 → 今日全部）
+      await ui.caption('② 「直近2時間」「今日全部」で切替');
+      await ui.ripple('#forecast-scope-all');
+      await page.locator('#forecast-scope-all').click();
+      await page.waitForTimeout(1400);
+      await ui.ripple('#forecast-scope-recent');
+      await page.locator('#forecast-scope-recent').click();
+      await page.waitForTimeout(1200);
+      // ③ フライト一覧へスクロール
+      await page.evaluate(() => document.getElementById('flight-list-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(1000);
+      await ui.caption('③ 下にスクロールすると便の一覧');
+      await ui.ripple('#flight-list');
+      await page.waitForTimeout(2400);
+      // ④ 時間帯ヒートマップ
+      await page.evaluate(() => document.getElementById('heatmap')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      await page.waitForTimeout(900);
+      await ui.caption('④ 色の濃い時間帯に空港へ行くと乗客が多い');
+      await page.waitForTimeout(2600);
     },
   },
 
@@ -408,6 +609,18 @@ async function main() {
     `;
     await context.route('**/js/firebase-auth.js', (r) => r.fulfill({ ...jsHeader, body: authStub }));
     await context.route('**/js/firebase-storage.js', (r) => r.fulfill({ ...jsHeader, body: storageStub }));
+  }
+
+  // 到着便ページ用: arrivals.json / stall-actuals.json / stall-ensemble.json をモック。
+  // fetch に ?t=... クエリが付くため glob パターンで吸収する。
+  if (sc.mockArrivals) {
+    const jsonHeader = { contentType: 'application/json; charset=utf-8' };
+    await context.route('**/tools/data/arrivals.json**', (r) =>
+      r.fulfill({ ...jsonHeader, body: JSON.stringify(buildArrivalsData()) }));
+    await context.route('**/tools/data/stall-actuals.json**', (r) =>
+      r.fulfill({ ...jsonHeader, body: JSON.stringify(buildArrivalsActuals()) }));
+    await context.route('**/tools/data/stall-ensemble.json**', (r) =>
+      r.fulfill({ ...jsonHeader, body: JSON.stringify(buildArrivalsEnsemble()) }));
   }
 
   const page = await context.newPage();

@@ -26,4 +26,10 @@ export const HELP_VIDEOS = {
     poster: 'media/help/analysis-view.jpg',
     caption: '分析ページの見方（数字の読み方）',
   },
+  'arrivals': {
+    // tools/ サブディレクトリ配下のページから使うため ../media/help/ で参照
+    src: '../media/help/arrivals.mp4',
+    poster: '../media/help/arrivals.jpg',
+    caption: '到着便の予測と便一覧の見方',
+  },
 };

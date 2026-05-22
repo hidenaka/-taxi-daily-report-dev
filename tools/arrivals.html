@@ -122,6 +122,36 @@
     footer.is-stale .updated { color: var(--warn); }
     .empty { color: var(--sub); padding: 12px 0; text-align: center; }
     #arrivals-error { background: #4a1a1a; color: #ffb; padding: 8px; border-radius: 4px; margin: 8px 12px; }
+    /* 使い方動画ボタン（help-video-btn / help-video コンテナ） */
+    .help-video-btn {
+      display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
+      background: rgba(78,161,255,0.15); color: var(--accent); border: 1px solid rgba(78,161,255,0.35);
+      border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+      font-family: inherit; cursor: pointer; vertical-align: middle;
+    }
+    .help-video-btn:hover, .help-video-btn:focus { opacity: 0.8; outline: none; }
+    .help-video { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .help-video.open { max-height: 820px; margin: 8px 0; }
+    .hv-player {
+      position: relative; width: 100%; max-width: 300px; margin: 0 auto;
+      aspect-ratio: 9 / 16; background: #11151a; border-radius: 12px; overflow: hidden;
+    }
+    .hv-poster { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .hv-play {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 46px; height: 46px; border-radius: 50%; background: rgba(255,255,255,0.95);
+      color: var(--accent); border: none; font-size: 18px; padding-left: 3px; cursor: pointer;
+    }
+    .hv-fallback {
+      display: none; position: absolute; inset: 0; align-items: center; justify-content: center;
+      color: #fff; font-size: 12px; text-align: center; padding: 12px;
+    }
+    .hv-player.hv-error .hv-poster, .hv-player.hv-error .hv-play { display: none; }
+    .hv-player.hv-error .hv-fallback { display: flex; }
+    .hv-video { width: 100%; max-width: 300px; display: block; margin: 0 auto; border-radius: 12px; }
+    .hv-cap { font-size: 12px; color: var(--sub); text-align: center; margin: 6px 0 2px; }
+    .hv-close { display: block; margin: 4px auto 8px; padding: 4px 14px; background: transparent;
+      color: var(--sub); border: 1px solid #333; border-radius: 6px; cursor: pointer; font-size: 12px; }
     #forecast-section { border-bottom: 1px solid #222; }
     #forecast-section h2 { font-size: 15px; color: var(--fg); margin: 14px 0 6px; font-weight: 600; }
     #forecast-section .fc-controls { display: flex; gap: 8px; align-items: center; margin: 4px 0 8px; flex-wrap: wrap; }
@@ -193,7 +223,8 @@
   <div id="weather-banner" hidden></div>
 
   <section id="forecast-section">
-    <h2>🚕 タクシー出庫（実績／予測）</h2>
+    <h2>🚕 タクシー出庫（実績／予測）<button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
+    <div class="help-video" id="help-video-arrivals"></div>
     <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
     <div class="fc-controls">
       <select id="forecast-mode" class="fc-mode">
@@ -240,6 +271,7 @@
   <script type="module">
     import { renderBottomNav } from '../js/app.js';
     import { showGpsPrivacyBanner } from '../js/gps-privacy-banner.js';
+    import '../js/help-video.js';
     document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
     showGpsPrivacyBanner();
   </script>
