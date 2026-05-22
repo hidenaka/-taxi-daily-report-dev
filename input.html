@@ -62,6 +62,7 @@ if (location.hostname.includes('-dev')) {
       <strong style="font-size:14px;color:#2e7d32;">推奨：写真から取り込み</strong>
       <span style="font-size:10px;background:#2e7d32;color:#fff;padding:1px 6px;border-radius:3px;">🔒 データ外部に送らない</span>
       <button class="help-btn" data-help-for="photo-import" aria-label="ヘルプ">?</button>
+      <button class="help-video-btn" data-help-video="ocr-import" type="button">▶ 使い方（15秒）</button>
     </div>
     <div class="help-content" id="help-photo-import" hidden>
       💡 <strong>営業明細の写真をそのままアップロードして、表の数字を自動取り込みします。</strong>
@@ -73,6 +74,7 @@ if (location.hostname.includes('-dev')) {
       </ul>
       <a href="guide.html#ch3" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
+    <div class="help-video" id="help-video-ocr-import"></div>
     <p class="muted" style="margin:0 0 8px;font-size:11px;line-height:1.5;">営業明細の写真をそのままアップロード。Cabis 自社のOCRで処理し、画像はメモリ上のみ・保存もログ出力もしません。</p>
     <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:100%;background:#2e7d32;color:#fff;padding:10px;font-size:13px;font-weight:600;">📷 写真から取り込む</a>
   </section>

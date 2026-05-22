@@ -19,3 +19,10 @@ for (const [page, key] of Object.entries(PAGES)) {
     assert.ok(!html.includes('media/help/'), 'media/help/ をHTMLで参照しない（注入はJS側）');
   });
 }
+
+// 写真から取り込みは推奨パスなので input.html の推奨カードにも ocr-import 動画を再掲する
+test('input.html: 写真から取り込みカードにも ocr-import の▶＋空コンテナがある', () => {
+  const html = readFileSync(new URL('../input.html', import.meta.url), 'utf8');
+  assert.ok(html.includes('data-help-video="ocr-import"'), '写真カードの▶ボタン');
+  assert.ok(html.includes('id="help-video-ocr-import"'), '写真カードの展開コンテナ');
+});
