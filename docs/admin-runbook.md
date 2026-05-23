@@ -216,7 +216,43 @@ paste-here.txt に同じ日付が複数回出てきた場合:
 
 ---
 
-## 7. 今後の拡張候補
+## 7. パスワードを忘れたユーザーへの対応（現行: Firebase Auth）
+
+> 本アプリはメールアドレス・電話番号を保存していないため、Firebase 標準の「リセットメール送信」は使えない。運営が本人確認したうえで手動リセットする。**個人情報は新たに集めない**方針。
+
+### 受付（login.html の案内）
+パスワードを忘れたユーザーには、`cabis@taxicabis.com` 宛に以下を**最初のメールで全部**書いて送ってもらう（往復を減らすため）:
+- ログインID（覚えている範囲で）
+- 所属の会社名
+- 最後に乗務した日（だいたいで可）
+- その日のおおよその営業収入
+
+### 本人確認の判定基準
+「最後に乗務した日」と「その日のおおよその営業収入」が、記録と**ざっくり**合えばOK。
+金額の1円単位一致は求めない（本人でも思い出せず弾かれるため）。なりすまし対策は「直近の乗務日＋売上の概数を他人は知らない」ことで担保する。
+
+### 手順
+
+```bash
+# 1) 本人確認: 直近の日報（日付＋営業収入概算）を表示（リセットしない）
+node scripts/reset-password.mjs <ログインID>
+
+# 2) 申告とざっくり合致したら、新パスワードを設定（8文字以上）
+node scripts/reset-password.mjs <ログインID> <新パスワード>
+
+# 本番に対して実行する場合は --project を明示
+node scripts/reset-password.mjs <ログインID> <新パスワード> --project=taxi-dailydata
+```
+
+- 既定は dev（`taxi-dailydata-dev`）。**本番は必ず `--project=taxi-dailydata`** を付ける。
+- 設定後、新パスワードを本人に伝え、ログイン後に本人で変更してもらう。
+- ログインIDが分からない場合: 会社名で `drives/` 配下を探すか、Firebase Console の Authentication でユーザー一覧を確認。
+
+事前準備は `scripts/README-firebase-admin.md`（`npm install` + `gcloud auth application-default login`）。
+
+---
+
+## 8. 今後の拡張候補
 
 - 知人本人がアプリから自分のデータを削除する経路(現状は管理者のみ可)
 - displayName の変更 UI(現状は users.json 手編集)
