@@ -22,7 +22,9 @@ test('buildKeihoProfile: 会社レベル項目を DEFAULT_CONFIG と等価に持
   assert.strictEqual(p.responsibilityShifts, DEFAULT_CONFIG.responsibilityShifts);
   assert.deepStrictEqual(p.rateTable, DEFAULT_CONFIG.rateTable);
   assert.deepStrictEqual(p.premiumIncentive, DEFAULT_CONFIG.premiumIncentive);
-  assert.strictEqual(p.paidLeaveAmount, DEFAULT_CONFIG.paidLeaveAmount);
+  // 有給1日金額は個人の収入に依存するため会社レベルから除外（ユーザー設定が正）。
+  // よって会社プロファイルには含まれない。
+  assert.strictEqual(p.paidLeaveAmount, undefined);
 });
 
 test('恵豊プロファイルでマージしても DEFAULT_CONFIG 由来の会社レベル値は不変', () => {
