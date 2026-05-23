@@ -29,6 +29,9 @@
   .status-msg { padding:12px; border-radius:6px; margin:12px 0; font-size:13px; }
   .status-msg.info { background:#e0f2fe; border:1px solid #7dd3fc; color:#075985; }
   .status-msg.error { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; }
+  .plan-opt { display:flex; gap:10px; align-items:flex-start; padding:12px; border:1px solid var(--border); border-radius:8px; margin:8px 0; cursor:pointer; }
+  .plan-opt input { margin-top:3px; flex-shrink:0; width:18px; height:18px; }
+  .plan-opt:has(input:checked) { border-color:var(--primary); background:#f0f7ff; }
 </style>
 </head>
 <body>
@@ -80,6 +83,19 @@ if (location.hostname.includes('-dev')) {
     </p>
   </section>
 
+  <!-- プラン選択 -->
+  <section class="card">
+    <h3>プランを選ぶ</h3>
+    <label class="plan-opt">
+      <input type="radio" name="plan" value="full" checked>
+      <span><strong>普通プラン ¥1,000／月</strong><br><span class="muted" style="font-size:12px;line-height:1.6;">全機能。日報・給与計算・乗務タイマー・IC判定・需要予測 ＋ 営業サポート（降車エリア統計・推奨検索・ペース管理）</span></span>
+    </label>
+    <label class="plan-opt">
+      <input type="radio" name="plan" value="simple">
+      <span><strong>シンプルプラン ¥700／月</strong><br><span class="muted" style="font-size:12px;line-height:1.6;">合計金額だけで動く機能。日報・給与計算・カレンダー・IC判定・需要予測（営業明細を使う「営業サポート」は対象外）</span></span>
+    </label>
+  </section>
+
   <!-- 月額料金 -->
   <section class="card">
     <h3>月額料金</h3>
@@ -96,7 +112,7 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="confirmCard">
     <h3>お申し込み内容の確認</h3>
     <div>
-      <div class="confirm-row"><div class="ck">提供内容</div><div class="cv">キャビス 有料プラン（日報・乗務タイマー・IC判定・需要予測の全機能）</div></div>
+      <div class="confirm-row"><div class="ck">提供内容</div><div class="cv" id="cvProvide">キャビス 普通プラン（全機能）</div></div>
       <div class="confirm-row"><div class="ck">月額料金</div><div class="cv"><span class="hl" id="cvPrice">1,000円</span>（税込）</div></div>
       <div class="confirm-row"><div class="ck">初月無料</div><div class="cv">お申し込みから<span class="hl">30日間は無料</span>。無料期間の終了後、<span id="cvPrice2">月額1,000円</span>の自動課金が始まります。</div></div>
       <div class="confirm-row"><div class="ck">支払方法</div><div class="cv">クレジットカード・月額前払い（Stripe決済）</div></div>
@@ -167,9 +183,14 @@ if (subParams.get('reason') === 'simple-plan') {
 // 法務文書の現行バージョン（同意記録に保存される）
 const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };
 
-// 個人プランは月額1,000円（通常/フル）の一本。組合割引コードは廃止。
-const MONTHLY_PRICE = 1000;
-const appliedCoupon = '';
+// 個人プランは2種（普通¥1,000／シンプル¥700）。組合割引コードは廃止。
+const PLAN_PRICES = { full: 1000, simple: 700 };
+const PLAN_LABELS = { full: '普通プラン', simple: 'シンプルプラン' };
+const PLAN_PROVIDE = {
+  full: 'キャビス 普通プラン（全機能：日報・給与計算・IC判定・需要予測＋営業サポート）',
+  simple: 'キャビス シンプルプラン（日報・給与計算・カレンダー・IC判定・需要予測。営業サポートは対象外）',
+};
+let selectedPlan = 'full';
 
 function fmtDate(d) {
   return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0')
@@ -177,11 +198,12 @@ function fmtDate(d) {
 }
 
 function renderPrice() {
-  const yen = MONTHLY_PRICE.toLocaleString('ja-JP');
+  const yen = PLAN_PRICES[selectedPlan].toLocaleString('ja-JP');
   document.getElementById('priceAmount').textContent = yen;
-  document.getElementById('planLabel').textContent = '通常プラン';
+  document.getElementById('planLabel').textContent = PLAN_LABELS[selectedPlan];
   document.getElementById('cvPrice').textContent = yen + '円';
   document.getElementById('cvPrice2').textContent = '月額' + yen + '円';
+  document.getElementById('cvProvide').textContent = PLAN_PROVIDE[selectedPlan];
   document.getElementById('submitBtn').textContent = `申し込む（初月無料・以降 月額${yen}円）`;
 }
 
@@ -202,6 +224,13 @@ function updateSubmitState() {
 }
 checkboxes.forEach((cb) => cb.addEventListener('change', updateSubmitState));
 
+// プラン選択 → 価格・提供内容の表示を更新
+document.querySelectorAll('input[name="plan"]').forEach((r) => {
+  r.addEventListener('change', () => {
+    if (r.checked) { selectedPlan = r.value; renderPrice(); }
+  });
+});
+
 function showStatus(text, kind) {
   statusMsg.innerHTML = `<div class="status-msg ${kind}">${text}</div>`;
 }
@@ -216,7 +245,7 @@ submitBtn.addEventListener('click', async () => {
   submitBtn.disabled = true;
   showStatus('決済ページを準備しています…', 'info');
   try {
-    const url = await startCheckout(AGREEMENT_VERSIONS, appliedCoupon);
+    const url = await startCheckout(AGREEMENT_VERSIONS, selectedPlan);
     showStatus('決済ページに移動します…', 'info');
     location.href = url;
   } catch (e) {

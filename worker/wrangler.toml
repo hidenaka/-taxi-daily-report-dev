@@ -20,6 +20,7 @@ compatibility_date = "2025-01-01"
 [vars]
 FIREBASE_PROJECT_ID = "taxi-dailydata-dev"
 STRIPE_PRICE_ID = "price_1TYYNKGtKUEpwNTvjuqwpjEw"
+STRIPE_PRICE_ID_SIMPLE = "price_1Ta7nfGtKUEpwNTv0GnxcUoj"
 APP_BASE_URL = "https://hidenaka.github.io/-taxi-daily-report-dev"
 ALLOWED_ORIGIN = "https://hidenaka.github.io"
 MAIL_FROM = "noreply@taxicabis.com"
@@ -36,6 +37,8 @@ name = "cabis-billing"
 FIREBASE_PROJECT_ID = "taxi-dailydata"
 # Live モードで作成した本番 Price（Cabis 有料プラン ¥1,000/月）。2026-05-22 設定。
 STRIPE_PRICE_ID = "price_1TZfsWGtKUEpwNTvjtEUrZFu"
+# Live: Cabis シンプルプラン ¥700/月。2026-05-23 設定。
+STRIPE_PRICE_ID_SIMPLE = "price_1Ta7r9GtKUEpwNTvM7nrpjwi"
 APP_BASE_URL = "https://app.taxicabis.com"
 ALLOWED_ORIGIN = "https://app.taxicabis.com"
 MAIL_FROM = "noreply@taxicabis.com"

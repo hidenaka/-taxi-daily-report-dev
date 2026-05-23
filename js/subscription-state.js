@@ -197,14 +197,14 @@ function billingApiBase() {
 // firestore.rules で subscriptions を書けないため、同意情報を Worker に渡して委譲する。
 // couponCode を渡すと Worker 側でプロモーションコードを解決し割引を適用する。
 // 呼び出し側は戻り値のURLへ location 遷移する。
-export async function startCheckout(versions, couponCode) {
+export async function startCheckout(versions, plan) {
   const { userId } = await loadFirebase();
   const res = await fetch(billingApiBase() + '/create-checkout-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       userId,
-      couponCode: couponCode || '',
+      plan: plan || 'full',
       agreement: {
         termsVersion: (versions && versions.terms) || null,
         privacyVersion: (versions && versions.privacy) || null,

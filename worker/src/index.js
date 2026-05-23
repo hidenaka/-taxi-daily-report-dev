@@ -83,17 +83,23 @@ async function handleCreateCheckout(request, env) {
   const body = await request.json().catch(() => ({}));
   const userId = String(body.userId || '').trim();
   const couponCode = String(body.couponCode || '').trim();
+  const plan = String(body.plan || 'full').trim();
   const agreement = body.agreement || {};
 
   if (!USER_ID_RE.test(userId)) {
     return json(env, { error: 'invalid_user' }, 400);
   }
 
+  // プランで価格を出し分け（simple=¥700 / full=¥1,000）。未知の値は full にフォールバック。
+  const priceId = (plan === 'simple' && env.STRIPE_PRICE_ID_SIMPLE)
+    ? env.STRIPE_PRICE_ID_SIMPLE
+    : env.STRIPE_PRICE_ID;
+
   const params = {
     mode: 'subscription',
     locale: 'ja',
     client_reference_id: userId,
-    line_items: [{ price: env.STRIPE_PRICE_ID, quantity: 1 }],
+    line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
       trial_period_days: TRIAL_DAYS,
       metadata: { appUserId: userId },
@@ -283,6 +289,10 @@ async function syncSubscription(env, sub, clientRefUserId) {
 
   const status = STATUS_MAP[sub.status] || 'pending';
   const item = sub.items && sub.items.data && sub.items.data[0];
+  // 購入された価格から tier（plan）を判定。simple価格なら 'simple'、それ以外は 'full'。
+  const purchasedPriceId = item && item.price && item.price.id;
+  const plan = (purchasedPriceId && env.STRIPE_PRICE_ID_SIMPLE
+    && purchasedPriceId === env.STRIPE_PRICE_ID_SIMPLE) ? 'simple' : 'full';
   // current_period_* は API バージョンによりサブスク直下／item 配下のどちらか
   const periodStart = sub.current_period_start
     || (item && item.current_period_start) || null;
@@ -292,6 +302,7 @@ async function syncSubscription(env, sub, clientRefUserId) {
   const fields = {
     status,
     planId: 'paid_v1',
+    plan,
     stripeCustomerId: typeof sub.customer === 'string'
       ? sub.customer
       : ((sub.customer && sub.customer.id) || null),
