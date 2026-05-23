@@ -2,6 +2,7 @@
 import { createStandsMap, renderPins, drawRoute, clearLayer } from './stands-map.js';
 import { loadStands, getMyCompanyId, getIsAdmin } from './stands-data.js';
 import { createGeoWatcher } from './geo.js';
+import { waitForAuth } from '../../js/firebase-auth.js';
 
 const sheet = document.getElementById('stand-sheet');
 const sheetName = document.getElementById('sheet-name');
@@ -21,10 +22,19 @@ function showStand(stand) {
 async function main() {
   map = createStandsMap('stands-map');
 
-  const companyId = await getMyCompanyId();
+  // Firebase auth は非同期復元。currentUser が確定するまで待ってから会社を解決する。
+  await waitForAuth();
+  const isAdmin = await getIsAdmin();
+  let companyId = await getMyCompanyId();
+  // 管理者は ?company=<slug> で対象会社を指定できる（自分が会社未所属でも閲覧/編集可。rulesでadminは全社read/write）。
+  const override = new URLSearchParams(location.search).get('company');
+  if (isAdmin && override) companyId = override;
+
   if (!companyId) {
     sheetName.textContent = '利用できません';
-    sheetNotes.textContent = 'この機能は所属会社が登録されたユーザー向けです。';
+    sheetNotes.textContent = isAdmin
+      ? '管理者として開くには URL に ?company=<会社slug> を付けてください（例: ?company=co-7q7ros）。'
+      : 'この機能は所属会社が登録されたユーザー向けです。';
     sheet.classList.add('open');
     return;
   }
@@ -52,7 +62,7 @@ async function main() {
   watcher.start();
 
   // 管理者なら編集モードを動的ロード
-  if (await getIsAdmin()) {
+  if (isAdmin) {
     document.getElementById('stands-editbar').classList.add('show');
     const { initEditor } = await import('./stands-editor.js');
     initEditor({ map, companyId, stands });
