@@ -21,6 +21,7 @@ function showStand(stand) {
 
 async function main() {
   map = createStandsMap('stands-map');
+  window.__standsMap = map; // 作図補助フック（座標取得・参照用）
 
   // Firebase auth は非同期復元。currentUser が確定するまで待ってから会社を解決する。
   await waitForAuth();
