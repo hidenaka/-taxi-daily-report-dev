@@ -3,9 +3,9 @@
 import { readSubCache, clearSubCache, isSubCacheFresh } from './sub-cache.js';
 
 export const FEATURES = ['core', 'analysis', 'export'];
-// プラン階層（decisions 8: 営業日報明細が紙で出ない会社向け 500円シンプルプラン）
-// - 'full': 既存挙動・全機能（営業サポート/分析/エクスポート）
-// - 'simple': core のみ。analysis/export は利用不可（500円プラン）
+// プラン階層（営業日報明細が紙で出ない会社向け 700円シンプルプラン）
+// - 'full': 既存挙動・全機能（営業サポート/分析/エクスポート）。通常1,000円
+// - 'simple': core のみ。analysis/export は利用不可（700円プラン）
 export const PLAN_TIERS = ['full', 'simple'];
 
 export function isValidFeature(feature) {

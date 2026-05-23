@@ -15,11 +15,6 @@
   .price-amount { font-size:30px; font-weight:800; color:#d97706; }
   .price-unit { font-size:13px; color:var(--muted); }
   .price-free { font-size:13px; color:#059669; font-weight:700; }
-  .coupon-row { display:flex; gap:8px; margin-top:8px; }
-  .coupon-row input { flex:1; padding:9px; border:1px solid var(--border); border-radius:6px; font-size:14px; text-transform:uppercase; }
-  .coupon-msg { font-size:12px; margin-top:6px; min-height:16px; }
-  .coupon-msg.ok { color:#059669; }
-  .coupon-msg.ng { color:#dc2626; }
   .confirm-row { display:flex; padding:8px 0; border-bottom:1px solid #f0f0f0; font-size:13px; line-height:1.6; }
   .confirm-row:last-child { border-bottom:none; }
   .confirm-row .ck { width:84px; flex-shrink:0; color:var(--muted); font-weight:600; }
@@ -57,6 +52,10 @@ if (location.hostname.includes('-dev')) {
     キャビスの全機能（日報・乗務タイマー・IC判定・需要予測）を、初月無料でお試しいただけます。
   </p>
 
+  <p class="muted" style="margin-bottom:14px;font-size:12px;line-height:1.7;background:#f9fafb;border:1px solid var(--border);border-radius:6px;padding:10px;">
+    ※ 給与計算機能をご利用いただくには、お勤め先の給与体系の情報（歩率・各種手当・高速代の負担区分など）が必要です。お勤め先がまだ未対応の場合は、情報をご提供いただければ個別に設定いたします。お気軽に <a href="mailto:cabis@taxicabis.com">cabis@taxicabis.com</a> までご連絡ください。
+  </p>
+
   <div id="pendingNote" class="status-msg info" style="display:none;">
     前回のお申し込み手続きが完了していません。下記より、もう一度お進みください。
   </div>
@@ -64,7 +63,7 @@ if (location.hostname.includes('-dev')) {
   <!-- シンプルプランからのアクセス制限通知（営業サポート系の機能を踏んだケース） -->
   <div id="simplePlanNote" class="status-msg info" style="display:none;background:#fef3c7;border:1px solid #f59e0b;color:#92400e;padding:12px;border-radius:6px;margin-bottom:14px;font-size:13px;line-height:1.6;">
     <strong>営業サポート機能はシンプルプランでは利用できません</strong><br>
-    現在ご利用中の<strong>シンプルプラン（800円）</strong>では、給与計算・カレンダー予定管理・IC判定・需要予測など「合計金額のみで動く機能」をご利用いただけます。営業サポート（降車エリア統計・推奨検索・ペース管理）など明細データが必要な機能をご利用になるには、<strong>フルプラン（1,000円）へのアップグレード</strong>が必要です。<br>
+    現在ご利用中の<strong>シンプルプラン（700円）</strong>では、給与計算・カレンダー予定管理・IC判定・需要予測など「合計金額のみで動く機能」をご利用いただけます。営業サポート（降車エリア統計・推奨検索・ペース管理）など明細データが必要な機能をご利用になるには、<strong>フルプラン（1,000円）へのアップグレード</strong>が必要です。<br>
     アップグレードをご希望の場合は <a href="mailto:cabis@taxicabis.com" style="color:#92400e;text-decoration:underline;font-weight:bold;">cabis@taxicabis.com</a> までご連絡ください。
   </div>
 
@@ -79,19 +78,6 @@ if (location.hostname.includes('-dev')) {
     <p class="muted" style="font-size:12px;margin-top:10px;text-align:center;">
       すでにアカウントをお持ちの方は <a href="login.html?next=subscribe.html">ログイン</a>
     </p>
-  </section>
-
-  <!-- 割引コード -->
-  <section class="card">
-    <h3>割引コード（任意）</h3>
-    <p class="muted" style="font-size:12px;">
-      提携組合から割引コードを受け取った方は入力してください。お持ちでない方は空欄のままで進めます。
-    </p>
-    <div class="coupon-row">
-      <input type="text" id="couponInput" placeholder="例: KUMIAI" autocapitalize="characters" autocomplete="off">
-      <button class="btn" id="applyCouponBtn" style="background:var(--primary);color:#fff;">適用</button>
-    </div>
-    <div class="coupon-msg" id="couponMsg"></div>
   </section>
 
   <!-- 月額料金 -->
@@ -181,11 +167,9 @@ if (subParams.get('reason') === 'simple-plan') {
 // 法務文書の現行バージョン（同意記録に保存される）
 const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokuteishou: '2026-05-08' };
 
-// 既知のプロモーションコード → 月額(円)。最終的な割引判定は Stripe（Worker）が行う。
-const COUPON_PRICES = { '': 1000, KUMIAI: 700, KEIHO: 500 };
-const COUPON_LABELS = { '': '通常プラン', KUMIAI: '提携組合 紹介プログラム価格', KEIHO: '恵豊組合 協力価格' };
-
-let appliedCoupon = '';
+// 個人プランは月額1,000円（通常/フル）の一本。組合割引コードは廃止。
+const MONTHLY_PRICE = 1000;
+const appliedCoupon = '';
 
 function fmtDate(d) {
   return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0')
@@ -193,10 +177,9 @@ function fmtDate(d) {
 }
 
 function renderPrice() {
-  const price = COUPON_PRICES[appliedCoupon] ?? 1000;
-  const yen = price.toLocaleString('ja-JP');
+  const yen = MONTHLY_PRICE.toLocaleString('ja-JP');
   document.getElementById('priceAmount').textContent = yen;
-  document.getElementById('planLabel').textContent = COUPON_LABELS[appliedCoupon] || '通常プラン';
+  document.getElementById('planLabel').textContent = '通常プラン';
   document.getElementById('cvPrice').textContent = yen + '円';
   document.getElementById('cvPrice2').textContent = '月額' + yen + '円';
   document.getElementById('submitBtn').textContent = `申し込む（初月無料・以降 月額${yen}円）`;
@@ -207,27 +190,6 @@ function renderDates() {
   document.getElementById('cvTrialEnd').textContent = fmtDate(end);
   document.getElementById('cvFirstCharge').textContent = fmtDate(end);
 }
-
-// 割引コード適用
-document.getElementById('applyCouponBtn').addEventListener('click', () => {
-  const raw = document.getElementById('couponInput').value.trim().toUpperCase();
-  document.getElementById('couponInput').value = raw;
-  const msg = document.getElementById('couponMsg');
-  if (!raw) {
-    appliedCoupon = '';
-    msg.textContent = '通常プラン（1,000円）で進めます。';
-    msg.className = 'coupon-msg';
-  } else if (COUPON_PRICES[raw] !== undefined) {
-    appliedCoupon = raw;
-    msg.textContent = `コードを適用しました：${COUPON_LABELS[raw]}（月額${COUPON_PRICES[raw]}円）`;
-    msg.className = 'coupon-msg ok';
-  } else {
-    appliedCoupon = '';
-    msg.textContent = 'このコードは確認できませんでした。コードをお確かめください。';
-    msg.className = 'coupon-msg ng';
-  }
-  renderPrice();
-});
 
 // 同意チェック
 const checkboxes = ['agreeTerms', 'agreePrivacy', 'agreeTokuteishou', 'agreeAll']
@@ -259,10 +221,7 @@ submitBtn.addEventListener('click', async () => {
     location.href = url;
   } catch (e) {
     console.error('checkout error:', e);
-    let text = 'エラーが発生しました。通信環境を確認のうえ、時間をおいて再度お試しください。';
-    if (e.code === 'invalid_coupon') {
-      text = '割引コードが無効です。コードをご確認のうえ、もう一度お試しください。';
-    }
+    const text = 'エラーが発生しました。通信環境を確認のうえ、時間をおいて再度お試しください。';
     showStatus(text, 'error');
     submitBtn.disabled = false;
   }
