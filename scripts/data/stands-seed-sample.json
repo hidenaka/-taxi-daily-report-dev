@@ -1,0 +1,22 @@
+[
+  { "id": "roppongi_hills", "name": "六本木ヒルズ", "category": "commercial",
+    "pin": { "lat": 35.6605, "lng": 139.7292 },
+    "routes": [{ "points": [{ "lat": 35.6614, "lng": 139.7305 }, { "lat": 35.6605, "lng": 139.7292 }], "label": "進入", "kind": "approach" }],
+    "notes": "（仮）けやき坂側から進入。エディタで要調整。", "sourcePdf": "01_roppongi_hills.pdf" },
+  { "id": "izumi_garden", "name": "泉ガーデン", "category": "office",
+    "pin": { "lat": 35.6655, "lng": 139.7397 },
+    "routes": [{ "points": [{ "lat": 35.6662, "lng": 139.7405 }, { "lat": 35.6655, "lng": 139.7397 }], "label": "進入", "kind": "approach" }],
+    "notes": "（仮）エディタで要調整。", "sourcePdf": "02_izumi_garden.pdf" },
+  { "id": "atago_green_hills", "name": "愛宕グリーンヒルズ", "category": "commercial",
+    "pin": { "lat": 35.6647, "lng": 139.7480 },
+    "routes": [{ "points": [{ "lat": 35.6653, "lng": 139.7488 }, { "lat": 35.6647, "lng": 139.7480 }], "label": "進入", "kind": "approach" }],
+    "notes": "（仮）エディタで要調整。", "sourcePdf": "03_atago_green_hills.pdf" },
+  { "id": "toranomon_hills", "name": "虎ノ門ヒルズ", "category": "office",
+    "pin": { "lat": 35.6669, "lng": 139.7496 },
+    "routes": [{ "points": [{ "lat": 35.6676, "lng": 139.7503 }, { "lat": 35.6669, "lng": 139.7496 }], "label": "進入", "kind": "approach" }],
+    "notes": "（仮）エディタで要調整。", "sourcePdf": "27_toranomon_hills.pdf" },
+  { "id": "tokyo_midtown", "name": "東京ミッドタウン", "category": "commercial",
+    "pin": { "lat": 35.6657, "lng": 139.7307 },
+    "routes": [{ "points": [{ "lat": 35.6664, "lng": 139.7314 }, { "lat": 35.6657, "lng": 139.7307 }], "label": "進入", "kind": "approach" }],
+    "notes": "（仮）エディタで要調整。", "sourcePdf": "12_tokyo_midtown.pdf" }
+]
