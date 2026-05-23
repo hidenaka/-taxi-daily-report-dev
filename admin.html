@@ -131,6 +131,14 @@ if (location.hostname.includes('-dev')) {
       <h3>📋 課金状況</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">サブスクリプションの状態確認・手動編集。Stripe接続前の暫定運用です。grandfathered(G) はFirestore非実体で active 扱いされているユーザー。</p>
       <button class="btn" id="loadSubsBtn" style="width:100%;">課金状況を読み込み</button>
+      <div style="margin-top:10px;padding:10px;border:1px solid #cdeccd;background:#f3fbf3;border-radius:6px;">
+        <p class="muted" style="font-size:11px;margin:0 0 6px;">課金スキップで<b>恒久無料</b>を付与（組合長・デモ等）。先に「👤 新規ユーザー作成」でアカウントを作ってから userId を入れてください。</p>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <input class="input" id="compUserId" placeholder="userId" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;">
+          <button class="btn" id="compGrantBtn" style="white-space:nowrap;background:#2e7d32;color:#fff;">恒久無料で有効化</button>
+        </div>
+        <div id="compGrantResult" style="margin-top:6px;font-size:12px;"></div>
+      </div>
       <div id="subsResult" style="margin-top:8px;font-size:12px;"></div>
       <div id="subsList" style="margin-top:8px;overflow-x:auto;"></div>
     </section>
@@ -1162,6 +1170,30 @@ document.getElementById('subEditSaveBtn').addEventListener('click', async () => 
 });
 
 document.getElementById('loadSubsBtn').addEventListener('click', loadSubscriptionsView);
+
+// 課金スキップで恒久無料(active)を付与。サブスク実体が無いユーザーにも付与できる。
+document.getElementById('compGrantBtn').addEventListener('click', async () => {
+  const input = document.getElementById('compUserId');
+  const result = document.getElementById('compGrantResult');
+  const userId = (input.value || '').trim();
+  if (!/^[a-z][a-z0-9_]*$/.test(userId)) {
+    result.textContent = '✗ userId の形式が不正です（英小文字で始まる）';
+    return;
+  }
+  if (!confirm(`${userId} に課金スキップ（恒久無料）を付与します。よろしいですか？`)) return;
+  result.textContent = '付与中…';
+  try {
+    const existing = await adminGetSubscription(userId);
+    const payload = adminBuildSubscriptionPayload(existing, { status: 'active', planId: 'comp_v1' });
+    await adminSaveSubscription(userId, payload);
+    result.textContent = `✓ ${userId} を恒久無料(active)で有効化しました`;
+    input.value = '';
+    await loadSubscriptionsView();
+  } catch (e) {
+    console.error(e);
+    result.textContent = '✗ 付与失敗: ' + (e.message || e);
+  }
+});
 
 // ========== 会社管理 ==========
 let companyCache = [];
