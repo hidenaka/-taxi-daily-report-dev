@@ -26,8 +26,14 @@ export async function saveDrive(date, data) {
   await waitForAuth();
   const userId = getUserId();
   const ref = doc(db, 'drives', userId, 'daily', date);
+  // 案イ: 日報に「その時の会社」を刻む（会社変更・転職をまたいでも過去の手取りを正しく保つ土台）。
+  // 既に companyId があれば保持（記録時点で固定）、無ければ現在の会社で初回スタンプ。
+  const companyId = (data && data.companyId !== undefined)
+    ? data.companyId
+    : await getMyCompanyId();
   await setDoc(ref, {
     ...data,
+    companyId: companyId ?? null,
     updatedAt: new Date().toISOString()
   });
   return true;
