@@ -84,7 +84,7 @@ if (location.hostname.includes('-dev')) {
   </section>
 
   <!-- プラン選択 -->
-  <section class="card">
+  <section class="card" id="planSelectCard">
     <h3>プランを選ぶ</h3>
     <label class="plan-opt">
       <input type="radio" name="plan" value="full" checked>
@@ -164,9 +164,9 @@ if (location.hostname.includes('-dev')) {
 </main>
 <script type="module">
 import { renderLegalFooter } from './js/legal-footer.js';
-import { getSubscription, startCheckout, isPaying, formatStatus } from './js/subscription-state.js';
+import { getSubscription, startCheckout, startFree, isPaying, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth } from './js/firebase-auth.js';
-import { checkInviteAndWarn, fetchCompanyExists } from './js/invite-url.js';
+import { checkInviteAndWarn, fetchCompanyExists, fetchCompanyProfile } from './js/invite-url.js';
 
 renderLegalFooter();
 
@@ -191,6 +191,8 @@ const PLAN_PROVIDE = {
   simple: 'キャビス シンプルプラン（日報・給与計算・カレンダー・IC判定・需要予測。営業サポートは対象外）',
 };
 let selectedPlan = 'full';
+// 無償会社（招待者は課金不要）。fetchCompanyProfile で判定して true になる。
+let isFreeCompany = false;
 
 function fmtDate(d) {
   return d.getFullYear() + '/' + String(d.getMonth() + 1).padStart(2, '0')
@@ -243,6 +245,20 @@ submitBtn.addEventListener('click', async () => {
     return;
   }
   submitBtn.disabled = true;
+  if (isFreeCompany) {
+    // 無償会社：Stripe 非経由で /start-free へ（同意チェックは上で通過済み）
+    showStatus('利用開始の手続き中です…', 'info');
+    try {
+      await startFree(AGREEMENT_VERSIONS);
+      showStatus('利用開始が完了しました。ホームへ移動します…', 'info');
+      location.href = 'index.html';
+    } catch (e) {
+      console.error('start-free error:', e);
+      showStatus('エラーが発生しました。通信環境を確認のうえ、時間をおいて再度お試しください。', 'error');
+      submitBtn.disabled = false;
+    }
+    return;
+  }
   showStatus('決済ページを準備しています…', 'info');
   try {
     const url = await startCheckout(AGREEMENT_VERSIONS, selectedPlan);
@@ -266,6 +282,34 @@ function showOnly(keepId) {
 async function init() {
   renderPrice();
   renderDates();
+
+  // 無償会社フラグ判定（招待 slug の freeForInvited を確認）
+  try {
+    const slug = localStorage.getItem('taxi_pending_company')
+      || new URLSearchParams(location.search).get('company');
+    if (slug) {
+      const profile = await fetchCompanyProfile(slug);
+      if (profile && profile.freeForInvited === true) {
+        isFreeCompany = true;
+        // 申込ボタンのテキストを変更
+        submitBtn.textContent = '無償で利用を開始';
+        // 課金関連UI（プラン選択・お申込み内容の確認）を隠し、料金を無償表示にする
+        const planCard = document.getElementById('planSelectCard');
+        if (planCard) planCard.style.display = 'none';
+        const confirmCard = document.getElementById('confirmCard');
+        if (confirmCard) confirmCard.style.display = 'none';
+        const pa = document.getElementById('priceAmount');
+        if (pa) pa.textContent = '0';
+        const pl = document.getElementById('planLabel');
+        if (pl) pl.textContent = '無償（この会社の招待者は課金なし）';
+      }
+    }
+  } catch (e) {
+    // フォールバック：取得失敗時は通常の Stripe フロー
+    console.warn('fetchCompanyProfile failed, falling back to Stripe flow:', e);
+    isFreeCompany = false;
+  }
+
   try {
     const sub = await getSubscription();
     if (sub && isPaying(sub)) {
