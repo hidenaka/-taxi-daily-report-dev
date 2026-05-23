@@ -24,7 +24,7 @@ import {
 } from './setup-request/handler.js';
 
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）
-const USER_ID_RE = /^[a-z][a-z0-9_]*$/;
+const USER_ID_RE = /^[a-z0-9_]+$/;
 
 // 初月無料の日数（特商法ドラフト・価格モデルで確定）
 const TRIAL_DAYS = 30;
@@ -44,6 +44,9 @@ export default {
       }
       if (request.method === 'POST' && path === '/create-checkout-session') {
         return await handleCreateCheckout(request, env);
+      }
+      if (request.method === 'POST' && path === '/start-free') {
+        return await handleStartFree(request, env);
       }
       if (request.method === 'POST' && path === '/cancel-subscription') {
         return await handleCancel(request, env);
@@ -147,6 +150,62 @@ async function recordAgreement(env, userId, agreement) {
     createdAt,
     updatedAt: now,
   });
+}
+
+// 無償会社の登録: users を userId で検索して本当の companyId を取得し、
+// その会社の freeForInvited をサーバー検証してから active(無償) を付与する。
+async function handleStartFree(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const userId = String(body.userId || '').trim();
+  const agreement = body.agreement || {};
+  if (!USER_ID_RE.test(userId)) return json(env, { error: 'invalid_user' }, 400);
+
+  const token = await getAccessToken(env);
+  const companyId = await findCompanyIdByUserId(env, token, userId);
+  if (!companyId) return json(env, { error: 'no_company' }, 403);
+
+  const company = await firestoreGet(env, token, 'companies/' + companyId);
+  const free = company && company.fields && company.fields.freeForInvited
+    && company.fields.freeForInvited.booleanValue === true;
+  if (!free) return json(env, { error: 'not_free_company' }, 403);
+
+  const existing = await firestoreGet(env, token, 'subscriptions/' + userId);
+  const createdAt = (existing && existing.fields && existing.fields.createdAt
+    && existing.fields.createdAt.stringValue) || new Date().toISOString();
+  const now = new Date().toISOString();
+  await firestorePatch(env, token, 'subscriptions/' + userId, {
+    status: 'active',
+    planId: 'comp_company',
+    companyId,
+    agreedTermsAt: now,
+    agreedTermsVersion: (agreement && agreement.termsVersion) || null,
+    agreedPrivacyAt: now,
+    agreedPrivacyVersion: (agreement && agreement.privacyVersion) || null,
+    agreedTokuteishouAt: now,
+    createdAt,
+    updatedAt: now,
+  });
+  return json(env, { ok: true });
+}
+
+// users コレクションを userId フィールドで検索し companyId を返す。0件/複数件は null。
+async function findCompanyIdByUserId(env, token, userId) {
+  const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: {
+      from: [{ collectionId: 'users' }],
+      where: { fieldFilter: { field: { fieldPath: 'userId' }, op: 'EQUAL', value: { stringValue: userId } } },
+      limit: 2,
+    } }),
+  });
+  if (!res.ok) return null;
+  const rows = await res.json();
+  const docs = (Array.isArray(rows) ? rows : []).filter(r => r.document);
+  if (docs.length !== 1) return null; // 0件 or 複数件は安全側で拒否
+  const f = docs[0].document.fields || {};
+  return (f.companyId && f.companyId.stringValue) || null;
 }
 
 // 退会: Stripe サブスクリプションを「期間末解約」に設定する。
