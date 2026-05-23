@@ -88,7 +88,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="recommendCard">
     <div class="section-h">
-      <strong>次の営業先 推奨検索 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
+      <strong>次の営業先 推奨検索<button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
     </div>
     <div class="help-content" id="help-rec-search">
       💡 <strong>「どこで降ろした後、次にどこで乗車が取れたか」を集計して表示</strong>します。
@@ -97,7 +97,6 @@ if (location.hostname.includes('-dev')) {
         <li>「30分以内に次の乗車が取れた率」が高い順に並びます</li>
         <li>表記は<strong>「乗った場所→降ろした場所」</strong>。降ろした位置から見た「次にお客様を乗せた場所」と「その人を降ろした場所」</li>
         <li>「📍 現在地から自動入力」で GPS から降ろし場所を自動セット</li>
-        <li>他のドライバーの匿名集計データも含みます（個人特定情報なし）</li>
       </ul>
       <div style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;line-height:1.5;color:#075985;">
         🛡️ <strong>「📍 現在地から自動入力」ボタンの動き</strong><br>
@@ -152,7 +151,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="highValueCard">
     <div class="section-h">
-      <strong>高期待値エリア × 時間帯 <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="high-value" aria-label="ヘルプ">?</button></strong>
+      <strong>高期待値エリア × 時間帯<button class="help-btn" data-help-for="high-value" aria-label="ヘルプ">?</button></strong>
     </div>
     <div class="help-content" id="help-high-value">
       💡 <strong>「単価が高く出るエリア × 時間帯」</strong>のランキングです。
@@ -172,7 +171,7 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="areaCard">
     <div class="section-h">
-      <strong>降車エリア別 効率(区+町名) <span style="font-size:10px;color:var(--muted);font-weight:normal;">(全員データ統合)</span><button class="help-btn" data-help-for="area-eff" aria-label="ヘルプ">?</button></strong>
+      <strong>降車エリア別 効率(区+町名)<button class="help-btn" data-help-for="area-eff" aria-label="ヘルプ">?</button></strong>
     </div>
     <div class="help-content" id="help-area-eff">
       💡 <strong>「降ろした後の動きやすさ」</strong>をエリア別に集計します。
@@ -249,47 +248,9 @@ function buildAccessPlaceholder({ title, hint, level }) {
 }
 
 async function applyAggregateAccessGate() {
-  let flag = true;
-  try { flag = await getMyAggregateAnalysisFlag(); } catch (e) {}
-  if (!flag) {
-    // OFF時: 全カードを「設定でONに」プレースホルダ
-    const ph = buildAccessPlaceholder({
-      title: '「全員データ統合」機能は無効です',
-      hint: '設定画面で「ベンチマーク統合分析に参加する」をONにすると利用できます。',
-    });
-    for (const id of ['recommendCard', 'highValueCard', 'areaCard']) {
-      const el = document.getElementById(id);
-      if (el) el.innerHTML = ph;
-    }
-    currentAccessLimits = { recHistoryTop: 0, areaTop: 0, highValueTop: 0 };
-    return;
-  }
-  // ON時: 連続営業登録日数で段階判定
-  let shifts = 0;
-  try { shifts = await getMyConsecutiveShiftsCount(); } catch (e) {}
-  const level = getAccessLevel(shifts);
-  const limits = getAccessLimits(shifts);
-  const { nextLevel, shiftsRemaining } = getNextThreshold(shifts);
-  currentAccessLimits = limits;
-
-  // 「降車エリア別 効率」ロック判定
-  if (limits.areaTop === 0) {
-    const el = document.getElementById('areaCard');
-    if (el) el.innerHTML = buildAccessPlaceholder({
-      title: '「降車エリア別 効率」はライト以上で解放',
-      hint: `継続参加 ${shifts} 日／あと ${ACCESS_LEVELS.light.minShifts - shifts} 日でライトに昇格します`,
-      level: 'light',
-    });
-  }
-  // 「高期待値エリア × 時間帯」ロック判定
-  if (limits.highValueTop === 0) {
-    const el = document.getElementById('highValueCard');
-    if (el) el.innerHTML = buildAccessPlaceholder({
-      title: '「高期待値エリア × 時間帯」はスタンダード以上で解放',
-      hint: `継続参加 ${shifts} 日／あと ${Math.max(0, ACCESS_LEVELS.standard.minShifts - shifts)} 日でスタンダードに昇格します`,
-      level: 'standard',
-    });
-  }
+  // 方針転換: 各ユーザーは自分の営業情報のみ閲覧。段階解放(C案/E案)は廃止し、
+  // 自分のデータで常にフル表示する。連携インフラ(getAllUsersDrivesForMonth等)はコードに温存。
+  currentAccessLimits = getAccessLimits(ACCESS_LEVELS.full.minShifts);
 }
 
 const todayIso = () => toLocalIso(new Date());
@@ -506,7 +467,7 @@ function applyVehicleFilterAndRender(label) {
   // rawAllUserIds の中で、filteredUserIds に含まれているものだけを残す
   activeUserIds = rawAllUserIds.filter(uid => filteredUserIds.has(uid));
   document.getElementById('rangeInfo').textContent =
-    `${formatBillingPeriod(currentPeriods[0])} 〜 ${formatBillingPeriod(currentPeriods[currentPeriods.length-1])} (自分: ${myDrives.length}乗務 / 全員: ${allDrives.length}乗務)${label || ''}`;
+    `${formatBillingPeriod(currentPeriods[0])} 〜 ${formatBillingPeriod(currentPeriods[currentPeriods.length-1])} (自分: ${myDrives.length}乗務)${label || ''}`;
   neighborMap = buildNeighborMap(allDrives);
   updateDataSourceInfo();
   populateRecommendArea();
@@ -551,7 +512,7 @@ async function load() {
 
   // === Phase 1: キャッシュから即時描画 ===
   const cMy = periods.map(ym => getDrivesForMonthCached(ym));
-  const cAll = periods.map(ym => getAllUsersDrivesForMonthCached(ym));
+  const cAll = cMy; // 自分データのみ（他人データは扱わない）
   const cUserIds = listActiveUserIdsCached();
   const cRole = getUserRoleMapCached();
   const cacheComplete = cMy.every(x => x !== null) && cAll.every(x => x !== null) && cUserIds && cRole;
@@ -569,12 +530,12 @@ async function load() {
       companyDefaultRecArea = cfg?.defaultRecArea || null;
     } catch (e) { companyDefaultRecArea = null; }
 
-    const [myParts, allParts, userIds, roleMap] = await Promise.all([
+    const [myParts, userIds, roleMap] = await Promise.all([
       Promise.all(periods.map(ym => getDrivesForMonth(ym))),
-      Promise.all(periods.map(ym => getAllUsersDrivesForMonth(ym))),
       listActiveUserIds(),
       getUserRoleMap()
     ]);
+    const allParts = myParts; // 自分データのみを分析に使う（他人データは取得しない）
     // cache が無かった場合のみここでトグル初期化 (Phase 0 でやれていれば skip)
     if (!document.querySelector('#todayVehicleContainer .today-vehicle')) {
       const todayStr = todayIso();
