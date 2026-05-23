@@ -72,7 +72,7 @@ if (location.hostname.includes('-dev')) {
       <h3>👤 新規ユーザー作成</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">メールアドレス不要。userId + パスワードでアカウント作成。</p>
       <label class="muted">ユーザーID</label>
-      <input class="input" id="newUserId" placeholder="taro" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="input" id="newUserId" placeholder="taro" pattern="^[a-z0-9_]+$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <label class="muted" style="margin-top:8px;display:block;">初期パスワード</label>
       <input class="input" id="newUserPassword" type="password" placeholder="6文字以上" autocomplete="off">
 
@@ -97,7 +97,7 @@ if (location.hostname.includes('-dev')) {
       <h3>🔐 既存ユーザーにパスワード設定</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">匿名ユーザー（user_self, mm など）にパスワードを設定して、ログインできるようにします。データはそのまま保持されます。</p>
       <label class="muted">ユーザーID</label>
-      <input class="input" id="upgradeUserId" placeholder="user_self" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="input" id="upgradeUserId" placeholder="user_self" pattern="^[a-z0-9_]+$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <label class="muted" style="margin-top:8px;display:block;">新しいパスワード</label>
       <input class="input" id="upgradePassword" type="password" placeholder="6文字以上" autocomplete="off">
       <button class="btn" id="upgradeUserBtn" style="margin-top:12px;width:100%;background:#e65100;color:#fff;">パスワードを設定</button>
@@ -108,7 +108,7 @@ if (location.hostname.includes('-dev')) {
       <h3>📥 過去データ一括取込</h3>
       <p class="muted" style="font-size:11px;margin-bottom:8px;">新規ユーザーの過去日報をテキスト形式で一括登録。Geminiプロンプト形式対応。</p>
       <label class="muted">対象ユーザーID</label>
-      <input class="input" id="bulkTargetUserId" placeholder="taro" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="input" id="bulkTargetUserId" placeholder="taro" pattern="^[a-z0-9_]+$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       <label class="muted" style="margin-top:8px;display:block;">日報テキスト（複数日連結可）</label>
       <textarea id="bulkTextInput" rows="8" style="width:100%;padding:8px;font-family:monospace;font-size:11px;margin-top:4px;" placeholder="日付: 2024-11-08&#10;車種: premium&#10;出庫: 06:15&#10;帰庫: 21:15&#10;---&#10;No,乗車,降車,時間,迎,乗車地,降車地,営Km,男,女,合計&#10;1,06:42,07:15,0:33,迎,品川区東五反田2,千代田区丸の内1,8.4,1,,\"4,200\"&#10;&#10;日付: 2024-11-09&#10;..."></textarea>
       <div style="display:flex;gap:8px;margin-top:8px;">
@@ -134,7 +134,7 @@ if (location.hostname.includes('-dev')) {
       <div style="margin-top:10px;padding:10px;border:1px solid #cdeccd;background:#f3fbf3;border-radius:6px;">
         <p class="muted" style="font-size:11px;margin:0 0 6px;">課金スキップで<b>恒久無料</b>を付与（組合長・デモ等）。先に「👤 新規ユーザー作成」でアカウントを作ってから userId を入れてください。</p>
         <div style="display:flex;gap:6px;align-items:center;">
-          <input class="input" id="compUserId" placeholder="userId" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;">
+          <input class="input" id="compUserId" placeholder="userId" pattern="^[a-z0-9_]+$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;">
           <button class="btn" id="compGrantBtn" style="white-space:nowrap;background:#2e7d32;color:#fff;">恒久無料で有効化</button>
         </div>
         <div id="compGrantResult" style="margin-top:6px;font-size:12px;"></div>
@@ -285,7 +285,7 @@ if (location.hostname.includes('-dev')) {
       <p style="font-size:11px;margin-bottom:8px;color:#d32f2f;">※歩率・手取り率など会社レベル項目は「🏢 会社管理」で設定します。会社に所属するユーザーには会社プロファイルが優先され、ここでの編集は反映されません。</p>
 
       <label class="muted">対象ユーザーID</label>
-      <input class="input" id="targetUserIdForConfig" placeholder="sample1" pattern="^[a-z][a-z0-9_]*$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input class="input" id="targetUserIdForConfig" placeholder="sample1" pattern="^[a-z0-9_]+$" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
       
       <div style="display:flex;gap:8px;margin-top:12px;margin-bottom:12px;">
         <button class="btn" id="loadAdminConfigBtn" style="flex:1;">設定を読み込み</button>
@@ -679,7 +679,7 @@ document.getElementById('bulkParseBtn').onclick = () => {
   const preview = document.getElementById('bulkPreview');
   
   if (!targetId) { status.textContent = '✗ 対象ユーザーIDを入力してください'; status.style.color = '#d32f2f'; return; }
-  if (!/^[a-z][a-z0-9_]*$/.test(targetId)) { status.textContent = '✗ userIdの形式が不正です'; status.style.color = '#d32f2f'; return; }
+  if (!/^[a-z0-9_]+$/.test(targetId)) { status.textContent = '✗ userIdの形式が不正です'; status.style.color = '#d32f2f'; return; }
   if (!text.trim()) { status.textContent = '✗ テキストが空欄です'; status.style.color = '#d32f2f'; return; }
   
   const sections = splitReports(text);
@@ -1175,8 +1175,8 @@ document.getElementById('compGrantBtn').addEventListener('click', async () => {
   const input = document.getElementById('compUserId');
   const result = document.getElementById('compGrantResult');
   const userId = (input.value || '').trim();
-  if (!/^[a-z][a-z0-9_]*$/.test(userId)) {
-    result.textContent = '✗ userId の形式が不正です（英小文字で始まる）';
+  if (!/^[a-z0-9_]+$/.test(userId)) {
+    result.textContent = '✗ userId の形式が不正です（英小文字・数字・_ のみ）';
     return;
   }
   if (!confirm(`${userId} に課金スキップ（恒久無料）を付与します。よろしいですか？`)) return;
