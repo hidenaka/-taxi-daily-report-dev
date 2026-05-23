@@ -151,7 +151,7 @@ export async function getMyCompanyId() {
 }
 
 // 現ユーザーの companyId から会社プロファイルを読む。無ければ null。
-async function loadCompanyProfile() {
+export async function loadCompanyProfile() {
   try {
     const uid = (typeof getCurrentUser === 'function' && getCurrentUser())
       ? getCurrentUser().uid : null;

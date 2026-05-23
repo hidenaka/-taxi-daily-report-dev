@@ -2,10 +2,12 @@
 import { saveStand, deleteStand } from './stands-data.js';
 
 // 編集状態: 1施設ずつ。ピン1つ＋ルート点列（1本）＋notes。
+// 既存施設は select で選んで読み込み、その場で編集（保存は同じ id を上書き）。
 export function initEditor(ctx) {
-  const { map, companyId } = ctx;
+  const { map, companyId, stands = [] } = ctx;
   const bar = document.getElementById('stands-editbar');
   let editing = false;
+  let mode = null; // 'pin' | 'route' | null
   let pinMarker = null;
   let routePts = [];
   let routeLine = null;
@@ -13,17 +15,24 @@ export function initEditor(ctx) {
 
   const btnToggle = document.getElementById('ed-toggle');
 
-  // 追加ボタン群を生成
-  const btnNew = mkBtn('＋ 新規施設');
+  function mkBtn(label) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; return b; }
+
+  // 新規 or 既存施設の選択
+  const pick = document.createElement('select');
+  pick.id = 'ed-pick';
+  pick.innerHTML = '<option value="">＋ 新規施設</option>'
+    + stands.map((s) => `<option value="${s.id}">${s.name}</option>`).join('');
+
   const btnPin = mkBtn('📍 ピン配置');
   const btnRoute = mkBtn('〰 ルート描画');
   const btnUndo = mkBtn('↩ 1点戻す');
   const btnSave = mkBtn('💾 保存');
+  const btnDelete = mkBtn('🗑 削除');
   const btnCancel = mkBtn('✖ やめる');
-  [btnNew, btnPin, btnRoute, btnUndo, btnSave, btnCancel].forEach((b) => { b.style.display = 'none'; bar.appendChild(b); });
+  const controls = [pick, btnPin, btnRoute, btnUndo, btnSave, btnDelete, btnCancel];
+  controls.forEach((b) => { b.style.display = 'none'; bar.appendChild(b); });
 
-  function mkBtn(label) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; return b; }
-  function setEditButtons(on) { [btnNew, btnPin, btnRoute, btnUndo, btnSave, btnCancel].forEach((b) => { b.style.display = on ? '' : 'none'; }); }
+  function setEditButtons(on) { controls.forEach((b) => { b.style.display = on ? '' : 'none'; }); }
 
   btnToggle.addEventListener('click', () => {
     editing = !editing;
@@ -32,13 +41,27 @@ export function initEditor(ctx) {
     if (!editing) resetDraft();
   });
 
-  let mode = null; // 'pin' | 'route' | null
-  btnNew.addEventListener('click', () => { resetDraft(); current = null; alert('新規施設: 「ピン配置」で乗り場を置き、「ルート描画」で線を引いて保存'); });
+  // 既存施設を選んでドラフトに読み込む（その場編集→保存で上書き）
+  pick.addEventListener('change', () => {
+    resetDraftKeepPick();
+    const id = pick.value;
+    if (!id) { current = null; return; }
+    const s = stands.find((x) => x.id === id);
+    if (!s) return;
+    current = s;
+    if (s.pin) {
+      pinMarker = L.marker([s.pin.lat, s.pin.lng], { draggable: true }).addTo(map);
+      map.setView([s.pin.lat, s.pin.lng], 18);
+    }
+    const firstRoute = (s.routes || [])[0];
+    routePts = firstRoute && Array.isArray(firstRoute.points)
+      ? firstRoute.points.map((p) => ({ lat: p.lat, lng: p.lng })) : [];
+    redrawRoute();
+  });
+
   btnPin.addEventListener('click', () => { mode = 'pin'; });
   btnRoute.addEventListener('click', () => { mode = 'route'; });
-  btnUndo.addEventListener('click', () => {
-    if (routePts.length) { routePts.pop(); redrawRoute(); }
-  });
+  btnUndo.addEventListener('click', () => { if (routePts.length) { routePts.pop(); redrawRoute(); } });
 
   map.on('click', (e) => {
     if (!editing || !mode) return;
@@ -53,7 +76,7 @@ export function initEditor(ctx) {
   });
 
   function redrawRoute() {
-    if (routeLine) map.removeLayer(routeLine);
+    if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
     if (routePts.length >= 2) {
       routeLine = L.polyline(routePts.map((p) => [p.lat, p.lng]), { color: '#ffd400', weight: 5, dashArray: '6' }).addTo(map);
     }
@@ -77,19 +100,35 @@ export function initEditor(ctx) {
     try {
       const id = await saveStand(companyId, stand);
       alert('保存しました: ' + id);
-      location.reload(); // 反映を確実に（ピン再描画）
+      location.reload();
     } catch (e) {
       alert('保存に失敗: ' + e.message);
     }
   });
 
-  btnCancel.addEventListener('click', resetDraft);
+  btnDelete.addEventListener('click', async () => {
+    if (!current) { alert('削除する既存施設を選んでください'); return; }
+    if (!confirm(`「${current.name}」を削除しますか？`)) return;
+    try {
+      await deleteStand(companyId, current.id);
+      alert('削除しました');
+      location.reload();
+    } catch (e) {
+      alert('削除に失敗: ' + e.message);
+    }
+  });
 
-  function resetDraft() {
+  btnCancel.addEventListener('click', () => { resetDraft(); });
+
+  function resetDraftKeepPick() {
     mode = null;
     if (pinMarker) { map.removeLayer(pinMarker); pinMarker = null; }
     if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
     routePts = [];
+  }
+  function resetDraft() {
+    resetDraftKeepPick();
     current = null;
+    pick.value = '';
   }
 }

@@ -26,6 +26,8 @@ const STATIC_FILES = [
   './tools/js/stands-geo.js',
   './tools/js/stands-schema.js',
   './tools/js/stands-editor.js',
+  './tools/js/util.js',
+  './tools/js/geo.js',
   './vendor/leaflet/leaflet.js',
   './vendor/leaflet/leaflet.css',
   './css/style.css',

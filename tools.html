@@ -77,9 +77,9 @@ document.getElementById('navHost').innerHTML = renderBottomNav('tools');
 renderLegalFooter();
 </script>
   <script type="module">
-    import { getMyCompanyProfile } from './js/firebase-storage.js';
+    import { loadCompanyProfile } from './js/firebase-storage.js';
     try {
-      const c = await getMyCompanyProfile();
+      const c = await loadCompanyProfile();
       if (c && c.standsMapEnabled === true) {
         const el = document.getElementById('stands-card');
         if (el) el.style.display = '';

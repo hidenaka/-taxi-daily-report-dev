@@ -55,7 +55,7 @@ async function main() {
   if (await getIsAdmin()) {
     document.getElementById('stands-editbar').classList.add('show');
     const { initEditor } = await import('./stands-editor.js');
-    initEditor({ map, companyId, stands, renderPins, drawRoute, clearLayer, showStand });
+    initEditor({ map, companyId, stands });
   }
 }
 
