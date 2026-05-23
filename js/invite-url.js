@@ -82,6 +82,15 @@ export async function fetchCompanyExists(slug) {
   return snap.exists();
 }
 
+// 会社プロファイルを取得（無償フラグ判定用）。存在しなければ null。
+export async function fetchCompanyProfile(slug) {
+  if (!slug) return null;
+  const { db } = await import('./firebase-init.js');
+  const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+  const snap = await getDoc(doc(db, 'companies', slug));
+  return snap.exists() ? snap.data() : null;
+}
+
 // 簡易 HTML エスケープ（slug を画面表示する用）。
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({

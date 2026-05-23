@@ -222,6 +222,32 @@ export async function startCheckout(versions, plan) {
   return data.url;
 }
 
+// 無償会社の利用開始。Worker が会社フラグをサーバー検証して active(無償) を付与する。
+// 成功時は true。クライアントは companyId を渡さない（Worker が userId から検証する）。
+export async function startFree(versions) {
+  const { userId } = await loadFirebase();
+  const res = await fetch(billingApiBase() + '/start-free', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId,
+      agreement: {
+        termsVersion: (versions && versions.terms) || null,
+        privacyVersion: (versions && versions.privacy) || null,
+        tokuteishouVersion: (versions && versions.tokuteishou) || null,
+      },
+    }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.ok) {
+    const err = new Error(data.error || ('http_' + res.status));
+    err.code = data.error || ('http_' + res.status);
+    throw err;
+  }
+  clearSubCache();
+  return true;
+}
+
 export async function cancelSubscription(reason) {
   const { db, userId, fs } = await loadFirebase();
   const ref = fs.doc(db, 'subscriptions', userId);
