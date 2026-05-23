@@ -56,6 +56,12 @@ if (location.hostname.includes('-dev')) {
     <p>羽田空港の到着便スケジュール</p>
   </a>
 
+  <a href="tools/stands.html" class="tool-card" id="stands-card" style="display:none">
+    <div class="icon">📍</div>
+    <h3>乗り場マップ</h3>
+    <p>施設ごとの入港ルート・注意事項を地図で確認</p>
+  </a>
+
 </main>
 <div id="navHost"></div>
 <script type="module">
@@ -70,5 +76,15 @@ if (!(await enforceAccess('core'))) {
 document.getElementById('navHost').innerHTML = renderBottomNav('tools');
 renderLegalFooter();
 </script>
+  <script type="module">
+    import { getMyCompanyProfile } from './js/firebase-storage.js';
+    try {
+      const c = await getMyCompanyProfile();
+      if (c && c.standsMapEnabled === true) {
+        const el = document.getElementById('stands-card');
+        if (el) el.style.display = '';
+      }
+    } catch (e) { /* 未ログイン等は出さないままで良い */ }
+  </script>
 </body>
 </html>
