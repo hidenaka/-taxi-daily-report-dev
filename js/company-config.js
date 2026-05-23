@@ -10,7 +10,6 @@ export const COMPANY_LEVEL_KEYS = [
   'takeHomeRate',
   'responsibilityShifts',
   'premiumIncentive',
-  'paidLeaveAmount',
   'payrollMode',
   'fixedRate',
   // 営業地検索のデフォルト初期エリア（任意）。未設定なら丸の内フォールバック。

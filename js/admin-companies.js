@@ -11,7 +11,6 @@ const SLUG_RE = /^[a-z][a-z0-9_-]*$/;
 const NUMBER_LABELS = {
   takeHomeRate: '手取り率',
   responsibilityShifts: '責任出番数',
-  paidLeaveAmount: '有給休暇1日金額',
   fixedRate: '固定率',
   thresholdSalesExclTax: 'インセンティブ閾値売上',
   amountPerShift: 'インセンティブ額',
@@ -41,7 +40,6 @@ export function buildCompanyDoc(form) {
   const numbers = {
     takeHomeRate: num(form.takeHomeRate),
     responsibilityShifts: num(form.responsibilityShifts),
-    paidLeaveAmount: num(form.paidLeaveAmount),
     thresholdSalesExclTax: num(form.premiumThreshold),
     amountPerShift: num(form.premiumAmount),
   };
@@ -61,7 +59,6 @@ export function buildCompanyDoc(form) {
       thresholdSalesExclTax: numbers.thresholdSalesExclTax,
       amountPerShift: numbers.amountPerShift,
     },
-    paidLeaveAmount: numbers.paidLeaveAmount,
     payrollMode,
   };
 

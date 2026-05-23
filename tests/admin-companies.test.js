@@ -84,7 +84,6 @@ test('buildCompanyDoc: payrollMode が空ならエラー', () => {
 
 test('buildCompanyDoc: 共通数値項目が非数値なら両モードでエラー', () => {
   assert.ok(buildCompanyDoc(stepForm({ takeHomeRate: '' })).error);
-  assert.ok(buildCompanyDoc(stepForm({ paidLeaveAmount: 'abc' })).error);
   assert.ok(buildCompanyDoc(fixedForm({ takeHomeRate: '' })).error);
 });
 

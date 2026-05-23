@@ -243,9 +243,6 @@ if (location.hostname.includes('-dev')) {
       <label class="muted" style="margin-top:8px;display:block;">責任出番数</label>
       <input class="input" id="companyResponsibilityShifts" type="number" step="1" value="11">
 
-      <label class="muted" style="margin-top:8px;display:block;">有給休暇 1日あたり金額</label>
-      <input class="input" id="companyPaidLeaveAmount" type="number" step="100" value="39340">
-
       <label class="muted" style="margin-top:8px;display:block;">インセンティブ 閾値売上（税抜）</label>
       <input class="input" id="companyPremiumThreshold" type="number" step="1000" value="80000">
 
@@ -1208,7 +1205,6 @@ function newCompanyTemplate() {
     payrollMode: 'step_rate', fixedRate: 0.55,
     takeHomeRate: DEFAULT_CONFIG.takeHomeRate,
     responsibilityShifts: DEFAULT_CONFIG.responsibilityShifts,
-    paidLeaveAmount: DEFAULT_CONFIG.paidLeaveAmount,
     premiumIncentive: JSON.parse(JSON.stringify(DEFAULT_CONFIG.premiumIncentive)),
     rateTable: JSON.parse(JSON.stringify(DEFAULT_CONFIG.rateTable)),
   };
@@ -1233,7 +1229,6 @@ function fillCompanyForm(c, isNew) {
   document.getElementById('companyFixedRate').value = c.fixedRate ?? 0.55;
   document.getElementById('companyTakeHomeRate').value = c.takeHomeRate ?? 0.75;
   document.getElementById('companyResponsibilityShifts').value = c.responsibilityShifts ?? 11;
-  document.getElementById('companyPaidLeaveAmount').value = c.paidLeaveAmount ?? 39340;
   document.getElementById('companyPremiumThreshold').value =
     c.premiumIncentive?.thresholdSalesExclTax ?? 80000;
   document.getElementById('companyPremiumAmount').value =
@@ -1351,7 +1346,6 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
     fixedRate: document.getElementById('companyFixedRate').value,
     takeHomeRate: document.getElementById('companyTakeHomeRate').value,
     responsibilityShifts: document.getElementById('companyResponsibilityShifts').value,
-    paidLeaveAmount: document.getElementById('companyPaidLeaveAmount').value,
     premiumThreshold: document.getElementById('companyPremiumThreshold').value,
     premiumAmount: document.getElementById('companyPremiumAmount').value,
     defaultRecArea: document.getElementById('companyDefaultRecArea').value,
@@ -1554,7 +1548,6 @@ function loadIntoCompanyForm(item) {
   document.getElementById('companyPayrollMode').value = cfg.payrollMode || 'fixed_rate';
   document.getElementById('companyTakeHomeRate').value = cfg.takeHomeRate ?? 0.75;
   document.getElementById('companyResponsibilityShifts').value = cfg.responsibilityShifts ?? 11;
-  document.getElementById('companyPaidLeaveAmount').value = cfg.paidLeaveAmount ?? 39340;
   document.getElementById('companyPremiumThreshold').value = cfg.premiumIncentive?.thresholdSalesExclTax ?? 80000;
   document.getElementById('companyPremiumAmount').value = cfg.premiumIncentive?.amountPerShift ?? 2000;
   if (cfg.payrollMode === 'fixed_rate') {
