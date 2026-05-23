@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { COMPANY_LEVEL_KEYS, mergeCompanyConfig } from '../js/company-config.js';
+import { COMPANY_LEVEL_KEYS, mergeCompanyConfig, derivePeriodCompanyId } from '../js/company-config.js';
 
 test('COMPANY_LEVEL_KEYS に rateTable と takeHomeRate を含む', () => {
   assert.ok(COMPANY_LEVEL_KEYS.includes('rateTable'));
@@ -28,4 +28,19 @@ test('mergeCompanyConfig: 会社プロファイルに無い会社レベル項目
   const merged = mergeCompanyConfig(company, user);
   assert.strictEqual(merged.takeHomeRate, 0.70);
   assert.deepStrictEqual(merged.rateTable, { '11': [1] }); // 会社に無いので個人値
+});
+
+test('derivePeriodCompanyId: 最頻の companyId を返す', () => {
+  const drives = [{ companyId: 'co-a' }, { companyId: 'co-a' }, { companyId: 'co-b' }];
+  assert.strictEqual(derivePeriodCompanyId(drives), 'co-a');
+});
+
+test('derivePeriodCompanyId: 刻印が無ければ null', () => {
+  assert.strictEqual(derivePeriodCompanyId([{}, { companyId: null }]), null);
+  assert.strictEqual(derivePeriodCompanyId([]), null);
+  assert.strictEqual(derivePeriodCompanyId(undefined), null);
+});
+
+test('derivePeriodCompanyId: 一部だけ刻印ありでもその会社を返す', () => {
+  assert.strictEqual(derivePeriodCompanyId([{}, { companyId: 'co-x' }, {}]), 'co-x');
 });

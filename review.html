@@ -195,7 +195,7 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDate, formatDateY, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, todayIso } from './js/app.js';
-import { getDrivesForMonth, getDrivesForMonthCached, getConfig, getConfigCached, getDrive } from './js/storage.js';
+import { getDrivesForMonth, getDrivesForMonthCached, getConfig, getConfigCached, getDrive, getMyCompanyId } from './js/storage.js';
 import {
   ensureActiveVehicleType,
   getActiveVehicleType,
@@ -206,6 +206,8 @@ import { calcDailySales, calcTotalPay, calcMonthlySales } from './js/payroll.js'
 import { calcTimeBreakdown, dowPeriodMatrix, dowZoneMatrix, dowZoneEfficiency, dowAggregation, rankDrivesBySales, weatherSalesAggregation, WEATHER_LABELS, DOW_LABELS, isSummaryOnly, formatMin, ZONE_PRESETS, formatZoneRange, getShiftZones, dowOf, calcZoneBreakdown, zoneDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, salesStages, stageHeatmap } from './js/chart-helpers.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
+import { fetchCompanyProfile } from './js/invite-url.js';
+import { mergeCompanyConfig, derivePeriodCompanyId } from './js/company-config.js';
 import './js/help-video.js'; // ▶使い方動画のインライン展開プレイヤー
 
 if (!(await enforceAccess('analysis'))) {
@@ -223,6 +225,7 @@ let monthSummaries = []; // [{ym, drives, totalSales, totalShifts, totalPay, tot
 let rawDrivesByMonth = []; // フィルタ前の月別drives
 let currentPeriods = [];   // 現在の期間配列を保持
 let config = null;
+let periodConfigs = []; // Phase 3a: 各期を「その期に在籍した会社」の設定で計算（会社をまたいでも過去が正しい）
 let selectedMetric = 'total';
 let heatZonePreset = 'shift'; // 'human' | 'shift'
 
@@ -250,6 +253,27 @@ function applyVehicleFilterAndRender(label) {
   renderAll(currentPeriods, label);
 }
 
+// Phase 3a: 各期の「その期に在籍した会社」の実効設定を用意する。
+// 日報に刻まれた companyId が現会社と違う期だけ、その会社プロファイルで上書き。
+// 未刻印(旧データ)や現会社の期は baseConfig を流用。会社プロファイルはcompanyId単位でキャッシュ。
+async function buildPeriodConfigs(rawByMonth, baseConfig) {
+  let myCompanyId = null;
+  try { myCompanyId = await getMyCompanyId(); } catch (e) { /* 取得失敗→現configで継続 */ }
+  const profileCache = {};
+  const out = [];
+  for (const drives of rawByMonth) {
+    const cid = derivePeriodCompanyId(drives);
+    if (!cid || cid === myCompanyId) { out.push(baseConfig); continue; }
+    if (!(cid in profileCache)) {
+      try { profileCache[cid] = await fetchCompanyProfile(cid); }
+      catch (e) { profileCache[cid] = null; }
+    }
+    const prof = profileCache[cid];
+    out.push(prof ? mergeCompanyConfig(prof, baseConfig) : baseConfig);
+  }
+  return out;
+}
+
 function buildMonthSummaries(periods, filteredByMonth, rawByMonth) {
   monthSummaries = [];
   allDrives = [];
@@ -259,7 +283,7 @@ function buildMonthSummaries(periods, filteredByMonth, rawByMonth) {
     const rawDrives = rawByMonth[i] || [];
     allDrives.push(...drives);
     const monthly = calcMonthlySales(drives);              // filtered
-    const pay = calcTotalPay(rawDrives, config);            // raw — 給与は車種混在合算
+    const pay = calcTotalPay(rawDrives, periodConfigs[i] || config);  // raw — 給与は車種混在合算。Phase3a:期間別の会社設定で計算
     const detailed = drives.filter(d => !isSummaryOnly(d));
     let totalMin = 0;
     for (const d of detailed) totalMin += calcTimeBreakdown(d).totalMin;
@@ -293,6 +317,7 @@ async function load() {
     periods.push(shiftBillingPeriod(current, -i));
   }
   currentPeriods = periods;
+  periodConfigs = [];
 
   // === Phase 0: キャッシュ済み config から activeVehicleType を解決してタブを即描画 ===
   const cachedConfig = getConfigCached();
@@ -330,6 +355,7 @@ async function load() {
     ]);
     config = freshConfig;
     rawDrivesByMonth = freshByMonth;
+    periodConfigs = await buildPeriodConfigs(rawDrivesByMonth, config);
 
     // cache が無かった場合のみここで初期化 (Phase 0 でやれていれば skip)
     if (!document.querySelector('#vehicleTabsContainer .vehicle-tabs')) {

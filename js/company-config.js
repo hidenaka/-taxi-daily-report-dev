@@ -32,3 +32,19 @@ export function mergeCompanyConfig(companyProfile, userConfig) {
   }
   return merged;
 }
+
+// Phase 3a: 期間内の日報群から「その期の会社」を1つ決める（最頻の companyId、無ければ null）。
+// 会社をまたいでも、過去の給与をその期に在籍した会社の設定で計算するための判定。純関数。
+export function derivePeriodCompanyId(drives) {
+  const counts = {};
+  for (const d of (drives || [])) {
+    const c = d && d.companyId;
+    if (c) counts[c] = (counts[c] || 0) + 1;
+  }
+  let best = null;
+  let bestN = 0;
+  for (const c of Object.keys(counts)) {
+    if (counts[c] > bestN) { best = c; bestN = counts[c]; }
+  }
+  return best;
+}
