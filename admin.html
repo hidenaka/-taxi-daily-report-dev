@@ -222,6 +222,9 @@ if (location.hostname.includes('-dev')) {
       <label class="muted" style="margin-top:8px;display:block;">
         <input type="checkbox" id="companyActive" checked> 有効
       </label>
+      <label style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+        <input type="checkbox" id="companyFreeForInvited"> 無償（この会社の招待者は課金なしで利用開始）
+      </label>
 
       <label class="muted" style="margin-top:8px;display:block;">給与モード</label>
       <select class="select" id="companyPayrollMode">
@@ -1225,6 +1228,7 @@ function fillCompanyForm(c, isNew) {
   slugInput.readOnly = !isNew;
   document.getElementById('companyPlan').value = c.plan || 'partner';
   document.getElementById('companyActive').checked = c.active !== false;
+  document.getElementById('companyFreeForInvited').checked = (c && c.freeForInvited === true);
   document.getElementById('companyPayrollMode').value = c.payrollMode || 'step_rate';
   document.getElementById('companyFixedRate').value = c.fixedRate ?? 0.55;
   document.getElementById('companyTakeHomeRate').value = c.takeHomeRate ?? 0.75;
@@ -1342,6 +1346,7 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
     slug: document.getElementById('companySlug').value.trim(),
     plan: document.getElementById('companyPlan').value,
     active: document.getElementById('companyActive').checked,
+      freeForInvited: document.getElementById('companyFreeForInvited').checked,
     payrollMode: document.getElementById('companyPayrollMode').value,
     fixedRate: document.getElementById('companyFixedRate').value,
     takeHomeRate: document.getElementById('companyTakeHomeRate').value,
