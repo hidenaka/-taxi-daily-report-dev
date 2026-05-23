@@ -50,8 +50,8 @@ if (location.hostname.includes('-dev')) {
 </script>
 <main style="padding:14px;max-width:520px;margin:0 auto;">
   <a href="index.html" class="back-link">← ホームに戻る</a>
-  <h1>有料プランのお申し込み</h1>
-  <p class="muted" style="margin-bottom:14px;font-size:13px;">
+  <h1 id="pageTitle">有料プランのお申し込み</h1>
+  <p class="muted" id="leadText" style="margin-bottom:14px;font-size:13px;">
     キャビスの全機能（日報・乗務タイマー・IC判定・需要予測）を、初月無料でお試しいただけます。
   </p>
 
@@ -302,6 +302,11 @@ async function init() {
         if (pa) pa.textContent = '0';
         const pl = document.getElementById('planLabel');
         if (pl) pl.textContent = '無償（この会社の招待者は課金なし）';
+        // 見出し・導入文も「有料プラン」表現をやめて無償向けにする
+        const pt = document.getElementById('pageTitle');
+        if (pt) pt.textContent = 'ご利用のお申し込み（無償）';
+        const lt = document.getElementById('leadText');
+        if (lt) lt.textContent = 'この会社の招待を受けた方は、キャビスを無償でご利用いただけます。アカウント登録のうえ、ご利用を開始してください。';
       }
     }
   } catch (e) {
