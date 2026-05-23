@@ -69,6 +69,9 @@ export function buildCompanyDoc(form) {
   const defaultRecArea = String(form.defaultRecArea || '').trim();
   if (defaultRecArea) doc.defaultRecArea = defaultRecArea;
 
+  // 無償フラグ: true の会社の招待者は課金不要(worker /start-free で付与)。未指定は省略。
+  if (form.freeForInvited === true) doc.freeForInvited = true;
+
   // 固定部立は fixedRate 必須・rateTable 不要。変動部立は逆。
   if (payrollMode === 'fixed_rate') {
     const fixedRate = num(form.fixedRate);

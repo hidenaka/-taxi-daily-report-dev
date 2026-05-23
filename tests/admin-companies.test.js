@@ -175,3 +175,19 @@ test('buildReferralUrl: カスタム baseUrl', () => {
     'https://hidenaka.github.io/-taxi-daily-report-dev/?company=keiho&ref=taro'
   );
 });
+
+test('buildCompanyDoc: freeForInvited=true を doc に格納', () => {
+  const base = { slug: 'co-aaa111', plan: 'partner', active: true, payrollMode: 'fixed_rate',
+    takeHomeRate: '0.75', responsibilityShifts: '11', paidLeaveAmount: '39340',
+    premiumThreshold: '500000', premiumAmount: '1000', fixedRate: '0.55', freeForInvited: true };
+  const { doc, error } = buildCompanyDoc(base);
+  assert.equal(error, undefined);
+  assert.equal(doc.freeForInvited, true);
+});
+test('buildCompanyDoc: freeForInvited 未指定なら doc に含めない', () => {
+  const base = { slug: 'co-aaa111', plan: 'partner', active: true, payrollMode: 'fixed_rate',
+    takeHomeRate: '0.75', responsibilityShifts: '11', paidLeaveAmount: '39340',
+    premiumThreshold: '500000', premiumAmount: '1000', fixedRate: '0.55' };
+  const { doc } = buildCompanyDoc(base);
+  assert.equal('freeForInvited' in doc, false);
+});
