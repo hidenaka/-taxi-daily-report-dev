@@ -34,6 +34,9 @@ export function validateStand(obj) {
       });
     }
   }
+  if (obj.images !== undefined && !Array.isArray(obj.images)) {
+    errors.push('images: 配列でない');
+  }
   if (obj.markers !== undefined) {
     if (!Array.isArray(obj.markers)) {
       errors.push('markers: 配列でない');
@@ -65,12 +68,16 @@ export function normalizeStand(obj) {
         kind: MARKER_KINDS.includes(m.kind) ? m.kind : 'point',
       }))
     : [];
+  const images = Array.isArray(src.images)
+    ? src.images.filter((s) => typeof s === 'string' && s.trim() !== '')
+    : [];
   return {
     name: typeof src.name === 'string' ? src.name.trim() : '',
     category,
     pin: src.pin ? { lat: src.pin.lat, lng: src.pin.lng } : null,
     routes,
     markers,
+    images,
     notes: typeof src.notes === 'string' ? src.notes : '',
     sourcePdf: typeof src.sourcePdf === 'string' ? src.sourcePdf : '',
   };

@@ -67,6 +67,12 @@ test('validateStand: marker に label 無しは invalid', () => {
   assert.ok(r.errors.some(e => e.includes('marker')));
 });
 
+test('normalizeStand: images は文字列のみ通す・欠落は空配列', () => {
+  const n = normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 }, images: ['a-1.jpg', '', 3, 'b-2.jpg'] });
+  assert.deepEqual(n.images, ['a-1.jpg', 'b-2.jpg']);
+  assert.deepEqual(normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 } }).images, []);
+});
+
 test('normalizeStand: markers の不正kindは point・labelをtrim・欠落は空配列', () => {
   const n = normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 }, markers: [{ lat: 35.7, lng: 139.7, label: ' 入口 ', kind: 'zzz' }] });
   assert.equal(n.markers[0].kind, 'point');

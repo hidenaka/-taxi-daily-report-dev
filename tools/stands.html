@@ -25,6 +25,12 @@
     #stand-sheet h3{margin:0 0 6px;font-size:17px;}
     #stand-sheet .notes{white-space:pre-wrap;font-size:14px;line-height:1.6;}
     #stand-sheet .close{position:absolute;top:8px;right:12px;font-size:20px;background:none;border:none;color:inherit;}
+    #sheet-images{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+    #sheet-images img{width:100%;border-radius:8px;border:1px solid rgba(0,0,0,.15);background:#fff;cursor:zoom-in;}
+    #img-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.92);display:none;overflow:auto;-webkit-overflow-scrolling:touch;}
+    #img-overlay.open{display:block;}
+    #img-overlay img{display:block;width:100%;max-width:1400px;margin:0 auto;}
+    #img-overlay .x{position:fixed;top:8px;right:14px;font-size:30px;color:#fff;background:none;border:none;z-index:2001;}
     #stands-editbar{position:fixed;top:54px;right:8px;z-index:1250;display:none;flex-direction:column;gap:6px;}
     #stands-editbar.show{display:flex;}
     #stands-editbar button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border,#333);background:#222;color:#fff;}
@@ -51,7 +57,9 @@
     <button class="close" id="sheet-close" type="button" aria-label="閉じる">×</button>
     <h3 id="sheet-name"></h3>
     <div class="notes" id="sheet-notes"></div>
+    <div id="sheet-images"></div>
   </div>
+  <div id="img-overlay"><button class="x" id="img-overlay-close" type="button" aria-label="閉じる">×</button><img id="img-overlay-img" alt=""></div>
   <script type="module" src="js/stands-app.js"></script>
 </body>
 </html>

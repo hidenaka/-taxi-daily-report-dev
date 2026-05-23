@@ -7,13 +7,34 @@ import { waitForAuth } from '../../js/firebase-auth.js';
 const sheet = document.getElementById('stand-sheet');
 const sheetName = document.getElementById('sheet-name');
 const sheetNotes = document.getElementById('sheet-notes');
+const sheetImages = document.getElementById('sheet-images');
+const imgOverlay = document.getElementById('img-overlay');
+const imgOverlayImg = document.getElementById('img-overlay-img');
 document.getElementById('sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
+document.getElementById('img-overlay-close').addEventListener('click', () => imgOverlay.classList.remove('open'));
+imgOverlay.addEventListener('click', (e) => { if (e.target === imgOverlay) imgOverlay.classList.remove('open'); });
+
+function openImage(src) {
+  imgOverlayImg.src = src;
+  imgOverlay.classList.add('open');
+  imgOverlay.scrollTop = 0;
+}
 
 let map, routeLayer = null;
 
 function showStand(stand) {
   sheetName.textContent = stand.name;
   sheetNotes.textContent = stand.notes || '（注意事項は未登録）';
+  // 組合の道順図（PDF画像）を表示。タップで全画面拡大。
+  sheetImages.innerHTML = '';
+  (stand.images || []).forEach((file) => {
+    const img = document.createElement('img');
+    img.src = `data/stands-ref/${file}`;
+    img.alt = `${stand.name} 道順図`;
+    img.loading = 'lazy';
+    img.addEventListener('click', () => openImage(img.src));
+    sheetImages.appendChild(img);
+  });
   sheet.classList.add('open');
   clearLayer(map, routeLayer);
   routeLayer = drawRoute(map, stand);
