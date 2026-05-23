@@ -159,6 +159,11 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="alreadySection" style="display:none;">
     <h3>お申し込み状況</h3>
     <div id="alreadyMsg" class="status-msg info"></div>
+    <div id="switchFreeBox" style="display:none;margin:12px 0;padding:12px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;">
+      <p style="font-size:13px;line-height:1.7;margin-bottom:10px;">お勤め先がキャビスを導入したため、<strong>無料アカウントに切り替えられます</strong>。切り替えると現在の月額課金は次回更新で停止します（以後ずっと無料・記録はそのまま引き継がれます）。</p>
+      <button class="submit-btn" id="switchFreeBtn" style="margin-top:0;">無料アカウントに切り替える</button>
+      <div id="switchFreeMsg" style="font-size:12px;margin-top:8px;"></div>
+    </div>
     <a href="index.html" class="btn" style="display:block;text-align:center;text-decoration:none;background:var(--primary);color:#fff;">ホームへ戻る</a>
   </section>
 </main>
@@ -279,6 +284,42 @@ function showOnly(keepId) {
   });
 }
 
+// Phase 2: 個人課金中で、自分の会社が freeForInvited なら「無料に切り替える」を出す。
+async function maybeOfferSwitchToFree(sub) {
+  try {
+    if (!sub || sub.free === true || sub.planId === 'comp_company') return; // 既に無償
+    if (sub.planId !== 'paid_v1') return; // Stripe課金中のみ対象
+    let companyId = sub.companyId;
+    if (!companyId) {
+      const { getMyCompanyId } = await import('./js/firebase-storage.js');
+      companyId = await getMyCompanyId();
+    }
+    if (!companyId) return;
+    const profile = await fetchCompanyProfile(companyId);
+    if (!(profile && profile.freeForInvited === true)) return;
+    const box = document.getElementById('switchFreeBox');
+    if (box) box.style.display = '';
+  } catch (e) {
+    console.warn('maybeOfferSwitchToFree failed:', e);
+  }
+}
+
+document.getElementById('switchFreeBtn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('switchFreeBtn');
+  const msg = document.getElementById('switchFreeMsg');
+  btn.disabled = true;
+  msg.textContent = '切り替え中です…';
+  try {
+    await startFree(AGREEMENT_VERSIONS);
+    msg.textContent = '無料アカウントに切り替わりました。ホームへ移動します…';
+    location.href = 'index.html';
+  } catch (e) {
+    console.error('switch-to-free error:', e);
+    msg.textContent = 'エラーが発生しました。時間をおいて再度お試しください。';
+    btn.disabled = false;
+  }
+});
+
 async function init() {
   renderPrice();
   renderDates();
@@ -322,6 +363,8 @@ async function init() {
       showOnly('alreadySection');
       document.getElementById('alreadyMsg').textContent =
         `すでにご利用中です（状態：${formatStatus(sub.status)}）。`;
+      // Phase 2: 有料(Stripe)契約中で、自分の会社が無償対象なら「無料に切り替える」を提案
+      maybeOfferSwitchToFree(sub);
     } else if (!isEmailAuth()) {
       // 未登録(匿名) → Step 1 アカウント登録だけ表示（申込フォームは出さない）
       showOnly('registerStep');

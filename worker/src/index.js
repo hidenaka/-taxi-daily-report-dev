@@ -176,6 +176,7 @@ async function handleStartFree(request, env) {
   await firestorePatch(env, token, 'subscriptions/' + userId, {
     status: 'active',
     planId: 'comp_company',
+    free: true,
     companyId,
     agreedTermsAt: now,
     agreedTermsVersion: (agreement && agreement.termsVersion) || null,
@@ -185,6 +186,20 @@ async function handleStartFree(request, env) {
     createdAt,
     updatedAt: now,
   });
+  // 個人課金中だった人の「無償への切替」: 既存Stripeサブスクを期間末で解約して課金停止。
+  // 無償グラント(free:true)は上で記録済みなので、解約Webhookが届いても syncSubscription が保護する。
+  const existingSubId = existing && existing.fields && existing.fields.stripeSubscriptionId
+    && existing.fields.stripeSubscriptionId.stringValue;
+  if (existingSubId) {
+    try {
+      await stripe(env, 'POST', '/subscriptions/' + existingSubId, {
+        cancel_at_period_end: 'true',
+        metadata: { appUserId: userId, cancelReason: 'switch_to_free_company' },
+      });
+    } catch (e) {
+      console.error('start-free: 既存サブスクの解約に失敗（無償付与は成功）', existingSubId, (e && e.message) || e);
+    }
+  }
   return json(env, { ok: true });
 }
 
@@ -346,6 +361,18 @@ async function syncSubscription(env, sub, clientRefUserId) {
     return;
   }
 
+  const token = await getAccessToken(env);
+  // 無償グラント保護: 既に free:true / planId=comp_company の人は、
+  // （個人課金→無償切替後に届く）旧Stripeサブスクの解約Webhook等で上書きしない。
+  const existingDoc = await firestoreGet(env, token, 'subscriptions/' + userId);
+  const ef = (existingDoc && existingDoc.fields) || {};
+  const isFreeGrant = (ef.free && ef.free.booleanValue === true)
+    || (ef.planId && ef.planId.stringValue === 'comp_company');
+  if (isFreeGrant) {
+    console.log('syncSubscription: free grant, skip Stripe overwrite for', userId);
+    return;
+  }
+
   const status = STATUS_MAP[sub.status] || 'pending';
   const item = sub.items && sub.items.data && sub.items.data[0];
   // 購入された価格から tier（plan）を判定。simple価格なら 'simple'、それ以外は 'full'。
@@ -378,7 +405,6 @@ async function syncSubscription(env, sub, clientRefUserId) {
   const reason = sub.metadata && sub.metadata.cancelReason;
   if (reason) fields.cancelReason = reason;
 
-  const token = await getAccessToken(env);
   await firestorePatch(env, token, 'subscriptions/' + userId, fields);
   console.log('synced subscriptions/' + userId, '->', status);
 }
