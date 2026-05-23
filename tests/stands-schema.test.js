@@ -55,3 +55,21 @@ test('normalizeStand: name 前後空白をtrim', () => {
 test('STAND_CATEGORIES に other を含む', () => {
   assert.ok(STAND_CATEGORIES.includes('other'));
 });
+
+test('validateStand: markers 正常（lat/lng+label）は valid', () => {
+  const r = validateStand({ ...valid, markers: [{ lat: 35.6605, lng: 139.7292, label: 'タクシーベイ', kind: 'bay' }] });
+  assert.equal(r.valid, true);
+});
+
+test('validateStand: marker に label 無しは invalid', () => {
+  const r = validateStand({ ...valid, markers: [{ lat: 35.6605, lng: 139.7292 }] });
+  assert.equal(r.valid, false);
+  assert.ok(r.errors.some(e => e.includes('marker')));
+});
+
+test('normalizeStand: markers の不正kindは point・labelをtrim・欠落は空配列', () => {
+  const n = normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 }, markers: [{ lat: 35.7, lng: 139.7, label: ' 入口 ', kind: 'zzz' }] });
+  assert.equal(n.markers[0].kind, 'point');
+  assert.equal(n.markers[0].label, '入口');
+  assert.deepEqual(normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 } }).markers, []);
+});
