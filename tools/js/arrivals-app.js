@@ -1,6 +1,7 @@
 import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
+import { initPoolStatusSection } from './pool-status-section.js';
 
 const TAB_TERMINALS = {
   'T1': ['T1'],
@@ -131,4 +132,6 @@ setupDetailToggle();
 setupOriginFilter();
 refresh();
 initForecastSection().then(fn => { if (fn) refreshForecast = fn; });
-setInterval(() => { refresh(); refreshForecast(); }, 60000);
+let refreshPoolStatus = () => {};
+initPoolStatusSection().then(fn => { if (fn) refreshPoolStatus = fn; });
+setInterval(() => { refresh(); refreshForecast(); refreshPoolStatus(); }, 60000);
