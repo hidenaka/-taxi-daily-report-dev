@@ -99,7 +99,9 @@ export function initEditor(ctx) {
     editing = !editing;
     btnToggle.textContent = editing ? '👁 閲覧モード' : '✏️ 編集モード';
     setEditButtons(editing);
-    if (editing) addSat(); else { resetDraft(); removeSat(); }
+    // 衛星は自動で出さない（PDFは衛星写真でなく略図なので、道路名の出る淡色地図に合わせる方が見やすい）。
+    // 衛星が要る時だけ🛰ボタンで出す。
+    if (!editing) { resetDraft(); removeSat(); }
   });
   btnSat.addEventListener('click', () => { if (satLayer) removeSat(); else addSat(); });
 
