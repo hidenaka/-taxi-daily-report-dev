@@ -38,6 +38,23 @@ export function initEditor(ctx) {
   let markerLayer = null;
   let satLayer = null;
   let current = null;        // 編集中の既存 stand（新規は null）
+  let pdfOverlay = null;     // PDF道順図の歪み補正オーバーレイ（なぞり用・保存対象外）
+  let pdfOpacity = 0.55;
+  let distortReady = null;
+
+  // DistortableImage プラグインを管理者時のみ動的ロード（閲覧者には配らない）
+  function loadDistortable() {
+    if (distortReady) return distortReady;
+    distortReady = (async () => {
+      for (const href of ['../vendor/leaflet-distortable/vendor.css', '../vendor/leaflet-distortable/leaflet.distortableimage.css']) {
+        const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
+      }
+      const load = (src) => new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+      await load('../vendor/leaflet-distortable/vendor.js');
+      await load('../vendor/leaflet-distortable/leaflet.distortableimage.js');
+    })();
+    return distortReady;
+  }
 
   const btnToggle = document.getElementById('ed-toggle');
   function mkBtn(label) { const b = document.createElement('button'); b.type = 'button'; b.textContent = label; return b; }
@@ -57,11 +74,15 @@ export function initEditor(ctx) {
   const btnPin = mkBtn('📍 ピン(施設位置)');
   const btnMarker = mkBtn('🔖 マーカー追加');
   const btnRoute = mkBtn('〰 進入ルート');
+  const btnPdf = mkBtn('🗺 PDF重ねる');
+  const btnPdfLock = mkBtn('🔒 画像ロック');
+  const btnPdfOpacity = mkBtn('🌓 濃さ');
+  const btnPdfRemove = mkBtn('🗺 PDF消す');
   const btnUndo = mkBtn('↩ 1つ戻す');
   const btnSave = mkBtn('💾 保存');
   const btnDelete = mkBtn('🗑 削除');
   const btnCancel = mkBtn('✖ クリア');
-  const controls = [pick, mkKind, btnSat, btnPin, btnMarker, btnRoute, btnUndo, btnSave, btnDelete, btnCancel];
+  const controls = [pick, mkKind, btnSat, btnPin, btnMarker, btnRoute, btnPdf, btnPdfLock, btnPdfOpacity, btnPdfRemove, btnUndo, btnSave, btnDelete, btnCancel];
   controls.forEach((b) => { b.style.display = 'none'; bar.appendChild(b); });
   function setEditButtons(on) { controls.forEach((b) => { b.style.display = on ? '' : 'none'; }); }
 
@@ -105,6 +126,44 @@ export function initEditor(ctx) {
   btnPin.addEventListener('click', () => { mode = 'pin'; });
   btnMarker.addEventListener('click', () => { mode = 'marker'; });
   btnRoute.addEventListener('click', () => { mode = 'route'; });
+
+  // PDF道順図を地図に重ねる（四隅ドラッグで衛星に位置合わせ→ロックしてなぞる）
+  btnPdf.addEventListener('click', async () => {
+    const imgs = current && current.images ? current.images : [];
+    if (!imgs.length) { alert('この施設にはPDF道順図がありません（新規施設は先に保存してから）。'); return; }
+    await loadDistortable();
+    if (!L.distortableImageOverlay) { alert('オーバーレイの読込に失敗しました'); return; }
+    if (pdfOverlay) { map.removeLayer(pdfOverlay); pdfOverlay = null; }
+    const c = map.getCenter();
+    const d = 0.0012;
+    pdfOverlay = L.distortableImageOverlay(`data/stands-ref/${imgs[0]}`, {
+      corners: [
+        L.latLng(c.lat + d, c.lng - d), L.latLng(c.lat + d, c.lng + d),
+        L.latLng(c.lat - d, c.lng - d), L.latLng(c.lat - d, c.lng + d),
+      ],
+    }).addTo(map);
+    pdfOverlay.__locked = false;
+    pdfOverlay.on('load', () => { try { pdfOverlay.setOpacity(pdfOpacity); } catch (e) {} });
+    btnPdfLock.textContent = '🔒 画像ロック';
+    alert('PDFを重ねました。四隅をドラッグして衛星に合わせ→「🔒画像ロック」→「〰進入ルート」でなぞって保存。');
+  });
+  btnPdfLock.addEventListener('click', () => {
+    if (!pdfOverlay || !pdfOverlay.editing) return;
+    if (pdfOverlay.__locked) {
+      pdfOverlay.editing.enable();
+      pdfOverlay.__locked = false;
+      btnPdfLock.textContent = '🔒 画像ロック';
+    } else {
+      pdfOverlay.editing.disable();
+      pdfOverlay.__locked = true;
+      btnPdfLock.textContent = '✏️ 画像編集';
+    }
+  });
+  btnPdfOpacity.addEventListener('click', () => {
+    pdfOpacity = pdfOpacity >= 0.8 ? 0.3 : pdfOpacity + 0.25;
+    if (pdfOverlay) { try { pdfOverlay.setOpacity(pdfOpacity); } catch (e) {} }
+  });
+  btnPdfRemove.addEventListener('click', () => { if (pdfOverlay) { map.removeLayer(pdfOverlay); pdfOverlay = null; } });
   btnUndo.addEventListener('click', () => {
     if (mode === 'marker') { if (markers.length) { markers.pop(); redrawMarkers(); } }
     else if (routePts.length) { routePts.pop(); redrawRoute(); }
@@ -188,6 +247,7 @@ export function initEditor(ctx) {
     if (pinMarker) { map.removeLayer(pinMarker); pinMarker = null; }
     if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
     if (markerLayer) { map.removeLayer(markerLayer); markerLayer = null; }
+    if (pdfOverlay) { map.removeLayer(pdfOverlay); pdfOverlay = null; }
     routePts = [];
     markers = [];
   }
