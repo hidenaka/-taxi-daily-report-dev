@@ -39,7 +39,7 @@ export function initEditor(ctx) {
   let satLayer = null;
   let current = null;        // 編集中の既存 stand（新規は null）
   let pdfOverlay = null;     // PDF道順図の歪み補正オーバーレイ（なぞり用・保存対象外）
-  let pdfOpacity = 0.55;
+  let pdfOpacity = 0.4;
   let distortReady = null;
 
   // DistortableImage プラグインを管理者時のみ動的ロード（閲覧者には配らない）
@@ -99,6 +99,8 @@ export function initEditor(ctx) {
     editing = !editing;
     btnToggle.textContent = editing ? '👁 閲覧モード' : '✏️ 編集モード';
     setEditButtons(editing);
+    // 編集中は下部のPDF画像パネル(閲覧用シート)を隠す（地図に重なって編集の邪魔になるため）。
+    document.body.classList.toggle('stands-editing', editing);
     // 衛星は自動で出さない（PDFは衛星写真でなく略図なので、道路名の出る淡色地図に合わせる方が見やすい）。
     // 衛星が要る時だけ🛰ボタンで出す。
     if (!editing) { resetDraft(); removeSat(); }
