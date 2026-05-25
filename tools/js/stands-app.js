@@ -73,6 +73,7 @@ if (searchNear) searchNear.addEventListener('click', () => {
 });
 
 function showStand(stand) {
+  window.__activeStand = stand; // 編集モードで「タップした施設」を編集対象に引き継ぐため
   sheetName.textContent = stand.name;
   sheetNotes.textContent = stand.notes || '（注意事項は未登録）';
   // 組合の道順図（PDF画像）を表示。タップで全画面拡大。

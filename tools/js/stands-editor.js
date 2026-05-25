@@ -101,6 +101,12 @@ export function initEditor(ctx) {
     setEditButtons(editing);
     // 編集中は下部のPDF画像パネル(閲覧用シート)を隠す（地図に重なって編集の邪魔になるため）。
     document.body.classList.toggle('stands-editing', editing);
+    // 直前にタップ表示していた施設があれば、それを編集対象に自動選択（ドロップダウン選択不要に）。
+    if (editing && window.__activeStand && window.__activeStand.id
+        && [...pick.options].some((o) => o.value === window.__activeStand.id)) {
+      pick.value = window.__activeStand.id;
+      pick.dispatchEvent(new Event('change'));
+    }
     // 衛星は自動で出さない（PDFは衛星写真でなく略図なので、道路名の出る淡色地図に合わせる方が見やすい）。
     // 衛星が要る時だけ🛰ボタンで出す。
     if (!editing) { resetDraft(); removeSat(); }
@@ -133,23 +139,37 @@ export function initEditor(ctx) {
 
   // PDF道順図を地図に重ねる（四隅ドラッグで衛星に位置合わせ→ロックしてなぞる）
   btnPdf.addEventListener('click', async () => {
+    if (!current && window.__activeStand) current = window.__activeStand; // タップ表示中の施設を採用
     const imgs = current && current.images ? current.images : [];
-    if (!imgs.length) { alert('この施設にはPDF道順図がありません（新規施設は先に保存してから）。'); return; }
+    if (!imgs.length) { alert('この施設にはPDF道順図がありません。上の「＋新規施設」ドロップダウンで施設を選ぶか、地図のピンをタップしてから重ねてください。'); return; }
     await loadDistortable();
     if (!L.distortableImageOverlay) { alert('オーバーレイの読込に失敗しました'); return; }
     if (pdfOverlay) { map.removeLayer(pdfOverlay); pdfOverlay = null; }
-    const c = map.getCenter();
-    const d = 0.0012;
-    pdfOverlay = L.distortableImageOverlay(`data/stands-ref/${imgs[0]}`, {
-      corners: [
-        L.latLng(c.lat + d, c.lng - d), L.latLng(c.lat + d, c.lng + d),
-        L.latLng(c.lat - d, c.lng - d), L.latLng(c.lat - d, c.lng + d),
-      ],
-    }).addTo(map);
-    pdfOverlay.__locked = false;
-    pdfOverlay.on('load', () => { try { pdfOverlay.setOpacity(pdfOpacity); } catch (e) {} });
-    btnPdfLock.textContent = '🔒 画像ロック';
-    alert('PDFを重ねました。四隅をドラッグして衛星に合わせ→「🔒画像ロック」→「〰進入ルート」でなぞって保存。');
+    const url = `data/stands-ref/${imgs[0]}`;
+    // 画像の縦横比を取得し、今の地図表示に収まる大きさ＋正しい比率で重ねる（潰れ・サイズ違いを防ぐ）
+    const im = new Image();
+    im.onload = () => {
+      const aspect = (im.naturalWidth || 1) / (im.naturalHeight || 1);
+      const c = map.getCenter();
+      const b = map.getBounds();
+      const viewWidthM = b.getNorthWest().distanceTo(b.getNorthEast()); // 表示幅(m)
+      const widthM = Math.max(120, viewWidthM * 0.6);
+      const heightM = widthM / aspect;
+      const dLat = (heightM / 2) / 111320;
+      const dLng = (widthM / 2) / (111320 * Math.cos(c.lat * Math.PI / 180));
+      pdfOverlay = L.distortableImageOverlay(url, {
+        corners: [
+          L.latLng(c.lat + dLat, c.lng - dLng), L.latLng(c.lat + dLat, c.lng + dLng),
+          L.latLng(c.lat - dLat, c.lng - dLng), L.latLng(c.lat - dLat, c.lng + dLng),
+        ],
+      }).addTo(map);
+      pdfOverlay.__locked = false;
+      pdfOverlay.on('load', () => { try { pdfOverlay.setOpacity(pdfOpacity); } catch (e) {} });
+      btnPdfLock.textContent = '🔒 画像ロック';
+    };
+    im.onerror = () => alert('PDF画像の読込に失敗: ' + url);
+    im.src = url;
+    alert('PDFを重ねます。角の□ハンドルで拡大縮小・回転、四隅ドラッグで歪ませて道路に合わせ→「🔒画像ロック」→「〰進入ルート」でなぞる。');
   });
   btnPdfLock.addEventListener('click', () => {
     if (!pdfOverlay || !pdfOverlay.editing) return;
