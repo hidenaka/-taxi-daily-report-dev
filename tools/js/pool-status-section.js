@@ -12,6 +12,33 @@ export function activityText(act) {
   const arrow = { up: '↑', flat: '→', down: '↓' }[act.arrow] || '';
   return `${label}${arrow}`;
 }
+const TREND_JA = { up: '活発↑', flat: '横ばい→', down: '少なめ↓' };
+
+export function waitText(waitMin) {
+  return (typeof waitMin === 'number') ? `約${waitMin}分` : '—';
+}
+export function trendText(trend) { return TREND_JA[trend] || '—'; }
+
+/** 1乗り場分の事実行を組み立てる（断定しない・目安語彙のみ）。 */
+export function formatStallLine(stall) {
+  if (!stall) return '';
+  return `${stall.label}：在台 約${stall.occ ?? '—'}台 ／ 待ち目安 ${waitText(stall.waitMin)} ／ 出 ${trendText(stall.trend)}`;
+}
+
+const TERMINAL_LABEL = { T1: '第1・2乗り場（JAL T1）', T2: '第3・4乗り場（ANA T2）' };
+
+/** terminalArrivals を T1→T2 の順で人が読める行配列に。null/欠落は空配列。 */
+export function formatTerminalArrivals(ta) {
+  if (!ta) return [];
+  const out = [];
+  for (const t of ['T1', 'T2']) {
+    const v = ta[t];
+    if (!v) continue;
+    out.push(`${TERMINAL_LABEL[t]}これから来る客：30分で約${v.next30 ?? 0}人 ／ 60分で約${v.next60 ?? 0}人`);
+  }
+  return out;
+}
+
 export function isStale(generatedAt, nowMs, maxMinutes = STALE_MINUTES) {
   const t = Date.parse(generatedAt);
   if (Number.isNaN(t)) return true;
