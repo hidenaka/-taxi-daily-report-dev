@@ -2,6 +2,7 @@
 import { createStandsMap, renderPins, drawRoute, clearLayer } from './stands-map.js';
 import { loadStands, getMyCompanyId, getIsAdmin } from './stands-data.js';
 import { createGeoWatcher } from './geo.js';
+import { findNearestStands } from './stands-geo.js';
 import { waitForAuth } from '../../js/firebase-auth.js';
 
 const sheet = document.getElementById('stand-sheet');
@@ -21,6 +22,55 @@ function openImage(src) {
 }
 
 let map, routeLayer = null;
+let allStands = [];
+let myPos = null;
+
+const CAT_LABEL = { office: 'オフィス', hotel: 'ホテル', hospital: '病院', commercial: '商業', other: 'その他' };
+const searchInput = document.getElementById('search-input');
+const searchNear = document.getElementById('search-near');
+const searchResults = document.getElementById('search-results');
+
+function selectStand(stand) {
+  if (stand.pin) map.setView([stand.pin.lat, stand.pin.lng], 18);
+  showStand(stand);
+  searchResults.classList.remove('open');
+  searchInput.blur();
+}
+
+function renderResults(items) {
+  if (!items.length) {
+    searchResults.innerHTML = '<div class="empty">該当する施設がありません</div>';
+    searchResults.classList.add('open');
+    return;
+  }
+  searchResults.innerHTML = '';
+  items.forEach(({ stand, distKm }) => {
+    const d = document.createElement('div');
+    d.className = 'r';
+    const dist = (distKm != null) ? `<span class="dist">${distKm.toFixed(1)}km</span>` : '';
+    d.innerHTML = `${dist}${stand.name}<span class="cat">${CAT_LABEL[stand.category] || ''}</span>`;
+    d.addEventListener('click', () => selectStand(stand));
+    searchResults.appendChild(d);
+  });
+  searchResults.classList.add('open');
+}
+
+function doTextSearch(q) {
+  const query = (q || '').trim().toLowerCase();
+  if (!query) { searchResults.classList.remove('open'); return; }
+  const items = allStands
+    .filter((s) => `${s.name} ${CAT_LABEL[s.category] || ''}`.toLowerCase().includes(query))
+    .slice(0, 30)
+    .map((s) => ({ stand: s }));
+  renderResults(items);
+}
+
+if (searchInput) searchInput.addEventListener('input', () => doTextSearch(searchInput.value));
+if (searchNear) searchNear.addEventListener('click', () => {
+  if (!myPos) { alert('現在地が取得できていません。GPSを許可して少し待ってからお試しください。'); return; }
+  if (searchInput) searchInput.value = '';
+  renderResults(findNearestStands(myPos, allStands, 10));
+});
 
 function showStand(stand) {
   sheetName.textContent = stand.name;
@@ -72,11 +122,14 @@ async function main() {
     return;
   }
   window.__standsCount = stands.length; // smoke 検証用
+  allStands = stands;
   renderPins(map, stands, showStand);
+  map.on('click', () => searchResults.classList.remove('open'));
 
   // GPS 現在地（任意・既存パターン）
   const watcher = createGeoWatcher({
     onUpdate: (pos) => {
+      myPos = pos;
       if (window.__meMarker) map.removeLayer(window.__meMarker);
       window.__meMarker = L.circleMarker([pos.lat, pos.lng], { radius: 6, color: '#3498db', fillOpacity: 0.9 }).addTo(map);
     },

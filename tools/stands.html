@@ -31,7 +31,17 @@
     #img-overlay.open{display:block;}
     #img-overlay img{display:block;width:100%;max-width:1400px;margin:0 auto;}
     #img-overlay .x{position:fixed;top:8px;right:14px;font-size:30px;color:#fff;background:none;border:none;z-index:2001;}
-    #stands-editbar{position:fixed;top:54px;right:8px;z-index:1250;display:none;flex-direction:column;gap:6px;}
+    #stand-search{position:fixed;top:54px;left:8px;right:8px;z-index:1260;display:flex;gap:6px;}
+    #search-input{flex:1;min-width:0;padding:9px 11px;border-radius:9px;border:1px solid #bbb;font-size:15px;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+    #search-near{padding:9px 11px;border-radius:9px;border:1px solid #bbb;background:#fff;color:#111;font-size:13px;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.2);}
+    #search-results{position:fixed;top:98px;left:8px;right:8px;z-index:1260;background:#fff;color:#111;border-radius:10px;max-height:55vh;overflow:auto;box-shadow:0 6px 20px rgba(0,0,0,.35);display:none;}
+    #search-results.open{display:block;}
+    #search-results .r{padding:10px 13px;border-bottom:1px solid #eee;font-size:15px;cursor:pointer;}
+    #search-results .r:active{background:#eef;}
+    #search-results .r .cat{font-size:11px;color:#888;margin-left:8px;}
+    #search-results .r .dist{float:right;color:#2980b9;font-size:12px;}
+    #search-results .empty{padding:12px 13px;color:#888;font-size:13px;}
+    #stands-editbar{position:fixed;top:100px;right:8px;z-index:1250;display:none;flex-direction:column;gap:6px;}
     #stands-editbar.show{display:flex;}
     #stands-editbar button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border,#333);background:#222;color:#fff;}
   </style>
@@ -51,6 +61,11 @@
     <a href="stands.html" class="app-tab active" aria-current="page">📍 乗り場</a>
   </nav>
   <div id="stands-map"></div>
+  <div id="stand-search">
+    <input id="search-input" type="search" placeholder="施設名・キーワードで検索（例: 病院, 六本木）" autocomplete="off">
+    <button id="search-near" type="button">📍 近く</button>
+  </div>
+  <div id="search-results"></div>
   <div id="stands-editbar">
     <button id="ed-toggle" type="button">✏️ 編集モード</button>
   </div>
