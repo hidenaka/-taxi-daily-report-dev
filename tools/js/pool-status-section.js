@@ -61,6 +61,8 @@ export async function initPoolStatusSection() {
   const actEl = document.getElementById('pool-status-activity');
   const img1 = document.getElementById('pool-cam-real01');
   const img2 = document.getElementById('pool-cam-real02');
+  const stallsEl = document.getElementById('pool-status-stalls');
+  const arrivalsEl = document.getElementById('pool-status-arrivals');
   if (!metaEl || !occEl) return;
 
   async function render() {
@@ -80,6 +82,24 @@ export async function initPoolStatusSection() {
     if (actEl) {
       const a = data.activity || {};
       actEl.innerHTML = `今日の流れ: <strong>${activityText(a)}</strong>（直近1h 出庫${a.recent1hDepartures ?? '—'}台 / 平常${a.typical1h ?? '—'}台）`;
+    }
+    if (stallsEl) {
+      const stalls = data.stalls;
+      if (stalls) {
+        const order = ['stall1', 'stall2', 'stall3', 'stall4'];
+        stallsEl.innerHTML = order
+          .filter(k => stalls[k])
+          .map(k => `<div>${formatStallLine(stalls[k])}</div>`)
+          .join('');
+      } else {
+        stallsEl.innerHTML = '';
+      }
+    }
+    if (arrivalsEl) {
+      const lines = formatTerminalArrivals(data.terminalArrivals);
+      arrivalsEl.innerHTML = lines.length
+        ? lines.map(l => `<div>${l}</div>`).join('')
+        : '';
     }
   }
   await render();
