@@ -177,6 +177,8 @@
     .fc-table th:first-child, .fc-table td.fc-time { text-align: left; }
     .fc-table td.fc-time { font-weight: 600; }
     .fc-table td.fc-total { font-weight: 700; color: var(--accent); }
+    #pool-status-block .ps-dots { letter-spacing:1px; }
+    #pool-status-occ, #pool-status-activity { font-size:13px; }
 
     body { padding-bottom: 64px; }
     nav.bottom {
@@ -224,8 +226,17 @@
   <div id="weather-banner" hidden></div>
 
   <section id="forecast-section">
-    <h2>🚕 タクシー出庫（実績／予測）<button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
+    <h2>🚕 タクシープール現況・出庫<button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
+    <div id="pool-status-block" style="margin:8px 0 12px;">
+      <div class="ps-cams" style="display:flex; gap:6px;">
+        <img id="pool-cam-real01" alt="プール(第1〜4)" style="width:50%; border-radius:6px; background:#111;" />
+        <img id="pool-cam-real02" alt="プール(第4待機)" style="width:50%; border-radius:6px; background:#111;" />
+      </div>
+      <div id="pool-status-meta" style="color:var(--sub); font-size:11px; margin-top:4px;">読み込み中...</div>
+      <div id="pool-status-occ" style="margin-top:4px;">混み具合: —</div>
+      <div id="pool-status-activity" style="margin-top:2px;">今日の流れ: —</div>
+    </div>
     <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 実績・予測の仕組みと注意</summary>
@@ -238,7 +249,7 @@
     <div class="fc-controls">
       <select id="forecast-mode" class="fc-mode">
         <option value="actuals">実績</option>
-        <option value="forecast">予測</option>
+        <option value="forecast">予測（目安・学習中）</option>
       </select>
       <div class="fc-scope-group" role="group" aria-label="表示範囲">
         <button id="forecast-scope-recent" type="button" class="fc-scope-btn">直近2時間</button>
