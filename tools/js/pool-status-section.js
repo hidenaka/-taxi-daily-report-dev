@@ -42,11 +42,11 @@ export async function initPoolStatusSection() {
     if (img2) img2.src = `data/pool-cam-real02.jpg?t=${cb}`;
     const { data, error } = await loadPoolStatus();
     if (error || !data) { metaEl.textContent = '現況データを取得できていません'; return; }
+    const ts = String(data.generatedAt).slice(11, 16);
     if (isStale(data.generatedAt, Date.now())) {
-      metaEl.textContent = '現況データが配信停止中の可能性があります';
+      metaEl.textContent = `📷 配信停止中の可能性（写真・データは ${ts} が最終）`;
     } else {
-      const ts = String(data.generatedAt).slice(11, 16);
-      metaEl.textContent = `直近 ${ts} 時点`;
+      metaEl.textContent = `📷 写真・データは ${ts} 時点（数分ごと更新・リアルタイムではありません）`;
     }
     const t = data.total || {};
     occEl.innerHTML = `混み具合: <span class="ps-dots">${levelDots(t.level)}</span> ${levelText(t.level)}（在台 約${t.occ ?? '—'}台）`;
