@@ -28,7 +28,7 @@ export const DEFAULT_CONFIG = {
   grossTarget: 0,
   takeHomeAt11Target: 0,
   takeHomeAfter11Target: 0,
-  paidLeaveAmount: 39340,
+  paidLeaveAmount: 41340,
   displayName: "",
   rateTable: {
     "11": [

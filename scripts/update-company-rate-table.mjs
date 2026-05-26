@@ -102,11 +102,14 @@ const curFields = cur.fields || {};
 const curRate = fromFirestoreValue(curFields.rateTable) || {};
 const curTHR = fromFirestoreValue(curFields.takeHomeRate);
 
-const NEW = { rateTable: DEFAULT_CONFIG.rateTable, takeHomeRate: DEFAULT_CONFIG.takeHomeRate };
+const NEW = { rateTable: DEFAULT_CONFIG.rateTable, takeHomeRate: DEFAULT_CONFIG.takeHomeRate, paidLeaveAmount: DEFAULT_CONFIG.paidLeaveAmount };
 const findRate = (t, s) => { if (!Array.isArray(t)) return null; for (const x of t) if (s >= x.salesMin && s < x.salesMax) return x.rate; return t.length ? t[t.length - 1].rate : null; };
 
 console.log('--- takeHomeRate ---');
 console.log(`  現在: ${curTHR}  →  新: ${NEW.takeHomeRate}`);
+console.log('--- paidLeaveAmount ---');
+const curPLA=fromFirestoreValue(curFields.paidLeaveAmount);
+console.log(`  現在: ${curPLA}  →  新: ${NEW.paidLeaveAmount}`);
 console.log('--- rateTable[11] 代表点(税抜営収 → 歩率) ---');
 for (const s of [550000, 715000, 825000, 865064, 880000, 1100000]) {
   console.log(`  @${s}: ${findRate(curRate['11'], s)} → ${findRate(NEW.rateTable['11'], s)}`);
@@ -122,10 +125,10 @@ console.log('');
 if (isDryRun) { console.log('(dry-run: 書き込みなし。--execute で反映)'); process.exit(0); }
 
 // --- PATCH (updateMask で rateTable + takeHomeRate のみ書き換え、他は温存) ---
-const patchUrl = docUrl + '?updateMask.fieldPaths=rateTable&updateMask.fieldPaths=takeHomeRate';
-const body = { fields: { rateTable: toFirestoreValue(NEW.rateTable), takeHomeRate: toFirestoreValue(NEW.takeHomeRate) } };
+const patchUrl = docUrl + '?updateMask.fieldPaths=rateTable&updateMask.fieldPaths=takeHomeRate&updateMask.fieldPaths=paidLeaveAmount';
+const body = { fields: { rateTable: toFirestoreValue(NEW.rateTable), takeHomeRate: toFirestoreValue(NEW.takeHomeRate), paidLeaveAmount: toFirestoreValue(NEW.paidLeaveAmount) } };
 const res = await fetch(patchUrl, { method: 'PATCH',
   headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
   body: JSON.stringify(body) });
-if (res.status === 200) console.log(`✓ companies/${slug} の rateTable + takeHomeRate を更新 (project ${projectId})`);
+if (res.status === 200) console.log(`✓ companies/${slug} の rateTable + takeHomeRate + paidLeaveAmount を更新 (project ${projectId})`);
 else { console.error(`PATCH 失敗 ${res.status}:`, await res.text()); process.exit(1); }
