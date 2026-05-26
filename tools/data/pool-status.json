@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-05-26T21:38:18+09:00",
+  "generatedAt": "2026-05-26T21:48:47+09:00",
   "cameras": {
     "real01": {
-      "occ": 17,
+      "occ": 35,
       "fullRef": 42,
-      "level": "normal"
+      "level": "crowded"
     },
     "real02": {
-      "occ": 3,
+      "occ": 6,
       "fullRef": 12,
-      "level": "empty"
+      "level": "normal"
     }
   },
   "total": {
-    "occ": 20,
-    "level": "normal"
+    "occ": 41,
+    "level": "crowded"
   },
   "activity": {
-    "recent1hDepartures": 51,
-    "typical1h": 45,
-    "ratio": 1.13,
+    "recent1hDepartures": 46,
+    "typical1h": 44,
+    "ratio": 1.05,
     "level": "normal",
     "arrow": "flat"
   }
