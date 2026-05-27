@@ -58,6 +58,11 @@ export function validateStand(obj) {
           if (!Array.isArray(a.line) || a.line.length < 2 || !a.line.every(isValidLatLng))
             errors.push(`approach[${i}]: line は {lat,lng} 2点以上`);
         }
+        if (a.pdfLines !== undefined) {
+          if (!Array.isArray(a.pdfLines)) errors.push(`approach[${i}]: pdfLines は配列`);
+          else if (!a.pdfLines.every((p) => p && isFiniteNum(p.x) && isFiniteNum(p.y)))
+            errors.push(`approach[${i}]: pdfLines は {x,y} の数値`);
+        }
       });
     }
   }
@@ -112,6 +117,12 @@ export function normalizeStand(obj) {
         hint: typeof a.hint === 'string' ? a.hint.trim() : '',
         line: Array.isArray(a.line) && a.line.length >= 2 && a.line.every(isValidLatLng)
           ? a.line.map((p) => ({ lat: p.lat, lng: p.lng })) : [],
+        pdfLines: Array.isArray(a.pdfLines)
+          ? a.pdfLines
+              .filter((p) => p && isFiniteNum(p.x) && isFiniteNum(p.y))
+              .map((p) => ({ x: p.x, y: p.y }))
+          : [],
+        pdfImageRef: typeof a.pdfImageRef === 'string' ? a.pdfImageRef.trim() : '',
       }))
     : [];
   const cautions = Array.isArray(src.cautions)

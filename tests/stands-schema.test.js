@@ -124,3 +124,28 @@ test('normalizeStand: cautions 文字列のみ通す・欠落は空配列', () =
   assert.deepEqual(n.cautions, ['a', 'b']);
   assert.deepEqual(normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 } }).cautions, []);
 });
+
+test('validateStand: approach.pdfLines が[{x,y}]ならvalid', () => {
+  const r = validateStand({ ...valid, approaches: [{
+    label: 'a', pdfLines: [{ x: 10, y: 20 }, { x: 30, y: 40 }], pdfImageRef: 'a-1.jpg',
+  }] });
+  assert.equal(r.valid, true);
+});
+
+test('validateStand: approach.pdfLines に非数値があると invalid', () => {
+  const r = validateStand({ ...valid, approaches: [{
+    label: 'a', pdfLines: [{ x: 'X', y: 0 }],
+  }] });
+  assert.equal(r.valid, false);
+});
+
+test('normalizeStand: pdfLines / pdfImageRef を保持（欠落は空配列・空文字）', () => {
+  const n = normalizeStand({ name: 'X', pin: { lat: 35.7, lng: 139.7 }, approaches: [{
+    label: 'a', pdfLines: [{ x: 10, y: 20 }], pdfImageRef: 'a-1.jpg',
+  }] });
+  assert.deepEqual(n.approaches[0].pdfLines, [{ x: 10, y: 20 }]);
+  assert.equal(n.approaches[0].pdfImageRef, 'a-1.jpg');
+  const n2 = normalizeStand({ name: 'Y', pin: { lat: 35.7, lng: 139.7 }, approaches: [{ label: 'a' }] });
+  assert.deepEqual(n2.approaches[0].pdfLines, []);
+  assert.equal(n2.approaches[0].pdfImageRef, '');
+});
