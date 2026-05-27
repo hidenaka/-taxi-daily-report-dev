@@ -74,7 +74,7 @@ export function formatStallLineV2(stall) {
   const hasPercent = sc && typeof sc.percent === 'number';
   // percent の符号付き表記
   const pctText = hasPercent
-    ? `いつもの ${sc.percent >= 0 ? '+' : ''}${sc.percent}%`
+    ? `いつもの ${sc.percent >= 0 ? '+' : ''}${Math.round(sc.percent)}%`
     : null;
 
   let tail = '';
