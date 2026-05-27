@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-05-27T20:32:43+09:00",
+  "generatedAt": "2026-05-27T21:10:03+09:00",
   "areas": {
     "front": {
       "camera": "Real108",
-      "fillRatio": 0.472,
+      "fillRatio": 0.51,
       "level": "半分",
-      "approxCount": 14
+      "approxCount": 15
     },
     "rear": {
       "camera": "Real109",
