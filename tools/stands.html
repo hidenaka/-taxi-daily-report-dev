@@ -57,6 +57,24 @@
     #stands-editbar{position:fixed;top:100px;right:8px;z-index:1250;display:none;flex-direction:column;gap:6px;}
     #stands-editbar.show{display:flex;}
     #stands-editbar button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--border,#333);background:#222;color:#fff;}
+    #georef-overlay{position:fixed;inset:0;z-index:1800;background:#0e0e10;color:#fff;display:flex;flex-direction:column;}
+    #georef-overlay[hidden]{display:none;}
+    #georef-overlay .g-bar{display:flex;gap:8px;align-items:center;padding:8px 10px;background:#1a1a20;border-bottom:1px solid #333;flex-wrap:wrap;}
+    #georef-overlay .g-title{font-weight:700;font-size:15px;margin-right:6px;}
+    #georef-overlay .g-status{color:#9bd;font-size:13px;margin-right:8px;}
+    #georef-overlay .g-bar button{font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid #444;background:#222;color:#fff;}
+    #georef-overlay .g-bar button:disabled{opacity:.4;}
+    #georef-overlay .g-body{flex:1;display:flex;min-height:0;}
+    @media (max-width:760px){#georef-overlay .g-body{flex-direction:column;}}
+    #georef-overlay .g-pane{flex:1;min-width:0;min-height:0;position:relative;border:1px solid #222;overflow:hidden;}
+    #georef-overlay .g-pdf{background:#fff;}
+    #georef-overlay .g-pdf-wrap{position:absolute;inset:0;overflow:auto;}
+    #georef-overlay #g-pdf-img{display:block;max-width:none;cursor:crosshair;user-select:none;}
+    #georef-overlay .g-map #g-map{position:absolute;inset:0;cursor:crosshair;}
+    .g-marker{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;color:#fff;font-weight:700;font-size:12px;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.6);}
+    .g-marker.pdf{background:#c0392b;}
+    .g-marker.geo{background:#1d6fe0;}
+    .g-preview-line{stroke:#27ae60;stroke-width:5;opacity:.9;}
   </style>
 </head>
 <body>
@@ -90,5 +108,21 @@
   </div>
   <div id="img-overlay"><button class="x" id="img-overlay-close" type="button" aria-label="閉じる">×</button><img id="img-overlay-img" alt=""></div>
   <script type="module" src="js/stands-app.js"></script>
+  <div id="georef-overlay" hidden>
+    <div class="g-bar">
+      <span class="g-title">📐 PDF合わせ</span>
+      <span class="g-status" id="g-status">対応点 0/4</span>
+      <button id="g-undo" type="button">↩ やり直し</button>
+      <button id="g-compute" type="button" disabled>変換</button>
+      <button id="g-save" type="button" disabled>💾 保存</button>
+      <button id="g-close" type="button">✖ 閉じる</button>
+    </div>
+    <div class="g-body">
+      <div class="g-pane g-pdf">
+        <div class="g-pdf-wrap"><img id="g-pdf-img" alt=""></div>
+      </div>
+      <div class="g-pane g-map"><div id="g-map"></div></div>
+    </div>
+  </div>
 </body>
 </html>
