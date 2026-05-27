@@ -11,27 +11,40 @@ function hav(a, b) {
   return 2 * 6371000 * Math.asin(Math.sqrt(h));
 }
 
-// 端点共有の ways を順に連結（双方向 OK）。離れた塊は最も長い塊のみ採用。
+// 端点共有の ways を順に連結（双方向 OK）。複数の連結成分に分かれる場合は最長の成分を返す（後方互換）。
 export function mergeWaysToPolyline(ways) {
+  const components = mergeWaysAllComponents(ways);
+  if (components.length === 0) return [];
+  return components.reduce((a, b) => (b.length > a.length ? b : a));
+}
+
+// 全ての連結成分をリストで返す。進入方向を考慮した成分選択に使う。
+export function mergeWaysAllComponents(ways) {
   if (!Array.isArray(ways) || ways.length === 0) return [];
-  const remaining = ways.map((w) => (w.geometry || []).map((p) => ({ lat: p.lat, lng: p.lng })))
+  const segments = ways.map((w) => (w.geometry || []).map((p) => ({ lat: p.lat, lng: p.lng })))
     .filter((g) => g.length >= 2);
-  if (remaining.length === 0) return [];
-  let chain = remaining.shift();
-  let progressed = true;
-  while (progressed && remaining.length > 0) {
-    progressed = false;
-    for (let i = 0; i < remaining.length; i++) {
-      const w = remaining[i];
-      const head = chain[0], tail = chain[chain.length - 1];
-      const wHead = w[0], wTail = w[w.length - 1];
-      if (eq(tail, wHead)) { chain = chain.concat(w.slice(1)); remaining.splice(i, 1); progressed = true; break; }
-      if (eq(tail, wTail)) { chain = chain.concat(w.slice().reverse().slice(1)); remaining.splice(i, 1); progressed = true; break; }
-      if (eq(head, wTail)) { chain = w.slice(0, -1).concat(chain); remaining.splice(i, 1); progressed = true; break; }
-      if (eq(head, wHead)) { chain = w.slice().reverse().slice(0, -1).concat(chain); remaining.splice(i, 1); progressed = true; break; }
+  if (segments.length === 0) return [];
+
+  const remaining = segments.slice();
+  const components = [];
+  while (remaining.length > 0) {
+    let chain = remaining.shift();
+    let progressed = true;
+    while (progressed && remaining.length > 0) {
+      progressed = false;
+      for (let i = 0; i < remaining.length; i++) {
+        const w = remaining[i];
+        const head = chain[0], tail = chain[chain.length - 1];
+        const wHead = w[0], wTail = w[w.length - 1];
+        if (eq(tail, wHead)) { chain = chain.concat(w.slice(1)); remaining.splice(i, 1); progressed = true; break; }
+        if (eq(tail, wTail)) { chain = chain.concat(w.slice().reverse().slice(1)); remaining.splice(i, 1); progressed = true; break; }
+        if (eq(head, wTail)) { chain = w.slice(0, -1).concat(chain); remaining.splice(i, 1); progressed = true; break; }
+        if (eq(head, wHead)) { chain = w.slice().reverse().slice(0, -1).concat(chain); remaining.splice(i, 1); progressed = true; break; }
+      }
     }
+    components.push(chain);
   }
-  return chain;
+  return components;
 }
 
 export function nearestPointOnPolyline(polyline, pin) {

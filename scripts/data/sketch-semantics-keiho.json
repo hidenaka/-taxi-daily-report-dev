@@ -1,0 +1,9 @@
+{
+  "_comment": "Claudeが47PDFを読解した構造化記述。main_road=OSM道路名(日本語)、entry_direction=east|west|north|south、turn=left|right|null",
+  "roppongi_hills": {
+    "approaches": [
+      { "label_ja": "六本木通り側から進入", "main_road": "六本木通り", "entry_direction": "east", "destination_side": "south", "turn": null, "_pdf_notes": "六本木通り西行き→センターループ入口A" },
+      { "label_ja": "けやき坂側から進入", "main_road": "けやき坂", "entry_direction": "west", "destination_side": "north", "turn": null, "_pdf_notes": "けやき坂を西進→入口B (OSM名: けやき坂)" }
+    ]
+  }
+}

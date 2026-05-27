@@ -1,6 +1,6 @@
 // scripts/lib/sketch-to-line.mjs — semantics + ways → 進入線（純関数）
 import {
-  mergeWaysToPolyline, nearestPointOnPolyline, directionalEndpoint,
+  mergeWaysAllComponents, mergeWaysToPolyline, nearestPointOnPolyline, directionalEndpoint,
 } from './road-network.mjs';
 
 function sliceBetween(polyline, i0, i1) {
@@ -9,9 +9,61 @@ function sliceBetween(polyline, i0, i1) {
   return polyline.slice(i1, i0 + 1).reverse();
 }
 
+// 進入方向に合った連結成分を選ぶ。
+// entry_direction=east → pin より東に点を持つ成分 (max_lng > pin.lng)
+// entry_direction=west → pin より西に点を持つ成分 (min_lng < pin.lng)
+// entry_direction=north → pin より北に点を持つ成分 (max_lat > pin.lat)
+// entry_direction=south → pin より南に点を持つ成分 (min_lat < pin.lat)
+// 条件を満たす成分が複数あれば最も pin に近い点を持つものを選ぶ。
+// 条件を満たす成分がなければ最長成分にフォールバック。
+function selectComponentForDirection(components, pin, direction) {
+  if (components.length === 0) return [];
+  if (components.length === 1) return components[0];
+
+  const TOLERANCE = 0.0005; // ~50m、ちょうど pin 上の道路も拾えるよう少し余裕を持つ
+  function satisfies(comp) {
+    const lats = comp.map((p) => p.lat);
+    const lngs = comp.map((p) => p.lng);
+    const maxLat = Math.max(...lats), minLat = Math.min(...lats);
+    const maxLng = Math.max(...lngs), minLng = Math.min(...lngs);
+    switch (direction) {
+      case 'east':  return maxLng > pin.lng - TOLERANCE;
+      case 'west':  return minLng < pin.lng + TOLERANCE;
+      case 'north': return maxLat > pin.lat - TOLERANCE;
+      case 'south': return minLat < pin.lat + TOLERANCE;
+      default:      return true;
+    }
+  }
+
+  function hav(a, b) {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * 6371000 * Math.asin(Math.sqrt(h));
+  }
+
+  const candidates = components.filter(satisfies);
+  if (candidates.length === 0) {
+    // フォールバック: 最長
+    return components.reduce((a, b) => (b.length > a.length ? b : a));
+  }
+  if (candidates.length === 1) return candidates[0];
+
+  // 複数候補 → pin に最も近い点を持つものを選ぶ
+  let best = candidates[0]; let bestDist = Infinity;
+  for (const comp of candidates) {
+    for (const p of comp) {
+      const d = hav(p, pin);
+      if (d < bestDist) { bestDist = d; best = comp; }
+    }
+  }
+  return best;
+}
+
 export function buildApproachLine({ semantics, mainWays, turnWays, pin }) {
   if (!Array.isArray(mainWays) || mainWays.length === 0) return [];
-  const main = mergeWaysToPolyline(mainWays);
+  const mainComponents = mergeWaysAllComponents(mainWays);
+  const main = selectComponentForDirection(mainComponents, pin, semantics.entry_direction || 'east');
   if (main.length < 2) return [];
 
   const startPoint = directionalEndpoint(main, pin, semantics.entry_direction || 'east');
@@ -24,7 +76,8 @@ export function buildApproachLine({ semantics, mainWays, turnWays, pin }) {
     return sliceBetween(main, startIdx, nearestOnMain.index);
   }
 
-  const turn = mergeWaysToPolyline(turnWays);
+  const turnComponents = mergeWaysAllComponents(turnWays);
+  const turn = selectComponentForDirection(turnComponents, pin, semantics.turn === 'left' ? 'north' : 'south');
   if (turn.length < 2) return sliceBetween(main, startIdx, nearestOnMain.index);
 
   let bestMainIdx = 0, bestTurnIdx = 0, bestD = Infinity;
