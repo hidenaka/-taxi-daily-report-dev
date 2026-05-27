@@ -226,8 +226,9 @@
   <div id="weather-banner" hidden></div>
 
   <section id="forecast-section">
-    <h2>🚕 タクシープール現況・出庫<button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
+    <h2>🚕 タクシープール現況・出庫<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
+    <div id="forecast-body">
     <div id="pool-status-block" style="margin:8px 0 12px;">
       <div class="ps-cams" style="display:flex; gap:6px;">
         <img id="pool-cam-real01" alt="プール(第1〜4)" style="width:50%; border-radius:6px; background:#111;" />
@@ -262,6 +263,7 @@
     <div id="forecast-meta" class="fc-meta">読み込み中...</div>
     <div id="forecast-table-wrap"></div>
     <div id="forecast-sparkline" class="fc-sparkline-wrap"></div>
+    </div>
   </section>
 
   <div id="topics" hidden></div>

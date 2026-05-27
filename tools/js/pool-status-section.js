@@ -141,6 +141,24 @@ export function setCollapsed(value, storage = (typeof localStorage !== 'undefine
   catch { /* ストレージ無効時は無視 */ }
 }
 
+/** トグルボタンを初期化。クリックで forecast-body の hidden 属性と localStorage を更新。 */
+export function initForecastSectionToggle() {
+  const btn = document.getElementById('forecast-section-toggle');
+  const body = document.getElementById('forecast-body');
+  if (!btn || !body) return;
+  const apply = (collapsed) => {
+    body.hidden = collapsed;
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    btn.textContent = collapsed ? '▶ 展開' : '▼ 折りたたみ';
+  };
+  apply(getCollapsed());
+  btn.addEventListener('click', () => {
+    const next = !getCollapsed();
+    setCollapsed(next);
+    apply(next);
+  });
+}
+
 export async function loadPoolStatus(fetchFn = fetch) {
   try {
     const res = await fetchFn('data/pool-status.json', { cache: 'no-store' });
