@@ -78,11 +78,12 @@ export function initEditor(ctx) {
   const btnPdfLock = mkBtn('🔒 画像ロック');
   const btnPdfOpacity = mkBtn('🌓 濃さ');
   const btnPdfRemove = mkBtn('🗺 PDF消す');
+  const btnGeoref = mkBtn('📐 PDF合わせ');
   const btnUndo = mkBtn('↩ 1つ戻す');
   const btnSave = mkBtn('💾 保存');
   const btnDelete = mkBtn('🗑 削除');
   const btnCancel = mkBtn('✖ クリア');
-  const controls = [pick, mkKind, btnSat, btnPin, btnMarker, btnRoute, btnPdf, btnPdfLock, btnPdfOpacity, btnPdfRemove, btnUndo, btnSave, btnDelete, btnCancel];
+  const controls = [pick, mkKind, btnSat, btnPin, btnMarker, btnRoute, btnPdf, btnPdfLock, btnPdfOpacity, btnPdfRemove, btnGeoref, btnUndo, btnSave, btnDelete, btnCancel];
   controls.forEach((b) => { b.style.display = 'none'; bar.appendChild(b); });
   function setEditButtons(on) { controls.forEach((b) => { b.style.display = on ? '' : 'none'; }); }
 
@@ -188,6 +189,23 @@ export function initEditor(ctx) {
     if (pdfOverlay) { try { pdfOverlay.setOpacity(pdfOpacity); } catch (e) {} }
   });
   btnPdfRemove.addEventListener('click', () => { if (pdfOverlay) { map.removeLayer(pdfOverlay); pdfOverlay = null; } });
+  btnGeoref.addEventListener('click', async () => {
+    if (!current && window.__activeStand) current = window.__activeStand;
+    if (!current) { alert('施設を選択してから「📐 PDF合わせ」を押してください'); return; }
+    const { initGeoref } = await import('./stands-georef-ui.js');
+    initGeoref({
+      stand: current,
+      onSave: async (updated) => {
+        try {
+          await saveStand(companyId, updated);
+          alert('保存しました。地図に正しい進入線が反映されます');
+          location.reload();
+        } catch (e) {
+          alert('保存に失敗: ' + e.message);
+        }
+      },
+    });
+  });
   btnUndo.addEventListener('click', () => {
     if (mode === 'marker') { if (markers.length) { markers.pop(); redrawMarkers(); } }
     else if (routePts.length) { routePts.pop(); redrawRoute(); }
