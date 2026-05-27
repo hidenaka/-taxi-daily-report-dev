@@ -123,13 +123,12 @@ export async function loadPoolStatus(fetchFn = fetch) {
 
 export async function initPoolStatusSection() {
   const metaEl = document.getElementById('pool-status-meta');
-  const occEl = document.getElementById('pool-status-occ');
   const actEl = document.getElementById('pool-status-activity');
   const img1 = document.getElementById('pool-cam-real01');
   const img2 = document.getElementById('pool-cam-real02');
   const stallsEl = document.getElementById('pool-status-stalls');
   const arrivalsEl = document.getElementById('pool-status-arrivals');
-  if (!metaEl || !occEl) return;
+  if (!metaEl) return;
 
   async function render() {
     const cb = Date.now();
@@ -141,32 +140,34 @@ export async function initPoolStatusSection() {
     if (isStale(data.generatedAt, Date.now())) {
       metaEl.textContent = `📷 配信停止中の可能性（写真・データは ${ts} が最終）`;
     } else {
-      metaEl.textContent = `📷 写真・データは ${ts} 時点（数分ごと更新・リアルタイムではありません）`;
+      metaEl.textContent = `📷 ${ts}時点（カメラ推定で実数とズレあり）`;
     }
-    const t = data.total || {};
-    occEl.innerHTML = `混み具合: <span class="ps-dots">${levelDots(t.level)}</span> ${levelText(t.level)}（在台 約${t.occ ?? '—'}台・<span style="color:var(--sub); font-size:11px;">カメラ推定／実数より少なめ寄り</span>）`;
     if (actEl) {
-      const a = data.activity || {};
-      actEl.innerHTML = `今日の流れ: <strong>${activityText(a)}</strong>（直近1h 出庫${a.recent1hDepartures ?? '—'}台 / 平常${a.typical1h ?? '—'}台）`;
+      actEl.innerHTML = `<strong>今日の流れ</strong> ${formatActivityLine(data.activity || {})}`;
     }
     if (stallsEl) {
       const stalls = data.stalls;
       if (stalls) {
         const order = ['stall1', 'stall2', 'stall3', 'stall4'];
-        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場別（カメラ推定・絶対値は参考、相対比較向き／待ち目安は単純式の参考値）</div>';
+        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き</div>';
         stallsEl.innerHTML = head + order
           .filter(k => stalls[k])
-          .map(k => `<div>${formatStallLine(stalls[k])}</div>`)
+          .map(k => `<div>${formatStallLineV2(stalls[k])}</div>`)
           .join('');
       } else {
         stallsEl.innerHTML = '';
       }
     }
     if (arrivalsEl) {
-      const lines = formatTerminalArrivals(data.terminalArrivals);
-      arrivalsEl.innerHTML = lines.length
-        ? lines.map(l => `<div>${l}</div>`).join('')
-        : '';
+      const lines = formatArrivalsList(data.terminalArrivalsList);
+      if (lines.length) {
+        const head = '<div style="color:var(--sub); font-size:12px; margin-top:8px; margin-bottom:4px;">✈ これからお客がロビーに出る便（運航データ・予測ではない）</div>';
+        arrivalsEl.innerHTML = head + lines
+          .map(l => l.startsWith('  ') ? `<div style="padding-left:8px;">${l.trimStart()}</div>` : `<div style="font-weight:600; margin-top:4px;">${l}</div>`)
+          .join('');
+      } else {
+        arrivalsEl.innerHTML = '';
+      }
     }
   }
   await render();
