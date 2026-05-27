@@ -239,13 +239,15 @@
       <div id="pool-status-stalls" style="margin-top:8px; font-size:13px; line-height:1.7;"></div>
       <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
-    <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
+    <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です。<strong>カメラ推定で実数と差が出ます</strong>（特に過少寄り）</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
-      <summary style="cursor:pointer; color:var(--accent);">ⓘ 実績・予測の仕組みと注意</summary>
+      <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
-        <p style="margin:0 0 4px;"><strong>実績</strong>：タクシーセンターのライブカメラの車の動きをAIに学習させ、検知した「動いた台数」です。</p>
-        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて出す予測システムを構築中（学習中）です。</p>
-        <p style="margin:0;">※どちらも仕組みを開発・学習している途中のため、<strong>数値の正確性を保証するものではありません</strong>。あくまで目安としてご利用ください。</p>
+        <p style="margin:0 0 4px;"><strong>在台</strong>：ライブカメラ画像を駐車スロット単位で見て「車がいる/いない」をAIが判定（昼=エッジ密度/背景差分、夜=屋根の行灯検出）。<strong>消灯待機や色合い・カメラ校正のズレで実数より少なく出やすい</strong>。</p>
+        <p style="margin:0 0 4px;"><strong>出庫</strong>：在台の時系列差分（フリッカ除去・持続確認あり）。乗り場間の相対値は信頼性が高め、絶対値はバイアスあり。</p>
+        <p style="margin:0 0 4px;"><strong>待ち目安</strong>：単純式（在台×60÷直近1h出庫）の参考値。客の到着頻度・複数列運用は未考慮。</p>
+        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて出す予測システムを構築中（学習中）。</p>
+        <p style="margin:0;">※いずれも開発・学習中のため、<strong>数値の正確性を保証しません</strong>。あくまで目安としてご利用ください。</p>
       </div>
     </details>
     <div class="fc-controls">

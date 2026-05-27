@@ -78,7 +78,7 @@ export async function initPoolStatusSection() {
       metaEl.textContent = `📷 写真・データは ${ts} 時点（数分ごと更新・リアルタイムではありません）`;
     }
     const t = data.total || {};
-    occEl.innerHTML = `混み具合: <span class="ps-dots">${levelDots(t.level)}</span> ${levelText(t.level)}（在台 約${t.occ ?? '—'}台）`;
+    occEl.innerHTML = `混み具合: <span class="ps-dots">${levelDots(t.level)}</span> ${levelText(t.level)}（在台 約${t.occ ?? '—'}台・<span style="color:var(--sub); font-size:11px;">カメラ推定／実数より少なめ寄り</span>）`;
     if (actEl) {
       const a = data.activity || {};
       actEl.innerHTML = `今日の流れ: <strong>${activityText(a)}</strong>（直近1h 出庫${a.recent1hDepartures ?? '—'}台 / 平常${a.typical1h ?? '—'}台）`;
@@ -87,7 +87,8 @@ export async function initPoolStatusSection() {
       const stalls = data.stalls;
       if (stalls) {
         const order = ['stall1', 'stall2', 'stall3', 'stall4'];
-        stallsEl.innerHTML = order
+        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場別（カメラ推定・絶対値は参考、相対比較向き／待ち目安は単純式の参考値）</div>';
+        stallsEl.innerHTML = head + order
           .filter(k => stalls[k])
           .map(k => `<div>${formatStallLine(stalls[k])}</div>`)
           .join('');
