@@ -234,20 +234,19 @@
         <img id="pool-cam-real02" alt="プール(第4待機)" style="width:50%; border-radius:6px; background:#111;" />
       </div>
       <div id="pool-status-meta" style="color:var(--sub); font-size:11px; margin-top:4px;">読み込み中...</div>
-      <div id="pool-status-occ" style="margin-top:4px;">混み具合: —</div>
       <div id="pool-status-activity" style="margin-top:2px;">今日の流れ: —</div>
       <div id="pool-status-stalls" style="margin-top:8px; font-size:13px; line-height:1.7;"></div>
       <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
-    <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です。<strong>カメラ推定で実数と差が出ます</strong>（特に過少寄り）</p>
+    <p class="fc-scope">※絶対値（在台N台・待ち目安N分）は誤差が大きいため表示しません。比率・差分・運航データだけを使った誠実な目安です。</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
-        <p style="margin:0 0 4px;"><strong>在台</strong>：ライブカメラ画像を駐車スロット単位で見て「車がいる/いない」をAIが判定（昼=エッジ密度/背景差分、夜=屋根の行灯検出）。<strong>消灯待機や色合い・カメラ校正のズレで実数より少なく出やすい</strong>。</p>
-        <p style="margin:0 0 4px;"><strong>出庫</strong>：在台の時系列差分（フリッカ除去・持続確認あり）。乗り場間の相対値は信頼性が高め、絶対値はバイアスあり。</p>
-        <p style="margin:0 0 4px;"><strong>待ち目安</strong>：単純式（在台×60÷直近1h出庫）の参考値。客の到着頻度・複数列運用は未考慮。</p>
+        <p style="margin:0 0 4px;"><strong>今日の流れ</strong>：直近1時間の出庫を、過去同曜日（祝日・連休も区別）と同時間帯で割り算。同じバイアスで割るので偏りに強い。</p>
+        <p style="margin:0 0 4px;"><strong>乗り場の動き</strong>：直近30分÷前30分の出庫比でトレンド判定。乗り場間の相対比較も合わせて表示。</p>
+        <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データ（時刻表ベース）。タクシー利用人数の予測は<strong>出さない</strong>（予測の上の予測になるため）。</p>
         <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて出す予測システムを構築中（学習中）。</p>
-        <p style="margin:0;">※いずれも開発・学習中のため、<strong>数値の正確性を保証しません</strong>。あくまで目安としてご利用ください。</p>
+        <p style="margin:0;">※カメラ検出の絶対値（在台N台）には大きなバイアスがあり、実数の半分程度しか拾えないことが目視確認済みです。だから絶対値はUIに出しません。</p>
       </div>
     </details>
     <div class="fc-controls">
