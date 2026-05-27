@@ -148,6 +148,8 @@ export function initForecastSectionToggle() {
   if (!btn || !body) return;
   const apply = (collapsed) => {
     body.hidden = collapsed;
+    // [hidden] が CSS で効かない環境(古いiOS等)への保険として inline style も明示
+    body.style.display = collapsed ? 'none' : '';
     btn.setAttribute('aria-expanded', String(!collapsed));
     btn.textContent = collapsed ? '▶ 展開' : '▼ 折りたたみ';
   };
