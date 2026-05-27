@@ -58,8 +58,20 @@ export function formatActivityLine(activity) {
   return `${activeLabel}${arrow}`;
 }
 
-/** スタブ: B2/B3で本実装 */
-export function formatStallLineV2(stall) { return stall ? `${stall.label}  —` : ''; }
+const RANK_HINT_JA = {
+  'most-active': '← 最も動き活発',
+  'most-low': '← 最も動き少なめ',
+};
+
+/** 乗り場1行（V2: 在台/待ち目安を出さず trend + rankHint のみ）。 */
+export function formatStallLineV2(stall) {
+  if (!stall) return '';
+  const trend = stall.trend ? trendText(stall.trend) : '—';
+  const hint = stall.rankHint ? ' ' + RANK_HINT_JA[stall.rankHint] : '';
+  return `${stall.label}  ${trend}${hint}`;
+}
+
+/** スタブ: B3で本実装 */
 export function formatArrivalsList(list) { return []; }
 
 export function isStale(generatedAt, nowMs, maxMinutes = STALE_MINUTES) {

@@ -68,3 +68,31 @@ test('formatActivityLine: percentがマイナスは符号付き', async () => {
   };
   assert.equal(formatActivityLine(activity), 'いつもより少なめ↓ （日曜・週末 同時間帯比 -20%）');
 });
+
+test('formatStallLineV2: trend のみ', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第1乗り場', trend: 'down', rankHint: null }),
+    '第1乗り場  少なめ↓'
+  );
+});
+
+test('formatStallLineV2: trend + most-active', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第3乗り場', trend: 'up', rankHint: 'most-active' }),
+    '第3乗り場  活発↑ ← 最も動き活発'
+  );
+});
+
+test('formatStallLineV2: trend + most-low', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第4乗り場', trend: 'flat', rankHint: 'most-low' }),
+    '第4乗り場  横ばい→ ← 最も動き少なめ'
+  );
+});
+
+test('formatStallLineV2: trend 未定義は —', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第2乗り場' }),
+    '第2乗り場  —'
+  );
+});
