@@ -1,0 +1,34 @@
+{
+  "_comment": "各施設の進入線(PDF内ピクセル座標)。approaches配列とindexで対応。Phase 2 サンプル(3施設)→OKなら残り44施設に展開",
+
+  "roppongi_hills": {
+    "approaches": [
+      {
+        "pdfImageRef": "roppongi_hills-1.jpg",
+        "pdfLines": [{ "x": 610, "y": 60 }, { "x": 650, "y": 280 }]
+      },
+      {
+        "pdfImageRef": "roppongi_hills-1.jpg",
+        "pdfLines": [{ "x": 270, "y": 1070 }, { "x": 180, "y": 750 }]
+      }
+    ]
+  },
+
+  "izumi_garden": {
+    "approaches": [
+      {
+        "pdfImageRef": "izumi_garden-1.jpg",
+        "pdfLines": [{ "x": 550, "y": 1280 }, { "x": 480, "y": 900 }, { "x": 420, "y": 500 }]
+      }
+    ]
+  },
+
+  "grand_hyatt_tokyo": {
+    "approaches": [
+      {
+        "pdfImageRef": "grand_hyatt_tokyo-1.jpg",
+        "pdfLines": [{ "x": 920, "y": 460 }, { "x": 440, "y": 300 }, { "x": 440, "y": 130 }]
+      }
+    ]
+  }
+}
