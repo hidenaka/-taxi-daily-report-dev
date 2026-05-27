@@ -72,10 +72,41 @@ if (searchNear) searchNear.addEventListener('click', () => {
   renderResults(findNearestStands(myPos, allStands, 10));
 });
 
+const TURN_BADGE = { 'left-only': '左折のみ', 'right-ok': '右折可', either: '' };
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+function buildApproachCard(stand) {
+  const approaches = stand.approaches || [];
+  const cautions = stand.cautions || [];
+  if (!approaches.length && !cautions.length) return '';
+  let html = '<div class="entry-card">';
+  if (approaches.length) {
+    html += '<div class="entry-card-h">入口ガイド</div><ul class="entry-list">';
+    approaches.forEach((a) => {
+      const badge = TURN_BADGE[a.turn] ? `<span class="turn-badge t-${a.turn}">${TURN_BADGE[a.turn]}</span>` : '';
+      const road = a.road ? `<span class="road">${escapeHtml(a.road)}</span> ` : '';
+      const hint = a.hint ? `<div class="hint">${escapeHtml(a.hint)}</div>` : '';
+      html += `<li>${badge}${road}<b>${escapeHtml(a.label || '')}</b>${hint}</li>`;
+    });
+    html += '</ul>';
+  }
+  if (cautions.length) {
+    html += '<div class="entry-card-h sub">注意事項</div><ul class="cautions">';
+    cautions.forEach((c) => { html += `<li>${escapeHtml(c)}</li>`; });
+    html += '</ul>';
+  }
+  html += '</div>';
+  return html;
+}
+
 function showStand(stand) {
   window.__activeStand = stand; // 編集モードで「タップした施設」を編集対象に引き継ぐため
   sheetName.textContent = stand.name;
-  sheetNotes.textContent = stand.notes || '（注意事項は未登録）';
+  const card = buildApproachCard(stand);
+  if (card) {
+    sheetNotes.innerHTML = card + (stand.notes ? `<div class="raw-notes">${escapeHtml(stand.notes)}</div>` : '');
+  } else {
+    sheetNotes.textContent = stand.notes || '（注意事項は未登録）';
+  }
   // 組合の道順図（PDF画像）を表示。タップで全画面拡大。
   sheetImages.innerHTML = '';
   (stand.images || []).forEach((file) => {
