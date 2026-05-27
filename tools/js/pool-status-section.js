@@ -125,6 +125,22 @@ export function isStale(generatedAt, nowMs, maxMinutes = STALE_MINUTES) {
   return (nowMs - t) > maxMinutes * 60 * 1000;
 }
 
+const COLLAPSE_KEY = 'forecast-section-collapsed';
+
+/** 折りたたみ状態を localStorage から読む。"1" なら true、他は false。例外時も false。 */
+export function getCollapsed(storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return false;
+  try { return storage.getItem(COLLAPSE_KEY) === '1'; }
+  catch { return false; }
+}
+
+/** 折りたたみ状態を localStorage へ書く。true→"1"/false→"0"。例外は無視。 */
+export function setCollapsed(value, storage = (typeof localStorage !== 'undefined' ? localStorage : null)) {
+  if (!storage) return;
+  try { storage.setItem(COLLAPSE_KEY, value ? '1' : '0'); }
+  catch { /* ストレージ無効時は無視 */ }
+}
+
 export async function loadPoolStatus(fetchFn = fetch) {
   try {
     const res = await fetchFn('data/pool-status.json', { cache: 'no-store' });

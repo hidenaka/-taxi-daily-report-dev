@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals, formatActivityLine, formatStallLineV2, formatArrivalsList } from '../tools/js/pool-status-section.js';
+import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals, formatActivityLine, formatStallLineV2, formatArrivalsList, getCollapsed, setCollapsed } from '../tools/js/pool-status-section.js';
 
 test('pool-status-section pure helpers', async () => {
   assert.equal(levelText('empty'), '空き');
@@ -193,4 +193,41 @@ test('formatStallLineV2: percent=0 は "+0%"', async () => {
     }),
     '第2乗り場  横ばい→（いつもの +0%）'
   );
+});
+
+test('getCollapsed: localStorageに値なしならfalse', async () => {
+  const store = new Map();
+  const storage = { getItem: k => store.get(k) ?? null, setItem: (k,v) => store.set(k,v) };
+  assert.equal(getCollapsed(storage), false);
+});
+
+test('getCollapsed: "1" なら true', async () => {
+  const store = new Map([['forecast-section-collapsed', '1']]);
+  const storage = { getItem: k => store.get(k) ?? null, setItem: (k,v) => store.set(k,v) };
+  assert.equal(getCollapsed(storage), true);
+});
+
+test('getCollapsed: "0" は false', async () => {
+  const store = new Map([['forecast-section-collapsed', '0']]);
+  const storage = { getItem: k => store.get(k) ?? null, setItem: (k,v) => store.set(k,v) };
+  assert.equal(getCollapsed(storage), false);
+});
+
+test('setCollapsed: true → "1" / false → "0" を保存', async () => {
+  const store = new Map();
+  const storage = { getItem: k => store.get(k) ?? null, setItem: (k,v) => store.set(k,v) };
+  setCollapsed(true, storage);
+  assert.equal(store.get('forecast-section-collapsed'), '1');
+  setCollapsed(false, storage);
+  assert.equal(store.get('forecast-section-collapsed'), '0');
+});
+
+test('setCollapsed/getCollapsed: ストレージ例外時はfalseに fallback', async () => {
+  const storage = {
+    getItem: () => { throw new Error('disabled'); },
+    setItem: () => { throw new Error('disabled'); },
+  };
+  // クラッシュしないことを確認
+  setCollapsed(true, storage);
+  assert.equal(getCollapsed(storage), false);
 });
