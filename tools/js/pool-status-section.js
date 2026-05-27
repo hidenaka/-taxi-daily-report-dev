@@ -39,6 +39,29 @@ export function formatTerminalArrivals(ta) {
   return out;
 }
 
+const ARROW_JA = { up: '↑', flat: '→', down: '↓' };
+
+/** activity から「いつもより活発→ （火曜平日 同時間帯比 +13%）」形式の1行を構築。
+ * sameConditionCompare が無い/サンプル不足のときは活発度（active/normal/low + arrow）のみ。 */
+export function formatActivityLine(activity) {
+  if (!activity) return '—';
+  const arrow = ARROW_JA[activity.arrow] || '';
+  const sc = activity.sameConditionCompare;
+  if (sc && typeof sc.percent === 'number' && sc.label) {
+    const sign = sc.percent >= 0 ? '+' : '';
+    return `${sc.label}${arrow} （${sc.dayLabel} 同時間帯比 ${sign}${sc.percent}%）`;
+  }
+  const activeLabel = { active: '活発', normal: '平常', low: '少なめ' }[activity.level] || '—';
+  if (sc && sc.dayLabel) {
+    return `${activeLabel}${arrow} （${sc.dayLabel} 同時間帯のサンプル不足）`;
+  }
+  return `${activeLabel}${arrow}`;
+}
+
+/** スタブ: B2/B3で本実装 */
+export function formatStallLineV2(stall) { return stall ? `${stall.label}  —` : ''; }
+export function formatArrivalsList(list) { return []; }
+
 export function isStale(generatedAt, nowMs, maxMinutes = STALE_MINUTES) {
   const t = Date.parse(generatedAt);
   if (Number.isNaN(t)) return true;

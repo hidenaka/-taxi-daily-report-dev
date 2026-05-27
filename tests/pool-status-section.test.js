@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals } from '../tools/js/pool-status-section.js';
+import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals, formatActivityLine, formatStallLineV2, formatArrivalsList } from '../tools/js/pool-status-section.js';
 
 test('pool-status-section pure helpers', async () => {
   assert.equal(levelText('empty'), '空き');
@@ -38,4 +38,33 @@ test('pool-status-section: ターミナル到着便フォーマッタ', async ()
     '第3・4乗り場（ANA T2）これから来る客：30分で約0人 ／ 60分で約7人',
   ]);
   assert.deepEqual(formatTerminalArrivals(null), []);
+});
+
+test('formatActivityLine: 同条件比較あり', async () => {
+  const activity = {
+    recent1hDepartures: 59, typical1h: 52, ratio: 1.13, level: 'normal', arrow: 'flat',
+    sameConditionCompare: { peers_typical: 47, percent: 26, label: 'いつもより活発', dayLabel: '火曜平日' },
+  };
+  assert.equal(formatActivityLine(activity), 'いつもより活発→ （火曜平日 同時間帯比 +26%）');
+});
+
+test('formatActivityLine: 同条件比較サンプル不足は活発度のみ', async () => {
+  const activity = {
+    recent1hDepartures: 59, typical1h: 52, ratio: 1.13, level: 'normal', arrow: 'flat',
+    sameConditionCompare: { peers_typical: null, percent: null, label: null, dayLabel: '火曜平日' },
+  };
+  assert.equal(formatActivityLine(activity), '平常→ （火曜平日 同時間帯のサンプル不足）');
+});
+
+test('formatActivityLine: sameConditionCompare 未提供（旧データ）は活発度のみ', async () => {
+  const activity = { recent1hDepartures: 59, typical1h: 52, ratio: 1.13, level: 'normal', arrow: 'flat' };
+  assert.equal(formatActivityLine(activity), '平常→');
+});
+
+test('formatActivityLine: percentがマイナスは符号付き', async () => {
+  const activity = {
+    sameConditionCompare: { peers_typical: 50, percent: -20, label: 'いつもより少なめ', dayLabel: '日曜・週末' },
+    level: 'low', arrow: 'down',
+  };
+  assert.equal(formatActivityLine(activity), 'いつもより少なめ↓ （日曜・週末 同時間帯比 -20%）');
 });
