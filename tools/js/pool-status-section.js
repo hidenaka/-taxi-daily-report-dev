@@ -60,16 +60,29 @@ export function formatActivityLine(activity) {
 }
 
 const RANK_HINT_JA = {
-  'most-active': '← 最も動き活発',
-  'most-low': '← 最も動き少なめ',
+  'most-active': '最も動き活発',
+  'most-low': '最も動き少なめ',
 };
 
-/** 乗り場1行（V2: 在台/待ち目安を出さず trend + rankHint のみ）。 */
+/** 乗り場1行（V2: trend + rankHint + 同条件過去比較）。
+ *  rankHint × sameConditionCompare.percent の有無で6パターン分岐。 */
 export function formatStallLineV2(stall) {
   if (!stall) return '';
   const trend = stall.trend ? trendText(stall.trend) : '—';
-  const hint = stall.rankHint ? ' ' + RANK_HINT_JA[stall.rankHint] : '';
-  return `${stall.label}  ${trend}${hint}`;
+  const hint = stall.rankHint ? RANK_HINT_JA[stall.rankHint] : null;
+  const sc = stall.sameConditionCompare;
+  const hasPercent = sc && typeof sc.percent === 'number';
+  // percent の符号付き表記
+  const pctText = hasPercent
+    ? `いつもの ${sc.percent >= 0 ? '+' : ''}${sc.percent}%`
+    : null;
+
+  let tail = '';
+  if (hint && pctText) tail = ` ← ${hint}（${pctText}）`;
+  else if (hint) tail = ` ← ${hint}`;
+  else if (pctText) tail = `（${pctText}）`;
+
+  return `${stall.label}  ${trend}${tail}`;
 }
 
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
