@@ -2,9 +2,20 @@
 // sketch-semantics-keiho.json と Overpass APIから approaches[].line を生成し seed JSON を更新。
 // 使い方: node scripts/generate-lines-semantic.mjs [<id1> <id2> ...]
 import { readFileSync, writeFileSync } from 'node:fs';
-import { fetchRoadWays } from './lib/overpass-fetch.mjs';
+import { fetchRoadWays, fetchAllRoadsAround } from './lib/overpass-fetch.mjs';
 import { buildApproachLine, buildApproachLineFromWaypoints } from './lib/sketch-to-line.mjs';
 import { geocodeLandmark } from './lib/nominatim-fetch.mjs';
+import { routeOnRoadsBetween } from './lib/road-router.mjs';
+
+// 施設pin周辺の道路群キャッシュ（同じ施設で何度も叩かない）
+const _roadsCache = new Map();
+async function getRoadsAround(pin) {
+  const key = `${pin.lat.toFixed(4)},${pin.lng.toFixed(4)}`;
+  if (_roadsCache.has(key)) return _roadsCache.get(key);
+  const roads = await fetchAllRoadsAround(pin.lat, pin.lng, 400);
+  _roadsCache.set(key, roads);
+  return roads;
+}
 
 // 地名のキャッシュ（同じランドマークを何度も叩かない）
 const _geoCache = new Map();
@@ -39,9 +50,13 @@ for (const s of stands) {
     if (i >= s.approaches.length) break;
     const a = entry.approaches[i];
     try {
-      // ①新方式: waypoints（ランドマーク列）が指定されていれば、Nominatimで解決して折れ線化
+      // ①新方式: waypoints（ランドマーク列）→ 各waypointをNominatim/座標で解決 →
+      // 隣接2点を「同じ道路上にあれば道路polylineで」「なければ直線で」繋ぐ
       if (Array.isArray(a.waypoints) && a.waypoints.length >= 2) {
-        const line = await buildApproachLineFromWaypoints({ waypoints: a.waypoints, pin: s.pin, geocoder });
+        const roads = await getRoadsAround(s.pin);
+        const line = await buildApproachLineFromWaypoints({
+          waypoints: a.waypoints, pin: s.pin, geocoder, roads, router: routeOnRoadsBetween,
+        });
         if (line.length >= 2) {
           s.approaches[i].line = line;
           updated += 1;

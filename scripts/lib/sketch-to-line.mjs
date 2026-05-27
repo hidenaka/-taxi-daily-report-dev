@@ -61,14 +61,15 @@ function selectComponentForDirection(components, pin, direction) {
 }
 
 // waypoints (ランドマーク名の配列、もしくは {lat,lng} 直接指定) を緯度経度に解決して
-// 順に繋いだ折れ線を返す。geocoder は { resolve(name): {lat,lng}|null } を受け付ける。
-// PDFの進入経路を実地図の建物・交差点を辿る形で再現する。
-export async function buildApproachLineFromWaypoints({ waypoints, pin, geocoder }) {
+// 順に繋ぐ。隣接2点が同じ道路上にあれば道路polylineを辿り、なければ直線。
+// geocoder = { resolve(name, pin): {lat,lng}|null }
+// roads   = [{ geometry:[{lat,lng}...] }] - Overpassで取得した周辺道路群。指定なしなら全て直線
+export async function buildApproachLineFromWaypoints({ waypoints, pin, geocoder, roads, router }) {
   if (!Array.isArray(waypoints) || waypoints.length < 2) return [];
   const resolved = [];
   for (const w of waypoints) {
     if (w && typeof w === 'object' && typeof w.lat === 'number' && typeof w.lng === 'number') {
-      resolved.push({ lat: w.lat, lng: w.lng, _name: w.label || null });
+      resolved.push({ lat: w.lat, lng: w.lng });
       continue;
     }
     const name = (typeof w === 'string') ? w : (w && w.landmark) || null;
@@ -76,10 +77,26 @@ export async function buildApproachLineFromWaypoints({ waypoints, pin, geocoder 
     if (!geocoder || typeof geocoder.resolve !== 'function') continue;
     const r = await geocoder.resolve(name, pin);
     if (r && typeof r.lat === 'number' && typeof r.lng === 'number') {
-      resolved.push({ lat: r.lat, lng: r.lng, _name: name });
+      resolved.push({ lat: r.lat, lng: r.lng });
     }
   }
-  return resolved.length >= 2 ? resolved.map((p) => ({ lat: p.lat, lng: p.lng })) : [];
+  if (resolved.length < 2) return [];
+  // 隣接 2点ずつ、道路上で繋げるなら道路polyline で繋ぐ。なければ直線。
+  const line = [resolved[0]];
+  for (let i = 1; i < resolved.length; i++) {
+    const A = resolved[i - 1], B = resolved[i];
+    let segment = null;
+    if (router && Array.isArray(roads) && roads.length > 0) {
+      segment = router(A, B, roads);
+    }
+    if (segment && segment.length >= 2) {
+      // segment は [A, ...中間, B]。先頭は既に line にあるので 2点目から追加
+      for (let j = 1; j < segment.length; j++) line.push(segment[j]);
+    } else {
+      line.push(B);
+    }
+  }
+  return line;
 }
 
 export function buildApproachLine({ semantics, mainWays, turnWays, pin }) {
