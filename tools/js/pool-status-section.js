@@ -71,8 +71,39 @@ export function formatStallLineV2(stall) {
   return `${stall.label}  ${trend}${hint}`;
 }
 
-/** スタブ: B3で本実装 */
-export function formatArrivalsList(list) { return []; }
+const TERMINAL_HEAD = { T1: 'T1 (JAL)', T2: 'T2 (ANA)' };
+
+/** 「分」を2桁ゼロ埋めの文字列に。負値は0扱い。 */
+function minutesText(min) {
+  const m = Math.max(0, min | 0);
+  return `あと${String(m).padStart(2, '0')}分`;
+}
+
+/** 全角文字を2幅、ASCII を1幅として文字列の表示幅を返す。 */
+function displayWidth(s) {
+  return [...s].reduce((w, c) => w + (c.codePointAt(0) > 0x7f ? 2 : 1), 0);
+}
+
+/** 表示幅ベースの padEnd（全角対応）。 */
+function padEndDisplay(s, targetWidth) {
+  return s + ' '.repeat(Math.max(0, targetWidth - displayWidth(s)));
+}
+
+/** terminalArrivalsList を「T1 (JAL) / あとN分 便名 fromから N席」の行配列に。 */
+export function formatArrivalsList(list) {
+  if (!list) return [];
+  const lines = [];
+  for (const t of ['T1', 'T2']) {
+    const arr = list[t] || [];
+    if (arr.length === 0) continue;
+    lines.push(TERMINAL_HEAD[t]);
+    for (const f of arr) {
+      const fromField = padEndDisplay(`${f.fromName}から`, 13);
+      lines.push(`  ${minutesText(f.lobbyExitMinutes)}  ${f.flightNumber}  ${fromField}${f.seatCount}席`);
+    }
+  }
+  return lines;
+}
 
 export function isStale(generatedAt, nowMs, maxMinutes = STALE_MINUTES) {
   const t = Date.parse(generatedAt);
