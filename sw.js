@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v227';
+const CACHE_NAME = CACHE_PREFIX + 'v228';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -27,6 +27,8 @@ const STATIC_FILES = [
   './tools/js/stands-geo.js',
   './tools/js/stands-schema.js',
   './tools/js/stands-editor.js',
+  './tools/js/stands-georef.js',
+  './tools/js/stands-georef-ui.js',
   './tools/js/util.js',
   './tools/js/geo.js',
   './vendor/leaflet/leaflet.js',
