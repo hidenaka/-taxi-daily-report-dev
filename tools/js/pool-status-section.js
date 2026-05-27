@@ -48,8 +48,9 @@ export function formatActivityLine(activity) {
   const arrow = ARROW_JA[activity.arrow] || '';
   const sc = activity.sameConditionCompare;
   if (sc && typeof sc.percent === 'number' && sc.label) {
-    const sign = sc.percent >= 0 ? '+' : '';
-    return `${sc.label}${arrow} （${sc.dayLabel} 同時間帯比 ${sign}${sc.percent}%）`;
+    const pct = Math.round(sc.percent);
+    const sign = pct >= 0 ? '+' : '';
+    return `${sc.label}${arrow} （${sc.dayLabel} 同時間帯比 ${sign}${pct}%）`;
   }
   const activeLabel = { active: '活発', normal: '平常', low: '少なめ' }[activity.level] || '—';
   if (sc && sc.dayLabel) {
@@ -71,7 +72,7 @@ export function formatStallLineV2(stall) {
   return `${stall.label}  ${trend}${hint}`;
 }
 
-const TERMINAL_HEAD = { T1: 'T1 (JAL)', T2: 'T2 (ANA)' };
+const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
 
 /** 「分」を2桁ゼロ埋めの文字列に。負値は0扱い。 */
 function minutesText(min) {

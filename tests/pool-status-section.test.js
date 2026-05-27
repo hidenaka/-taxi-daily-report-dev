@@ -109,10 +109,10 @@ test('formatArrivalsList: T1/T2 順、便ごと1行', async () => {
   };
   const lines = formatArrivalsList(list);
   assert.deepEqual(lines, [
-    'T1 (JAL)',
+    'T1ターミナル',
     '  あと10分  JL024  関西から     244席',
     '  あと28分  JL026  福岡から     322席',
-    'T2 (ANA)',
+    'T2ターミナル',
     '  あと08分  NH032  新千歳から   195席',
   ]);
 });
@@ -120,7 +120,7 @@ test('formatArrivalsList: T1/T2 順、便ごと1行', async () => {
 test('formatArrivalsList: 片側空ならその見出しは出さない', async () => {
   const list = { T1: [], T2: [{ flightNumber: 'NH032', airline: 'ANA', fromName: '新千歳', seatCount: 195, lobbyExitMinutes: 8 }] };
   const lines = formatArrivalsList(list);
-  assert.deepEqual(lines, ['T2 (ANA)', '  あと08分  NH032  新千歳から   195席']);
+  assert.deepEqual(lines, ['T2ターミナル', '  あと08分  NH032  新千歳から   195席']);
 });
 
 test('formatArrivalsList: null/未提供は空配列', async () => {
