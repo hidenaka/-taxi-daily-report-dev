@@ -1,0 +1,381 @@
+{
+  "_comment": "47施設の進入データ（approaches＋cautions）。bearing=車両進入の向き(0=北,90=東,180=南,270=西)。lineはpinに到達する近接2点[手前→pin]。turn: left-only/right-ok/either。Claudeが組合マニュアル+施設地理から作成した下書き。dev反映後に微調整可能。",
+
+  "roppongi_hills": {
+    "approaches": [
+      { "label": "六本木通り側から進入", "road": "六本木通り", "bearing": 180, "turn": "either", "hint": "センターループ入口A→一方通行で左へ",
+        "line": [[35.6616, 139.7298], [35.6611, 139.7290]] },
+      { "label": "けやき坂側から進入", "road": "けやき坂通り", "bearing": 45, "turn": "either", "hint": "三方向から進入可・入口B",
+        "line": [[35.6593, 139.7283], [35.6598, 139.7287]] }
+    ],
+    "cautions": ["タクシーベイ=入口に表示なし注意・DSP指示に従う", "完全禁煙(構内全域)", "ホテル車寄せ直付けは原則禁止", "降車場はタクシーベイの反対側"]
+  },
+
+  "izumi_garden": {
+    "approaches": [
+      { "label": "六本木通りから進入", "road": "六本木通り", "bearing": 180, "turn": "either", "hint": "DSP配置 平日9:00〜22:00",
+        "line": [[35.6667, 139.7397], [35.6655, 139.7397]] }
+    ],
+    "cautions": ["日本交通専用", "夜間は待機場所が変わる", "レジデンス棟は迎車→待ち"]
+  },
+
+  "atago_green_hills": {
+    "approaches": [
+      { "label": "愛宕下通りから進入", "road": "愛宕下通り", "bearing": 180, "turn": "either", "hint": "ブース内待機は黒タク",
+        "line": [[35.6650, 139.7490], [35.6640, 139.7490]] }
+    ],
+    "cautions": ["黒タク優先・ブース待機", "21:00以降は正面1台のみ"]
+  },
+
+  "shinagawa_intercity": {
+    "approaches": [
+      { "label": "港南通りから進入", "road": "港南通り", "bearing": 270, "turn": "either", "hint": "品川駅港南口側",
+        "line": [[35.6271, 139.7418], [35.6271, 139.7406]] }
+    ],
+    "cautions": ["近隣の企業・ホテル配車は迎車で向かう", "敷地内での休憩や仮眠は厳禁"]
+  },
+
+  "shiodome_sumitomo": {
+    "approaches": [
+      { "label": "汐留シオサイト内通路から進入", "road": "汐留内通路", "bearing": 0, "turn": "either", "hint": "DSP平日8:30〜19:00",
+        "line": [[35.6628, 139.7588], [35.6636, 139.7588]] }
+    ],
+    "cautions": ["路上待機時は車両出入口をふさがない・並びすぎない", "正面玄関をふさがない"]
+  },
+
+  "grand_hyatt_tokyo": {
+    "approaches": [
+      { "label": "けやき坂通り側から左折入庫", "road": "けやき坂通り", "bearing": 90, "turn": "left-only", "hint": "基本左折入庫・ステッカー必須",
+        "line": [[35.6601, 139.7274], [35.6601, 139.7286]] }
+    ],
+    "cautions": ["専用時間帯(平日11-21時/土日祝11-20時)はテレ朝通りに待機厳禁", "基本左折入庫", "ステッカーは必ず返却"]
+  },
+
+  "arkhills_sengokuyama": {
+    "approaches": [
+      { "label": "麻布通りから進入", "road": "麻布通り", "bearing": 90, "turn": "either", "hint": "車間をつめて4台待機",
+        "line": [[35.6628, 139.7416], [35.6628, 139.7428]] }
+    ],
+    "cautions": ["車間をつめること(待機4台)"]
+  },
+
+  "tokyo_shiodome_bldg": {
+    "approaches": [
+      { "label": "シオサイト内通路から進入", "road": "汐留内通路", "bearing": 0, "turn": "either", "hint": "23時以降は12台待機(オフィス前2台含)",
+        "line": [[35.6632, 139.7607], [35.6640, 139.7607]] }
+    ],
+    "cautions": ["12:30から正面に1台待機", "笛が鳴ったらコンラッドへ向かう", "コンラッドは他社共有"]
+  },
+
+  "nittele_vip": {
+    "approaches": [
+      { "label": "汐留メディアタワー側のVIP玄関", "road": "汐留内通路", "bearing": 0, "turn": "either", "hint": "DSP無人(自動配車)",
+        "line": [[35.6640, 139.7596], [35.6648, 139.7596]] }
+    ],
+    "cautions": ["5:00〜21:00のみ・無人運用"]
+  },
+
+  "cerulean_tower": {
+    "approaches": [
+      { "label": "桜丘町通り側から進入", "road": "桜丘町通り", "bearing": 0, "turn": "either", "hint": "B1宴会場ロビーで待機→ブザーで1Fへ",
+        "line": [[35.6554, 139.6989], [35.6562, 139.6989]] }
+    ],
+    "cautions": ["B1宴会場ロビーが待機場所", "ブザーで1F正面車寄せへ進行", "ドアマン2名派遣 8:00〜22:00"]
+  },
+
+  "intercontinental_tokyobay": {
+    "approaches": [
+      { "label": "海岸通りから進入", "road": "海岸通り", "bearing": 90, "turn": "either", "hint": "待機5台以降はサウスタワー脇",
+        "line": [[35.6553, 139.7598], [35.6553, 139.7610]] }
+    ],
+    "cautions": ["待機5台以降はサウスタワー脇で待機", "駐車場出口はふさがない", "ホテルドアマンがB空転で呼ぶことあり"]
+  },
+
+  "mita_twin_west": {
+    "approaches": [
+      { "label": "三田通りから進入", "road": "三田通り", "bearing": 270, "turn": "either", "hint": "19:00以降は自動営業情報",
+        "line": [[35.6483, 139.7467], [35.6483, 139.7455]] }
+    ],
+    "cautions": ["レジデンス棟配車は通常配車", "平日19:00〜3:00は自動営業情報"]
+  },
+
+  "tokyo_midtown_tower": {
+    "approaches": [
+      { "label": "外苑東通りから進入", "road": "外苑東通り", "bearing": 270, "turn": "either", "hint": "タワー乗り場/ホテル乗り場の使い分け注意",
+        "line": [[35.6657, 139.7319], [35.6657, 139.7307]] }
+    ],
+    "cautions": ["ホテル(ザ・リッツ・カールトン東京)は空車移動配車", "レジデンス棟車寄せ・タワーB2乗り場は通常配車", "土日夜は7台待機"]
+  },
+
+  "shiodome_bldg": {
+    "approaches": [
+      { "label": "汐留内通路から進入", "road": "汐留内通路", "bearing": 0, "turn": "either", "hint": "帝都・大和と共有",
+        "line": [[35.6642, 139.7588], [35.6650, 139.7588]] }
+    ],
+    "cautions": ["帝都・大和自動車と共有"]
+  },
+
+  "kioicho_bldg": {
+    "approaches": [
+      { "label": "紀尾井町通りから進入", "road": "紀尾井町通り", "bearing": 180, "turn": "either", "hint": "白線内2台待機",
+        "line": [[35.6810, 139.7358], [35.6798, 139.7358]] }
+    ],
+    "cautions": ["平日8:00〜20:00のみ", "白線内2台のみ・DSP無人", "工事車両等で入庫制限あり"]
+  },
+
+  "keio_hospital": {
+    "approaches": [
+      { "label": "信濃町駅側から進入", "road": "外苑東通り", "bearing": 0, "turn": "either", "hint": "タクシーサイン(点滅時入庫)を確認",
+        "line": [[35.6800, 139.7193], [35.6812, 139.7193]] }
+    ],
+    "cautions": ["タクシーサインの点滅時のみ入庫", "大学内への配車はB空転対応", "入構証保持者向けのTAB情報あり"]
+  },
+
+  "capitol_hotel_tokyu": {
+    "approaches": [
+      { "label": "宴会口から入庫→正面玄関へ", "road": "永田町・国会前", "bearing": 270, "turn": "either", "hint": "宴会口入庫が原則",
+        "line": [[35.6745, 139.7417], [35.6745, 139.7405]] }
+    ],
+    "cautions": ["宴会口より入庫し正面玄関へ向かう", "オフィステナントは宴会口待機を利用", "四社共有"]
+  },
+
+  "toranomon_hospital": {
+    "approaches": [
+      { "label": "桜田通り側から進入", "road": "桜田通り", "bearing": 180, "turn": "either", "hint": "9台待機",
+        "line": [[35.6692, 139.7448], [35.6680, 139.7448]] }
+    ],
+    "cautions": ["日本交通専用", "DSP配置=平日7:30〜20:30(祝祭日除く)"]
+  },
+
+  "iuhw_mita_hospital": {
+    "approaches": [
+      { "label": "三田通り側から進入", "road": "三田通り", "bearing": 270, "turn": "either", "hint": "Km共有・2台のみ",
+        "line": [[35.6518, 139.7442], [35.6518, 139.7430]] }
+    ],
+    "cautions": ["Kmと共有・各1台のみ", "待機車両がいたらスルー"]
+  },
+
+  "daikanyama_tsite": {
+    "approaches": [
+      { "label": "旧山手通りから専用入庫口へ", "road": "旧山手通り", "bearing": 180, "turn": "either", "hint": "専用入口以外は駐車料金発生",
+        "line": [[35.6502, 139.6975], [35.6490, 139.6975]] }
+    ],
+    "cautions": ["タクシー専用入庫口あり・駐車券を取り構内へ", "専用入口以外から構内に入ると駐車料金発生"]
+  },
+
+  "tradepia_odaiba": {
+    "approaches": [
+      { "label": "テレコムセンター駅側から進入", "road": "お台場海浜通り", "bearing": 0, "turn": "either", "hint": "DSP無人",
+        "line": [[35.6286, 139.7770], [35.6298, 139.7770]] }
+    ],
+    "cautions": ["DSP無人・タブレット呼出に対応", "客が来たら正面へ移動"]
+  },
+
+  "twmu_hospital": {
+    "approaches": [
+      { "label": "若松河田駅側から進入", "road": "外苑東通り", "bearing": 0, "turn": "either", "hint": "DSP配置は診療日のみ",
+        "line": [[35.6950, 139.7188], [35.6962, 139.7188]] }
+    ],
+    "cautions": ["DSP=病院診療日(平日8:00〜19:30/土8:00〜15:00)のみ", "他病棟への呼出はB空転"]
+  },
+
+  "saiseikai_central": {
+    "approaches": [
+      { "label": "桜田通り側から進入", "road": "桜田通り", "bearing": 180, "turn": "either", "hint": "3台目以降は降路上待機",
+        "line": [[35.6524, 139.7428], [35.6512, 139.7428]] }
+    ],
+    "cautions": ["月〜土8:00〜20:00のみ(休診日除く)", "3台目以降は路上待機", "客が来たら正面へ移動"]
+  },
+
+  "juntendo_hospital": {
+    "approaches": [
+      { "label": "本郷通り側から進入", "road": "本郷通り", "bearing": 180, "turn": "either", "hint": "路上3台時はスルー",
+        "line": [[35.7050, 139.7640], [35.7038, 139.7640]] }
+    ],
+    "cautions": ["路上に3台いる時はスルー", "病院脇の狭路でショートカット禁止", "Km・日の丸自動車と共有"]
+  },
+
+  "shangrila_tokyo": {
+    "approaches": [
+      { "label": "丸の内トラストタワー本館1Fで待機→B1へ", "road": "永代通り", "bearing": 90, "turn": "either", "hint": "パトランプ点滅で進行",
+        "line": [[35.6800, 139.7656], [35.6800, 139.7668]] }
+    ],
+    "cautions": ["黒タク限定", "待機場所のパトランプ点滅でホテルB1車寄せへ進行", "トラストタワー玄関に客が来たら車寄せへ移動"]
+  },
+
+  "showa_koto_toyosu": {
+    "approaches": [
+      { "label": "豊洲駅側から進入", "road": "三ツ目通り", "bearing": 270, "turn": "either", "hint": "チェッカー無線エクシード(黒)優先",
+        "line": [[35.6520, 139.7970], [35.6520, 139.7958]] }
+    ],
+    "cautions": ["先頭車両は基本車外待機", "7:30〜は待機1台中央2台/16:45〜は中央待機不可", "休診日=11/15及び年末年始"]
+  },
+
+  "toranomon_hills": {
+    "approaches": [
+      { "label": "新虎通りから進入", "road": "新虎通り", "bearing": 180, "turn": "either", "hint": "B1=10台/1F=5台",
+        "line": [[35.6684, 139.7493], [35.6672, 139.7493]] }
+    ],
+    "cautions": ["平日昼はB1 10台/1F 5台", "深夜・土日祝はB1 2台のみ"]
+  },
+
+  "otemon_tower_jx": {
+    "approaches": [
+      { "label": "永代通り側から進入", "road": "永代通り", "bearing": 0, "turn": "either", "hint": "土日祝DSP無人",
+        "line": [[35.6856, 139.7625], [35.6868, 139.7625]] }
+    ],
+    "cautions": ["DSP平日9:00〜19:00(土日祝無人)"]
+  },
+
+  "otemon_financial_grancube": {
+    "approaches": [
+      { "label": "大手町交差点側から進入", "road": "永代通り", "bearing": 0, "turn": "either", "hint": "7台待機",
+        "line": [[35.6866, 139.7658], [35.6878, 139.7658]] }
+    ],
+    "cautions": ["DSP平日9:00〜19:00(土日祝無人)"]
+  },
+
+  "shinjuku_mitsui": {
+    "approaches": [
+      { "label": "新宿中央通り側から進入", "road": "新宿中央通り", "bearing": 90, "turn": "either", "hint": "DSP無人",
+        "line": [[35.6905, 139.6926], [35.6905, 139.6938]] }
+    ],
+    "cautions": ["インフォメーションスタッフがタブレットで呼ぶ場合あり(B空転)", "DSP無人"]
+  },
+
+  "tokyo_nihonbashi_tower": {
+    "approaches": [
+      { "label": "中央通り側から進入", "road": "中央通り", "bearing": 180, "turn": "either", "hint": "DSP平日9-18時のみ",
+        "line": [[35.6827, 139.7740], [35.6815, 139.7740]] }
+    ],
+    "cautions": ["DSP平日9:00〜18:00(土日祝無人)"]
+  },
+
+  "roppongi_grand_tower": {
+    "approaches": [
+      { "label": "六本木一丁目駅側から進入", "road": "麻布通り", "bearing": 180, "turn": "either", "hint": "テレ東側・オフィス棟側の証明玄関前は待機禁止",
+        "line": [[35.6640, 139.7355], [35.6628, 139.7355]] }
+    ],
+    "cautions": ["先頭車両は基本車外待機", "DSP不在(2:00〜9:00)も待機場所を守る", "テレ東側/オフィス棟側の証明玄関前は待機禁止"]
+  },
+
+  "kasumigaseki_bldg": {
+    "approaches": [
+      { "label": "外堀通り側から進入", "road": "外堀通り", "bearing": 90, "turn": "either", "hint": "平日昼のみ・1台待機",
+        "line": [[35.6735, 139.7456], [35.6735, 139.7468]] }
+    ],
+    "cautions": ["平日9:00〜18:00のみ", "DSP無人・インフォメーションがタブレットで呼ぶ場合あり"]
+  },
+
+  "motoazabu_hills": {
+    "approaches": [
+      { "label": "麻布十番通り側から進入", "road": "麻布十番通り", "bearing": 180, "turn": "either", "hint": "平日朝のみ営業",
+        "line": [[35.6570, 139.7280], [35.6558, 139.7280]] }
+    ],
+    "cautions": ["平日8:00〜11:00のみ", "DSP無人"]
+  },
+
+  "shinjuku_sumitomo": {
+    "approaches": [
+      { "label": "新宿中央通り側から一般駐車場入口へ", "road": "新宿中央通り", "bearing": 90, "turn": "either", "hint": "タクシー専用駐車券を取り進む",
+        "line": [[35.6905, 139.6906], [35.6905, 139.6918]] }
+    ],
+    "cautions": ["一般駐車場入口から入庫→タクシー専用駐車券を取り乗り場へ", "入庫後1時間は無料"]
+  },
+
+  "todai_hospital": {
+    "approaches": [
+      { "label": "本郷通り側から進入", "road": "本郷通り", "bearing": 180, "turn": "either", "hint": "15台待機",
+        "line": [[35.7142, 139.7625], [35.7130, 139.7625]] }
+    ],
+    "cautions": ["DSP平日9:00〜20:00"]
+  },
+
+  "otemachi_park_bldg": {
+    "approaches": [
+      { "label": "大手町仲通りから進入", "road": "大手町仲通り", "bearing": 90, "turn": "either", "hint": "DSP平日のみ",
+        "line": [[35.6878, 139.7623], [35.6878, 139.7635]] }
+    ],
+    "cautions": ["DSP平日9:00〜19:00"]
+  },
+
+  "tokyo_garden_terrace_kioicho": {
+    "approaches": [
+      { "label": "紀尾井町通りから進入", "road": "紀尾井町通り", "bearing": 90, "turn": "either", "hint": "施設内で配車先指示(ホテル・クラシックハウス)",
+        "line": [[35.6795, 139.7356], [35.6795, 139.7368]] }
+    ],
+    "cautions": ["施設内で配車先指示あり(ホテル/クラシックハウス)", "DSP不在時は客設置のTABから配車(B空転)"]
+  },
+
+  "nms_hospital": {
+    "approaches": [
+      { "label": "千駄木側から進入", "road": "本郷通り", "bearing": 180, "turn": "either", "hint": "月〜土7:30〜17:00のみ",
+        "line": [[35.7257, 139.7635], [35.7245, 139.7635]] }
+    ],
+    "cautions": ["月〜土7:30〜17:00のみ・帝都共有", "DSPがドアサービスを基本担当"]
+  },
+
+  "tokyo_midtown_hibiya": {
+    "approaches": [
+      { "label": "日比谷通り側から進入", "road": "日比谷通り", "bearing": 90, "turn": "either", "hint": "10台待機・帝都Km大和共有",
+        "line": [[35.6735, 139.7583], [35.6735, 139.7595]] }
+    ],
+    "cautions": ["帝都・Km・大和と共有", "DSPがドアサービス対応"]
+  },
+
+  "jikei_hospital": {
+    "approaches": [
+      { "label": "御成門・愛宕通り側から進入", "road": "愛宕通り", "bearing": 180, "turn": "either", "hint": "8台待機",
+        "line": [[35.6667, 139.7508], [35.6655, 139.7508]] }
+    ],
+    "cautions": ["DSP平日及び土曜9:00〜18:00"]
+  },
+
+  "toranomon_hills_business": {
+    "approaches": [
+      { "label": "桜田通り側から進入", "road": "桜田通り", "bearing": 180, "turn": "either", "hint": "DSP平日8-20時",
+        "line": [[35.6690, 139.7478], [35.6678, 139.7478]] }
+    ],
+    "cautions": ["DSP平日8:00〜20:00 2ポスト"]
+  },
+
+  "otemachi_one_tower": {
+    "approaches": [
+      { "label": "永代通り側から進入", "road": "永代通り", "bearing": 90, "turn": "either", "hint": "平日9-19時DSP",
+        "line": [[35.6862, 139.7636], [35.6862, 139.7648]] }
+    ],
+    "cautions": ["DSP平日(月〜金)9:00〜19:00"]
+  },
+
+  "akasaka_intercity_air": {
+    "approaches": [
+      { "label": "六本木通り側から進入", "road": "六本木通り", "bearing": 0, "turn": "either", "hint": "ウエルカムスタッフ対応",
+        "line": [[35.6670, 139.7405], [35.6682, 139.7405]] }
+    ],
+    "cautions": ["別会社ウエルカムスタッフ対応", "到着時の客の有無でチケット種別が違う(迎車420円/待機840円)", "到着予定時間から12分待機"]
+  },
+
+  "tokyo_american_club": {
+    "approaches": [
+      { "label": "麻布台側から進入", "road": "外苑東通り", "bearing": 270, "turn": "either", "hint": "マニュアル記載なし・道順図参照",
+        "line": [[35.6588, 139.7414], [35.6588, 139.7402]] }
+    ],
+    "cautions": ["道順図(PDF)を参照のこと"]
+  },
+
+  "park_hyatt_tokyo": {
+    "approaches": [
+      { "label": "西新宿側から進入", "road": "甲州街道", "bearing": 0, "turn": "either", "hint": "マニュアル記載なし・道順図参照",
+        "line": [[35.6844, 139.6906], [35.6856, 139.6906]] }
+    ],
+    "cautions": ["道順図(PDF)を参照のこと"]
+  },
+
+  "latour_daikanyama": {
+    "approaches": [
+      { "label": "旧山手通り側から進入", "road": "旧山手通り", "bearing": 180, "turn": "either", "hint": "平日朝のみ",
+        "line": [[35.6497, 139.7000], [35.6485, 139.7000]] }
+    ],
+    "cautions": ["平日8:00〜11:00のみ", "乗務員がドアサービスを行う"]
+  }
+}
