@@ -1,33 +1,30 @@
 {
-  "_comment": "各施設の進入線(PDF内ピクセル座標)。approaches配列とindexで対応。Phase 2 サンプル(3施設)→OKなら残り44施設に展開",
+  "_comment": "施設ごとの進入線データ。referencePoints(PDFpx⇔実緯度経度の4点)からホモグラフィを自動計算→pdfLinesを地図上の正しい線に変換する。建物・有名地点の緯度経度はClaudeが知識として記録。",
 
   "roppongi_hills": {
+    "referencePoints": [
+      { "pdf": { "x": 290, "y": 290 }, "geo": { "lat": 35.66042, "lng": 139.72896 }, "_label": "森タワー(N)" },
+      { "pdf": { "x": 565, "y": 320 }, "geo": { "lat": 35.66012, "lng": 139.72962 }, "_label": "毛利庭園" },
+      { "pdf": { "x": 650, "y": 480 }, "geo": { "lat": 35.65928, "lng": 139.72987 }, "_label": "テレビ朝日" },
+      { "pdf": { "x": 600, "y": 110 }, "geo": { "lat": 35.66457, "lng": 139.72980 }, "_label": "ハリウッドビューティプラザ" }
+    ],
     "approaches": [
       {
         "pdfImageRef": "roppongi_hills-1.jpg",
-        "pdfLines": [{ "x": 610, "y": 60 }, { "x": 650, "y": 280 }]
+        "pdfLines": [
+          { "x": 350, "y": 80 },
+          { "x": 440, "y": 140 },
+          { "x": 550, "y": 200 },
+          { "x": 640, "y": 260 }
+        ]
       },
       {
         "pdfImageRef": "roppongi_hills-1.jpg",
-        "pdfLines": [{ "x": 270, "y": 1070 }, { "x": 180, "y": 750 }]
-      }
-    ]
-  },
-
-  "izumi_garden": {
-    "approaches": [
-      {
-        "pdfImageRef": "izumi_garden-1.jpg",
-        "pdfLines": [{ "x": 550, "y": 1280 }, { "x": 480, "y": 900 }, { "x": 420, "y": 500 }]
-      }
-    ]
-  },
-
-  "grand_hyatt_tokyo": {
-    "approaches": [
-      {
-        "pdfImageRef": "grand_hyatt_tokyo-1.jpg",
-        "pdfLines": [{ "x": 920, "y": 460 }, { "x": 440, "y": 300 }, { "x": 440, "y": 130 }]
+        "pdfLines": [
+          { "x": 290, "y": 770 },
+          { "x": 220, "y": 720 },
+          { "x": 170, "y": 670 }
+        ]
       }
     ]
   }
