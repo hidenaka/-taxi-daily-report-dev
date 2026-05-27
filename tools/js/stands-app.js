@@ -73,6 +73,8 @@ if (searchNear) searchNear.addEventListener('click', () => {
 });
 
 const TURN_BADGE = { 'left-only': '左折のみ', 'right-ok': '右折可', either: '' };
+// stands-map.js の APPROACH_PALETTE と同一に保つこと
+const APPROACH_PALETTE = ['#1976d2', '#7b1fa2', '#388e3c', '#e64a19', '#0097a7', '#c2185b'];
 function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function buildApproachCard(stand) {
   const approaches = stand.approaches || [];
@@ -81,11 +83,13 @@ function buildApproachCard(stand) {
   let html = '<div class="entry-card">';
   if (approaches.length) {
     html += '<div class="entry-card-h">入口ガイド</div><ul class="entry-list">';
-    approaches.forEach((a) => {
+    approaches.forEach((a, idx) => {
+      const color = APPROACH_PALETTE[idx % APPROACH_PALETTE.length];
+      const swatch = `<span class="approach-swatch" style="display:inline-block;width:12px;height:12px;border-radius:6px;background:${color};margin-right:6px;vertical-align:middle"></span>`;
       const badge = TURN_BADGE[a.turn] ? `<span class="turn-badge t-${a.turn}">${TURN_BADGE[a.turn]}</span>` : '';
       const road = a.road ? `<span class="road">${escapeHtml(a.road)}</span> ` : '';
       const hint = a.hint ? `<div class="hint">${escapeHtml(a.hint)}</div>` : '';
-      html += `<li>${badge}${road}<b>${escapeHtml(a.label || '')}</b>${hint}</li>`;
+      html += `<li>${swatch}${badge}${road}<b>${escapeHtml(a.label || '')}</b>${hint}</li>`;
     });
     html += '</ul>';
   }

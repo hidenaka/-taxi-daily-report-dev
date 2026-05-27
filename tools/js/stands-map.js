@@ -71,10 +71,10 @@ export function renderPins(map, stands, onSelect) {
   return layer;
 }
 
-function arrowIcon(angleDeg) {
+function arrowIcon(angleDeg, color = '#1d6fe0') {
   return L.divIcon({
     className: 'stand-arrow',
-    html: `<span style="display:inline-block;color:#1d6fe0;font-size:18px;font-weight:bold;`
+    html: `<span style="display:inline-block;color:${color};font-size:18px;font-weight:bold;`
       + `transform:rotate(${angleDeg - 90}deg);text-shadow:0 0 3px #fff,0 0 3px #fff">▶</span>`,
     iconSize: [18, 18], iconAnchor: [9, 9],
   });
@@ -94,21 +94,22 @@ function labelMarkerIcon(label, kind) {
   });
 }
 
-// turn 別の色: left-only=黄 / right-ok=青 / either=濃灰
-const APPROACH_LINE_COLOR = { 'left-only': '#f1c40f', 'right-ok': '#1d6fe0', either: '#333' };
+// 進入経路の色: approach の index 順にローテーション（カード凡例と同期）。
+// stands-app.js の APPROACH_PALETTE と同一にすること。
+export const APPROACH_PALETTE = ['#1976d2', '#7b1fa2', '#388e3c', '#e64a19', '#0097a7', '#c2185b'];
 
 // 1施設の入り方を描画: approaches[].line（主役）＋ルート線/マーカー（後方互換）。
 // clearLayer で消す前提のレイヤを返す。
 export function drawRoute(map, stand, { fit = true } = {}) {
   const layer = L.layerGroup().addTo(map);
   // approaches[].line を主役で描画
-  (stand.approaches || []).forEach((a) => {
+  (stand.approaches || []).forEach((a, idx) => {
     if (!Array.isArray(a.line) || a.line.length < 2) return;
     const latlngs = a.line.map((p) => [p.lat, p.lng]);
-    const color = APPROACH_LINE_COLOR[a.turn] || APPROACH_LINE_COLOR.either;
+    const color = APPROACH_PALETTE[idx % APPROACH_PALETTE.length];
     L.polyline(latlngs, { color, weight: 6, opacity: 0.9 }).addTo(layer);
     arrowMarkersForRoute(a.line).forEach((m) => {
-      L.marker([m.lat, m.lng], { icon: arrowIcon(m.angleDeg), interactive: false }).addTo(layer);
+      L.marker([m.lat, m.lng], { icon: arrowIcon(m.angleDeg, color), interactive: false }).addTo(layer);
     });
   });
   // 後方互換: routes (旧形式)
