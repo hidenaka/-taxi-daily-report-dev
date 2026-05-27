@@ -3,7 +3,21 @@
 // 使い方: node scripts/generate-lines-semantic.mjs [<id1> <id2> ...]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fetchRoadWays } from './lib/overpass-fetch.mjs';
-import { buildApproachLine } from './lib/sketch-to-line.mjs';
+import { buildApproachLine, buildApproachLineFromWaypoints } from './lib/sketch-to-line.mjs';
+import { geocodeLandmark } from './lib/nominatim-fetch.mjs';
+
+// 地名のキャッシュ（同じランドマークを何度も叩かない）
+const _geoCache = new Map();
+const geocoder = {
+  async resolve(name, pin) {
+    const key = `${name}::${pin.lat.toFixed(4)},${pin.lng.toFixed(4)}`;
+    if (_geoCache.has(key)) return _geoCache.get(key);
+    const r = await geocodeLandmark(name, pin);
+    _geoCache.set(key, r);
+    await new Promise((s) => setTimeout(s, 1100)); // Nominatim 1req/sec マナー
+    return r;
+  },
+};
 
 const SEED = 'scripts/data/stands-seed-keiho.json';
 const SEM  = 'scripts/data/sketch-semantics-keiho.json';
@@ -24,8 +38,21 @@ for (const s of stands) {
   for (let i = 0; i < entry.approaches.length; i++) {
     if (i >= s.approaches.length) break;
     const a = entry.approaches[i];
-    if (!a.main_road) { skipped.push(`${s.id}[${i}]: main_road なし`); continue; }
     try {
+      // ①新方式: waypoints（ランドマーク列）が指定されていれば、Nominatimで解決して折れ線化
+      if (Array.isArray(a.waypoints) && a.waypoints.length >= 2) {
+        const line = await buildApproachLineFromWaypoints({ waypoints: a.waypoints, pin: s.pin, geocoder });
+        if (line.length >= 2) {
+          s.approaches[i].line = line;
+          updated += 1;
+          console.log(`✓ ${s.id}[${i}]: waypoints[${a.waypoints.length}] → ${line.length}点`);
+          continue;
+        }
+        skipped.push(`${s.id}[${i}]: waypoints解決失敗（Nominatim hit不足）`);
+        continue;
+      }
+      // ②旧方式: main_road + entry_direction（後方互換）
+      if (!a.main_road) { skipped.push(`${s.id}[${i}]: main_road/waypoints なし`); continue; }
       const mainWays = await fetchRoadWays(a.main_road, s.pin.lat, s.pin.lng, 600);
       let turnWays = null;
       if (a.turn_road) turnWays = await fetchRoadWays(a.turn_road, s.pin.lat, s.pin.lng, 600);

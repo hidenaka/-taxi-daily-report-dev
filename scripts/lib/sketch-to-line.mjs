@@ -60,6 +60,28 @@ function selectComponentForDirection(components, pin, direction) {
   return best;
 }
 
+// waypoints (ランドマーク名の配列、もしくは {lat,lng} 直接指定) を緯度経度に解決して
+// 順に繋いだ折れ線を返す。geocoder は { resolve(name): {lat,lng}|null } を受け付ける。
+// PDFの進入経路を実地図の建物・交差点を辿る形で再現する。
+export async function buildApproachLineFromWaypoints({ waypoints, pin, geocoder }) {
+  if (!Array.isArray(waypoints) || waypoints.length < 2) return [];
+  const resolved = [];
+  for (const w of waypoints) {
+    if (w && typeof w === 'object' && typeof w.lat === 'number' && typeof w.lng === 'number') {
+      resolved.push({ lat: w.lat, lng: w.lng, _name: w.label || null });
+      continue;
+    }
+    const name = (typeof w === 'string') ? w : (w && w.landmark) || null;
+    if (!name) continue;
+    if (!geocoder || typeof geocoder.resolve !== 'function') continue;
+    const r = await geocoder.resolve(name, pin);
+    if (r && typeof r.lat === 'number' && typeof r.lng === 'number') {
+      resolved.push({ lat: r.lat, lng: r.lng, _name: name });
+    }
+  }
+  return resolved.length >= 2 ? resolved.map((p) => ({ lat: p.lat, lng: p.lng })) : [];
+}
+
 export function buildApproachLine({ semantics, mainWays, turnWays, pin }) {
   if (!Array.isArray(mainWays) || mainWays.length === 0) return [];
   const mainComponents = mergeWaysAllComponents(mainWays);

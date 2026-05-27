@@ -1,9 +1,29 @@
 {
-  "_comment": "Claudeが47PDFを読解した構造化記述。main_road=OSM道路名(日本語)、entry_direction=east|west|north|south、turn=left|right|null",
+  "_comment": "ClaudeがPDFを読解した構造化記述。waypoints=PDFの進入線が経由するランドマーク列（OSM/Nominatimで解決される建物・地点名）。順に繋いだ折れ線が進入線として描画される。",
+
   "roppongi_hills": {
     "approaches": [
-      { "label_ja": "六本木通り側から進入", "main_road": "六本木通り", "entry_direction": "east", "destination_side": "south", "turn": null, "_pdf_notes": "六本木通り西行き→センターループ入口A" },
-      { "label_ja": "けやき坂側から進入", "main_road": "けやき坂", "entry_direction": "west", "destination_side": "north", "turn": null, "_pdf_notes": "けやき坂を西進→入口B (OSM名: けやき坂)" }
+      {
+        "label_ja": "六本木通り側から進入",
+        "waypoints": [
+          { "lat": 35.66445, "lng": 139.72980, "label": "ZONE六本木ビル前" },
+          "メトロハット",
+          "ハリウッドビューティプラザ",
+          { "lat": 35.66095, "lng": 139.72975, "label": "センターループ入口A" },
+          "六本木ヒルズ森タワー"
+        ],
+        "_pdf_notes": "PDF図1の青矢印④→センターループ入口A→構内"
+      },
+      {
+        "label_ja": "けやき坂側から進入",
+        "waypoints": [
+          { "lat": 35.65935, "lng": 139.72760, "label": "けやき坂西端(けやき坂テラス前)" },
+          { "lat": 35.65920, "lng": 139.72855, "label": "けやき坂コンプレックス南" },
+          { "lat": 35.65955, "lng": 139.72880, "label": "センターループ入口B" },
+          "六本木ヒルズ森タワー"
+        ],
+        "_pdf_notes": "PDF図1の青矢印①→センターループ入口B→構内"
+      }
     ]
   }
 }
