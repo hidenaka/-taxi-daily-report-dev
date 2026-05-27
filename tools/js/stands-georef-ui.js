@@ -150,5 +150,8 @@ export function initGeoref({ stand, onSave }) {
   };
 
   overlay.hidden = false;
+  // overlay表示直後はDOMサイズが確定するまで地図タイルが読み込まれないため
+  // invalidateSize を遅延実行する。
+  setTimeout(() => { try { map.invalidateSize(); } catch (e) {} }, 50);
   updateStatus();
 }
