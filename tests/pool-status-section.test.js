@@ -53,7 +53,7 @@ test('formatActivityLine: 同条件比較サンプル不足は活発度のみ', 
     recent1hDepartures: 59, typical1h: 52, ratio: 1.13, level: 'normal', arrow: 'flat',
     sameConditionCompare: { peers_typical: null, percent: null, label: null, dayLabel: '火曜平日' },
   };
-  assert.equal(formatActivityLine(activity), '平常→ （火曜平日 同時間帯のサンプル不足）');
+  assert.equal(formatActivityLine(activity), '平常→');
 });
 
 test('formatActivityLine: sameConditionCompare 未提供（旧データ）は活発度のみ', async () => {

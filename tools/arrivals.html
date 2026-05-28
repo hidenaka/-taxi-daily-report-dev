@@ -239,15 +239,15 @@
       <div id="pool-status-stalls" style="margin-top:8px; font-size:13px; line-height:1.7;"></div>
       <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
-    <p class="fc-scope">※絶対値（在台N台・待ち目安N分）は誤差が大きいため表示しません。比率・差分・運航データだけを使った誠実な目安です。</p>
+    <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
-        <p style="margin:0 0 4px;"><strong>今日の流れ</strong>：直近1時間の出庫を、過去同曜日（祝日・連休も区別）と同時間帯で割り算。同じバイアスで割るので偏りに強い。</p>
-        <p style="margin:0 0 4px;"><strong>乗り場の動き</strong>：直近30分÷前30分の出庫比でトレンド判定。乗り場間の相対比較も合わせて表示。</p>
-        <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データ（時刻表ベース）。タクシー利用人数の予測は<strong>出さない</strong>（予測の上の予測になるため）。</p>
-        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて出す予測システムを構築中（学習中）。</p>
-        <p style="margin:0;">※カメラ検出の絶対値（在台N台）には大きなバイアスがあり、実数の半分程度しか拾えないことが目視確認済みです。だから絶対値はUIに出しません。</p>
+        <p style="margin:0 0 4px;"><strong>今日の流れ</strong>：直近1時間の出庫数を、過去の同曜日（祝日・連休も区別）と比べて活発か・少なめかを表示。</p>
+        <p style="margin:0 0 4px;"><strong>乗り場の動き</strong>：直近30分の動きが活発か・少なめかを乗り場ごとに表示。</p>
+        <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データから、ロビーに出る予定の便を表示。</p>
+        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせて予測（学習中）。</p>
+        <p style="margin:0;">※数値は目安です。実数とズレることがあります。</p>
       </div>
     </details>
     <div class="fc-controls">

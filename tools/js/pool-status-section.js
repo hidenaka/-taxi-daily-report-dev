@@ -53,9 +53,6 @@ export function formatActivityLine(activity) {
     return `${sc.label}${arrow} （${sc.dayLabel} 同時間帯比 ${sign}${pct}%）`;
   }
   const activeLabel = { active: '活発', normal: '平常', low: '少なめ' }[activity.level] || '—';
-  if (sc && sc.dayLabel) {
-    return `${activeLabel}${arrow} （${sc.dayLabel} 同時間帯のサンプル不足）`;
-  }
   return `${activeLabel}${arrow}`;
 }
 
@@ -190,7 +187,7 @@ export async function initPoolStatusSection() {
     if (isStale(data.generatedAt, Date.now())) {
       metaEl.textContent = `📷 配信停止中の可能性（写真・データは ${ts} が最終）`;
     } else {
-      metaEl.textContent = `📷 ${ts}時点（カメラ推定で実数とズレあり）`;
+      metaEl.textContent = `📷 ${ts}時点`;
     }
     if (actEl) {
       actEl.innerHTML = `<strong>今日の流れ</strong> ${formatActivityLine(data.activity || {})}`;
@@ -211,7 +208,7 @@ export async function initPoolStatusSection() {
     if (arrivalsEl) {
       const lines = formatArrivalsList(data.terminalArrivalsList);
       if (lines.length) {
-        const head = '<div style="color:var(--sub); font-size:12px; margin-top:8px; margin-bottom:4px;">✈ これからお客がロビーに出る便（運航データ・予測ではない）</div>';
+        const head = '<div style="color:var(--sub); font-size:12px; margin-top:8px; margin-bottom:4px;">✈ これからお客がロビーに出る便</div>';
         arrivalsEl.innerHTML = head + lines
           .map(l => l.startsWith('  ') ? `<div style="padding-left:8px;">${l.trimStart()}</div>` : `<div style="font-weight:600; margin-top:4px;">${l}</div>`)
           .join('');
