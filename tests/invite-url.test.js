@@ -165,3 +165,26 @@ test('clearInviteSlug: company と ref を同時に削除', () => {
   assert.equal(storage._data.taxi_pending_company, undefined);
   assert.equal(storage._data.taxi_pending_referrer, undefined);
 });
+
+import { buildCompanyInviteUrl } from '../js/invite-url.js';
+
+test('buildCompanyInviteUrl: ref ありで &ref=<id> 付与', () => {
+  assert.equal(
+    buildCompanyInviteUrl('co-7q7ros', 'https://app.taxicabis.com', 'driver_a1b2'),
+    'https://app.taxicabis.com/?company=co-7q7ros&ref=driver_a1b2'
+  );
+});
+
+test('buildCompanyInviteUrl: ref なし(null/undefined/空文字)で &ref なし', () => {
+  const expected = 'https://app.taxicabis.com/?company=co-7q7ros';
+  assert.equal(buildCompanyInviteUrl('co-7q7ros', 'https://app.taxicabis.com'), expected);
+  assert.equal(buildCompanyInviteUrl('co-7q7ros', 'https://app.taxicabis.com', null), expected);
+  assert.equal(buildCompanyInviteUrl('co-7q7ros', 'https://app.taxicabis.com', ''), expected);
+});
+
+test('buildCompanyInviteUrl: 特殊文字を encodeURIComponent', () => {
+  assert.equal(
+    buildCompanyInviteUrl('co-7q7ros', 'https://app.taxicabis.com', 'a&b'),
+    'https://app.taxicabis.com/?company=co-7q7ros&ref=a%26b'
+  );
+});

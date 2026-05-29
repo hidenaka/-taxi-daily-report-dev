@@ -117,6 +117,13 @@ export function showInviteIssueBanner(html) {
   document.body.appendChild(banner);
 }
 
+/** 会社slug + 紹介者userId(任意) で招待URLを組み立てる純関数。
+ *  refUserId が truthy なら &ref=<id> 付与、falsy(null/undefined/空文字) なら付与しない。 */
+export function buildCompanyInviteUrl(slug, baseUrl, refUserId = null) {
+  const base = `${baseUrl}/?company=${encodeURIComponent(slug)}`;
+  return refUserId ? `${base}&ref=${encodeURIComponent(refUserId)}` : base;
+}
+
 // 招待URL を捕捉し、Firestore で存在検証 → 不正なら localStorage クリア + 警告 banner 表示。
 // 全ページ共通の呼出口。fire and forget（await 不要、UI ブロックしない）。
 export async function checkInviteAndWarn(searchParams, storage, fetchCompanyExistsFn) {
