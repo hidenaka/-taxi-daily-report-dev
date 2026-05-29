@@ -413,7 +413,7 @@ async function render() {
     `;
   }
 
-  // 歩率セクション(着地予測 + ティア進捗バー型 / 案C・固定歩率会社はガード除外で従来どおり非表示)
+  // 歩率セクション(中立版v5・煽り削除・歩率マップ+目標対比+次段の事実情報 / 固定歩率会社は payrollMode ガードで従来どおり非表示)
   if (rawDrives.length > 0 && config.payrollMode !== 'fixed_rate') {
     const rateTable = config.rateTable;
     // 歩率テーブルのティアは契約上の責任出番で判定する(予定出番数とは別概念)
@@ -431,35 +431,40 @@ async function render() {
       if (currentTierIdx >= 0) {
         const currentTier = projectionTiers[currentTierIdx];
         const displayRate = isLocked ? actualResult.rate : currentTier.rate;
-        const badgeBg = isLocked ? '#c8e6c9' : '#e3f2fd';
-        const badgeFg = isLocked ? '#2e7d32' : '#1565c0';
+        const badgeBg = isLocked ? '#c8e6c9' : '#c8e6c9';
+        const badgeFg = isLocked ? '#1b5e20' : '#1b5e20';
         const badgeLabel = isLocked ? '確定' : '着地見込';
 
         // 乗務当りグリッド(per-shift基準・新表は14段、1〜11乗務共通グリッド)
         const NORUI = [40000, 42000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 100000];
+        // 万円単位フォーマット(k表記廃止)
+        const formatMan = (yen) => {
+          const man = yen / 10000;
+          return man % 1 === 0 ? man.toFixed(0) : man.toFixed(1);
+        };
+        const currentTierMan = currentTier.salesMin > 0
+          ? formatMan(currentTier.salesMin / tierShiftCount)
+          : formatMan(NORUI[currentTierIdx] || NORUI[0]);
 
-        // 1) 着地予測フロー (確定前のみ)
-        const currentTierPerShiftK = currentTier.salesMin > 0
-          ? Math.round(currentTier.salesMin / tierShiftCount / 1000)
-          : Math.round((NORUI[currentTierIdx] || NORUI[0]) / 1000);
+        // 1) 着地予測フロー (確定前のみ・緑寄り)
         const flowHtml = isLocked ? '' : `
           <div style="display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:4px;align-items:center;margin:8px 0 14px;">
-            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:6px;border:1px solid #c8e6c9;">
-              <div style="font-size:9px;color:#666;letter-spacing:.05em;">現状ペース</div>
+            <div style="text-align:center;padding:8px 4px;background:#f1f8e9;border-radius:6px;border:1px solid #c5e1a5;">
+              <div style="font-size:9px;color:#666;">現状ペース</div>
               <div style="font-size:14px;color:#1b5e20;margin:2px 0;font-weight:700;font-variant-numeric:tabular-nums;">${formatYen(drivenAvgExcl)}</div>
               <div style="font-size:9px;color:#666;">/出番(税抜)</div>
             </div>
-            <span style="font-size:14px;color:#999;">→</span>
-            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:6px;border:1px solid #c8e6c9;">
-              <div style="font-size:9px;color:#666;letter-spacing:.05em;">月度予測</div>
+            <span style="font-size:14px;color:#558b2f;">→</span>
+            <div style="text-align:center;padding:8px 4px;background:#f1f8e9;border-radius:6px;border:1px solid #c5e1a5;">
+              <div style="font-size:9px;color:#666;">月度予測</div>
               <div style="font-size:14px;color:#1b5e20;margin:2px 0;font-weight:700;font-variant-numeric:tabular-nums;">${formatYen(projectedSalesExcl)}</div>
-              <div style="font-size:9px;color:#666;">×${tierShiftCount}乗務</div>
+              <div style="font-size:9px;color:#666;">×${tierShiftCount}乗務(税抜)</div>
             </div>
-            <span style="font-size:14px;color:#999;">→</span>
-            <div style="text-align:center;padding:8px 4px;background:#fff;border-radius:6px;border:1px solid #c8e6c9;">
-              <div style="font-size:9px;color:#666;letter-spacing:.05em;">着地段</div>
-              <div style="font-size:14px;color:#1b5e20;margin:2px 0;font-weight:700;">${currentTierPerShiftK}k段</div>
-              <div style="font-size:9px;color:#666;">${(currentTier.rate*100).toFixed(1)}%</div>
+            <span style="font-size:14px;color:#558b2f;">→</span>
+            <div style="text-align:center;padding:8px 4px;background:#f1f8e9;border-radius:6px;border:1px solid #c5e1a5;">
+              <div style="font-size:9px;color:#666;">着地歩率</div>
+              <div style="font-size:14px;color:#1b5e20;margin:2px 0;font-weight:700;">${(currentTier.rate*100).toFixed(1)}%</div>
+              <div style="font-size:9px;color:#666;">${currentTierMan}万円段</div>
             </div>
           </div>
         `;
@@ -473,104 +478,180 @@ async function render() {
           </div>
         ` : '';
 
-        // 3) ティア地図(横棒セグメント + 現在位置マーカー)
+        // 3) 歩率マップ(緑寄り・k表記廃止・現状段のみハイライト)
         let ladderSegments = '';
         projectionTiers.forEach((t, i) => {
           const isC = i === currentTierIdx;
-          const isP = i === currentTierIdx - 1;
-          const isN = i === currentTierIdx + 1;
-          const bg = isC ? 'linear-gradient(180deg,#aed581,#c8e6c9)'
-                   : isN ? '#fff9e6'
-                   : isP ? '#fde6e6'
-                   : '#f1f8e9';
-          const v1Color = isC ? '#1b5e20' : isN ? '#c67c00' : isP ? '#b71c1c' : '#558b2f';
-          const v1Weight = isC ? '800' : '700';
-          const gridK = Math.round((NORUI[i] || NORUI[NORUI.length - 1]) / 1000);
-          const rateNum = (t.rate * 100).toFixed(1);
-          ladderSegments += `<div style="padding:6px 1px;text-align:center;font-size:9.5px;line-height:1.2;background:${bg};border-right:1px solid #e0ebde;"><span style="font-weight:${v1Weight};color:${v1Color};display:block;font-size:10px;">${gridK}k</span><span style="font-size:8.5px;color:#777;">${rateNum}%</span></div>`;
+          const bg = isC ? 'linear-gradient(180deg,#81c784,#66bb6a)' : '#f9fbf3';
+          const v1Color = isC ? '#fff' : '#7cb342';
+          const v1Weight = isC ? '800' : '600';
+          const v2Color = isC ? '#f1f8e9' : '#9e9e9e';
+          const labelMan = formatMan(NORUI[i] || NORUI[NORUI.length - 1]);
+          ladderSegments += `<div style="padding:6px 1px;text-align:center;line-height:1.2;background:${bg};border-right:1px solid #dcedc8;"><span style="font-weight:${v1Weight};color:${v1Color};display:block;font-size:10px;">${labelMan}</span><span style="font-size:8.5px;color:${v2Color};">${(t.rate * 100).toFixed(1)}%</span></div>`;
         });
         const segCount = projectionTiers.length;
         const segStart = NORUI[currentTierIdx] || 0;
         const segEnd = NORUI[currentTierIdx + 1] || (segStart + 5000);
         const fraction = Math.min(1, Math.max(0, (drivenAvgExcl - segStart) / Math.max(1, segEnd - segStart)));
         const leftPct = ((currentTierIdx + fraction) / segCount) * 100;
-        const markerArrow = isLocked ? '★' : '▲';
-        const markerColor = isLocked ? '#1b5e20' : '#2e7d32';
-        const markerLabel = isLocked ? `確定 ${formatYen(drivenAvgExcl)}/出番` : `${formatYen(drivenAvgExcl)}/出番`;
         const ladderHtml = `
-          <div style="font-size:10px;color:#666;margin-bottom:4px;letter-spacing:.05em;">ティア地図（出番あたりで決まる段）</div>
-          <div style="border:1px solid #d8e3d6;border-radius:6px;overflow:hidden;display:grid;grid-template-columns:repeat(${segCount},1fr);">${ladderSegments}</div>
+          <div style="font-size:10px;color:#558b2f;margin-bottom:4px;">歩率マップ（1出番あたり営収・単位:万円 税抜）</div>
+          <div style="border:1px solid #c5e1a5;border-radius:6px;overflow:hidden;display:grid;grid-template-columns:repeat(${segCount},1fr);">${ladderSegments}</div>
           <div style="position:relative;height:22px;margin-top:2px;">
-            <div style="position:absolute;top:0;left:${leftPct.toFixed(2)}%;transform:translateX(-50%);background:${markerColor};color:#fff;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700;font-size:9px;">${markerArrow} ${markerLabel}</div>
+            <div style="position:absolute;top:0;left:${leftPct.toFixed(2)}%;transform:translateX(-50%);background:#2e7d32;color:#fff;padding:2px 6px;border-radius:4px;white-space:nowrap;font-weight:700;font-size:9px;">${formatYen(drivenAvgExcl)}/出番</div>
           </div>
         `;
 
-        // 4) アクションカード ↑次段 / ↓下段境界 (確定前 + 残出番ありのみ)
-        let actionsHtml = '';
+        // 4) 目標との対比カード(takeHomeTarget / grossTarget 自動切替・両方なら両方表示・両方未設定なら非表示)
+        // 5) 次の歩率段カード(中立表現)
+        let targetComparisonHtml = '';
+        let nextTierHtml = '';
         if (!isLocked && remainingShifts > 0) {
           // インセンティブ・有給は到達 rate に依存しないので、予測値を流用
           const incentivePart = predicted ? predicted.incentive : actualResult.incentive;
           const paidLeavePart = actualResult.paidLeaveAmount;
-          const projectAtTier = (tier) => {
-            const basePay = tier.salesMin * tier.rate;
-            const total = basePay + incentivePart + paidLeavePart;
-            const takeHome = total * takeHomeRate;
-            return { total, takeHome };
+          // 着地予測の総支給・手取り
+          const projectedTotal = projectedSalesExcl * currentTier.rate + incentivePart + paidLeavePart;
+          const projectedTakeHome = projectedTotal * takeHomeRate;
+
+          // 残出番のシム (vehicleType 補完用)
+          const remainingShiftList = [];
+          for (let i = 0; i < remainingShifts; i++) remainingShiftList.push({ vehicleType: 'japantaxi' });
+
+          // 目標達成ライン計算 (target種別ごと)
+          const calcAchieveLine = (target, targetType) => {
+            if (!(target > 0)) return null;
+            const reqInclPerShift = requiredUniformSales(rawDrives, remainingShiftList, config, range.start, range.end, target, takeHomeRate, targetType);
+            if (reqInclPerShift <= 0) {
+              return { reached: true, reqExclPerShift: 0, reqInclPerShift: 0, totalExcl: 0, totalIncl: 0 };
+            }
+            const reqExclPerShift = reqInclPerShift / 1.1;
+            const totalIncl = reqInclPerShift * remainingShifts;
+            const totalExcl = reqExclPerShift * remainingShifts;
+            return { reached: false, reqExclPerShift, reqInclPerShift, totalExcl, totalIncl };
           };
 
-          // ↑ 次段(より高い rate のティア): 現状ペース基準で +ΔX/出番で到達
+          const targets = [];
+          if (config.takeHomeTarget > 0) {
+            const line = calcAchieveLine(config.takeHomeTarget, 'takehome');
+            if (line) targets.push({ kind: 'takehome', label: '手取り', target: config.takeHomeTarget, projected: projectedTakeHome, line });
+          }
+          if (config.grossTarget > 0) {
+            const line = calcAchieveLine(config.grossTarget, 'gross');
+            if (line) targets.push({ kind: 'gross', label: '総支給(額面)', target: config.grossTarget, projected: projectedTotal, line });
+          }
+
+          const renderTargetCard = (t) => {
+            const diff = t.projected - t.target;
+            const diffSign = diff >= 0 ? '+ ' : '− ';
+            const diffAbs = formatYen(Math.abs(diff));
+            const diffLabel = diff >= 0 ? '（達成見込み）' : '（目標まで不足）';
+            let achieveBlock = '';
+            if (t.line.reached) {
+              achieveBlock = `
+                <div style="padding:6px 8px;background:#fff;border-radius:5px;border:1px solid #c5e1a5;">
+                  <div style="font-size:9.5px;color:#666;">目標達成ライン</div>
+                  <div style="font-size:12.5px;color:#1b5e20;font-weight:700;">残出番0でも達成可</div>
+                  <div style="font-size:9.5px;color:#9e9e9e;margin-top:3px;font-style:italic;">（既に累計が目標到達ペース）</div>
+                </div>`;
+            } else {
+              const dropAmount = drivenAvgExcl - t.line.reqExclPerShift;
+              const dropParen = dropAmount > 0
+                ? `（現状${formatYen(drivenAvgExcl)}(税抜)から ${formatYen(dropAmount)}下げても${t.label}目標達成可能）`
+                : `（現状ペースから残出番平均 +${formatYen(-dropAmount)}/出番で${t.label}目標到達）`;
+              achieveBlock = `
+                <div style="padding:6px 8px;background:#fff;border-radius:5px;border:1px solid #c5e1a5;">
+                  <div style="font-size:9.5px;color:#666;">目標達成ライン（残出番平均）</div>
+                  <div style="font-size:12.5px;color:#1b5e20;font-weight:700;line-height:1.4;">
+                    ${formatYen(t.line.reqExclPerShift)}/出番(税抜)<br>
+                    <span style="font-size:11px;font-weight:600;">${formatYen(t.line.reqInclPerShift)}/出番(税込)</span>
+                  </div>
+                  <div style="font-size:9.5px;color:#558b2f;margin-top:3px;padding-top:3px;border-top:1px dashed #c5e1a5;">残${remainingShifts}出番合計 ${formatYen(t.line.totalExcl)}(税抜) / <strong>${formatYen(t.line.totalIncl)}(税込)</strong></div>
+                  <div style="font-size:9.5px;color:#9e9e9e;margin-top:3px;font-style:italic;">${dropParen}</div>
+                </div>`;
+            }
+            return `
+              <div style="padding:10px;background:linear-gradient(180deg,#e8f5e9,#f1f8e9);border-radius:8px;border:1px solid #a5d6a7;margin-top:10px;">
+                <div style="font-size:10px;color:#1b5e20;letter-spacing:.05em;margin-bottom:6px;font-weight:600;">あなたの目標との対比 — ${t.label}</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+                  <div style="padding:5px 7px;background:#fff;border-radius:5px;border:1px solid #c5e1a5;">
+                    <div style="font-size:9px;color:#666;">目標 ${t.label}(月度)</div>
+                    <div style="font-size:13px;color:#1b5e20;font-weight:700;">${formatYen(t.target)}</div>
+                  </div>
+                  <div style="padding:5px 7px;background:#fff;border-radius:5px;border:1px solid #c5e1a5;">
+                    <div style="font-size:9px;color:#666;">着地${t.label}</div>
+                    <div style="font-size:13px;color:#1b5e20;font-weight:700;">${formatYen(t.projected)}</div>
+                  </div>
+                </div>
+                <div style="padding:6px 8px;background:#fff;border-radius:5px;border:1px solid #c5e1a5;margin-bottom:6px;">
+                  <div style="font-size:9px;color:#666;">目標との差</div>
+                  <div style="font-size:13px;color:#1b5e20;font-weight:700;">${diffSign}${diffAbs}<span style="font-size:10px;color:#558b2f;font-weight:normal;"> ${diffLabel}</span></div>
+                </div>
+                ${achieveBlock}
+              </div>
+            `;
+          };
+          targetComparisonHtml = targets.map(renderTargetCard).join('');
+
+          // 5) 次の歩率段カード(中立表現・「上げる」「達成時手取り」は不使用)
           const upTier = findNextHigherRateTier(projectionTiers, currentTierIdx);
-          let upCardHtml = '';
           if (upTier) {
-            const additionalNeededExcl = Math.max(0, upTier.tier.salesMin - projectedSalesExcl);
-            const additionalPerShiftExcl = remainingShifts > 0 ? additionalNeededExcl / remainingShifts : 0;
-            const requiredPaceExcl = drivenAvgExcl + additionalPerShiftExcl;
-            const proj = projectAtTier(upTier.tier);
-            const upTierK = Math.round(upTier.tier.salesMin / tierShiftCount / 1000);
-            const mainText = additionalNeededExcl === 0
-              ? `現状ペース継続で到達`
-              : `+ <strong>${formatYen(additionalPerShiftExcl)}</strong> / 出番`;
-            const subText = additionalNeededExcl === 0
-              ? `達成時 手取り ${formatYen(proj.takeHome)}`
-              : `残${remainingShifts}で${formatYen(requiredPaceExcl)}/出番。達成時 手取り ${formatYen(proj.takeHome)}`;
-            upCardHtml = `
-              <div style="padding:8px 10px;border-radius:6px;font-size:11px;background:#fff9e6;border-left:3px solid #f9a825;">
-                <h4 style="margin:0 0 4px;font-size:11px;font-weight:700;color:#c67c00;">↑ ${upTierK}k段 (${(upTier.tier.rate*100).toFixed(1)}%) へ</h4>
-                <div style="font-size:13px;color:#333;">${mainText}</div>
-                <div style="font-size:9.5px;color:#666;margin-top:4px;padding-top:4px;border-top:1px dashed #ccc;">${subText}</div>
+            const upTierMan = formatMan(upTier.tier.salesMin / tierShiftCount);
+            const upTierPerShiftExcl = upTier.tier.salesMin / tierShiftCount;
+            const upTierPerShiftIncl = upTierPerShiftExcl * 1.1;
+            const upTierTotalExcl = upTier.tier.salesMin;
+            const upTierTotalIncl = upTier.tier.salesMin * 1.1;
+            const requiredRemainingExcl = Math.max(0, upTier.tier.salesMin - currentSalesExclTax);
+            const requiredRemainingIncl = requiredRemainingExcl * 1.1;
+            const requiredRemainingAvgExcl = remainingShifts > 0 ? requiredRemainingExcl / remainingShifts : 0;
+            const requiredRemainingAvgIncl = requiredRemainingAvgExcl * 1.1;
+            // 現状ペースで月度合計に届くか
+            const projectedDeficit = upTier.tier.salesMin - projectedSalesExcl;
+            const parenText = projectedDeficit <= 0
+              ? `（現状${formatYen(drivenAvgExcl)}(税抜) → 既にこの水準より高い／現状ペース継続で次の歩率段に到達見込み）`
+              : `（現状${formatYen(drivenAvgExcl)}(税抜) → 月度合計まで残${formatYen(projectedDeficit)}(税抜)、残出番平均 +${formatYen((projectedDeficit) / remainingShifts)}/出番で月度合計到達）`;
+            nextTierHtml = `
+              <div style="margin-top:14px;padding:12px;background:#fff;border:1px solid #c5e1a5;border-radius:8px;">
+                <div style="font-size:10px;color:#1b5e20;letter-spacing:.05em;margin-bottom:6px;font-weight:600;">次の歩率段（${upTierMan}万円段 ${(upTier.tier.rate*100).toFixed(1)}%）の条件</div>
+                <div style="padding:5px 7px;background:#f9fbf3;border-radius:5px;margin-bottom:6px;">
+                  <div style="font-size:9.5px;color:#666;">1出番あたり営収</div>
+                  <div style="font-size:13px;color:#1b5e20;font-weight:700;line-height:1.4;">
+                    ${formatYen(upTierPerShiftExcl)}以上(税抜)<br>
+                    <span style="font-size:11px;font-weight:600;">${formatYen(upTierPerShiftIncl)}以上(税込)</span>
+                  </div>
+                </div>
+                <div style="padding:5px 7px;background:#f9fbf3;border-radius:5px;margin-bottom:6px;">
+                  <div style="font-size:9.5px;color:#666;">月度合計</div>
+                  <div style="font-size:12.5px;color:#1b5e20;font-weight:600;">${formatYen(upTierTotalExcl)}以上(税抜) / ${formatYen(upTierTotalIncl)}以上(税込)</div>
+                </div>
+                <div style="padding:5px 7px;background:#f9fbf3;border-radius:5px;">
+                  <div style="font-size:9.5px;color:#666;">残${remainingShifts}出番の必要平均（月度合計到達のため）</div>
+                  <div style="font-size:13px;color:#1b5e20;font-weight:700;line-height:1.4;">
+                    ${formatYen(requiredRemainingAvgExcl)}/出番(税抜)<br>
+                    <span style="font-size:11px;font-weight:600;">${formatYen(requiredRemainingAvgIncl)}/出番(税込)</span>
+                  </div>
+                  <div style="font-size:9.5px;color:#558b2f;margin-top:3px;padding-top:3px;border-top:1px dashed #c5e1a5;">残${remainingShifts}出番合計 ${formatYen(requiredRemainingExcl)}(税抜) / <strong>${formatYen(requiredRemainingIncl)}(税込)</strong></div>
+                  <div style="font-size:9.5px;color:#9e9e9e;margin-top:3px;font-style:italic;">${parenText}</div>
+                </div>
               </div>
             `;
-          }
-
-          // ↓ 前ティアに落ちる境界: 残出番平均がこれ未満になると現状段→前段に下がる
-          let downCardHtml = '';
-          if (currentTierIdx > 0 && currentTier.salesMin > 0) {
-            const prevTier = projectionTiers[currentTierIdx - 1];
-            const keepLineExcl = (currentTier.salesMin - currentSalesExclTax) / remainingShifts;
-            const projDown = projectAtTier(prevTier);
-            const prevK = Math.round((NORUI[currentTierIdx - 1] || 0) / 1000);
-            const mainText = keepLineExcl <= 0
-              ? `0円でも段維持`
-              : `<strong>${formatYen(keepLineExcl)}</strong> / 出番 以下で低下`;
-            const subText = keepLineExcl <= 0
-              ? `残${remainingShifts}乗務がゼロでも現状段維持`
-              : `残${remainingShifts}平均がこれ未満で ${prevK}k段 に低下。低下時 手取り ${formatYen(projDown.takeHome)}`;
-            downCardHtml = `
-              <div style="padding:8px 10px;border-radius:6px;font-size:11px;background:#fde6e6;border-left:3px solid #c83a2c;">
-                <h4 style="margin:0 0 4px;font-size:11px;font-weight:700;color:#b71c1c;">↓ ${prevK}k段 (${(prevTier.rate*100).toFixed(1)}%) に落ちる境界</h4>
-                <div style="font-size:13px;color:#333;">${mainText}</div>
-                <div style="font-size:9.5px;color:#666;margin-top:4px;padding-top:4px;border-top:1px dashed #ccc;">${subText}</div>
-              </div>
-            `;
-          }
-
-          if (upCardHtml || downCardHtml) {
-            const cols = (upCardHtml && downCardHtml) ? '1fr 1fr' : '1fr';
-            actionsHtml = `<div style="display:grid;grid-template-columns:${cols};gap:8px;margin-top:12px;">${upCardHtml}${downCardHtml}</div>`;
           }
         }
 
-        const sectionContent = `${flowHtml}${lockedHtml}${ladderHtml}${actionsHtml}`;
+        // 6) いまの歩率の範囲(中立的な事実情報)
+        const rangeLow = NORUI[currentTierIdx] || 0;
+        const rangeHigh = (currentTierIdx + 1 < NORUI.length) ? NORUI[currentTierIdx + 1] - 1 : null;
+        const rangeText = rangeHigh != null
+          ? `出番あたり <strong>${formatYen(rangeLow)}〜${formatYen(rangeHigh)}</strong>(税抜) で ${(currentTier.rate*100).toFixed(1)}%（${currentTierMan}万円段）`
+          : `出番あたり <strong>${formatYen(rangeLow)}以上</strong>(税抜) で ${(currentTier.rate*100).toFixed(1)}%（${currentTierMan}万円段）`;
+        const rangeHtml = `
+          <div style="margin-top:10px;padding:8px 10px;background:#f9fbf3;border-radius:6px;font-size:11px;color:#558b2f;line-height:1.6;border:1px dashed #c5e1a5;">
+            <div style="font-size:9.5px;color:#7cb342;margin-bottom:2px;">いまの歩率の範囲</div>
+            <div>${rangeText}</div>
+          </div>
+        `;
+
+        const sectionContent = `${flowHtml}${lockedHtml}${ladderHtml}${targetComparisonHtml}${nextTierHtml}${rangeHtml}`;
         summaryHtml += foldSection('rate', `歩率と着地予測 <span class="badge" style="font-size:9px;background:${badgeBg};color:${badgeFg};">${badgeLabel} ${(displayRate*100).toFixed(1)}%</span>`, sectionContent);
       }
     }

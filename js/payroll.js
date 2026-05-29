@@ -215,43 +215,45 @@ export function calcTotalPay(drives, config, periodStart, periodEnd, options = {
   };
 }
 
-// 残りの乗務すべてで一律 X 円(税込)稼いだとき、月度手取りが目標ちょうどに
-// なる X を二分探索で求める。割り戻し(一律歩率で除算)ではなく実際の給与計算
+// 残りの乗務すべてで一律 X 円(税込)稼いだとき、月度目標がちょうど達成される
+// X を二分探索で求める。割り戻し(一律歩率で除算)ではなく実際の給与計算
 // calcTotalPay を使うため、段階歩率(1〜11乗務目)・12乗務目以降の固定率
 // (rateTable["12_13rate"])・プレミアムインセンティブを正しく反映する。
 //
 //   actualDrives   : 入力済みの実乗務(配列)
 //   remainingShifts: 残り乗務の車種リスト [{ vehicleType }]
-//   targetTakeHome : 目標手取り額
+//   target         : 目標額(手取り or 総支給。targetType で切替)
 //   takeHomeRate   : 手取り率(総支給→手取り)
+//   targetType     : 'takehome'(既定) or 'gross'。'gross' のとき total を直接 target と比較
 // 戻り値: 1乗務あたり必要売上(税込)。達成済み・残り乗務0なら 0。
-export function requiredUniformSales(actualDrives, remainingShifts, config, periodStart, periodEnd, targetTakeHome, takeHomeRate) {
+export function requiredUniformSales(actualDrives, remainingShifts, config, periodStart, periodEnd, target, takeHomeRate, targetType = 'takehome') {
   if (!Array.isArray(remainingShifts) || remainingShifts.length === 0) return 0;
   if (!(takeHomeRate > 0)) return 0;
 
-  const takeHomeOf = (inclTaxPerShift) => {
+  const compareValue = (inclTaxPerShift) => {
     const sim = remainingShifts.map((s, i) => ({
       trips: [{ amount: inclTaxPerShift, isCancel: false }],
       vehicleType: (s && s.vehicleType) ? s.vehicleType : 'japantaxi',
       date: '_req_' + i
     }));
     const drives = [...(actualDrives || []), ...sim];
-    return calcTotalPay(drives, config, periodStart, periodEnd).total * takeHomeRate;
+    const total = calcTotalPay(drives, config, periodStart, periodEnd).total;
+    return targetType === 'gross' ? total : total * takeHomeRate;
   };
 
   // 既に達成済み
-  if (takeHomeOf(0) >= targetTakeHome) return 0;
+  if (compareValue(0) >= target) return 0;
 
   // 目標到達まで上限を拡張
   let hi = 100000;
   let guard = 0;
-  while (takeHomeOf(hi) < targetTakeHome && guard++ < 40) hi *= 2;
+  while (compareValue(hi) < target && guard++ < 40) hi *= 2;
 
   // 二分探索(税込・1円未満精度まで)
   let lo = 0;
   for (let i = 0; i < 60; i++) {
     const mid = (lo + hi) / 2;
-    if (takeHomeOf(mid) < targetTakeHome) lo = mid; else hi = mid;
+    if (compareValue(mid) < target) lo = mid; else hi = mid;
   }
   return hi;
 }
