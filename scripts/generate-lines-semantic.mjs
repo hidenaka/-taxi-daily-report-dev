@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fetchRoadWays, fetchAllRoadsAround } from './lib/overpass-fetch.mjs';
 import { buildApproachLine, buildApproachLineFromWaypoints } from './lib/sketch-to-line.mjs';
 import { geocodeLandmark } from './lib/nominatim-fetch.mjs';
-import { routeOnRoadsBetween } from './lib/road-router.mjs';
+import { routeOnGraph } from './lib/road-graph.mjs';
 
 // 施設pin周辺の道路群キャッシュ（同じ施設で何度も叩かない）
 const _roadsCache = new Map();
@@ -55,7 +55,7 @@ for (const s of stands) {
       if (Array.isArray(a.waypoints) && a.waypoints.length >= 2) {
         const roads = await getRoadsAround(s.pin);
         const line = await buildApproachLineFromWaypoints({
-          waypoints: a.waypoints, pin: s.pin, geocoder, roads, router: routeOnRoadsBetween,
+          waypoints: a.waypoints, pin: s.pin, geocoder, roads, router: routeOnGraph,
         });
         if (line.length >= 2) {
           s.approaches[i].line = line;

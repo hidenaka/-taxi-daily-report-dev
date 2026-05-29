@@ -100,17 +100,23 @@ export const APPROACH_PALETTE = ['#1976d2', '#7b1fa2', '#388e3c', '#e64a19', '#0
 
 // 1施設の入り方を描画: approaches[].line（主役）＋ルート線/マーカー（後方互換）。
 // clearLayer で消す前提のレイヤを返す。
-export function drawRoute(map, stand, { fit = true } = {}) {
+// activeIdx を指定すると、その approach だけ太く強調し他は淡色（1本ずつ見せる）。
+// activeIdx=null なら全て主役で描画（後方互換）。
+export function drawRoute(map, stand, { fit = true, activeIdx = null } = {}) {
   const layer = L.layerGroup().addTo(map);
-  // approaches[].line を主役で描画
-  (stand.approaches || []).forEach((a, idx) => {
+  const approaches = stand.approaches || [];
+  // approaches[].line を描画。active のみ太線＋矢印、他は淡色の細線。
+  approaches.forEach((a, idx) => {
     if (!Array.isArray(a.line) || a.line.length < 2) return;
     const latlngs = a.line.map((p) => [p.lat, p.lng]);
     const color = APPROACH_PALETTE[idx % APPROACH_PALETTE.length];
-    L.polyline(latlngs, { color, weight: 6, opacity: 0.9 }).addTo(layer);
-    arrowMarkersForRoute(a.line).forEach((m) => {
-      L.marker([m.lat, m.lng], { icon: arrowIcon(m.angleDeg, color), interactive: false }).addTo(layer);
-    });
+    const isActive = (activeIdx == null) || (idx === activeIdx);
+    L.polyline(latlngs, { color, weight: isActive ? 6 : 3, opacity: isActive ? 0.95 : 0.2 }).addTo(layer);
+    if (isActive) {
+      arrowMarkersForRoute(a.line).forEach((m) => {
+        L.marker([m.lat, m.lng], { icon: arrowIcon(m.angleDeg, color), interactive: false }).addTo(layer);
+      });
+    }
   });
   // 後方互換: routes (旧形式)
   (stand.routes || []).forEach((r) => {
@@ -126,10 +132,17 @@ export function drawRoute(map, stand, { fit = true } = {}) {
   });
   if (fit) {
     const all = [];
-    (stand.approaches || []).forEach((a) => (a.line || []).forEach((p) => all.push([p.lat, p.lng])));
-    (stand.routes || []).forEach((r) => (r.points || []).forEach((p) => all.push([p.lat, p.lng])));
-    (stand.markers || []).forEach((m) => all.push([m.lat, m.lng]));
-    if (stand.pin) all.push([stand.pin.lat, stand.pin.lng]);
+    const act = (activeIdx != null) ? approaches[activeIdx] : null;
+    if (act && Array.isArray(act.line) && act.line.length >= 2) {
+      // 選択ルートにフィット（その1本に集中して見せる）
+      act.line.forEach((p) => all.push([p.lat, p.lng]));
+      if (stand.pin) all.push([stand.pin.lat, stand.pin.lng]);
+    } else {
+      approaches.forEach((a) => (a.line || []).forEach((p) => all.push([p.lat, p.lng])));
+      (stand.routes || []).forEach((r) => (r.points || []).forEach((p) => all.push([p.lat, p.lng])));
+      (stand.markers || []).forEach((m) => all.push([m.lat, m.lng]));
+      if (stand.pin) all.push([stand.pin.lat, stand.pin.lng]);
+    }
     if (all.length) map.fitBounds(L.latLngBounds(all).pad(0.3), { maxZoom: 19 });
   }
   return layer;

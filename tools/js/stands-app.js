@@ -82,14 +82,15 @@ function buildApproachCard(stand) {
   if (!approaches.length && !cautions.length) return '';
   let html = '<div class="entry-card">';
   if (approaches.length) {
-    html += '<div class="entry-card-h">入口ガイド</div><ul class="entry-list">';
+    const multi = approaches.length > 1 ? ' <span class="entry-hint">（タップで1ルートずつ表示）</span>' : '';
+    html += `<div class="entry-card-h">入口ガイド${multi}</div><ul class="entry-list">`;
     approaches.forEach((a, idx) => {
       const color = APPROACH_PALETTE[idx % APPROACH_PALETTE.length];
       const swatch = `<span class="approach-swatch" style="display:inline-block;width:12px;height:12px;border-radius:6px;background:${color};margin-right:6px;vertical-align:middle"></span>`;
       const badge = TURN_BADGE[a.turn] ? `<span class="turn-badge t-${a.turn}">${TURN_BADGE[a.turn]}</span>` : '';
       const road = a.road ? `<span class="road">${escapeHtml(a.road)}</span> ` : '';
       const hint = a.hint ? `<div class="hint">${escapeHtml(a.hint)}</div>` : '';
-      html += `<li>${swatch}${badge}${road}<b>${escapeHtml(a.label || '')}</b>${hint}</li>`;
+      html += `<li class="appr-item" data-idx="${idx}" role="button" tabindex="0">${swatch}${badge}${road}<b>${escapeHtml(a.label || '')}</b>${hint}</li>`;
     });
     html += '</ul>';
   }
@@ -122,8 +123,27 @@ function showStand(stand) {
     sheetImages.appendChild(img);
   });
   sheet.classList.add('open');
+  // 既定は最初の「線を持つ」approach を1本だけ強調表示（1件ずつ）。
+  const firstWithLine = (stand.approaches || []).findIndex((a) => Array.isArray(a.line) && a.line.length >= 2);
+  let activeIdx = firstWithLine >= 0 ? firstWithLine : null;
   clearLayer(map, routeLayer);
-  routeLayer = drawRoute(map, stand);
+  routeLayer = drawRoute(map, stand, { activeIdx });
+  // カード項目タップ/Enterで該当ルートだけに切替・強調。
+  const items = sheetNotes.querySelectorAll('.entry-list .appr-item');
+  const syncActive = (idx) => items.forEach((el) => el.classList.toggle('is-active', Number(el.dataset.idx) === idx));
+  const setActive = (idx) => {
+    activeIdx = idx;
+    syncActive(idx);
+    clearLayer(map, routeLayer);
+    routeLayer = drawRoute(map, stand, { activeIdx: idx });
+  };
+  items.forEach((el) => {
+    el.addEventListener('click', () => setActive(Number(el.dataset.idx)));
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(Number(el.dataset.idx)); }
+    });
+  });
+  if (activeIdx != null) syncActive(activeIdx);
 }
 
 async function main() {
