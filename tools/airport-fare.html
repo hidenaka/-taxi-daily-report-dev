@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <title>Cabis ｜ 空港定額</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <style>
+    .fare-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+    .fare-back { color: var(--sub, #888); text-decoration: none; font-size: 14px; }
+    .fare-search-wrap { padding: 0 12px 8px; }
+    #fare-search { width: 100%; padding: 10px 12px; font-size: 16px; border-radius: 8px;
+      border: 1px solid #333; background: #16161c; color: #e8e8e8; }
+    #fare-map-host { padding: 4px 12px 0; }
+    .fare-map { width: 100%; height: auto; display: block; touch-action: manipulation; }
+    .fare-area rect { fill: #1a1a22; stroke: #3a3a48; stroke-width: 1.5; }
+    .fare-area text { fill: #cfd6e6; font-size: 22px; font-family: -apple-system, system-ui, sans-serif; }
+    .fare-area.is-selected rect { fill: #2f6fd0; stroke: #7fb0ff; }
+    .fare-area.is-selected text { fill: #fff; font-weight: 700; }
+    #fare-card-host { padding: 8px 12px 24px; }
+    .fare-empty { color: #888; text-align: center; padding: 20px 0; font-size: 14px; }
+    .fare-card { background: #16161c; border: 1px solid #2a2a35; border-radius: 12px; padding: 14px; }
+    .fare-card-head { font-size: 17px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .fare-badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: #3a2a10; color: #ffd84d; font-weight: 700; }
+    .fare-badge-day { background: #16302a; color: #6ec96e; }
+    .fare-table { width: 100%; border-collapse: collapse; }
+    .fare-table th, .fare-table td { padding: 10px 8px; text-align: right; border-bottom: 1px solid #222; font-variant-numeric: tabular-nums; }
+    .fare-table th:first-child, .fare-table td:first-child { text-align: left; color: #aaa; }
+    .fare-table tr.is-now td { background: rgba(255,216,77,0.10); font-weight: 700; }
+    .fare-note { margin-top: 10px; color: #888; font-size: 12px; }
+    #fare-error { background: #4a1a1a; color: #ffb; padding: 8px; border-radius: 4px; margin: 8px 12px; }
+    body { padding-bottom: 64px; }
+  </style>
+  <style>body{visibility:hidden;pointer-events:none;}</style>
+</head>
+<body>
+  <script type="module">
+    import { enforceAccess } from '../js/access-control.js';
+    if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
+      throw new Error('access-denied: redirected');
+    }
+    import('../js/gps-privacy-banner.js').then(m => m.showGpsPrivacyBanner && m.showGpsPrivacyBanner());
+  </script>
+  <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
+    <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="ic.html" class="app-tab">🛣 IC判定</a>
+    <a href="arrivals.html" class="app-tab">✈ 到着便</a>
+    <a href="airport-fare.html" class="app-tab active" aria-current="page">💴 空港定額</a>
+  </nav>
+
+  <div class="fare-toolbar">
+    <a href="arrivals.html" class="fare-back">← 到着便に戻る</a>
+  </div>
+
+  <div id="fare-error" hidden></div>
+
+  <div class="fare-search-wrap">
+    <input type="text" id="fare-search" list="fare-area-list" placeholder="区名で検索（例: 渋谷）" autocomplete="off">
+    <datalist id="fare-area-list"></datalist>
+  </div>
+
+  <div id="fare-map-host"></div>
+  <div id="fare-card-host"></div>
+
+  <script type="module">
+    import { initAirportFare } from './js/airport-fare-app.js';
+    initAirportFare();
+  </script>
+  <script>
+    document.querySelectorAll('.app-tab').forEach(a => {
+      a.addEventListener('click', (e) => {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault();
+        window.location.href = a.getAttribute('href');
+      });
+    });
+  </script>
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+  </script>
+</body>
+</html>
