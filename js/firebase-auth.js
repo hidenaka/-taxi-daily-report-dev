@@ -1,13 +1,13 @@
 // Firebase Auth - Anonymous + Email/Password authentication
 import { auth, db } from './firebase-init.js';
-import { 
-  signInAnonymously, 
+import {
+  signInAnonymously,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { DEFAULT_CONFIG } from './default-config.js';
 import { buildNewUserDoc } from './user-doc.js';
 import { clearSubCache } from './sub-cache.js';
@@ -224,6 +224,58 @@ export function getCurrentUser() {
 export function isEmailAuth() {
   return currentUser && !currentUser.isAnonymous;
 }
+
+// ============================================================
+// アカウント活動記録 + 失効チェック（全画面共通フック）
+// ============================================================
+
+import { isAccountActive } from './access-control.js';
+
+const ACTIVITY_LS_KEY = 'cabis_last_recorded_activity';
+
+/** 1日1回だけ users/{uid}.lastActivityAt を更新。
+ *  localStorage で 'YYYY-MM-DD' キーをチェックして重複書き込みを防ぐ。 */
+export async function recordActivityThrottled(uid, _db = db) {
+  if (!uid || !_db) return;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  if (localStorage.getItem(ACTIVITY_LS_KEY) === todayKey) return;
+  try {
+    await updateDoc(doc(_db, 'users', uid), {
+      lastActivityAt: serverTimestamp()
+    });
+    localStorage.setItem(ACTIVITY_LS_KEY, todayKey);
+  } catch (e) {
+    console.warn('[activity] recordActivityThrottled failed:', e.message);
+  }
+}
+
+/** users/{uid} doc を取得して isAccountActive 判定、false なら signOut + アラート。
+ *  戻り値: アカウントが有効か（true/false）。 */
+export async function enforceAccountActive(uid, _db = db, _auth = auth) {
+  if (!uid || !_db) return true;
+  try {
+    const snap = await getDoc(doc(_db, 'users', uid));
+    const user = snap.exists() ? snap.data() : null;
+    if (!isAccountActive(user)) {
+      await _auth.signOut();
+      alert('このアカウントは現在使えなくなっています。会社の管理者にお問い合わせください。');
+      return false;
+    }
+  } catch (e) {
+    console.warn('[account] enforceAccountActive failed:', e.message);
+  }
+  return true;
+}
+
+// 全画面共通の持続的 onAuthStateChanged フック（活動記録 + 失効チェック）
+// initAuth() の一回限りリスナーとは別に、常時監視する。
+onAuthStateChanged(auth, async (user) => {
+  if (user && !user.isAnonymous) {
+    // メール認証ユーザーのみ記録・チェック（匿名はスキップ）
+    await recordActivityThrottled(user.uid);
+    await enforceAccountActive(user.uid);
+  }
+});
 
 // Wait for auth to be ready
 export async function waitForAuth() {
