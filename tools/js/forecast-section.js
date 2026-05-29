@@ -176,15 +176,13 @@ function renderHourlySparkline(hourlyData) {
 async function renderActualsMode(metaEl, tableEl, detail) {
   const { data, error } = await loadActuals();
   if (error) {
-    metaEl.textContent = `実績データを取得できていません（${error}）`;
+    metaEl.textContent = '出庫実績データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
   const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
   if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
-    metaEl.textContent = ts
-      ? `実績データを取得できていません（最終 ${ts}）`
-      : '実績データを取得できていません';
+    metaEl.textContent = '出庫実績データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
@@ -205,15 +203,13 @@ async function renderActualsMode(metaEl, tableEl, detail) {
 async function renderForecastMode(metaEl, tableEl, detail) {
   const { data, error } = await loadEnsemble();
   if (error) {
-    metaEl.textContent = `予測データを取得できていません（${error}）`;
+    metaEl.textContent = '出庫予測データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
   const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
   if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
-    metaEl.textContent = ts
-      ? `予測データを取得できていません（最終 ${ts}）`
-      : '予測データを取得できていません';
+    metaEl.textContent = '出庫予測データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
@@ -266,7 +262,7 @@ export async function initForecastSection() {
   modeEl.addEventListener('change', () => {
     try { localStorage.setItem(MODE_STORAGE_KEY, modeEl.value); } catch { /* ignore */ }
     render().catch(err => {
-      metaEl.textContent = '表示に失敗しました';
+      metaEl.textContent = 'データを読み込めませんでした';
       console.error(err);
     });
   });
@@ -277,7 +273,7 @@ export async function initForecastSection() {
     try { localStorage.setItem(DETAIL_STORAGE_KEY, detail ? '1' : '0'); } catch { /* ignore */ }
     updateScopeBtns();
     render().catch(err => {
-      metaEl.textContent = '表示に失敗しました';
+      metaEl.textContent = 'データを読み込めませんでした';
       console.error(err);
     });
   }

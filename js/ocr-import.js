@@ -136,12 +136,12 @@ input.addEventListener("change", async (e) => {
 
     // 結果を input.html へ引き渡す。確認・修正・日付入力は input.html で行う。
     const remainingMsg = (typeof data.remaining === 'number' && typeof data.limit === 'number')
-      ? `本日の残り取り込み回数: ${data.remaining}/${data.limit}回`
+      ? `本日あと${data.remaining}回使えます（上限: ${data.limit}回）`
       : '';
     statusEl.innerHTML = `読み取り完了: 乗車 ${trips.length}件 ・ 休憩 ${rests.length}回。${remainingMsg ? `<br><span style="color:var(--muted);font-size:11px;">${remainingMsg}（日本時間 0:00 にリセット）</span>` : ''}<br>1.5秒後に日報入力ページへ移動します…`;
     sessionStorage.setItem("ocrImport", JSON.stringify({ trips, rests, header, ts: Date.now() }));
     setTimeout(() => { location.href = "input.html"; }, 1500);
   } catch (err) {
-    statusEl.textContent = "エラー: " + ((err && err.message) || err);
+    statusEl.textContent = '読み取りに失敗しました。通信状況を確認して、もう一度お試しください。';
   }
 });

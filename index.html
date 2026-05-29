@@ -398,7 +398,7 @@ async function render() {
     summaryHtml += foldSection('payroll', '給与の内訳', renderPayrollBreakdown(actualResult, takeHomeRate));
     summaryHtml += foldSection('sales', '営収・1出番平均', salesRows + `
       <div class="kv" style="margin-top:6px;padding-top:6px;border-top:1px dashed #eee;"><div>月度予想 総支給<span class="badge predict">予測</span></div><div><strong>${formatYen(predicted.total)}</strong></div></div>
-      <p class="muted" style="font-size:10px;margin-top:4px;">※ 予測 = 現時点の日平均売上 × 予定出番数(${respShifts})</p>
+      <p class="muted" style="font-size:10px;margin-top:4px;">※ これまでの1出番平均をもとに、今月の着地を試算しています</p>
     `);
   } else if (isCurrent && rawDrives.length === 0) {
     summaryHtml += `
@@ -876,7 +876,7 @@ function renderSummaryTable(drives) {
     </tr>`;
   }).join('');
   card.innerHTML = `
-    <strong>営業サマリー(日別)</strong>
+    <strong>営業実績 一覧（日別）</strong>
     <div style="overflow-x:auto;margin-top:6px;">
       <table class="sum-table">
         <thead><tr>

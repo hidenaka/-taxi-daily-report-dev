@@ -197,7 +197,7 @@ export function renderStaleBanner(container, classification) {
   container.classList.remove('is-warn');
   container.innerHTML = `
     <span class="stale-icon">⚠</span>
-    <span class="stale-msg">データが <strong>${ageMinutes}分前</strong>。API 停止の可能性があるため参考程度にしてください。</span>
+    <span class="stale-msg">データが <strong>${ageMinutes}分前</strong>。更新が止まっている可能性があります。参考程度にご確認ください。</span>
   `;
 }
 

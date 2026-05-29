@@ -182,10 +182,10 @@ export async function initPoolStatusSection() {
     if (img1) img1.src = `data/pool-cam-real01.jpg?t=${cb}`;
     if (img2) img2.src = `data/pool-cam-real02.jpg?t=${cb}`;
     const { data, error } = await loadPoolStatus();
-    if (error || !data) { metaEl.textContent = '現況データを取得できていません'; return; }
+    if (error || !data) { metaEl.textContent = 'プール現況を取得できていません'; return; }
     const ts = String(data.generatedAt).slice(11, 16);
     if (isStale(data.generatedAt, Date.now())) {
-      metaEl.textContent = `📷 配信停止中の可能性（写真・データは ${ts} が最終）`;
+      metaEl.textContent = `📷 情報が更新されていません（最終: ${ts}）`;
     } else {
       metaEl.textContent = `📷 ${ts}時点`;
     }

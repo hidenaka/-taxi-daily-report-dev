@@ -1025,7 +1025,7 @@ function renderBreakdown(result) {
 init().catch(err => {
   const banner = document.createElement('div');
   banner.className = 'error-banner';
-  banner.textContent = `起動エラー:\n${err.message}`;
+  banner.textContent = 'データの読み込みに失敗しました。ページを再読み込みしてください。';
   document.body.prepend(banner);
   console.error(err);
 });

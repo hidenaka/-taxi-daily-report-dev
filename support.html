@@ -132,7 +132,7 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="recGpsInfo" class="muted" style="font-size:10px;margin-bottom:6px;"></div>
     <div id="recBody" style="margin-top:10px;"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">過去同条件で実際に取れた次の乗車を集計、30分内取得率順に表示。<strong>営業所(大田区北馬込)</strong>を選ぶと出庫直後の最初の乗車も含めて検索。GPS推定が過去データになければ、同区内で近い起点+その実移動可能範囲(=過去25分以内移動実績ペア)に絞って検索。<br>履歴の<strong style="color:var(--primary);">青字日付</strong>=今日と同曜日 / 黒字=同カテゴリ(平日/土日が一致)別曜日 / <span style="color:#999;">グレー</span>=別カテゴリ。</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">過去同条件で実際に取れた次の乗車を集計、30分内取得率順に表示。<strong>営業所(大田区北馬込)</strong>を選ぶと出庫直後の最初の乗車も含めて検索。<br>履歴の<strong style="color:var(--primary);">青字日付</strong>=今日と同曜日 / 黒字=同カテゴリ(平日/土日が一致)別曜日 / <span style="color:#999;">グレー</span>=別カテゴリ。</p>
   </section>
 
   <section class="card" id="hourEffCard">
@@ -146,7 +146,7 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="hourEffBody"></div>
     <div class="detail-tip" id="hourEffTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">時給 = 売上 ÷ 実稼働時間(休憩除外)。サンプル少(&lt;3件)はグレー、タップで詳細</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">時給は実際に稼働していた時間（休憩除く）で計算。記録が少ない時間帯は薄く表示されます。タップで詳細</p>
   </section>
 
   <section class="card" id="highValueCard">
@@ -157,7 +157,7 @@ if (location.hostname.includes('-dev')) {
       💡 <strong>「単価が高く出るエリア × 時間帯」</strong>のランキングです。
       <ul>
         <li>乗車地エリア × 時間帯（4区切り）で<strong>中央単価</strong>が高い順 TOP15</li>
-        <li>中央値ベース＝たまの高額案件で平均が引き上がる影響を排除</li>
+        <li>たまにある高額案件で数字が跳ね上がらないよう、中央の値を基準にしています</li>
         <li>タップで過去の乗車履歴を表示</li>
         <li>最低5件以上のデータがあるエリアのみ</li>
         <li>連続営業登録 <strong>10日以上（スタンダード段階）</strong> で解放されます</li>
@@ -178,7 +178,7 @@ if (location.hostname.includes('-dev')) {
       <ul>
         <li><strong>「単価」</strong>＝降ろした次の乗車営収（中央値／平均）</li>
         <li><strong>「待ち」</strong>＝次乗車までの所要分（中央値／平均）</li>
-        <li>中央値ベース＝高単価営業の外れ値の影響を抑制</li>
+        <li>偶然の高額案件に引っ張られにくい表示です</li>
         <li>タップでそのエリアの過去履歴（表記:「乗った場所→降ろした場所」）を表示</li>
         <li>最低5件以上のデータがあるエリアのみ</li>
         <li>連続営業登録 <strong>4日以上（ライト段階）</strong> で解放されます</li>
@@ -192,7 +192,7 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div id="areaBody"></div>
     <div class="detail-tip" id="areaTip"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">「単価」＝降ろした後 次に乗せた運賃／「待ち」＝次に乗せるまでの時間。タップで履歴。5件以上のエリアだけ</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">「単価」＝降ろした後 次に乗せた運賃／「待ち」＝次に乗せるまでの時間。タップで履歴。（記録が少ないエリアは対象外）</p>
   </section>
 </main>
 <div id="navHost"></div>

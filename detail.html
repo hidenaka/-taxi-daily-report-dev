@@ -307,7 +307,7 @@ function renderPeriodTable(drive) {
       ${cell(valueFn({ sales: totalSales, count: totalCount, tripMin: totalTrip, restMin: totalRest, periodMin: totalPeriod }))}
     </tr>`;
   document.getElementById('periodCard').innerHTML = `
-    <div class="muted">時間帯別サマリー${useShift ? ' (出庫時刻基準・5時間ずつ)' : ''}</div>
+    <div class="muted">時間帯別まとめ</div>
     <div style="overflow-x:auto;">
     <table class="period-table">
       <thead><tr>

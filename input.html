@@ -68,14 +68,14 @@ if (location.hostname.includes('-dev')) {
       💡 <strong>営業明細の写真をそのままアップロードして、表の数字を自動取り込みします。</strong>
       <ul>
         <li>Cabis の自社サーバーで OCR（文字認識）を実行</li>
-        <li><strong>画像はメモリ上でのみ処理し、保存もログ出力もしません</strong>。外部AIサービスにも送信されません</li>
+        <li><strong>写真は読み取り後すぐに削除され、保存されません</strong>。外部AIサービスにも送信されません</li>
         <li>1日 <strong>100回まで</strong> 取り込み可能（過去6ヶ月分も1日で一括取込OK）。日本時間 0:00 にリセット</li>
         <li>明るい場所で、明細全体が画面に収まるように撮影するとキレイに読み取れます</li>
       </ul>
       <a href="guide.html#ch3" class="guide-link">使い方ガイドで詳しく →</a>
     </div>
     <div class="help-video" id="help-video-ocr-import"></div>
-    <p class="muted" style="margin:0 0 8px;font-size:11px;line-height:1.5;">営業明細の写真をそのままアップロード。Cabis 自社のOCRで処理し、画像はメモリ上のみ・保存もログ出力もしません。</p>
+    <p class="muted" style="margin:0 0 8px;font-size:11px;line-height:1.5;">営業明細の写真をそのままアップロード。Cabisのサーバーで文字を読み取ります。写真はそのまま保存されません。</p>
     <a class="btn" href="ocr-import.html" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;width:100%;background:#2e7d32;color:#fff;padding:10px;font-size:13px;font-weight:600;">📷 写真から取り込む</a>
   </section>
 
@@ -239,7 +239,7 @@ async function init() {
       editMode = true;
       document.querySelector('h1').textContent = '日報を編集';
       document.getElementById('dateInput').value = existing.date;
-      document.getElementById('dateHint').textContent = `編集モード`;
+      document.getElementById('dateHint').textContent = `この乗務を編集`;
       document.getElementById('rawTextInput').value = existing.rawText || '';
       document.getElementById('vehicleTypeSel').value = existing.vehicleType;
       document.getElementById('returnTimeInput').value = existing.returnTime || '';
@@ -263,7 +263,7 @@ async function init() {
     if (config.shifts.expandedDates.includes(iso)) { candidate = iso; break; }
   }
   document.getElementById('dateInput').value = candidate;
-  document.getElementById('dateHint').textContent = `自動判定: ${candidate}（変更可）`;
+  document.getElementById('dateHint').textContent = `乗務日を自動で入力しました: ${candidate}（変えたい場合はタップ）`;
 
   // 写真から取り込み（ocr-import.html）由来のデータがあれば取り込む。
   // 通常の貼付→parse→save の流れは壊さない（データが無ければ従来どおり）。
