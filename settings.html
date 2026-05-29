@@ -283,6 +283,12 @@ if (location.hostname.includes('-dev')) {
     <p class="hint" style="margin:12px 0 0; color:var(--sub); font-size:11px;">※ あなたの会社の人だけが登録できます</p>
   </section>
 
+  <section id="selfWithdrawSection" style="margin:32px 0; padding:16px; border:1px solid #e0c4c0; background:#fff5f3; border-radius:10px;">
+    <h3 style="margin:0 0 8px; color:#c83a2c;">⚠ アプリの利用を停止する</h3>
+    <p class="hint" style="margin:0 0 12px;">退職した／このアプリを使わなくなる場合は、こちらから停止できます。</p>
+    <button id="selfWithdrawBtn" class="btn" style="background:#c83a2c; color:#fff;">利用を停止する</button>
+  </section>
+
   <section class="card" id="cancelSection" style="display:none;border-color:#fca5a5;">
     <h3 style="color:#991b1b;">退会する</h3>
     <p class="muted" style="font-size:12px;margin-bottom:8px;">退会すると次回更新日以降サービスを利用できなくなります。乗務データは退会後30日間保持され、その後削除されます。</p>
@@ -800,6 +806,23 @@ async function initAggregateAnalysisToggle() {
     }
   });
 }
+
+// 自己退会ボタン
+document.getElementById('selfWithdrawBtn')?.addEventListener('click', async () => {
+  const msg = 'アプリの利用を停止しますか？\n\n・ログインできなくなります\n・過去のデータは消えません\n・再開する場合は会社の管理者にお問い合わせください';
+  if (!confirm(msg)) return;
+  const user = getCurrentUser();
+  if (!user) { alert('ログインが必要です'); return; }
+  try {
+    const { selfWithdraw } = await import('./js/firebase-storage.js');
+    await selfWithdraw(user.uid);
+    await logout();
+    alert('利用を停止しました。ご利用ありがとうございました。');
+    location.href = './login.html';
+  } catch (e) {
+    alert('停止に失敗しました。もう一度お試しください。\n' + e.message);
+  }
+});
 
 // 会社招待URLセクション初期化
 async function initCompanyInviteSection() {
