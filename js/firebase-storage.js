@@ -706,6 +706,7 @@ export async function listAllUsersWithStats() {
           userId: data.userId,
           isAnonymous: data.isAnonymous || false,
           createdAt: data.createdAt || null,
+          active: data.active !== false,
           role: 'member'
         };
       }

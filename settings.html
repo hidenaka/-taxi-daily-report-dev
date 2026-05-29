@@ -833,7 +833,9 @@ async function initCompanyInviteSection() {
   if (!section || !urlEl) return;
 
   const userId = getMyUserId();
-  const companyProfile = await loadCompanyProfile().catch(() => null);
+  const companyProfile = await import('./js/firebase-storage.js')
+    .then(m => m.loadCompanyProfile())
+    .catch(() => null);
   const slug = companyProfile?.slug || companyProfile?.id || await getMyCompanyId().catch(() => null);
   if (!slug || !userId) return; // 会社所属でないユーザーは非表示
 

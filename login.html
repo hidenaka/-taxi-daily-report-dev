@@ -361,8 +361,7 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
-// 新規登録
-const signupBtn = document.getElementById('signupBtn');
+// 新規登録（signupBtn は入力検証セクションで宣言済み）
 signupBtn.addEventListener('click', async () => {
   const id = document.getElementById('suId').value.trim().toLowerCase();
   const pw = document.getElementById('suPw').value;
