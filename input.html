@@ -346,7 +346,7 @@ function applyOcrImport() {
   hint.innerHTML = '📷 写真から取り込みました。' + headerNote +
     '<b>日付</b>を確認し、' +
     `<b>帰庫時刻</b>${derivedReturn ? `（概算 ${derivedReturn}・要確認）` : ''}と車種も確認してください` +
-    `。日付の自動判定: ${document.getElementById('dateInput').value}（タップで変更）。` +
+    `。日付は自動で入力しました（${document.getElementById('dateInput').value}・タップで変更可）。` +
     '明細はこの下の表で1セルずつ修正できます。';
   hint.style.color = '#1565c0';
 }
