@@ -119,6 +119,31 @@ if (location.hostname.includes('-dev')) {
       <div id="signupMsg"></div>
     </section>
 
+    <!-- signup成功後のアカウント控え画面 -->
+    <div id="signupSuccessScreen" hidden style="background:#fff; border:1px solid #ddd; border-radius:10px; padding:20px; margin-top:20px;">
+      <h2 style="margin:0 0 12px;">🎉 アカウントを作成しました</h2>
+      <div style="background:#fdebe8; border-left:4px solid #c83a2c; padding:12px; margin-bottom:16px; border-radius:0 6px 6px 0;">
+        <p style="margin:0; color:#c83a2c; font-weight:600;">⚠ パスワードはこの画面でしか確認できません。</p>
+        <p style="margin:4px 0 0; color:#c83a2c; font-size:14px;">必ずメモかパスワード管理アプリに保存してください。</p>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label class="hint">ログインID</label>
+        <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+          <code id="successUserId" style="flex:1; padding:8px 10px; background:#f3eedf; border-radius:6px; font-family:monospace;"></code>
+          <button id="copyUserIdBtn" class="btn">📋 コピー</button>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <label class="hint">パスワード</label>
+        <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+          <code id="successPassword" style="flex:1; padding:8px 10px; background:#f3eedf; border-radius:6px; font-family:monospace;"></code>
+          <button id="copyPasswordBtn" class="btn">📋 コピー</button>
+        </div>
+      </div>
+      <button id="copyBothBtn" class="btn" style="width:100%; margin-bottom:12px;">📋 ID/パスワードをまとめてコピー</button>
+      <button id="proceedBtn" class="btn submit-btn" style="width:100%;">✓ 控えました、次へ</button>
+    </div>
+
     <p class="recovery">
       パスワードを忘れた場合は、<a href="mailto:cabis@taxicabis.com">cabis@taxicabis.com</a> まで、以下を本文に書いてご連絡ください。<br>
       ・ログインID（覚えている範囲で）<br>
@@ -363,12 +388,51 @@ signupBtn.addEventListener('click', async () => {
   showMsg('signupMsg', '登録しています…', 'info');
   const r = await signUp(id, pw);
   if (r.success) {
-    go();
+    showSignupSuccessScreen(id, pw);
   } else {
     showMsg('signupMsg', r.error || '登録に失敗しました', 'error');
     signupBtn.disabled = false;
   }
 });
+
+function showSignupSuccessScreen(uid, password) {
+  // 既存の signup form を hide
+  document.getElementById('signupForm')?.setAttribute('hidden', '');
+  // 控え画面 show
+  const screen = document.getElementById('signupSuccessScreen');
+  document.getElementById('successUserId').textContent = uid;
+  document.getElementById('successPassword').textContent = password;
+  screen.hidden = false;
+  // sessionStorage に一時保持（誤って戻った場合の保護）
+  sessionStorage.setItem('signup_pw_temp', password);
+  setupSuccessScreenActions(uid, password);
+}
+
+function setupSuccessScreenActions(uid, password) {
+  const feedback = (btn, msg) => {
+    const orig = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  };
+  document.getElementById('copyUserIdBtn')?.addEventListener('click', async (e) => {
+    await navigator.clipboard.writeText(uid);
+    feedback(e.target, 'コピーしました ✓');
+  });
+  document.getElementById('copyPasswordBtn')?.addEventListener('click', async (e) => {
+    await navigator.clipboard.writeText(password);
+    feedback(e.target, 'コピーしました ✓');
+  });
+  document.getElementById('copyBothBtn')?.addEventListener('click', async (e) => {
+    await navigator.clipboard.writeText(
+      `Cabis（タクシー日報）アカウント\nログインID: ${uid}\nパスワード: ${password}`
+    );
+    feedback(e.target, 'コピーしました ✓');
+  });
+  document.getElementById('proceedBtn')?.addEventListener('click', () => {
+    sessionStorage.removeItem('signup_pw_temp');
+    go();
+  });
+}
 
 // 既にログイン済み（メール認証）なら、フォームを隠して先へ進む案内
 (async () => {
