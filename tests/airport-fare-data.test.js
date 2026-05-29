@@ -1,6 +1,7 @@
 import { test, assert } from './run.js';
 import {
-  isLateNight, findAreasByQuery, lookupArea, computeBounds, projectLatLng
+  isLateNight, findAreasByQuery, lookupArea, computeBounds, projectLatLng,
+  buildCardModel, formatFare, validateFares
 } from '../tools/js/airport-fare-data.js';
 
 const AREAS = [
@@ -46,4 +47,40 @@ test('projectLatLng: 西端は左、北端は上に投影される', () => {
   const north = projectLatLng({ lat: 35.718, lng: 139.65 }, b, size, 0);
   const south = projectLatLng({ lat: 35.664, lng: 139.65 }, b, size, 0);
   assert.ok(north.y < south.y, '北は南より y が小さい（上）');
+});
+
+const AREA = {
+  key: 'shibuya', name: '渋谷区', lat: 35.664, lng: 139.698,
+  haneda: { day: 6900, night: 8100 },
+  narita: { day: 24000, night: null }
+};
+
+test('formatFare: 数値は ¥カンマ区切り、null は —', () => {
+  assert.equal(formatFare(6900), '¥6,900');
+  assert.equal(formatFare(null), '—');
+});
+
+test('buildCardModel: 深夜帯は isLate=true、昼帯は false', () => {
+  const night = buildCardModel(AREA, new Date('2026-05-29T23:00:00'));
+  assert.equal(night.isLate, true);
+  assert.equal(night.name, '渋谷区');
+  assert.equal(night.haneda.day, 6900);
+  assert.equal(night.narita.night, null);
+  const day = buildCardModel(AREA, new Date('2026-05-29T13:00:00'));
+  assert.equal(day.isLate, false);
+});
+
+test('validateFares: 25件・各4料金フィールド必須、欠ければ throw', () => {
+  const good = { areas: Array.from({ length: 25 }, (_, i) => ({
+    key: 'k' + i, name: 'n' + i, lat: 35.7, lng: 139.7,
+    haneda: { day: 1, night: 2 }, narita: { day: 3, night: 4 }
+  })) };
+  assert.equal(validateFares(good), true);
+
+  const tooFew = { areas: good.areas.slice(0, 24) };
+  assert.throws(() => validateFares(tooFew), /25/);
+
+  const missingField = { areas: good.areas.map((a, i) =>
+    i === 0 ? { ...a, haneda: { day: 1 } } : a) };
+  assert.throws(() => validateFares(missingField), /haneda\.night/);
 });
