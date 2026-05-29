@@ -91,10 +91,14 @@ if (location.hostname.includes('-dev')) {
       </div>
       <div class="field">
         <label for="suId">ログインID（半角英数字）</label>
-        <input type="text" id="suId" autocapitalize="none" autocomplete="username"
-               pattern="[a-z][a-z0-9_]{2,29}" maxlength="30"
-               placeholder="例: driver_a1b2">
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="suId" autocapitalize="none" autocomplete="username"
+                 pattern="[a-z][a-z0-9_]{2,29}" maxlength="30"
+                 placeholder="例: driver_a1b2" style="flex:1;">
+          <button type="button" id="genSuIdBtn" class="btn" style="white-space:nowrap;">🎲 自動生成</button>
+        </div>
         <div id="suIdError" class="suid-error" style="color:#d33; font-size:11px; margin-top:4px; min-height:1em;"></div>
+        <div class="hint">半角英小文字で始め、英小文字・数字・_ が使えます（3〜30文字）。本名は避け、任意のIDを決めてください。</div>
       </div>
       <div class="field">
         <label for="suPw">パスワード</label>
@@ -129,6 +133,7 @@ if (location.hostname.includes('-dev')) {
 import { renderLegalFooter } from './js/legal-footer.js';
 import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase-auth.js';
 import { loadInviteSlug, validateInviteSlug, fetchCompanyExists, checkInviteAndWarn } from './js/invite-url.js';
+import { generateSlug } from './js/slug-gen.js';
 renderLegalFooter();
 
 // 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
@@ -203,6 +208,13 @@ function validateSuId() {
 }
 if (suIdEl) suIdEl.addEventListener('input', validateSuId);
 validateSuId();
+
+const genBtn = document.getElementById('genSuIdBtn');
+genBtn?.addEventListener('click', () => {
+  // 'driver_' + 6文字 = 'driver_a1b2c3'。約10億通り、衝突確率ほぼゼロ。
+  if (suIdEl) suIdEl.value = generateSlug('driver_', 6);
+  validateSuId();
+});
 
 const params = new URLSearchParams(location.search);
 // next: ローカルの html ページのみ許可（オープンリダイレクト防止）
