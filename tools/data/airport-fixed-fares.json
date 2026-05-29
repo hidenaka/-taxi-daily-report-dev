@@ -1,0 +1,33 @@
+{
+  "_source_haneda": "https://www.km-taxi.tokyo/service/haneda-airport.php; https://www.nihon-kotsu-taxi.jp/service/flat-rate/haneda.php",
+  "_source_narita": "https://www.km-taxi.tokyo/service/narita-airport.php; https://www.nihon-kotsu-taxi.jp/service/flat-rate/narita.php",
+  "_acquired": "2026-05-30",
+  "_note": "羽田/成田の定額運賃。国際自動車(km)と日本交通の両公式表が完全一致した値を採用。深夜早朝(22:00-翌5:00)は各社が明示した深夜額(算出ではない)。定額に高速代は含まず別途実費(羽田=首都高原則・成田=有料道路実費,駐車料金も客負担)。羽田は大田・江東・品川・中央・港・目黒が定額対象外のためnull(画面「—」)。成田はゾーン束ね運賃を各区に展開。港区/品川区は主要部の値(港区=ゾーン3/品川区=ゾーン3)を採用,港区台場・品川区東八潮はゾーン1(21000/25000)だが面積極小のためカードは主要部値とする。値 null は未確認=画面「—」。",
+  "areas": [
+    { "key": "chiyoda",  "name": "千代田区", "lat": 35.694, "lng": 139.753, "haneda": { "day": 7600, "night": 9000 }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "chuo",     "name": "中央区",   "lat": 35.671, "lng": 139.772, "haneda": { "day": null, "night": null }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "minato",   "name": "港区",     "lat": 35.658, "lng": 139.751, "haneda": { "day": null, "night": null }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "shinjuku", "name": "新宿区",   "lat": 35.694, "lng": 139.703, "haneda": { "day": 9000, "night": 10700 }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "bunkyo",   "name": "文京区",   "lat": 35.718, "lng": 139.745, "haneda": { "day": 9300, "night": 10900 }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "taito",    "name": "台東区",   "lat": 35.713, "lng": 139.780, "haneda": { "day": 9100, "night": 10800 }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "sumida",   "name": "墨田区",   "lat": 35.710, "lng": 139.801, "haneda": { "day": 9100, "night": 10700 }, "narita": { "day": 21000, "night": 25000 } },
+    { "key": "koto",     "name": "江東区",   "lat": 35.673, "lng": 139.817, "haneda": { "day": null, "night": null }, "narita": { "day": 21000, "night": 25000 } },
+    { "key": "shinagawa","name": "品川区",   "lat": 35.609, "lng": 139.730, "haneda": { "day": null, "night": null }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "meguro",   "name": "目黒区",   "lat": 35.641, "lng": 139.698, "haneda": { "day": null, "night": null }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "ota",      "name": "大田区",   "lat": 35.561, "lng": 139.716, "haneda": { "day": null, "night": null }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "setagaya", "name": "世田谷区", "lat": 35.646, "lng": 139.653, "haneda": { "day": 8900, "night": 10400 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "shibuya",  "name": "渋谷区",   "lat": 35.664, "lng": 139.698, "haneda": { "day": 8500, "night": 10000 }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "nakano",   "name": "中野区",   "lat": 35.707, "lng": 139.664, "haneda": { "day": 9900, "night": 11700 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "suginami", "name": "杉並区",   "lat": 35.700, "lng": 139.636, "haneda": { "day": 10800, "night": 12600 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "toshima",  "name": "豊島区",   "lat": 35.726, "lng": 139.716, "haneda": { "day": 11200, "night": 13200 }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "kita",     "name": "北区",     "lat": 35.753, "lng": 139.734, "haneda": { "day": 11000, "night": 13000 }, "narita": { "day": 28000, "night": 33000 } },
+    { "key": "arakawa",  "name": "荒川区",   "lat": 35.736, "lng": 139.783, "haneda": { "day": 10400, "night": 12200 }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "itabashi", "name": "板橋区",   "lat": 35.751, "lng": 139.709, "haneda": { "day": 12300, "night": 14500 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "nerima",   "name": "練馬区",   "lat": 35.736, "lng": 139.652, "haneda": { "day": 12800, "night": 15100 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "adachi",   "name": "足立区",   "lat": 35.775, "lng": 139.804, "haneda": { "day": 11100, "night": 13100 }, "narita": { "day": 26000, "night": 30000 } },
+    { "key": "katsushika","name": "葛飾区",  "lat": 35.743, "lng": 139.847, "haneda": { "day": 11300, "night": 13400 }, "narita": { "day": 21000, "night": 25000 } },
+    { "key": "edogawa",  "name": "江戸川区", "lat": 35.707, "lng": 139.868, "haneda": { "day": 9000, "night": 10500 }, "narita": { "day": 21000, "night": 25000 } },
+    { "key": "musashino","name": "武蔵野市", "lat": 35.718, "lng": 139.566, "haneda": { "day": 14000, "night": 16500 }, "narita": { "day": 30000, "night": 36000 } },
+    { "key": "mitaka",   "name": "三鷹市",   "lat": 35.683, "lng": 139.560, "haneda": { "day": 13300, "night": 15700 }, "narita": { "day": 30000, "night": 36000 } }
+  ]
+}

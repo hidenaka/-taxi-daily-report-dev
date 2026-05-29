@@ -1,4 +1,6 @@
 import { test, assert } from './run.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   isLateNight, findAreasByQuery, lookupArea, computeBounds, projectLatLng,
   buildCardModel, formatFare, validateFares
@@ -83,4 +85,14 @@ test('validateFares: 25件・各4料金フィールド必須、欠ければ thro
   const missingField = { areas: good.areas.map((a, i) =>
     i === 0 ? { ...a, haneda: { day: 1 } } : a) };
   assert.throws(() => validateFares(missingField), /haneda\.night/);
+});
+
+test('airport-fixed-fares.json: 25件で validateFares を通る', () => {
+  const path = fileURLToPath(new URL('../tools/data/airport-fixed-fares.json', import.meta.url));
+  const data = JSON.parse(readFileSync(path, 'utf8'));
+  assert.equal(data.areas.length, 25);
+  assert.equal(validateFares(data), true);
+  const keys = new Set(data.areas.map(a => a.key));
+  assert.equal(keys.size, 25, 'key は一意');
+  assert.ok(keys.has('musashino') && keys.has('mitaka'), '武蔵野・三鷹を含む');
 });
