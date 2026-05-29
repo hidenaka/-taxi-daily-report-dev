@@ -10,6 +10,23 @@ import {
   query, where, getDocs, orderBy, limit, writeBatch,
   Timestamp, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { readFresh, writeCache, clearByPrefix } from './drive-cache.js';
+
+// ========== ページ切り替え高速化用 TTL キャッシュ ==========
+// getConfig / getDrivesForMonth を毎ページ Firestore へ往復させず、
+// TTL 以内はローカル即返しにして画面遷移を即時化する。
+// データ変更時は invalidateDrivesCache / invalidateConfigCache で無効化する。
+const CACHE_TTL_MS = 5 * 60 * 1000;        // 5分
+const CONFIG_CACHE_KEY = 'taxi_config_cache';
+const DRIVES_CACHE_PREFIX = 'taxi_drives_';
+const _ls = () => (typeof localStorage !== 'undefined' ? localStorage : null);
+
+function invalidateDrivesCache() {
+  const s = _ls(); if (s) clearByPrefix(s, DRIVES_CACHE_PREFIX);
+}
+function invalidateConfigCache() {
+  const s = _ls(); if (s) { try { s.removeItem(CONFIG_CACHE_KEY); } catch (e) {} }
+}
 
 // ========== DRIVES ==========
 
@@ -36,6 +53,7 @@ export async function saveDrive(date, data) {
     companyId: companyId ?? null,
     updatedAt: new Date().toISOString()
   });
+  invalidateDrivesCache(); // 保存後はキャッシュを捨て、次の表示で最新を取り直す
   return true;
 }
 
@@ -47,6 +65,7 @@ export async function adminSaveDrive(targetUserId, date, data) {
     ...data,
     updatedAt: new Date().toISOString()
   });
+  invalidateDrivesCache();
   return true;
 }
 
@@ -62,6 +81,7 @@ export async function adminBatchSaveDrives(targetUserId, drives) {
     });
   }
   await batch.commit();
+  invalidateDrivesCache();
   return true;
 }
 
@@ -70,10 +90,19 @@ export async function deleteDrive(date) {
   const userId = getUserId();
   const ref = doc(db, 'drives', userId, 'daily', date);
   await deleteDoc(ref);
+  invalidateDrivesCache(); // 削除後はキャッシュを捨て、次の表示で最新を取り直す
   return true;
 }
 
 export async function getDrivesForMonth(period) {
+  // キャッシュ優先: TTL 以内なら Firestore へ往復せず即返し（画面遷移を即時化）。
+  // 認証待ちより前に返すことで、ウォーム遷移では auth の再検証もスキップできる。
+  const s = _ls();
+  if (s) {
+    const cached = readFresh(s, DRIVES_CACHE_PREFIX + period, CACHE_TTL_MS, Date.now());
+    if (cached) return cached;
+  }
+
   await waitForAuth();
   const userId = getUserId();
   const { start, end } = getBillingPeriodRange(period);
@@ -89,6 +118,7 @@ export async function getDrivesForMonth(period) {
   const drives = snap.docs.map(d => d.data());
   // クライアント側でソート
   drives.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+  if (s) writeCache(s, DRIVES_CACHE_PREFIX + period, drives, Date.now());
   return drives;
 }
 
@@ -115,6 +145,14 @@ export async function getAllDriveDates() {
 // ========== CONFIG ==========
 
 export async function getConfig() {
+  // キャッシュ優先: TTL 以内なら userConfig + 会社プロファイルの往復(計3回)を丸ごとスキップ。
+  // 設定の変更は saveConfig / 会社切替で無効化される。
+  const s = _ls();
+  if (s) {
+    const cached = readFresh(s, CONFIG_CACHE_KEY, CACHE_TTL_MS, Date.now());
+    if (cached) return cached;
+  }
+
   await waitForAuth();
   const userId = getUserId();
   const ref = doc(db, 'userConfigs', userId);
@@ -133,7 +171,9 @@ export async function getConfig() {
   // 会社プロファイルがあればマージ（会社レベル項目は会社優先）
   const companyProfile = await loadCompanyProfile();
   const { mergeCompanyConfig } = await import('./company-config.js');
-  return mergeCompanyConfig(companyProfile, userConfig);
+  const merged = mergeCompanyConfig(companyProfile, userConfig);
+  if (s) writeCache(s, CONFIG_CACHE_KEY, merged, Date.now());
+  return merged;
 }
 
 // 現ユーザーの companyId のみを返す（紹介URL生成等で使う軽量版）。
@@ -175,6 +215,7 @@ export async function saveConfig(config) {
     ...config,
     updatedAt: new Date().toISOString()
   });
+  invalidateConfigCache(); // 設定変更後はキャッシュを捨て、次の表示で最新を取り直す
   return true;
 }
 
@@ -229,8 +270,9 @@ export async function batchSaveDrives(drives) {
     const ref = doc(db, 'drives', userId, 'daily', drive.date);
     batch.set(ref, drive);
   }
-  
+
   await batch.commit();
+  invalidateDrivesCache();
   return true;
 }
 
@@ -264,46 +306,33 @@ export async function flushPendingQueue() {
   }
   
   await batch.commit();
-  
+  invalidateDrivesCache(); // 退避分を送信したらドライブ系キャッシュを無効化
+
   // Remove processed items
   const remaining = queue.filter(q => !processed.includes(q));
   localStorage.setItem(PENDING_KEY, JSON.stringify(remaining));
 }
 
 // ========== CACHE (same interface as before) ==========
+// 実体は drive-cache.js の純粋ヘルパに委譲（単一の真実）。
+// getConfig / getDrivesForMonth が内部で同じキー・TTL を使う。
 
 export function getConfigCached() {
-  const cached = localStorage.getItem('taxi_config_cache');
-  if (!cached) return null;
-  try {
-    const { data, timestamp } = JSON.parse(cached);
-    if (Date.now() - timestamp < 300000) return data; // 5 min cache
-  } catch (e) {}
-  return null;
+  const s = _ls(); if (!s) return null;
+  return readFresh(s, CONFIG_CACHE_KEY, CACHE_TTL_MS, Date.now());
 }
 
 export function cacheConfig(config) {
-  localStorage.setItem('taxi_config_cache', JSON.stringify({
-    data: config,
-    timestamp: Date.now()
-  }));
+  const s = _ls(); if (s) writeCache(s, CONFIG_CACHE_KEY, config, Date.now());
 }
 
 export function getDrivesForMonthCached(period) {
-  const cached = localStorage.getItem(`taxi_drives_${period}`);
-  if (!cached) return null;
-  try {
-    const { data, timestamp } = JSON.parse(cached);
-    if (Date.now() - timestamp < 300000) return data;
-  } catch (e) {}
-  return null;
+  const s = _ls(); if (!s) return null;
+  return readFresh(s, DRIVES_CACHE_PREFIX + period, CACHE_TTL_MS, Date.now());
 }
 
 export function cacheDrivesForMonth(period, drives) {
-  localStorage.setItem(`taxi_drives_${period}`, JSON.stringify({
-    data: drives,
-    timestamp: Date.now()
-  }));
+  const s = _ls(); if (s) writeCache(s, DRIVES_CACHE_PREFIX + period, drives, Date.now());
 }
 
 // ========== COMPATIBILITY EXPORTS (match storage-github.js interface) ==========
@@ -326,6 +355,9 @@ export function setMyUserId(id) {
     throw new Error('userId は英小文字始まりで英小文字・数字・アンダースコアのみ使用可');
   }
   localStorage.setItem(USER_ID_KEY, norm);
+  // ユーザー切替時は前ユーザーのキャッシュを破棄（混在防止）
+  invalidateDrivesCache();
+  invalidateConfigCache();
   // Also update Firebase if possible
   try { fbSetUserId(norm); } catch (e) {}
   return norm;
