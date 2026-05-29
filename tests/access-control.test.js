@@ -158,3 +158,37 @@ test('buildRedirectUrl: reason 付き → クエリ追加', () => {
 test('buildRedirectUrl: 既存クエリあり → & で連結', () => {
   assert.equal(buildRedirectUrl('subscribe.html?x=1', 'simple-plan'), 'subscribe.html?x=1&reason=simple-plan');
 });
+
+import { isAccountActive } from '../js/access-control.js';
+
+test('isAccountActive: active=false で false', () => {
+  assert.equal(isAccountActive({ active: false }), false);
+});
+
+test('isAccountActive: active=true で true (lastActivityAt 未指定 OK)', () => {
+  assert.equal(isAccountActive({ active: true }), true);
+});
+
+test('isAccountActive: 空オブジェクト/null で true (後方互換、新規ユーザー)', () => {
+  assert.equal(isAccountActive({}), true);
+  assert.equal(isAccountActive(null), true);
+});
+
+test('isAccountActive: lastActivityAt が90日以内なら true', () => {
+  const now = Date.parse('2026-05-28T12:00:00+09:00');
+  const last89 = now - 89 * 86400 * 1000;
+  assert.equal(isAccountActive({ active: true, lastActivityAt: last89 }, now), true);
+});
+
+test('isAccountActive: lastActivityAt が90日超過なら false', () => {
+  const now = Date.parse('2026-05-28T12:00:00+09:00');
+  const last91 = now - 91 * 86400 * 1000;
+  assert.equal(isAccountActive({ active: true, lastActivityAt: last91 }, now), false);
+});
+
+test('isAccountActive: lastActivityAt が Firestore Timestamp 風オブジェクトでも判定可', () => {
+  const now = Date.parse('2026-05-28T12:00:00+09:00');
+  const last91Ms = now - 91 * 86400 * 1000;
+  const ts = { toMillis: () => last91Ms };
+  assert.equal(isAccountActive({ active: true, lastActivityAt: ts }, now), false);
+});

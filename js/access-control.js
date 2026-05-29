@@ -83,6 +83,28 @@ export function getRestrictionReason(sub) {
 }
 
 // ============================================================
+// アカウント有効性判定（退職者・長期無活動ブロック）
+// ============================================================
+
+const INACTIVE_DAYS = 90;
+const DAY_MS = 86400 * 1000;
+
+/** ユーザーアカウントが有効か判定。
+ *  user: users/{uid} doc の値、または null。
+ *  - active === false の時のみ無効。
+ *  - lastActivityAt が INACTIVE_DAYS 日以上前なら無効。
+ *  - その他（true/undefined/null user）は有効扱い（後方互換）。
+ *  - now: 判定基準時刻（テスト用に依存注入可、デフォルト Date.now()）。 */
+export function isAccountActive(user, now = Date.now()) {
+  if (user && user.active === false) return false;
+  if (user && user.lastActivityAt) {
+    const last = user.lastActivityAt.toMillis ? user.lastActivityAt.toMillis() : user.lastActivityAt;
+    if (now - last > INACTIVE_DAYS * DAY_MS) return false;
+  }
+  return true;
+}
+
+// ============================================================
 // アダプタ(副作用あり、テスト対象外)
 // ============================================================
 
