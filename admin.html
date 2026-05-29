@@ -864,6 +864,7 @@ document.getElementById('loadUsersBtn').onclick = async () => {
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">種別</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
+      html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">有効/無効</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">操作</th>';
       html += '</tr></thead><tbody>';
 
@@ -875,12 +876,16 @@ document.getElementById('loadUsersBtn').onclick = async () => {
           ? '<span style="background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:3px;font-size:10px;margin-left:4px;">管</span>'
           : '';
         const createdAt = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ja-JP') : '不明';
+        const isActive = u.active !== false; // default true
+        const activeBadge = isActive ? '' : '<span class="badge inactive">無効</span>';
+        const btnLabel = isActive ? '無効化' : '有効化';
 
         html += `<tr style="border-bottom:1px solid #eee;">`;
         html += `<td style="padding:6px;font-family:monospace;"><strong>${u.userId}</strong>${roleBadge}</td>`;
         html += `<td style="padding:6px;text-align:center;">${typeBadge}</td>`;
         html += `<td style="padding:6px;text-align:center;font-weight:600;">${u.driveCount || 0}件</td>`;
         html += `<td style="padding:6px;color:var(--muted);">${createdAt}</td>`;
+        html += `<td style="padding:6px;text-align:center;">${activeBadge}<button class="btn btn-toggle-active" data-uid="${u.uid}" data-active="${isActive}" style="font-size:10px;padding:4px 8px;${isActive ? 'background:#e53935;color:#fff;' : 'background:#2e7d32;color:#fff;'}">${btnLabel}</button></td>`;
         html += `<td style="padding:6px;text-align:center;"><button class="btn edit-user-btn" data-userid="${u.userId}" style="font-size:10px;padding:4px 8px;background:var(--primary);color:#fff;">⚙️ 設定</button></td>`;
         html += `</tr>`;
       }
@@ -896,6 +901,28 @@ document.getElementById('loadUsersBtn').onclick = async () => {
           document.getElementById('adminConfigStatus').textContent = `「${userId}」の設定を読み込んでください`;
           document.getElementById('adminConfigStatus').style.color = 'var(--primary)';
           window.scrollTo({ top: document.getElementById('targetUserIdForConfig').offsetTop - 100, behavior: 'smooth' });
+        };
+      });
+
+      // 有効/無効トグルのイベント
+      list.querySelectorAll('.btn-toggle-active').forEach(b => {
+        b.onclick = async () => {
+          const uid = b.dataset.uid;
+          const currentlyActive = b.dataset.active === 'true';
+          const action = currentlyActive ? '無効化' : '有効化';
+          const msg = currentlyActive
+            ? `${uid} を無効化しますか？\nこのユーザーはログインできなくなります。\nデータは保持されます。`
+            : `${uid} を有効化しますか？\n再びログイン可能になります。`;
+          if (!confirm(msg)) return;
+          try {
+            const { doc: _doc, updateDoc: _updateDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const { db: _db } = await import('./js/firebase-init.js');
+            await _updateDoc(_doc(_db, 'users', uid), { active: !currentlyActive });
+            alert(`${uid} を${action}しました。`);
+            document.getElementById('loadUsersBtn')?.click(); // 一覧再読み込み
+          } catch (err) {
+            alert('更新に失敗しました: ' + err.message);
+          }
         };
       });
     }
