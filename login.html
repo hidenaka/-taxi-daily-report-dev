@@ -27,6 +27,7 @@
   .msg.error { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; }
   .msg.info { background:#e0f2fe; border:1px solid #7dd3fc; color:#075985; }
   .recovery { font-size:12px; color:var(--muted); margin-top:18px; line-height:1.7; }
+  input.error { border-color: #d33; }
 </style>
 </head>
 <body>
@@ -90,8 +91,10 @@ if (location.hostname.includes('-dev')) {
       </div>
       <div class="field">
         <label for="suId">ログインID（半角英数字）</label>
-        <input type="text" id="suId" autocapitalize="none" autocomplete="username" placeholder="例: tanaka_taxi">
-        <div class="hint">半角英小文字で始め、英小文字・数字・_ が使えます（3〜30文字）。ログイン時に使うので、覚えやすいものにしてください。</div>
+        <input type="text" id="suId" autocapitalize="none" autocomplete="username"
+               pattern="[a-z][a-z0-9_]{2,29}" maxlength="30"
+               placeholder="例: driver_a1b2">
+        <div id="suIdError" class="suid-error" style="color:#d33; font-size:11px; margin-top:4px; min-height:1em;"></div>
       </div>
       <div class="field">
         <label for="suPw">パスワード</label>
@@ -172,6 +175,34 @@ async function verifyTurnstile(token) {
     return false;
   }
 }
+
+// === signup 入力リアルタイム検証 ===
+const suIdEl = document.getElementById('suId');
+const suIdErrorEl = document.getElementById('suIdError');
+const signupBtn = document.getElementById('signupBtn');
+const SUID_RE = /^[a-z][a-z0-9_]{2,29}$/;
+
+function validateSuId() {
+  const v = suIdEl ? suIdEl.value : '';
+  if (!v) {
+    if (suIdErrorEl) suIdErrorEl.textContent = '';
+    if (suIdEl) suIdEl.classList.remove('error');
+    if (signupBtn) signupBtn.disabled = true;
+    return false;
+  }
+  if (!SUID_RE.test(v)) {
+    if (suIdErrorEl) suIdErrorEl.textContent = '半角英小文字・数字・_ のみ使えます（3〜30文字、英小文字で始める）';
+    if (suIdEl) suIdEl.classList.add('error');
+    if (signupBtn) signupBtn.disabled = true;
+    return false;
+  }
+  if (suIdErrorEl) suIdErrorEl.textContent = '';
+  if (suIdEl) suIdEl.classList.remove('error');
+  if (signupBtn) signupBtn.disabled = false;
+  return true;
+}
+if (suIdEl) suIdEl.addEventListener('input', validateSuId);
+validateSuId();
 
 const params = new URLSearchParams(location.search);
 // next: ローカルの html ページのみ許可（オープンリダイレクト防止）
