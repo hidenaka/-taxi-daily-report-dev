@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cabis ｜ グループ</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  .groups-status { font-size: 12px; min-height: 16px; margin: 6px 0; }
+  .groups-status.ok { color: #065f46; }
+  .groups-status.err { color: #991b1b; }
+  .group-card { background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .group-card-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .group-card-meta { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+  .group-card-url { width: 100%; padding: 7px 8px; font-size: 11px; font-family: monospace; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 4px; box-sizing: border-box; margin-bottom: 6px; }
+  .group-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .group-card-qr { margin-top: 10px; text-align: center; padding: 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; }
+  .group-card-qr .qr-hint { font-size: 10px; color: var(--muted); margin-top: 6px; }
+  .consent-card { background: #eff6ff; border: 1px solid #93c5fd; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+  .consent-card h3 { font-size: 15px; margin: 0 0 8px; color: #1d4ed8; }
+  .consent-card p { font-size: 12px; color: #374151; line-height: 1.6; margin: 0 0 10px; }
+  .radio-group { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+  .radio-group label { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #374151; line-height: 1.5; cursor: pointer; }
+  .radio-group input[type="radio"] { margin-top: 2px; flex: none; }
+  .groups-empty { font-size: 13px; color: var(--muted); padding: 14px 0; text-align: center; }
+</style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+// 開発環境バッジ
+if (location.hostname.includes('-dev')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.textContent = '🚧 開発環境';
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:#fff;padding:4px 8px;font-size:11px;text-align:center;font-weight:600;z-index:9999;';
+    document.body.appendChild(badge);
+  });
+}
+</script>
+<main style="padding:14px;">
+  <h1>グループ</h1>
+  <p class="muted" style="font-size:12px;margin:0 0 14px;">営業情報を仲間と匿名で共有するグループを作成・管理できます。</p>
+
+  <!-- 招待で来た時の同意カード（?group= があれば表示） -->
+  <div id="consentSection" style="display:none;">
+    <div class="consent-card">
+      <h3>グループへの参加</h3>
+      <p>このグループに参加すると、あなたの過去含む営業情報が匿名でこのグループのプールに入ります（個人や合計は出ません）。</p>
+      <p id="consentGroupName" style="font-weight:600;font-size:13px;margin-bottom:10px;"></p>
+      <button class="btn" id="joinConsentBtn" style="background:var(--primary);color:#fff;width:100%;">参加する</button>
+      <div id="consentStatus" class="groups-status"></div>
+    </div>
+  </div>
+
+  <!-- 新規作成フォーム -->
+  <section class="card">
+    <h3>新規グループを作成</h3>
+    <div style="margin-bottom:10px;">
+      <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">グループ名</label>
+      <input class="input" id="groupNameInput" placeholder="例：◯◯ハイタク同期" maxlength="30" style="width:100%;box-sizing:border-box;">
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;">閲覧条件</label>
+      <div class="radio-group">
+        <label>
+          <input type="radio" name="viewCondition" value="open" checked>
+          <span><strong>参加すれば見られる</strong><br><span style="font-size:11px;color:var(--muted);">参加するだけでグループのプールデータを閲覧できます</span></span>
+        </label>
+        <label>
+          <input type="radio" name="viewCondition" value="contribute">
+          <span><strong>自分も提供してから見られる</strong><br><span style="font-size:11px;color:var(--muted);">自分の営業情報を提供してからプールデータを閲覧できます</span></span>
+        </label>
+      </div>
+    </div>
+    <button class="btn" id="createGroupBtn" style="width:100%;background:var(--primary);color:#fff;">グループを作成</button>
+    <div id="createStatus" class="groups-status"></div>
+  </section>
+
+  <!-- 自分のグループ一覧 -->
+  <section class="card">
+    <h3>参加中のグループ</h3>
+    <div id="groupListContainer">
+      <div class="groups-empty">読み込み中…</div>
+    </div>
+  </section>
+
+</main>
+<div id="navHost"></div>
+<script type="module" src="./js/groups-app.js"></script>
+</body>
+</html>
