@@ -16,6 +16,14 @@ export function selectRecentDrives(drives, nowIso, months) {
   return drives.filter(d => d && typeof d.date === 'string' && d.date !== '' && d.date >= cutoff);
 }
 
+// プールが古い(builtAt が ttlMs より前) or 無い/壊れている → 再構築すべき。
+export function shouldRebuild(pool, nowMs, ttlMs) {
+  if (!pool || !pool.builtAt) return true;
+  const built = Date.parse(pool.builtAt);
+  if (!Number.isFinite(built)) return true;
+  return (nowMs - built) >= ttlMs;
+}
+
 // drives + memberCount → 匿名プール {items, builtAt, memberCount}。
 // メンバー2人未満は空（誰のか分からない＝匿名が成立しないため）。
 // 直近 months ヶ月に絞り、maxItems を超えたら新しい方(配列後方)を残す。

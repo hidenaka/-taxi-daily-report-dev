@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { monthsAgoDate, selectRecentDrives, buildGroupPool } from '../js/group-pool-core.js';
+import { monthsAgoDate, selectRecentDrives, buildGroupPool, shouldRebuild } from '../js/group-pool-core.js';
 
 test('monthsAgoDate: nowから指定月数前の YYYY-MM-DD', () => {
   assert.equal(monthsAgoDate('2026-05-30T12:00:00.000Z', 6), '2025-11-30');
@@ -56,4 +56,19 @@ test('buildGroupPool: maxItems で件数を上限し新しい方を残す', () =
   assert.equal(pool.items.length, 3);
   // slice(末尾)で後方(新しい入力順)を残す
   assert.equal(pool.items[2].amount, 1004);
+});
+
+test('shouldRebuild: プール無しは再構築', () => {
+  assert.equal(shouldRebuild(null, Date.parse('2026-05-30T12:00:00Z'), 3600000), true);
+});
+
+test('shouldRebuild: builtAt無し/不正は再構築', () => {
+  assert.equal(shouldRebuild({}, Date.parse('2026-05-30T12:00:00Z'), 3600000), true);
+  assert.equal(shouldRebuild({ builtAt: 'bad' }, Date.parse('2026-05-30T12:00:00Z'), 3600000), true);
+});
+
+test('shouldRebuild: ttl内はfalse、ttl超でtrue', () => {
+  const now = Date.parse('2026-05-30T12:00:00Z');
+  assert.equal(shouldRebuild({ builtAt: '2026-05-30T11:30:00Z' }, now, 3600000), false); // 30分前
+  assert.equal(shouldRebuild({ builtAt: '2026-05-30T10:30:00Z' }, now, 3600000), true);  // 90分前
 });
