@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { buildGroupInviteUrl, parseGroupSlug, resolveWorkerBase } from '../js/group-client.js';
+import { buildGroupInviteUrl, parseGroupSlug, resolveWorkerBase, callWorker } from '../js/group-client.js';
 
 test('buildGroupInviteUrl: base + /groups.html?group=slug', () => {
   assert.equal(buildGroupInviteUrl('gr-abc123', 'https://app.taxicabis.com'),
@@ -24,4 +24,21 @@ test('resolveWorkerBase: dev/prod 判定', () => {
     'https://cabis-billing-dev.haqei64384.workers.dev');
   assert.equal(resolveWorkerBase({ hostname: 'localhost', pathname: '/groups.html' }),
     'https://cabis-billing-dev.haqei64384.workers.dev');
+});
+
+test('callWorker: Bearerトークン付きPOSTしてjsonを返す', async () => {
+  let seen = null;
+  const fakeFetch = async (url, opts) => { seen = { url, opts }; return { ok: true, status: 200, json: async () => ({ ok: true, x: 1 }) }; };
+  const r = await callWorker('https://w.example', '/group-create', { name: 'g' }, 'TOK', fakeFetch);
+  assert.deepEqual(r, { ok: true, x: 1 });
+  assert.equal(seen.url, 'https://w.example/group-create');
+  assert.equal(seen.opts.method, 'POST');
+  assert.equal(seen.opts.headers.Authorization, 'Bearer TOK');
+  assert.equal(JSON.parse(seen.opts.body).name, 'g');
+});
+
+test('callWorker: 非okでも json を返す（呼び側でstatus判定）', async () => {
+  const fakeFetch = async () => ({ ok: false, status: 403, json: async () => ({ error: 'not-a-member' }) });
+  const r = await callWorker('https://w', '/group-leave', {}, 'T', fakeFetch);
+  assert.deepEqual(r, { error: 'not-a-member' });
 });
