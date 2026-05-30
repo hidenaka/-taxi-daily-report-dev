@@ -360,13 +360,14 @@ if (location.hostname.includes('-dev')) {
 import { loginWithUserId, logout, getCurrentUser, initAuth } from './js/firebase-auth.js?v=2';
 import { createUserWithCredentials } from './js/firebase-auth.js?v=2';
 import { getMyUserId } from './js/storage.js?v=2';
-import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany, adminListSetupRequests, adminImportSetupRequest } from './js/firebase-storage.js?v=2';
+import { adminBatchSaveDrives, listAnonymousUsers, countUserDrives, adminDeleteUserDoc, listAllUsersWithStats, getConfigForUser, adminSaveConfigForUser, listAllSubscriptions, adminGetSubscription, adminSaveSubscription, adminListCompanies, adminSaveCompany, adminListSetupRequests, adminImportSetupRequest, adminSetUserCompany } from './js/firebase-storage.js?v=2';
 import { DEFAULT_CONFIG } from './js/default-config.js?v=2';
 import { buildCompanyDoc, buildCompanySignupUrl } from './js/admin-companies.js?v=3';
 import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
 import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_STATUS_LABELS, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload, formatStatus } from './js/subscription-state.js';
+import { buildAssignActions, formatAssignConfirm } from './js/admin-assign-company.js?v=1';
 
 const loginSection = document.getElementById('loginSection');
 const adminContent = document.getElementById('adminContent');
@@ -850,6 +851,10 @@ document.getElementById('loadUsersBtn').onclick = async () => {
 
   try {
     const users = await listAllUsersWithStats();
+    const companies = await adminListCompanies(); // [{id, freeForInvited?, ...}]
+    const companyOptions = (selected) => companies.map(c =>
+      `<option value="${c.id}"${c.id === selected ? ' selected' : ''}>${c.id}</option>`
+    ).join('');
     if (users.length === 0) {
       result.textContent = 'ユーザーが見つかりません';
       result.style.color = '#d32f2f';
@@ -864,6 +869,7 @@ document.getElementById('loadUsersBtn').onclick = async () => {
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">種別</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
+      html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">会社 / 最終利用</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">有効/無効</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">操作</th>';
       html += '</tr></thead><tbody>';
@@ -885,6 +891,20 @@ document.getElementById('loadUsersBtn').onclick = async () => {
         html += `<td style="padding:6px;text-align:center;">${typeBadge}</td>`;
         html += `<td style="padding:6px;text-align:center;font-weight:600;">${u.driveCount || 0}件</td>`;
         html += `<td style="padding:6px;color:var(--muted);">${createdAt}</td>`;
+        const curCompany = u.companyId
+          ? `<div style="font-size:10px;color:#2e7d32;font-weight:600;">${u.companyId}</div>`
+          : '<div style="font-size:10px;color:#999;">未所属</div>';
+        const lastAct = u.lastActivityAt
+          ? `<div style="font-size:9px;color:#999;">利用 ${new Date(u.lastActivityAt).toLocaleDateString('ja-JP')}</div>`
+          : '';
+        const selectHtml =
+          `<select class="assign-company-sel" data-uid="${u.uid}" style="font-size:10px;max-width:120px;">`
+          + `<option value="__none__"${!u.companyId ? ' selected' : ''}>（所属なし）</option>`
+          + companyOptions(u.companyId)
+          + `</select>`;
+        html += `<td style="padding:6px;">${curCompany}${lastAct}`
+          + `<div style="display:flex;gap:4px;margin-top:4px;">${selectHtml}`
+          + `<button class="btn assign-company-btn" data-uid="${u.uid}" data-userid="${u.userId}" style="font-size:10px;padding:3px 8px;background:#1565c0;color:#fff;">適用</button></div></td>`;
         html += `<td style="padding:6px;text-align:center;">${activeBadge}<button class="btn btn-toggle-active" data-uid="${u.uid}" data-active="${isActive}" style="font-size:10px;padding:4px 8px;${isActive ? 'background:#e53935;color:#fff;' : 'background:#2e7d32;color:#fff;'}">${btnLabel}</button></td>`;
         html += `<td style="padding:6px;text-align:center;"><button class="btn edit-user-btn" data-userid="${u.userId}" style="font-size:10px;padding:4px 8px;background:var(--primary);color:#fff;">⚙️ 設定</button></td>`;
         html += `</tr>`;
@@ -922,6 +942,34 @@ document.getElementById('loadUsersBtn').onclick = async () => {
             document.getElementById('loadUsersBtn')?.click(); // 一覧再読み込み
           } catch (err) {
             alert('更新に失敗しました: ' + err.message);
+          }
+        };
+      });
+
+      // 会社割り当て（適用）
+      list.querySelectorAll('.assign-company-btn').forEach(b => {
+        b.onclick = async () => {
+          const uid = b.dataset.uid;
+          const userId = b.dataset.userid;
+          const sel = list.querySelector(`.assign-company-sel[data-uid="${uid}"]`);
+          const slug = sel ? sel.value : '__none__';
+          const companyDoc = companies.find(c => c.id === slug) || null;
+          const actions = buildAssignActions({ uid, userId }, slug, companyDoc);
+          if (!confirm(formatAssignConfirm({ uid, userId }, actions))) return;
+          try {
+            await adminSetUserCompany(uid, actions.companyId, getMyUserId());
+            if (actions.grantFree) {
+              const existing = await adminGetSubscription(userId);
+              const payload = adminBuildSubscriptionPayload(existing, { status: 'active', planId: 'comp_v1' });
+              await adminSaveSubscription(userId, payload);
+            }
+            alert(actions.cleared
+              ? `${userId} の所属を解除しました。`
+              : `${userId} を ${actions.companyId} に所属させました。${actions.grantFree ? '（無償アクセスも付与）' : ''}`);
+            document.getElementById('loadUsersBtn')?.click();
+          } catch (err) {
+            alert('会社割り当てに失敗しました: ' + (err.message || err)
+              + '\n（companyId は設定済みでも無償付与だけ失敗した可能性があります。再読込で確認してください）');
           }
         };
       });
