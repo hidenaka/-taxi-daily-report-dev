@@ -19,10 +19,13 @@
       border: 1px solid #333; background: #16161c; color: #e8e8e8; }
     #fare-map-host { padding: 4px 12px 0; }
     .fare-map { width: 100%; height: auto; display: block; touch-action: manipulation; }
-    .fare-area rect { fill: #1a1a22; stroke: #3a3a48; stroke-width: 1.5; }
-    .fare-area text { fill: #cfd6e6; font-size: 22px; font-family: -apple-system, system-ui, sans-serif; }
-    .fare-area.is-selected rect { fill: #2f6fd0; stroke: #7fb0ff; }
-    .fare-area.is-selected text { fill: #fff; font-weight: 700; }
+    .fare-area { cursor: pointer; }
+    .fare-area path { fill: #1a1a22; stroke: #3a3a48; stroke-width: 1.2; transition: fill .1s; }
+    .fare-area:hover path { fill: #23232e; }
+    .fare-area.is-selected path { fill: #2f6fd0; stroke: #7fb0ff; stroke-width: 1.8; }
+    .fare-area text { fill: #cfd6e6; font-size: 19px; font-family: -apple-system, system-ui, sans-serif;
+      pointer-events: none; paint-order: stroke; stroke: #0e0e10; stroke-width: 3px; stroke-linejoin: round; }
+    .fare-area.is-selected text { fill: #fff; font-weight: 700; stroke: #1a3a6e; }
     #fare-card-host { padding: 8px 12px 24px; }
     .fare-empty { color: #888; text-align: center; padding: 20px 0; font-size: 14px; }
     .fare-card { background: #16161c; border: 1px solid #2a2a35; border-radius: 12px; padding: 14px; }
@@ -68,10 +71,7 @@
   <div id="fare-map-host"></div>
   <div id="fare-card-host"></div>
 
-  <script type="module">
-    import { initAirportFare } from './js/airport-fare-app.js';
-    initAirportFare();
-  </script>
+  <script type="module" src="./js/airport-fare-app.js"></script>
   <script>
     document.querySelectorAll('.app-tab').forEach(a => {
       a.addEventListener('click', (e) => {

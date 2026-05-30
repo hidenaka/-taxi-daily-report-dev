@@ -26,6 +26,7 @@ const STATIC_FILES = [
   './tools/js/airport-fare-map.js',
   './tools/js/airport-fare-card.js',
   './tools/data/airport-fixed-fares.json',
+  './tools/data/tokyo-ward-shapes.json',
   './tools/js/stands-app.js',
   './tools/js/stands-tab.js',
   './tools/js/stands-data.js',

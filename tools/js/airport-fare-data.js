@@ -74,3 +74,8 @@ export async function loadFares() {
   validateFares(data);
   return data;
 }
+
+// 区境ポリゴン（地図描画用）。tools/ からの相対パス。
+export async function loadWardShapes() {
+  return await (await fetch('./data/tokyo-ward-shapes.json')).json();
+}
