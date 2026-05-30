@@ -18,27 +18,41 @@ function nodeKey(p) {
 
 // ways の頂点をノード、隣接頂点をエッジ(距離重み)とする無向グラフを構築。
 // 交差点では座標一致でノードが共有される（Overpass out geom は接続点を同一座標で返す）。
+// 道路交通法(一方通行)を尊重する向き判定。
+// oneway=yes/true/1 → way進行方向のみ。oneway=-1/reverse → 逆のみ。
+// junction=roundabout/circular → 進行方向のみ(環状は一方通行)。それ以外 → 双方向。
+function onewayDir(tags) {
+  const o = String((tags && tags.oneway) || '').toLowerCase();
+  if (o === 'yes' || o === 'true' || o === '1') return 'f';
+  if (o === '-1' || o === 'reverse') return 'b';
+  const j = String((tags && tags.junction) || '').toLowerCase();
+  if (j === 'roundabout' || j === 'circular') return 'f';
+  return 'both';
+}
+
 function buildGraph(ways) {
-  const adj = new Map(); // key -> { pt:{lat,lng}, edges:[{key,w}] }
+  // 有向グラフ。edges=出方向(駆動可)、redges=入方向(逆探索用)。
+  const adj = new Map(); // key -> { pt, edges:[{key,w}], redges:[{key,w}] }
   const ensure = (p) => {
     const k = nodeKey(p);
-    if (!adj.has(k)) adj.set(k, { pt: { lat: p.lat, lng: p.lng }, edges: [] });
+    if (!adj.has(k)) adj.set(k, { pt: { lat: p.lat, lng: p.lng }, edges: [], redges: [] });
     return k;
   };
-  const addEdge = (k1, k2, w) => {
-    const bucket = adj.get(k1).edges;
-    if (!bucket.some((e) => e.key === k2)) bucket.push({ key: k2, w });
+  const link = (a, b, w) => { // 有向辺 a→b
+    const ea = adj.get(a).edges; if (!ea.some((e) => e.key === b)) ea.push({ key: b, w });
+    const rb = adj.get(b).redges; if (!rb.some((e) => e.key === a)) rb.push({ key: a, w });
   };
   for (const wway of ways) {
     const g = wway && wway.geometry;
     if (!Array.isArray(g) || g.length < 2) continue;
+    const dir = onewayDir(wway.tags);
     let prevK = null; let prevP = null;
     for (const raw of g) {
       const k = ensure(raw);
       if (prevK !== null && prevK !== k) {
         const w = hav(prevP, raw);
-        addEdge(prevK, k, w);
-        addEdge(k, prevK, w);
+        if (dir === 'f' || dir === 'both') link(prevK, k, w); // way進行方向
+        if (dir === 'b' || dir === 'both') link(k, prevK, w); // 逆方向
       }
       prevK = k; prevP = raw;
     }
@@ -56,7 +70,7 @@ function nearestNode(adj, p) {
 }
 
 // O(V^2) Dijkstra。半径数百mの周辺道路（ノード数百）には十分。
-function dijkstra(adj, srcK, dstK) {
+function dijkstra(adj, srcK, dstK, reversed = false) {
   if (srcK === dstK) return [srcK];
   const dist = new Map([[srcK, 0]]);
   const prev = new Map();
@@ -69,7 +83,7 @@ function dijkstra(adj, srcK, dstK) {
     if (u === null) break;
     if (u === dstK) break;
     visited.add(u);
-    for (const e of adj.get(u).edges) {
+    for (const e of (reversed ? adj.get(u).redges : adj.get(u).edges)) {
       if (visited.has(e.key)) continue;
       const nd = ud + e.w;
       if (nd < (dist.has(e.key) ? dist.get(e.key) : Infinity)) {
@@ -104,7 +118,7 @@ const ARTERIAL_CLASSES = new Set([
   'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link',
 ]);
 
-function dijkstraMaps(adj, srcK, allowed) {
+function dijkstraMaps(adj, srcK, allowed, reversed = false) {
   const dist = new Map([[srcK, 0]]);
   const prev = new Map();
   const visited = new Set();
@@ -113,7 +127,7 @@ function dijkstraMaps(adj, srcK, allowed) {
     for (const [k, d] of dist) { if (!visited.has(k) && d < ud) { ud = d; u = k; } }
     if (u === null) break;
     visited.add(u);
-    for (const e of adj.get(u).edges) {
+    for (const e of (reversed ? adj.get(u).redges : adj.get(u).edges)) {
       if (allowed && !allowed.has(e.key)) continue;
       if (visited.has(e.key)) continue;
       const nd = ud + e.w;
@@ -179,8 +193,9 @@ export function extendToArterial(line, ways, pin, opts = {}) {
   const dlen = Math.hypot(dv.x, dv.y) || 1;
   const dx = dv.x / dlen; const dy = dv.y / dlen;
 
-  // 道路網全体で sNear から各ノードへの最短路。外側方向への射影が最大の幹線ノードを選ぶ。
-  const full = dijkstraMaps(adj, sNear.key, null);
+  // 逆探索: sNear へ「駆動して到達できる」ノードを探す(一方通行を尊重)。
+  // dist[k] = k→sNear の駆動コスト。外側方向への射影が最大の幹線ノードを選ぶ。
+  const full = dijkstraMaps(adj, sNear.key, null, true);
   let best = null;
   for (const k of artSet) {
     if (!full.dist.has(k)) continue;

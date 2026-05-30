@@ -67,6 +67,18 @@ test('extendToArterial: 起点を外側方向の幹線へ延長する', () => {
   assert.ok(Math.abs(end.lat - 35.660) < 1e-6 && Math.abs(end.lng - 139.729) < 1e-6);
 });
 
+test('routeOnGraph: 一方通行(oneway=yes)を尊重する', () => {
+  // 西→東(139.730→139.731)のみ通行可。
+  const oneway = {
+    tags: { highway: 'residential', oneway: 'yes' },
+    geometry: [{ lat: 35.660, lng: 139.730 }, { lat: 35.660, lng: 139.731 }],
+  };
+  const a = { lat: 35.660, lng: 139.730 };
+  const b = { lat: 35.660, lng: 139.731 };
+  assert.ok(routeOnGraph(a, b, [oneway]), '順方向(西→東)は通れる');
+  assert.equal(routeOnGraph(b, a, [oneway]), null, '逆走(東→西)は不可→null');
+});
+
 test('extendToArterial: 幹線が無ければ元のline', () => {
   const line = [{ lat: 35.6605, lng: 139.730 }, { lat: 35.660, lng: 139.729 }];
   const out = extendToArterial(line, [localRoad], { lat: 35.660, lng: 139.729 });
