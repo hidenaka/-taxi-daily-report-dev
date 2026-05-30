@@ -109,6 +109,21 @@ if (location.hostname.includes('-dev')) {
         <label for="suPw2">パスワード（確認）</label>
         <input type="password" id="suPw2" autocomplete="new-password">
       </div>
+      <div class="field">
+        <label for="suName">氏名</label>
+        <input type="text" id="suName" autocomplete="name" maxlength="50" placeholder="例: 山田太郎">
+        <div class="hint">本人確認・連絡のため運営に通知します（後述）。</div>
+      </div>
+      <div class="field">
+        <label for="suPhone">電話番号</label>
+        <input type="tel" id="suPhone" autocomplete="tel" maxlength="30" placeholder="例: 090-1234-5678">
+      </div>
+      <div class="field" style="background:#f7f9fc;border:1px solid #d8d2bf;border-radius:8px;padding:10px 12px;">
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer;font-size:13px;">
+          <input type="checkbox" id="suConsent" style="margin-top:3px;">
+          <span>氏名・電話を、本人確認・連絡・会社照合のために運営へ<strong>メール通知</strong>することに同意します。これらは<strong>サービスのデータベースには保存しません</strong>（メール送信に Resend〈米国〉を利用）。詳細は<a href="./legal/privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>。</span>
+        </label>
+      </div>
       <div class="turnstile-row">
         <div class="cf-turnstile" id="turnstileSignup"
              data-sitekey="0x4AAAAAADSvVIjk5NOINIXr"
@@ -159,6 +174,8 @@ import { renderLegalFooter } from './js/legal-footer.js';
 import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase-auth.js';
 import { loadInviteSlug, validateInviteSlug, fetchCompanyExists, checkInviteAndWarn } from './js/invite-url.js';
 import { generateSlug } from './js/slug-gen.js';
+import { validateSignupFields, buildNotifyPayload, postSignupNotify } from './js/signup-notify.js';
+import { billingApiBase } from './js/subscription-state.js';
 renderLegalFooter();
 
 // 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
@@ -370,6 +387,14 @@ signupBtn.addEventListener('click', async () => {
     showMsg('signupMsg', 'パスワード（確認）が一致しません', 'error');
     return;
   }
+  const name = document.getElementById('suName').value;
+  const phone = document.getElementById('suPhone').value;
+  const consent = document.getElementById('suConsent').checked;
+  const v = validateSignupFields({ name, phone, consent });
+  if (!v.ok) {
+    showMsg('signupMsg', v.errors.join(' / '), 'error');
+    return;
+  }
   if (!turnstileSignupToken) {
     showMsg('signupMsg', '人間判定が完了していません。数秒お待ちいただいてから、もう一度お試しください。', 'error');
     return;
@@ -387,6 +412,12 @@ signupBtn.addEventListener('click', async () => {
   showMsg('signupMsg', '登録しています…', 'info');
   const r = await signUp(id, pw);
   if (r.success) {
+    try {
+      const idToken = await r.user.getIdToken();
+      await postSignupNotify(billingApiBase(), buildNotifyPayload({ idToken, userId: id, name, phone }));
+    } catch (e) {
+      console.warn('signup notify skipped (registration still OK)');
+    }
     showSignupSuccessScreen(id, pw);
   } else {
     showMsg('signupMsg', r.error || '登録に失敗しました', 'error');

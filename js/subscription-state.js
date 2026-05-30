@@ -181,7 +181,7 @@ export async function getSubscription() {
 // ============================================================
 
 // dev/prod で Worker を切り替える(firebase-init.js と同じ環境判定)。
-function billingApiBase() {
+export function billingApiBase() {
   const isDev =
     location.hostname.includes('-dev') ||
     location.pathname.includes('-dev') ||
