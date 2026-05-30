@@ -22,6 +22,7 @@
 import {
   handleIssueUrl, handleValidateToken, handleSubmit, handleArchive,
 } from './setup-request/handler.js';
+import { handleNotifySignup } from './signup-notify/handler.js';
 
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）
 const USER_ID_RE = /^[a-z0-9_]+$/;
@@ -68,6 +69,19 @@ export default {
       }
       if (request.method === 'POST' && path === '/setup-request/archive') {
         return await handleArchive(request, env, helpersForSetupRequest(env));
+      }
+      if (request.method === 'POST' && path === '/notify-signup') {
+        return await handleNotifySignup(request, env, {
+          json: (obj, status = 200) => json(env, obj, status),
+          findCompanyIdByUserId: async (userId) => {
+            try {
+              const token = await getAccessToken(env);
+              return await findCompanyIdByUserId(env, token, userId);
+            } catch {
+              return null;
+            }
+          },
+        });
       }
       return json(env, { error: 'not_found' }, 404);
     } catch (err) {
