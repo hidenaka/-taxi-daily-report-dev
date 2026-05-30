@@ -1,7 +1,7 @@
 // encodeValue / decodeValue のラウンドトリップテスト（Firestore接続不要）
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { encodeValue, decodeValue } from '../worker/src/group-pool.js';
+import { encodeValue, decodeValue, drivesQueryParent } from '../worker/src/group-pool.js';
 
 function roundtrip(v) {
   return decodeValue(encodeValue(v));
@@ -78,4 +78,13 @@ test('encodeValue: object は mapValue.fields', () => {
   const result = encodeValue({ x: true });
   assert.ok(result.mapValue);
   assert.deepStrictEqual(result.mapValue.fields.x, { booleanValue: true });
+});
+
+test('drivesQueryParent: Firestoreリソース名(URLでない)を返す', () => {
+  assert.equal(
+    drivesQueryParent('taxi-dailydata', 'taro'),
+    'projects/taxi-dailydata/databases/(default)/documents/drives/taro'
+  );
+  // https URL になっていないこと
+  assert.ok(!drivesQueryParent('p', 'u').startsWith('http'));
 });

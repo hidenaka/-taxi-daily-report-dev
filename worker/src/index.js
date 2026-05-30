@@ -23,7 +23,8 @@ import {
   handleIssueUrl, handleValidateToken, handleSubmit, handleArchive,
 } from './setup-request/handler.js';
 import { handleNotifySignup } from './signup-notify/handler.js';
-import { makeFirestoreDeps, refreshGroupPool } from './group-pool.js';
+import { makeFirestoreDeps } from './group-pool.js';
+import { refreshGroupPool } from '../../js/group-pool-core.js';
 import { verifyFirebaseIdToken } from './auth/verify-id-token.js';
 
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）

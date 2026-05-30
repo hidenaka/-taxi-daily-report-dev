@@ -1,7 +1,11 @@
 // Firestore-backed deps for refreshGroupPool（Cloudflare Worker用）。
 // 安全ガード: ここから書くのは groups/{id}/pool/current のみ。
 //             drives/users は read のみ。
-import { refreshGroupPool } from '../../js/group-pool-core.js';
+
+// Firestore runQuery の parent に渡すリソース名（URLではない）。drives/{userId} 配下の daily を検索する親。
+export function drivesQueryParent(projectId, userId) {
+  return `projects/${projectId}/databases/(default)/documents/drives/${userId}`;
+}
 
 // pool item / pool doc を Firestore REST の値表現にエンコード（配列・map対応）。
 function encodeValue(v) {
@@ -56,13 +60,11 @@ export function makeFirestoreDeps({ env, token, firestoreGet, firestoreBase }) {
     },
 
     // drives/{userId}/daily を date>=since で runQuery（read only）。
-    // runQuery の URL は firestoreBase(env) + ':runQuery'、
-    // parent には drives/{userId} サブドキュメントの完全パスを指定する
-    // （findCompanyIdByUserId と同じ URL 構造に合わせる）。
+    // runQuery の fetch URL は firestoreBase(env) + ':runQuery'（https URL）。
+    // parent は URL ではなくリソース名（drivesQueryParent）でなければならない。
     async readMemberDrives(userId, since) {
-      const base = firestoreBase(env); // ...documents
-      const url = base + ':runQuery';
-      const parent = base + '/drives/' + userId;
+      const url = firestoreBase(env) + ':runQuery';
+      const parent = drivesQueryParent(env.FIREBASE_PROJECT_ID, userId);
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -83,7 +85,11 @@ export function makeFirestoreDeps({ env, token, firestoreGet, firestoreBase }) {
           },
         }),
       });
-      if (!res.ok) return [];
+      // 1メンバーの取得失敗は欠落として続行（プール全体は壊さない）
+      if (!res.ok) {
+        console.warn('readMemberDrives failed', userId, res.status);
+        return [];
+      }
       const rows = await res.json();
       return (Array.isArray(rows) ? rows : [])
         .filter(r => r.document)
@@ -113,4 +119,4 @@ export function makeFirestoreDeps({ env, token, firestoreGet, firestoreBase }) {
   };
 }
 
-export { refreshGroupPool, decodeValue, decodeFields, encodeValue };
+export { decodeValue, decodeFields, encodeValue };
