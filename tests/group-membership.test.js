@@ -114,3 +114,17 @@ test('leaveGroupOp: 最後の1人が抜けたらgroup削除', async () => {
   assert.equal(calls.deleteGroup[0], 'g1');
   assert.equal(calls.updateMembers.length, 0);
 });
+
+test('createGroupOp: slug衝突が続いたら例外(無音上書きしない)', async () => {
+  const { deps } = mkDeps({ slugExists: async () => true }); // 常に衝突
+  let n = 0;
+  await assert.rejects(
+    () => createGroupOp(deps, { userId: 'taro', name: 'x', nowIso: NOW, genSlug: () => 'gr-dup' + (n++) }),
+    /slug-collision-limit/
+  );
+});
+
+test('newGroupDoc: 絵文字名でもコードポイント単位で丸め壊れない', () => {
+  const doc = newGroupDoc({ name: '😀'.repeat(60), createdBy: 'a', inviteSlug: 'gr-e', nowIso: NOW });
+  assert.equal([...doc.name].length, 50);
+});

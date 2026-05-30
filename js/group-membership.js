@@ -22,12 +22,12 @@ export function newGroupSlug(rng) {
 // 新規グループの初期ドキュメント。作成者を唯一のメンバーにする。
 export function newGroupDoc({ name, createdBy, inviteSlug, nowIso, requireContributionToView = false, minViewContribution = 1 }) {
   return {
-    name: ((name || '').slice(0, 50)) || 'グループ',
+    name: ([...(name || '')].slice(0, 50).join('')) || 'グループ',
     inviteSlug,
     createdBy,
     memberUserIds: [createdBy],
     requireContributionToView: !!requireContributionToView,
-    minViewContribution: Number(minViewContribution) || 1,
+    minViewContribution: Number(minViewContribution) || 1, // 0/不正は1に正規化（最低1件）
     createdAt: nowIso,
     updatedAt: nowIso,
   };
@@ -39,7 +39,10 @@ export function newGroupDoc({ name, createdBy, inviteSlug, nowIso, requireContri
 export async function createGroupOp(deps, { userId, name, nowIso, requireContributionToView, minViewContribution, genSlug }) {
   let slug = genSlug();
   let guard = 0;
-  while ((await deps.slugExists(slug)) && guard++ < 5) slug = genSlug();
+  while (await deps.slugExists(slug)) {
+    if (guard++ >= 5) throw new Error('slug-collision-limit');
+    slug = genSlug();
+  }
   const groupId = slug; // slug を ID に流用
   const doc = newGroupDoc({ name, createdBy: userId, inviteSlug: slug, nowIso, requireContributionToView, minViewContribution });
   await deps.writeGroup(groupId, doc);
@@ -60,7 +63,7 @@ export async function joinGroupOp(deps, { userId, slug, nowIso }) {
 // 退会: 自分を除去。残り0なら group(とpool) を削除。
 //   group は呼び出し側(Worker)が読んで渡す（{memberUserIds}）。
 export async function leaveGroupOp(deps, { userId, groupId, nowIso, group }) {
-  const members = Array.isArray(group && group.memberUserIds) ? group.memberUserIds : [];
+  const members = Array.isArray(group?.memberUserIds) ? group.memberUserIds : [];
   if (!members.includes(userId)) return { status: 'not-a-member' };
   const next = removeMember(members, userId);
   if (next.length === 0) {
