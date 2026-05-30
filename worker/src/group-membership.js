@@ -6,8 +6,8 @@
 import { createGroupOp, joinGroupOp, leaveGroupOp, newGroupSlug } from '../../js/group-membership.js';
 import { encodeValue, decodeFields } from './group-pool.js';
 
-// 既存 index.js の (env, token, firestoreGet, firestorePatch, firestoreBase) を受けて deps を返す。
-export function makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase }) {
+// 既存 index.js の (env, token, firestoreGet, firestoreBase) を受けて deps を返す。
+export function makeMembershipDeps({ env, token, firestoreGet, firestoreBase }) {
   const base = firestoreBase(env);
   return {
     // slug が groups/{slug} として既存かチェック（衝突検出。read のみ）。

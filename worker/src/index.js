@@ -757,7 +757,7 @@ async function handleGroupCreate(request, env) {
     const myUserId = await resolveMyUserId(request, env, token);
     if (!myUserId) return json(env, { error: 'unauthorized' }, 401);
     const body = await request.json().catch(() => ({}));
-    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestoreBase });
     const r = await createGroupOp(deps, {
       userId: myUserId,
       name: body && body.name,
@@ -781,10 +781,11 @@ async function handleGroupJoin(request, env) {
     const body = await request.json().catch(() => ({}));
     const slug = body && body.slug;
     if (!slug || typeof slug !== 'string') return json(env, { error: 'slug required' }, 400);
-    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestoreBase });
     const r = await joinGroupOp(deps, { userId: myUserId, slug, nowIso: new Date().toISOString() });
-    const status = r.status === 'no-group' ? 404 : 200;
-    return json(env, { ok: r.status !== 'no-group', ...r }, status);
+    const ok = r.status === 'joined' || r.status === 'already';
+    const code = r.status === 'no-group' ? 404 : 200;
+    return json(env, { ok, ...r }, code);
   } catch (err) {
     console.error('group-join error:', (err && err.stack) || err);
     return json(env, { error: 'internal' }, 500);
@@ -799,7 +800,7 @@ async function handleGroupLeave(request, env) {
     const body = await request.json().catch(() => ({}));
     const groupId = body && body.groupId;
     if (!groupId || typeof groupId !== 'string') return json(env, { error: 'groupId required' }, 400);
-    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestoreBase });
     // groupId=slug 運用なので findGroupBySlug で直接 GET（read のみ）。
     const found = await deps.findGroupBySlug(groupId);
     if (!found) return json(env, { error: 'no-group' }, 404);
@@ -809,7 +810,8 @@ async function handleGroupLeave(request, env) {
       nowIso: new Date().toISOString(),
       group: found.group,
     });
-    return json(env, { ok: true, ...r });
+    const ok = r.status === 'left' || r.status === 'deleted';
+    return json(env, { ok, ...r }, ok ? 200 : 403);
   } catch (err) {
     console.error('group-leave error:', (err && err.stack) || err);
     return json(env, { error: 'internal' }, 500);
