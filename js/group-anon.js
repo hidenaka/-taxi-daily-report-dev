@@ -26,3 +26,10 @@ export function tripToPoolItem(trip) {
     isPickup: !!trip.isPickup,
   };
 }
+
+// 1 drive → pool items[]。shareOptOut の日は空。trips 以外は無視。
+export function driveToPoolItems(drive) {
+  if (!drive || drive.shareOptOut) return [];
+  const trips = Array.isArray(drive.trips) ? drive.trips : [];
+  return trips.map(tripToPoolItem).filter(Boolean);
+}
