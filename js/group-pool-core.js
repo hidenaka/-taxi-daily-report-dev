@@ -36,3 +36,36 @@ export function buildGroupPool(drives, memberCount, opts = {}) {
   if (items.length > maxItems) items = items.slice(items.length - maxItems);
   return { items, builtAt: nowIso, memberCount: mc };
 }
+
+// 注入式オーケストレータ。実Firestoreは Worker 側で deps として渡す（テスト可能化）。
+//   deps.readGroup(groupId)         -> { memberUserIds: [] } | null
+//   deps.readPool(groupId)          -> pool | null
+//   deps.readMemberDrives(uid, since) -> drives[]  (since='YYYY-MM-DD' 以降)
+//   deps.writePool(groupId, pool)   -> Promise<void>
+export async function refreshGroupPool(deps, groupId, opts = {}) {
+  const { nowIso, nowMs, ttlMs = 3600000, months = 6, maxItems = 5000, force = false } = opts;
+  const group = await deps.readGroup(groupId);
+  if (!group) return { status: 'no-group' };
+  const members = Array.isArray(group.memberUserIds) ? group.memberUserIds : [];
+
+  if (!force) {
+    const existing = await deps.readPool(groupId);
+    if (!shouldRebuild(existing, nowMs, ttlMs)) {
+      return { status: 'fresh', builtAt: existing.builtAt };
+    }
+  }
+  if (members.length < 2) {
+    const empty = { items: [], builtAt: nowIso, memberCount: members.length };
+    await deps.writePool(groupId, empty);
+    return { status: 'too-few', memberCount: members.length };
+  }
+  const since = monthsAgoDate(nowIso, months);
+  let allDrives = [];
+  for (const uid of members) {
+    const drives = await deps.readMemberDrives(uid, since);
+    if (Array.isArray(drives)) allDrives = allDrives.concat(drives);
+  }
+  const pool = buildGroupPool(allDrives, members.length, { nowIso, months, maxItems });
+  await deps.writePool(groupId, pool);
+  return { status: 'rebuilt', count: pool.items.length, memberCount: members.length };
+}
