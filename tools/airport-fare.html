@@ -17,15 +17,32 @@
     .fare-search-wrap { padding: 0 12px 8px; }
     #fare-search { width: 100%; padding: 10px 12px; font-size: 16px; border-radius: 8px;
       border: 1px solid #333; background: #16161c; color: #e8e8e8; }
-    #fare-map-host { padding: 4px 12px 0; }
+    #fare-map-host { padding: 4px 12px 0; position: relative; }
     .fare-map { width: 100%; height: auto; display: block; touch-action: manipulation; }
+    /* ポリゴンの fill は JS が区ごとのタイントを presentation 属性で付与。hover/selected は CSS が上書き。 */
     .fare-area { cursor: pointer; }
-    .fare-area path { fill: #1a1a22; stroke: #3a3a48; stroke-width: 1.2; transition: fill .1s; }
-    .fare-area:hover path { fill: #23232e; }
-    .fare-area.is-selected path { fill: #2f6fd0; stroke: #7fb0ff; stroke-width: 1.8; }
-    .fare-area text { fill: #cfd6e6; font-size: 19px; font-family: -apple-system, system-ui, sans-serif;
-      pointer-events: none; paint-order: stroke; stroke: #0e0e10; stroke-width: 3px; stroke-linejoin: round; }
-    .fare-area.is-selected text { fill: #fff; font-weight: 700; stroke: #1a3a6e; }
+    .fare-area path { stroke: #3a3a48; stroke-width: 1.0; transition: fill .12s, stroke .12s; }
+    .fare-area:active path { stroke: #8fa0c0; stroke-width: 2; }
+    @media (hover:hover) { .fare-area:hover path { stroke: #6a7290; stroke-width: 1.6; } }
+    .fare-area.is-selected path { fill: #2f6fd0; stroke: #bcd6ff; stroke-width: 2.4;
+      filter: drop-shadow(0 0 5px rgba(60,130,230,.85)); }
+    /* ラベルは最前面の層。pointer-events:none でタップはポリゴンに通す。 */
+    .fare-labels text { fill: #cfd6e6; font-size: 19px; font-family: -apple-system, system-ui, sans-serif;
+      pointer-events: none; paint-order: stroke; stroke: #0e0e10; stroke-width: 3.2px; stroke-linejoin: round; }
+    .fare-labels text.is-selected { fill: #fff; font-weight: 700; font-size: 21px; stroke: #14305c; }
+    /* タップした区のそばに出る小ウインドウ */
+    #fare-popup { position: fixed; z-index: 60; width: 230px; max-width: calc(100vw - 24px);
+      background: #16161c; border: 1px solid #3a4d6e; border-radius: 12px; padding: 12px 12px 10px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.55); }
+    #fare-popup[hidden] { display: none; }
+    #fare-popup.is-show { animation: farePopIn .14s ease; }
+    @keyframes farePopIn { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+    #fare-popup .pop-close { position: absolute; top: 6px; right: 9px; color: #999; font-size: 18px;
+      line-height: 1; cursor: pointer; padding: 2px 4px; }
+    #fare-popup .fare-card { background: transparent; border: 0; padding: 0; }
+    #fare-popup .fare-card-head { font-size: 15px; }
+    #fare-popup .fare-table th, #fare-popup .fare-table td { padding: 7px 6px; font-size: 13px; }
+    #fare-popup .fare-note { font-size: 11px; margin-top: 8px; }
     #fare-card-host { padding: 8px 12px 24px; }
     .fare-empty { color: #888; text-align: center; padding: 20px 0; font-size: 14px; }
     .fare-card { background: #16161c; border: 1px solid #2a2a35; border-radius: 12px; padding: 14px; }
@@ -69,6 +86,7 @@
   </div>
 
   <div id="fare-map-host"></div>
+  <div id="fare-popup" hidden></div>
   <div id="fare-card-host"></div>
 
   <script type="module" src="./js/airport-fare-app.js"></script>
