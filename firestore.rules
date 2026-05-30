@@ -116,6 +116,21 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // --- groups/{groupId} ---
+    // メンバーのみ閲覧（人数・設定の表示用）。書き込みは Worker(サービスアカウント)のみ＝クライアント不可。
+    match /groups/{groupId} {
+      allow read: if isSignedIn() && (myUserId() in resource.data.memberUserIds);
+      allow write: if false;
+    }
+
+    // --- groups/{groupId}/pool/{doc} ---
+    // 当該グループのメンバーのみ閲覧。書き込みは Worker のみ。
+    match /groups/{groupId}/pool/{doc} {
+      allow read: if isSignedIn()
+        && (myUserId() in get(/databases/$(database)/documents/groups/$(groupId)).data.memberUserIds);
+      allow write: if false;
+    }
+
     // --- Everything else: deny ---
     match /{document=**} {
       allow read, write: if false;
