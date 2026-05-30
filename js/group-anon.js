@@ -33,3 +33,9 @@ export function driveToPoolItems(drive) {
   const trips = Array.isArray(drive.trips) ? drive.trips : [];
   return trips.map(tripToPoolItem).filter(Boolean);
 }
+
+// drives[] → 全 pool items[]（trip単位のバラ。日付/userIdに紐付かない）。
+export function buildPoolItems(drives) {
+  if (!Array.isArray(drives)) return [];
+  return drives.flatMap(driveToPoolItems);
+}

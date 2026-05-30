@@ -78,3 +78,30 @@ test('driveToPoolItems: trips 無し/不正でも空配列', () => {
   assert.deepEqual(driveToPoolItems({ date: '2026-05-03' }), []);
   assert.deepEqual(driveToPoolItems(null), []);
 });
+
+import { buildPoolItems } from '../js/group-anon.js';
+
+test('buildPoolItems: 複数driveを平坦化しopt-out日を除外', () => {
+  const drives = [
+    { date: '2026-05-01', trips: [
+      { type: 'trip', boardTime: '07:17', boardPlace: '大田区上池台4', alightPlace: '港区港南2', km: 6.7, amount: 3600, isPickup: true, isCancel: false },
+    ]},
+    { date: '2026-05-02', shareOptOut: true, trips: [
+      { type: 'trip', boardTime: '08:00', boardPlace: '品川区', alightPlace: '港区', km: 3, amount: 1500, isPickup: false, isCancel: false },
+    ]},
+    { date: '2026-05-03', trips: [
+      { type: 'trip', boardTime: '19:30', boardPlace: '中央区銀座8', alightPlace: '江東区青海2', km: 4.2, amount: 2100, isPickup: false, isCancel: false },
+      { type: 'trip', isCancel: true, amount: 0 },
+    ]},
+  ];
+  const pool = buildPoolItems(drives);
+  assert.equal(pool.length, 2); // 05-01の1件 + 05-03の1件(キャンセル除外, opt-out日除外)
+  assert.deepEqual(pool.map(p => p.pickupArea), ['大田区上池台', '中央区銀座']);
+  // バラのtrip単位＝日付やuserIdに紐付かない（1日まとめが復元できない）
+  assert.ok(pool.every(p => !('date' in p) && !('_userId' in p)));
+});
+
+test('buildPoolItems: 配列以外は空配列', () => {
+  assert.deepEqual(buildPoolItems(null), []);
+  assert.deepEqual(buildPoolItems(undefined), []);
+});
