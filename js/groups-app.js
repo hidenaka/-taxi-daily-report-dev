@@ -59,7 +59,12 @@ async function renderGroupList() {
     const myUserId = getMyUserId();
     groups = await listMyGroups(fs, db, myUserId);
   } catch (e) {
-    container.innerHTML = `<div class="groups-empty" style="color:#991b1b;">一覧の取得に失敗しました: ${e.message || e}</div>`;
+    const errDiv = document.createElement('div');
+    errDiv.className = 'groups-empty';
+    errDiv.style.color = '#991b1b';
+    errDiv.textContent = '一覧の取得に失敗しました: ' + (e.message || e);
+    container.innerHTML = '';
+    container.appendChild(errDiv);
     return;
   }
 
@@ -92,9 +97,6 @@ async function renderGroupList() {
     `;
     container.appendChild(card);
   }
-
-  // イベント委任
-  container.addEventListener('click', onGroupListClick);
 }
 
 async function onGroupListClick(e) {
@@ -291,14 +293,30 @@ async function initCreateForm() {
 }
 
 // ============================================================
+// グループ一覧 click ハンドラ（初期化時に1度だけ登録）
+// ============================================================
+
+function initGroupListClickListener() {
+  const container = document.getElementById('groupListContainer');
+  if (!container) return;
+  container.addEventListener('click', onGroupListClick);
+}
+
+// ============================================================
 // メイン
 // ============================================================
 
 (async () => {
-  await enforceAccess('core');
+  // enforceAccess は boolean を返す（true=可, false=リダイレクト済）。
+  // 未契約の場合はここで subscribe.html に遷移させ、以降の処理を止める。
+  if (!(await enforceAccess('core'))) return;
 
   document.getElementById('navHost').innerHTML = renderBottomNav('settings');
   renderLegalFooter();
+
+  // click リスナーは初期化時に1度だけ登録する（renderGroupList() のたびに
+  // 積算されないようにコンテナへの委譲登録をここに移動）。
+  initGroupListClickListener();
 
   await Promise.all([
     initConsentSection(),
