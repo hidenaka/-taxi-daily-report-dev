@@ -272,17 +272,6 @@ if (location.hostname.includes('-dev')) {
     </details>
   </section>
 
-  <section id="companyInviteSection" hidden style="margin:24px 0; padding:16px; background:#f7f9fc; border-radius:10px;">
-    <h3 style="margin:0 0 8px;">🔗 同じ会社の人を招待</h3>
-    <p class="hint" style="margin:0 0 12px;">このURLを送ると、同じ会社の同僚が登録できます。</p>
-    <input id="companyInviteUrl" class="input" readonly style="width:100%; font-family:monospace; font-size:12px; margin-bottom:8px;">
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button id="copyInviteUrlBtn" class="btn" style="flex:1; min-width:120px;">📋 コピー</button>
-      <button id="shareInviteUrlBtn" class="btn" hidden style="flex:1; min-width:120px;">📲 LINEやメールで送る</button>
-    </div>
-    <p class="hint" style="margin:12px 0 0; color:var(--sub); font-size:11px;">※ あなたの会社の人だけが登録できます</p>
-  </section>
-
   <section id="selfWithdrawSection" style="margin:32px 0; padding:16px; border:1px solid #e0c4c0; background:#fff5f3; border-radius:10px;">
     <h3 style="margin:0 0 8px; color:#c83a2c;">⚠ アプリの利用を停止する</h3>
     <p class="hint" style="margin:0 0 12px;">退職した／このアプリを使わなくなる場合は、こちらから停止できます。</p>
@@ -319,7 +308,6 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav } from './js/app.js';
 import { showGpsPrivacyBanner } from './js/gps-privacy-banner.js';
 showGpsPrivacyBanner();
-import { buildCompanyInviteUrl } from './js/invite-url.js';
 import { getConfig, saveConfig, getDrivesForMonth, getMyUserId, setMyUserId, getUserRoleMap, getMyAggregateAnalysisFlag, setMyAggregateAnalysisFlag, getMyConsecutiveShiftsCount } from './js/storage.js';
 import { ACCESS_LEVELS, getAccessLevel, getNextThreshold } from './js/aggregate-access.js';
 import { buildReferralUrl } from './js/admin-companies.js';
@@ -824,52 +812,10 @@ document.getElementById('selfWithdrawBtn')?.addEventListener('click', async () =
   }
 });
 
-// 会社招待URLセクション初期化
-async function initCompanyInviteSection() {
-  const section = document.getElementById('companyInviteSection');
-  const urlEl = document.getElementById('companyInviteUrl');
-  const copyBtn = document.getElementById('copyInviteUrlBtn');
-  const shareBtn = document.getElementById('shareInviteUrlBtn');
-  if (!section || !urlEl) return;
-
-  const userId = getMyUserId();
-  const companyProfile = await import('./js/firebase-storage.js')
-    .then(m => m.loadCompanyProfile())
-    .catch(() => null);
-  const slug = companyProfile?.slug || companyProfile?.id || await getMyCompanyId().catch(() => null);
-  if (!slug || !userId) return; // 会社所属でないユーザーは非表示
-
-  const baseUrl = `${location.protocol}//${location.host}`;
-  const url = buildCompanyInviteUrl(slug, baseUrl, userId);
-  urlEl.value = url;
-  section.hidden = false;
-
-  copyBtn.addEventListener('click', async () => {
-    await navigator.clipboard.writeText(url);
-    const orig = copyBtn.textContent;
-    copyBtn.textContent = 'コピーしました ✓';
-    setTimeout(() => { copyBtn.textContent = orig; }, 1500);
-  });
-
-  if (navigator.share) {
-    shareBtn.hidden = false;
-    shareBtn.addEventListener('click', async () => {
-      try {
-        await navigator.share({
-          title: 'Cabis（タクシー日報）',
-          text: '同じ会社の同僚向け、登録URLです',
-          url
-        });
-      } catch (e) { /* ユーザーキャンセル等は無視 */ }
-    });
-  }
-}
-
 // 常に読み込み
 loadConfig();
 initUI();
 initAggregateAnalysisToggle();
-initCompanyInviteSection();
 </script>
 </body>
 </html>
