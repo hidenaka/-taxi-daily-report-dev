@@ -170,6 +170,7 @@ export async function loadPoolStatus(fetchFn = fetch) {
 
 export async function initPoolStatusSection() {
   const metaEl = document.getElementById('pool-status-meta');
+  const srcErrEl = document.getElementById('pool-status-source-error');
   const actEl = document.getElementById('pool-status-activity');
   const img1 = document.getElementById('pool-cam-real01');
   const img2 = document.getElementById('pool-cam-real02');
@@ -184,7 +185,20 @@ export async function initPoolStatusSection() {
     const { data, error } = await loadPoolStatus();
     if (error || !data) { metaEl.textContent = 'プール現況を取得できていません'; return; }
     const ts = String(data.generatedAt).slice(11, 16);
-    if (isStale(data.generatedAt, Date.now())) {
+    // 先方提供の映像ソース(羽田タクシープール定点カメラ)が更新されていない時の注意喚起。
+    // observe 側が右下タイムスタンプ未更新を検知し pool-status.json.sourceStale=true を載せる。
+    if (srcErrEl) {
+      if (data.sourceStale === true) {
+        const since = data.sourceStaleSince ? String(data.sourceStaleSince).slice(11, 16) : null;
+        srcErrEl.innerHTML = `⚠ 先方提供している羽田空港のタクシープール映像にエラーが起こっているため、現況を更新できていません${since ? `（最終更新: ${since}）` : ''}。表示中の情報は古い可能性があります。`;
+        srcErrEl.style.display = '';
+      } else {
+        srcErrEl.style.display = 'none';
+      }
+    }
+    if (data.sourceStale === true) {
+      metaEl.textContent = `📷 映像エラーのため更新停止中（最終: ${ts}）`;
+    } else if (isStale(data.generatedAt, Date.now())) {
       metaEl.textContent = `📷 情報が更新されていません（最終: ${ts}）`;
     } else {
       metaEl.textContent = `📷 ${ts}時点`;
