@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fetchRoadWays, fetchAllRoadsAround } from './lib/overpass-fetch.mjs';
 import { buildApproachLine, buildApproachLineFromWaypoints } from './lib/sketch-to-line.mjs';
 import { geocodeLandmark } from './lib/nominatim-fetch.mjs';
-import { routeOnGraph } from './lib/road-graph.mjs';
+import { routeOnGraph, extendToArterial } from './lib/road-graph.mjs';
 
 // 施設pin周辺の道路群キャッシュ（同じ施設で何度も叩かない）
 const _roadsCache = new Map();
@@ -54,9 +54,11 @@ for (const s of stands) {
       // 隣接2点を「同じ道路上にあれば道路polylineで」「なければ直線で」繋ぐ
       if (Array.isArray(a.waypoints) && a.waypoints.length >= 2) {
         const roads = await getRoadsAround(s.pin);
-        const line = await buildApproachLineFromWaypoints({
+        const baseLine = await buildApproachLineFromWaypoints({
           waypoints: a.waypoints, pin: s.pin, geocoder, roads, router: routeOnGraph,
         });
+        // 起点を最寄りの幹線/大きい道へ約200m延長して「どの幹線から入るか」を見せる。
+        const line = extendToArterial(baseLine, roads, s.pin);
         if (line.length >= 2) {
           s.approaches[i].line = line;
           updated += 1;
