@@ -1,5 +1,34 @@
 import { test, assert } from './run.js';
-import { buildAssignActions, formatAssignConfirm } from '../js/admin-assign-company.js';
+import { buildAssignActions, formatAssignConfirm, adminSubStatusBadge } from '../js/admin-assign-company.js';
+
+const LABEL = (s) => ({ active: '有効', trial: 'お試し', past_due: '支払い遅延', canceled: '退会済み' }[s] || s);
+
+test('adminSubStatusBadge: grandfathered な sub は無償(G)/free', () => {
+  assert.deepEqual(adminSubStatusBadge({ status: 'active', grandfathered: true }, { statusLabel: LABEL }),
+    { label: '無償(G)', tone: 'free' });
+});
+
+test('adminSubStatusBadge: active/trial は active トーン', () => {
+  assert.equal(adminSubStatusBadge({ status: 'active' }, { statusLabel: LABEL }).tone, 'active');
+  assert.equal(adminSubStatusBadge({ status: 'trial' }, { statusLabel: LABEL }).tone, 'active');
+  assert.equal(adminSubStatusBadge({ status: 'active' }, { statusLabel: LABEL }).label, '有効');
+});
+
+test('adminSubStatusBadge: その他status(past_due等)は warn', () => {
+  const r = adminSubStatusBadge({ status: 'past_due' }, { statusLabel: LABEL });
+  assert.equal(r.tone, 'warn');
+  assert.equal(r.label, '支払い遅延');
+});
+
+test('adminSubStatusBadge: sub無し＋grandfathered判定true → 無償(G)', () => {
+  assert.deepEqual(adminSubStatusBadge(null, { grandfathered: true, statusLabel: LABEL }),
+    { label: '無償(G)', tone: 'free' });
+});
+
+test('adminSubStatusBadge: sub無し＋非grandfathered → 未申込/none', () => {
+  assert.deepEqual(adminSubStatusBadge(null, { grandfathered: false, statusLabel: LABEL }),
+    { label: '未申込', tone: 'none' });
+});
 
 const USER = { uid: 'AbCdEf1234567', userId: 'user_self', companyId: null };
 

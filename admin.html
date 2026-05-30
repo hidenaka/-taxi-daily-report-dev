@@ -367,7 +367,7 @@ import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
 import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_STATUS_LABELS, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload, formatStatus } from './js/subscription-state.js';
-import { buildAssignActions, formatAssignConfirm } from './js/admin-assign-company.js?v=1';
+import { buildAssignActions, formatAssignConfirm, adminSubStatusBadge } from './js/admin-assign-company.js?v=2';
 
 const loginSection = document.getElementById('loginSection');
 const adminContent = document.getElementById('adminContent');
@@ -855,6 +855,8 @@ document.getElementById('loadUsersBtn').onclick = async () => {
     const companyOptions = (selected) => companies.map(c =>
       `<option value="${c.id}"${c.id === selected ? ' selected' : ''}>${c.id}</option>`
     ).join('');
+    const subsList = await listAllSubscriptions(); // [{userId, status, grandfathered?, ...}]
+    const subByUserId = Object.fromEntries(subsList.map(s => [s.userId, s]));
     if (users.length === 0) {
       result.textContent = 'ユーザーが見つかりません';
       result.style.color = '#d32f2f';
@@ -870,6 +872,7 @@ document.getElementById('loadUsersBtn').onclick = async () => {
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">データ</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">作成日</th>';
       html += '<th style="text-align:left;padding:6px;border-bottom:1px solid #ddd;">会社 / 最終利用</th>';
+      html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">課金</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">有効/無効</th>';
       html += '<th style="text-align:center;padding:6px;border-bottom:1px solid #ddd;">操作</th>';
       html += '</tr></thead><tbody>';
@@ -905,6 +908,9 @@ document.getElementById('loadUsersBtn').onclick = async () => {
         html += `<td style="padding:6px;">${curCompany}${lastAct}`
           + `<div style="display:flex;gap:4px;margin-top:4px;">${selectHtml}`
           + `<button class="btn assign-company-btn" data-uid="${u.uid}" data-userid="${u.userId}" style="font-size:10px;padding:3px 8px;background:#1565c0;color:#fff;">適用</button></div></td>`;
+        const sb = adminSubStatusBadge(subByUserId[u.userId] || null, { grandfathered: isGrandfathered(u.userId), statusLabel: formatStatus });
+        const sbColor = { active: '#2e7d32', free: '#0066cc', warn: '#e65100', none: '#999' }[sb.tone] || '#999';
+        html += `<td style="padding:6px;text-align:center;"><span style="font-size:10px;color:${sbColor};font-weight:600;">${sb.label}</span></td>`;
         html += `<td style="padding:6px;text-align:center;">${activeBadge}<button class="btn btn-toggle-active" data-uid="${u.uid}" data-active="${isActive}" style="font-size:10px;padding:4px 8px;${isActive ? 'background:#e53935;color:#fff;' : 'background:#2e7d32;color:#fff;'}">${btnLabel}</button></td>`;
         html += `<td style="padding:6px;text-align:center;"><button class="btn edit-user-btn" data-userid="${u.userId}" style="font-size:10px;padding:4px 8px;background:var(--primary);color:#fff;">⚙️ 設定</button></td>`;
         html += `</tr>`;
