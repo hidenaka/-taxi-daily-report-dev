@@ -16,6 +16,7 @@ function numOrNull(v) {
 //  含めない: userId / メモ / 生の boardPlace(丁目まで) / pickupKind / no
 export function tripToPoolItem(trip) {
   if (!trip || trip.isCancel) return null;
+  // type が 'trip' 以外(休憩等)は除外。type 未設定の旧/簡易データは trip とみなして通す。
   if (trip.type && trip.type !== 'trip') return null;
   return {
     boardTime: trip.boardTime || null,

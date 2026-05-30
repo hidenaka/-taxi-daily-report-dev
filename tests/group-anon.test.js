@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { tripToPoolItem } from '../js/group-anon.js';
+import { tripToPoolItem, driveToPoolItems, buildPoolItems } from '../js/group-anon.js';
 
 test('tripToPoolItem: 通常乗車を匿名itemに変換しエリアを粗化する', () => {
   const item = tripToPoolItem({
@@ -48,7 +48,11 @@ test('tripToPoolItem: 欠損値は null/空に正規化', () => {
   assert.equal(item.isPickup, false);
 });
 
-import { driveToPoolItems } from '../js/group-anon.js';
+test('tripToPoolItem: amount 0(正当な0円・非キャンセル)は null にならず amount:0 を保つ', () => {
+  const item = tripToPoolItem({ type: 'trip', isCancel: false, amount: 0, km: 1.2, boardPlace: '港区芝', alightPlace: '港区三田', boardTime: '09:00', isPickup: false });
+  assert.notEqual(item, null);
+  assert.strictEqual(item.amount, 0);
+});
 
 test('driveToPoolItems: trips を pool items に変換しキャンセルを除外', () => {
   const drive = {
@@ -78,8 +82,6 @@ test('driveToPoolItems: trips 無し/不正でも空配列', () => {
   assert.deepEqual(driveToPoolItems({ date: '2026-05-03' }), []);
   assert.deepEqual(driveToPoolItems(null), []);
 });
-
-import { buildPoolItems } from '../js/group-anon.js';
 
 test('buildPoolItems: 複数driveを平坦化しopt-out日を除外', () => {
   const drives = [
