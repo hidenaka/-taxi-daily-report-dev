@@ -259,6 +259,17 @@ export async function adminSaveCompany(companyId, data) {
   return true;
 }
 
+// Admin: ユーザー(uid)の会社所属(companyId)を設定/解除する。companyId=null で解除。
+export async function adminSetUserCompany(uid, companyId, adminUserId = null) {
+  await waitForAuth();
+  await updateDoc(doc(db, 'users', uid), {
+    companyId: companyId,
+    companyAssignedAt: new Date().toISOString(),
+    companyAssignedBy: adminUserId
+  });
+  return true;
+}
+
 // ========== BATCH OPERATIONS (for data migration) ==========
 
 export async function batchSaveDrives(drives) {
@@ -707,7 +718,9 @@ export async function listAllUsersWithStats() {
           isAnonymous: data.isAnonymous || false,
           createdAt: data.createdAt || null,
           active: data.active !== false,
-          role: 'member'
+          role: 'member',
+          companyId: data.companyId || null,
+          lastActivityAt: data.lastActivityAt || null
         };
       }
     }
