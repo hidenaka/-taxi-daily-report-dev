@@ -26,6 +26,7 @@ import { handleNotifySignup } from './signup-notify/handler.js';
 import { makeFirestoreDeps } from './group-pool.js';
 import { refreshGroupPool } from '../../js/group-pool-core.js';
 import { verifyFirebaseIdToken } from './auth/verify-id-token.js';
+import { makeMembershipDeps, createGroupOp, joinGroupOp, leaveGroupOp, newGroupSlug } from './group-membership.js';
 
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）
 const USER_ID_RE = /^[a-z0-9_]+$/;
@@ -85,6 +86,15 @@ export default {
             }
           },
         });
+      }
+      if (request.method === 'POST' && path === '/group-create') {
+        return await handleGroupCreate(request, env);
+      }
+      if (request.method === 'POST' && path === '/group-join') {
+        return await handleGroupJoin(request, env);
+      }
+      if (request.method === 'POST' && path === '/group-leave') {
+        return await handleGroupLeave(request, env);
       }
       if (request.method === 'POST' && path === '/group-pool-refresh') {
         return await handleGroupPoolRefresh(request, env);
@@ -721,6 +731,89 @@ async function handleGroupPoolRefresh(request, env) {
     force: !!(body && body.force),
   });
   return json(env, { ok: true, ...result });
+}
+
+// ============================================================
+// /group-create /group-join /group-leave — グループ作成/参加/退会（Worker仲介）
+// ============================================================
+
+// 共通: Authorization の ID Token から自分の userId を解決（無ければ null）。
+// verifyFirebaseIdToken の戻りは { uid }（.uid を使う。.sub ではない）。
+async function resolveMyUserId(request, env, token) {
+  const authz = request.headers.get('Authorization') || '';
+  const idToken = authz.startsWith('Bearer ') ? authz.slice(7) : null;
+  if (!idToken) return null;
+  const claims = await verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID).catch(() => null);
+  if (!claims || !claims.uid) return null;
+  // uid → userId（users/{uid}.userId）。read のみ。
+  const userDoc = await firestoreGet(env, token, 'users/' + claims.uid);
+  return (userDoc && userDoc.fields && userDoc.fields.userId
+    && userDoc.fields.userId.stringValue) || null;
+}
+
+async function handleGroupCreate(request, env) {
+  try {
+    const token = await getAccessToken(env);
+    const myUserId = await resolveMyUserId(request, env, token);
+    if (!myUserId) return json(env, { error: 'unauthorized' }, 401);
+    const body = await request.json().catch(() => ({}));
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    const r = await createGroupOp(deps, {
+      userId: myUserId,
+      name: body && body.name,
+      nowIso: new Date().toISOString(),
+      requireContributionToView: !!(body && body.requireContributionToView),
+      minViewContribution: body && body.minViewContribution,
+      genSlug: () => newGroupSlug(),
+    });
+    return json(env, { ok: true, ...r });
+  } catch (err) {
+    console.error('group-create error:', (err && err.stack) || err);
+    return json(env, { error: 'internal' }, 500);
+  }
+}
+
+async function handleGroupJoin(request, env) {
+  try {
+    const token = await getAccessToken(env);
+    const myUserId = await resolveMyUserId(request, env, token);
+    if (!myUserId) return json(env, { error: 'unauthorized' }, 401);
+    const body = await request.json().catch(() => ({}));
+    const slug = body && body.slug;
+    if (!slug || typeof slug !== 'string') return json(env, { error: 'slug required' }, 400);
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    const r = await joinGroupOp(deps, { userId: myUserId, slug, nowIso: new Date().toISOString() });
+    const status = r.status === 'no-group' ? 404 : 200;
+    return json(env, { ok: r.status !== 'no-group', ...r }, status);
+  } catch (err) {
+    console.error('group-join error:', (err && err.stack) || err);
+    return json(env, { error: 'internal' }, 500);
+  }
+}
+
+async function handleGroupLeave(request, env) {
+  try {
+    const token = await getAccessToken(env);
+    const myUserId = await resolveMyUserId(request, env, token);
+    if (!myUserId) return json(env, { error: 'unauthorized' }, 401);
+    const body = await request.json().catch(() => ({}));
+    const groupId = body && body.groupId;
+    if (!groupId || typeof groupId !== 'string') return json(env, { error: 'groupId required' }, 400);
+    const deps = makeMembershipDeps({ env, token, firestoreGet, firestorePatch, firestoreBase });
+    // groupId=slug 運用なので findGroupBySlug で直接 GET（read のみ）。
+    const found = await deps.findGroupBySlug(groupId);
+    if (!found) return json(env, { error: 'no-group' }, 404);
+    const r = await leaveGroupOp(deps, {
+      userId: myUserId,
+      groupId,
+      nowIso: new Date().toISOString(),
+      group: found.group,
+    });
+    return json(env, { ok: true, ...r });
+  } catch (err) {
+    console.error('group-leave error:', (err && err.stack) || err);
+    return json(env, { error: 'internal' }, 500);
+  }
 }
 
 // ============================================================
