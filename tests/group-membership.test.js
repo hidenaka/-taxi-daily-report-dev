@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { newGroupDoc } from '../js/group-membership.js';
+import { newGroupDoc, addMember, removeMember, newGroupSlug } from '../js/group-membership.js';
 
 test('newGroupDoc: 作成者のみメンバー・既定値', () => {
   const doc = newGroupDoc({ name: '夜勤仲間', createdBy: 'taro', inviteSlug: 'gr-abc123', nowIso: '2026-05-30T00:00:00.000Z' });
@@ -21,4 +21,27 @@ test('newGroupDoc: name空はデフォルト名・50字に丸め・閲覧条件�
   assert.equal(doc.minViewContribution, 3);
   const long = newGroupDoc({ name: 'あ'.repeat(80), createdBy: 'a', inviteSlug: 'gr-y', nowIso: '2026-01-01T00:00:00.000Z' });
   assert.equal(long.name.length, 50);
+});
+
+test('addMember: 追加・重複なし・非破壊', () => {
+  const a = ['taro'];
+  assert.deepEqual(addMember(a, 'hanako'), ['taro', 'hanako']);
+  assert.deepEqual(addMember(a, 'taro'), ['taro']); // 重複追加しない
+  assert.deepEqual(a, ['taro']); // 元配列は不変
+  assert.deepEqual(addMember(null, 'x'), ['x']); // 非配列安全
+});
+
+test('removeMember: 除去・非破壊・非配列安全', () => {
+  const a = ['taro', 'hanako'];
+  assert.deepEqual(removeMember(a, 'taro'), ['hanako']);
+  assert.deepEqual(a, ['taro', 'hanako']);
+  assert.deepEqual(removeMember(null, 'x'), []);
+});
+
+test('newGroupSlug: gr- 接頭辞・決定的rngで再現', () => {
+  let i = 0;
+  const rng = () => [0.1, 0.2, 0.3, 0.4, 0.5, 0.6][i++ % 6];
+  const s = newGroupSlug(rng);
+  assert.ok(s.startsWith('gr-'));
+  assert.equal(s.length, 'gr-'.length + 6);
 });
