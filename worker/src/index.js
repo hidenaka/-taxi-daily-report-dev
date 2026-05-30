@@ -23,6 +23,8 @@ import {
   handleIssueUrl, handleValidateToken, handleSubmit, handleArchive,
 } from './setup-request/handler.js';
 import { handleNotifySignup } from './signup-notify/handler.js';
+import { makeFirestoreDeps, refreshGroupPool } from './group-pool.js';
+import { verifyFirebaseIdToken } from './auth/verify-id-token.js';
 
 // アプリ内 userId の形式（js/firebase-auth.js と一致させること）
 const USER_ID_RE = /^[a-z0-9_]+$/;
@@ -82,6 +84,9 @@ export default {
             }
           },
         });
+      }
+      if (request.method === 'POST' && path === '/group-pool-refresh') {
+        return await handleGroupPoolRefresh(request, env);
       }
       return json(env, { error: 'not_found' }, 404);
     } catch (err) {
@@ -660,6 +665,61 @@ function json(env, obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json', ...corsHeaders(env) },
   });
+}
+
+// ============================================================
+// /group-pool-refresh — オンデマンド匿名プール再構築
+// ============================================================
+
+// 呼び出し者の Firebase ID Token を検証し、groupId のメンバーであることを確認してから
+// refreshGroupPool を実行する。書き込み先は groups/{groupId}/pool/current のみ。
+async function handleGroupPoolRefresh(request, env) {
+  const body = await request.json().catch(() => ({}));
+  const groupId = body && body.groupId;
+  if (!groupId || typeof groupId !== 'string') {
+    return json(env, { error: 'groupId required' }, 400);
+  }
+
+  // 呼び出し者の本人確認: Firebase ID Token → uid
+  const authz = request.headers.get('Authorization') || '';
+  const idToken = authz.startsWith('Bearer ') ? authz.slice(7) : null;
+  if (!idToken) return json(env, { error: 'unauthorized' }, 401);
+
+  let uid;
+  try {
+    const result = await verifyFirebaseIdToken(idToken, env.FIREBASE_PROJECT_ID);
+    uid = result && result.uid;
+  } catch {
+    return json(env, { error: 'unauthorized' }, 401);
+  }
+  if (!uid) return json(env, { error: 'unauthorized' }, 401);
+
+  const token = await getAccessToken(env);
+
+  // uid → userId（users/{uid}.userId）
+  const userDoc = await firestoreGet(env, token, 'users/' + uid);
+  const myUserId = userDoc && userDoc.fields && userDoc.fields.userId
+    && userDoc.fields.userId.stringValue;
+  if (!myUserId) return json(env, { error: 'no-user' }, 403);
+
+  const deps = makeFirestoreDeps({ env, token, firestoreGet, firestoreBase });
+
+  // 呼び出し者がメンバーか確認（部外者の再構築要求を拒否）
+  const group = await deps.readGroup(groupId);
+  if (!group) return json(env, { error: 'no-group' }, 404);
+  const members = Array.isArray(group.memberUserIds) ? group.memberUserIds : [];
+  if (!members.includes(myUserId)) return json(env, { error: 'not-a-member' }, 403);
+
+  const now = new Date();
+  const result = await refreshGroupPool(deps, groupId, {
+    nowIso: now.toISOString(),
+    nowMs: now.getTime(),
+    ttlMs: 3600000,
+    months: 6,
+    maxItems: 5000,
+    force: !!(body && body.force),
+  });
+  return json(env, { ok: true, ...result });
 }
 
 // ============================================================
