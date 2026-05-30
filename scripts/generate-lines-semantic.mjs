@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fetchRoadWays, fetchAllRoadsAround } from './lib/overpass-fetch.mjs';
 import { buildApproachLine, buildApproachLineFromWaypoints } from './lib/sketch-to-line.mjs';
 import { geocodeLandmark } from './lib/nominatim-fetch.mjs';
-import { routeOnGraph, extendToArterial } from './lib/road-graph.mjs';
+import { routeViaOSRM } from './lib/osrm-route.mjs';
 
 // 施設pin周辺の道路群キャッシュ（同じ施設で何度も叩かない）
 const _roadsCache = new Map();
@@ -50,22 +50,22 @@ for (const s of stands) {
     if (i >= s.approaches.length) break;
     const a = entry.approaches[i];
     try {
-      // ①新方式: waypoints（ランドマーク列）→ 各waypointをNominatim/座標で解決 →
-      // 隣接2点を「同じ道路上にあれば道路polylineで」「なければ直線で」繋ぐ
+      // ①新方式: waypoints を OSRM(本物の経路探索)に投げ、一方通行/通行可否を尊重した
+      // 「実際に通れる合法経路」を取得。構内(非公道)点はOSRMが無理に迂回するため除外し、
+      // 公道waypoint(幹線起点→入口ゲート)のみを通す。
       if (Array.isArray(a.waypoints) && a.waypoints.length >= 2) {
-        const roads = await getRoadsAround(s.pin);
-        const baseLine = await buildApproachLineFromWaypoints({
-          waypoints: a.waypoints, pin: s.pin, geocoder, roads, router: routeOnGraph,
-        });
-        // 起点を最寄りの幹線/大きい道へ約200m延長して「どの幹線から入るか」を見せる。
-        const line = extendToArterial(baseLine, roads, s.pin);
-        if (line.length >= 2) {
+        const pub = a.waypoints.filter((w) => !/構内|タワー\(構内/.test(w.label || '') && !/構内/.test(w.label || ''));
+        const wpts = (pub.length >= 2 ? pub : a.waypoints).map((w) => ({ lat: w.lat, lng: w.lng }));
+        let line = null;
+        try { line = await routeViaOSRM(wpts); } catch (e) { skipped.push(`${s.id}[${i}]: OSRM ${e.message}`); }
+        await new Promise((r) => setTimeout(r, 1100)); // OSRM公開API マナー(1req/sec)
+        if (line && line.length >= 2) {
           s.approaches[i].line = line;
           updated += 1;
-          console.log(`✓ ${s.id}[${i}]: waypoints[${a.waypoints.length}] → ${line.length}点`);
+          console.log(`✓ ${s.id}[${i}]: OSRM ${line.length}点`);
           continue;
         }
-        skipped.push(`${s.id}[${i}]: waypoints解決失敗（Nominatim hit不足）`);
+        skipped.push(`${s.id}[${i}]: OSRM経路取得失敗`);
         continue;
       }
       // ②旧方式: main_road + entry_direction（後方互換）

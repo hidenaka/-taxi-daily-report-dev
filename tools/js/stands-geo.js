@@ -22,17 +22,29 @@ export function findNearestStands(pos, stands, n = 5) {
     .slice(0, n);
 }
 
-// polyline の各セグメント中点に「向き矢印」を置くためのデータ
-export function arrowMarkersForRoute(points) {
+// polyline 上に「向き矢印」を一定距離(既定 70m)ごとに間引いて置く。
+// 全セグメントに置くと密集して見にくいため、距離間隔で配置して見やすくする。
+export function arrowMarkersForRoute(points, stepM = 70) {
   if (!Array.isArray(points) || points.length < 2) return [];
   const out = [];
+  let acc = 0;
+  let nextAt = Math.min(stepM * 0.5, 25); // 最初の矢印は少し進んだ位置に
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i], b = points[i + 1];
-    out.push({
-      lat: (a.lat + b.lat) / 2,
-      lng: (a.lng + b.lng) / 2,
-      angleDeg: bearingDeg(a, b),
-    });
+    const segM = haversineKm(a, b) * 1000;
+    if (segM <= 0) continue;
+    const ang = bearingDeg(a, b);
+    while (nextAt <= acc + segM) {
+      const t = (nextAt - acc) / segM;
+      out.push({ lat: a.lat + t * (b.lat - a.lat), lng: a.lng + t * (b.lng - a.lng), angleDeg: ang });
+      nextAt += stepM;
+    }
+    acc += segM;
+  }
+  // 短すぎて1本も置けない時は中点に1つ
+  if (!out.length) {
+    const a = points[0], b = points[points.length - 1];
+    out.push({ lat: (a.lat + b.lat) / 2, lng: (a.lng + b.lng) / 2, angleDeg: bearingDeg(a, b) });
   }
   return out;
 }

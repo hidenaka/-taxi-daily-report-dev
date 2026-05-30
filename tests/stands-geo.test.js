@@ -28,12 +28,17 @@ test('findNearestStands: pos が null なら空配列', () => {
   assert.deepEqual(findNearestStands(null, [{ id: 'a', pin: { lat: 35.7, lng: 139.7 } }], 3), []);
 });
 
-test('arrowMarkersForRoute: 各セグメント中点に向き付きで返る', () => {
+test('arrowMarkersForRoute: 一定距離ごとに間引いて向き付きで返る', () => {
   const pts = [{ lat: 35.70, lng: 139.70 }, { lat: 35.70, lng: 139.72 }, { lat: 35.71, lng: 139.72 }];
-  const arrows = arrowMarkersForRoute(pts);
-  assert.equal(arrows.length, 2);
-  assert.ok(Math.abs(arrows[0].angleDeg - 90) < 2);
-  assert.ok('lat' in arrows[0] && 'lng' in arrows[0]);
+  const arrows = arrowMarkersForRoute(pts, 200); // 200m間隔
+  assert.ok(arrows.length >= 5, '複数の矢印が間引いて並ぶ');
+  assert.ok('lat' in arrows[0] && 'lng' in arrows[0] && 'angleDeg' in arrows[0]);
+  assert.ok(Math.abs(arrows[0].angleDeg - 90) < 3, '最初の向きは東');
+});
+
+test('arrowMarkersForRoute: 短い線でも最低1本は出す', () => {
+  const a = arrowMarkersForRoute([{ lat: 35.70, lng: 139.70 }, { lat: 35.70, lng: 139.7001 }], 70);
+  assert.ok(a.length >= 1);
 });
 
 test('arrowMarkersForRoute: 点が1個以下なら空', () => {

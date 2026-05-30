@@ -72,11 +72,13 @@ export function renderPins(map, stands, onSelect) {
 }
 
 function arrowIcon(angleDeg, color = '#1d6fe0') {
+  // 進行方向の三角を大きめ＋白の太縁で、線の上でも一目で向きが分かるように。
   return L.divIcon({
     className: 'stand-arrow',
-    html: `<span style="display:inline-block;color:${color};font-size:18px;font-weight:bold;`
-      + `transform:rotate(${angleDeg - 90}deg);text-shadow:0 0 3px #fff,0 0 3px #fff">▶</span>`,
-    iconSize: [18, 18], iconAnchor: [9, 9],
+    html: `<span style="display:inline-block;color:${color};font-size:24px;font-weight:900;line-height:1;`
+      + `transform:rotate(${angleDeg - 90}deg);`
+      + `text-shadow:0 0 4px #fff,0 0 4px #fff,0 0 4px #fff,0 0 2px #fff">▶</span>`,
+    iconSize: [24, 24], iconAnchor: [12, 12],
   });
 }
 
