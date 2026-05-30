@@ -2,10 +2,14 @@
 // Worker(オンデマンド)がこの関数群で、メンバーの drives から匿名プールを組み立てる。
 import { buildPoolItems } from './group-anon.js';
 
-// nowIso から months ヶ月前の 'YYYY-MM-DD'。drive.date の下限比較に使う。
+// nowIso から months ヶ月前の 'YYYY-MM-DD'（drive.date の下限比較用）。
+// 注: nowIso は UTC の ISO 文字列（例 new Date().toISOString()）を渡すこと。
+//     月末日(31日等)起点で月数を引くとロールオーバーするため、はみ出したら前月末日にクランプする。
 export function monthsAgoDate(nowIso, months) {
   const d = new Date(nowIso);
+  const targetMonth = ((d.getMonth() - months) % 12 + 12) % 12;
   d.setMonth(d.getMonth() - months);
+  if (d.getMonth() !== targetMonth) d.setDate(0); // はみ出し→前月末日へ
   return d.toISOString().slice(0, 10);
 }
 
@@ -60,11 +64,10 @@ export async function refreshGroupPool(deps, groupId, opts = {}) {
     return { status: 'too-few', memberCount: members.length };
   }
   const since = monthsAgoDate(nowIso, months);
-  let allDrives = [];
-  for (const uid of members) {
-    const drives = await deps.readMemberDrives(uid, since);
-    if (Array.isArray(drives)) allDrives = allDrives.concat(drives);
-  }
+  const perMember = await Promise.all(
+    members.map(uid => deps.readMemberDrives(uid, since).then(d => Array.isArray(d) ? d : []))
+  );
+  const allDrives = perMember.flat();
   const pool = buildGroupPool(allDrives, members.length, { nowIso, months, maxItems });
   await deps.writePool(groupId, pool);
   return { status: 'rebuilt', count: pool.items.length, memberCount: members.length };

@@ -6,6 +6,11 @@ test('monthsAgoDate: nowから指定月数前の YYYY-MM-DD', () => {
   assert.equal(monthsAgoDate('2026-05-30T12:00:00.000Z', 6), '2025-11-30');
 });
 
+test('monthsAgoDate: 月末起点のロールオーバーを前月末にクランプ', () => {
+  assert.equal(monthsAgoDate('2026-05-31T12:00:00.000Z', 6), '2025-11-30');
+  assert.equal(monthsAgoDate('2026-03-31T12:00:00.000Z', 1), '2026-02-28');
+});
+
 test('selectRecentDrives: cutoff以降のdriveだけ残す', () => {
   const drives = [
     { date: '2025-10-01' }, // 6ヶ月より前 → 除外
@@ -121,4 +126,11 @@ test('refreshGroupPool: グループ無しは no-group・writeしない', async 
   const r = await refreshGroupPool(deps, 'gX', OPTS);
   assert.equal(r.status, 'no-group');
   assert.equal(writes.length, 0);
+});
+
+test('refreshGroupPool: readMemberDrives に monthsAgoDate(since) を渡す', async () => {
+  let seen = null;
+  const { deps } = makeDeps({ readMemberDrives: async (uid, since) => { seen = since; return []; } });
+  await refreshGroupPool(deps, 'g1', OPTS); // OPTS.nowIso='2026-05-30T12:00:00.000Z'
+  assert.equal(seen, '2025-11-30'); // 6ヶ月前(既定months=6)
 });
