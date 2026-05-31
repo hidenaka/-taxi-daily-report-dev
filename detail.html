@@ -266,6 +266,9 @@ function renderReviewMemo(drive) {
       <span class="muted" style="font-size:10px;">気づき/反省/次回の改善</span>
     </div>
     <textarea id="reviewMemoInput" class="input" rows="3" style="margin-top:6px;width:100%;box-sizing:border-box;font-family:inherit;" placeholder="例: 雨で羽田が混んだ。次回は10時前に羽田入りする">${memo}</textarea>
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:8px;">
+      <input type="checkbox" id="shareOptOutToggle" ${drive.shareOptOut ? 'checked' : ''}> 👥 この日報はグループに共有しない
+    </label>
     <div style="display:flex;gap:8px;align-items:center;margin-top:6px;">
       <button class="btn" id="saveMemoBtn" style="padding:6px 14px;font-size:13px;">保存</button>
       <span id="memoStatus" class="muted" style="font-size:11px;"></span>
@@ -277,6 +280,7 @@ function renderReviewMemo(drive) {
     status.textContent = '保存中…';
     try {
       drive.reviewMemo = newMemo;
+      drive.shareOptOut = document.getElementById('shareOptOutToggle')?.checked || false;
       drive.updatedAt = new Date().toISOString();
       await saveDriveSafe(drive);
       status.textContent = '✓ 保存完了';
