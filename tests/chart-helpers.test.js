@@ -155,6 +155,42 @@ test('heatmapLegendHtml: scope=all のとき「中央値」が含まれる', () 
   assert.ok(heatmapLegendHtml('all').includes('中央値'));
 });
 
+test('heatmapLegendHtml: scope=group も「みんな」凡例（all相当）', () => {
+  assert.ok(heatmapLegendHtml('group').includes('みんな'));
+  assert.ok(heatmapLegendHtml('group').includes('中央値'));
+});
+
+import { heatmapFromCells } from '../js/chart-helpers.js';
+
+test('heatmapFromCells: cellを7×24 matrixの該当[dow][h]に復元', () => {
+  const cells = [
+    { dow: 1, h: 19, hourlyA: 3000, days: 2, peerValues: [3000, 4000] },
+    { dow: 6, h: 2, hourlyA: 5000, days: 3, peerValues: [4000, 5000, 6000] },
+  ];
+  const m = heatmapFromCells(cells);
+  assert.equal(m.length, 7);
+  assert.equal(m[0].length, 24);
+  assert.deepEqual(m[1][19], { hourlyA: 3000, days: 2, peerValues: [3000, 4000] });
+  assert.deepEqual(m[6][2], { hourlyA: 5000, days: 3, peerValues: [4000, 5000, 6000] });
+});
+
+test('heatmapFromCells: 未指定セルは空デフォルト {hourlyA:0, days:0, peerValues:[]}', () => {
+  const m = heatmapFromCells([{ dow: 0, h: 0, hourlyA: 100, days: 1, peerValues: [100] }]);
+  assert.deepEqual(m[3][12], { hourlyA: 0, days: 0, peerValues: [] });
+});
+
+test('heatmapFromCells: 空配列でも全セル空デフォルトの7×24', () => {
+  const m = heatmapFromCells([]);
+  assert.equal(m.length, 7);
+  assert.ok(m.every(row => row.length === 24 && row.every(c => c.days === 0 && c.hourlyA === 0 && Array.isArray(c.peerValues))));
+});
+
+test('heatmapFromCells: 非配列入力でも空7×24（防御）', () => {
+  const m = heatmapFromCells(null);
+  assert.equal(m.length, 7);
+  assert.equal(m[0][0].days, 0);
+});
+
 import { median, peerMedianHourlyDow } from '../js/chart-helpers.js';
 
 test('median: 奇数個の配列は中央値を返す', () => {

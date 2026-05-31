@@ -58,6 +58,23 @@ test('ネストした map + 配列はラウンドトリップで保持', () => {
   assert.deepStrictEqual(roundtrip(obj), obj);
 });
 
+test('集計プールshape(heatmap cell配列+peerValues / areas)のラウンドトリップ', () => {
+  // Plan4: プールは集計結果型。heatmap=cellのフラット配列(各cellはmap、peerValuesはネスト配列)。
+  // Firestore は array-of-arrays を拒否するが array-of-maps(map内array)は可 → この形が通ることを保証。
+  const pool = {
+    heatmap: [
+      { dow: 1, h: 19, hourlyA: 3000, days: 2, peerValues: [3000, 4000] },
+      { dow: 6, h: 2, hourlyA: 5000.5, days: 3, peerValues: [4000, 5000.5, 6000] },
+    ],
+    areas: [
+      { area: '港区', dropoffs: 5, medianWait: 12, avgWait: 14.2, medianNextSales: 2000, avgNextSales: 2200, topNextBoards: [{ area: '渋谷区', count: 3, pct: 0.6 }] },
+    ],
+    builtAt: '2026-05-30T00:00:00.000Z',
+    memberCount: 2,
+  };
+  assert.deepStrictEqual(roundtrip(pool), pool);
+});
+
 test('encodeValue: integer は integerValue(文字列)', () => {
   assert.deepStrictEqual(encodeValue(100), { integerValue: '100' });
 });

@@ -1,6 +1,11 @@
 // グループ匿名プールの再構築ロジック（純・I/Oなし）。
-// Worker(オンデマンド)がこの関数群で、メンバーの drives から匿名プールを組み立てる。
-import { buildPoolItems } from './group-anon.js';
+// Worker(オンデマンド)がこの関数群で、メンバーの drives から「匿名集計」を組み立てる。
+//
+// Plan4: 保存するのは集計結果のみ（生個別乗車itemsは保存しない）。
+//   - heatmap: peerMedianHourlyDow を flat 化した非空セル配列（dow×hour の人ごと中央値）
+//   - areas:   dropoffAreaAnalysis のエリア集計
+// chart-helpers は DOM 非依存の純関数群なので Worker(esbuild)でバンドルできる。
+import { peerMedianHourlyDow, dropoffAreaAnalysis } from './chart-helpers.js';
 
 // nowIso から months ヶ月前の 'YYYY-MM-DD'（drive.date の下限比較用）。
 // 注: nowIso は UTC の ISO 文字列（例 new Date().toISOString()）を渡すこと。
@@ -28,26 +33,43 @@ export function shouldRebuild(pool, nowMs, ttlMs) {
   return (nowMs - built) >= ttlMs;
 }
 
-// drives + memberCount → 匿名プール {items, builtAt, memberCount}。
-// メンバー2人未満は空（誰のか分からない＝匿名が成立しないため）。
-// 直近 months ヶ月に絞り、maxItems を超えたら新しい方(配列後方)を残す。
+// peerMedianHourlyDow の 7×24 matrix を「非空セルのみのフラット配列」に変換。
+// Firestore は array-of-arrays(配列の直接ネスト)を保存できないため、
+// matrix(配列の配列) ではなく cell の平坦配列で保存する。各 cell = map なので可。
+// days===0(誰も乗務していない)セルは捨てる（サイズ削減 + 個人識別を含まない）。
+export function flattenHeatmap(matrix) {
+  const cells = [];
+  for (let dow = 0; dow < 7; dow++) {
+    for (let h = 0; h < 24; h++) {
+      const c = matrix[dow] && matrix[dow][h];
+      if (c && c.days > 0) {
+        cells.push({ dow, h, hourlyA: c.hourlyA, days: c.days, peerValues: c.peerValues });
+      }
+    }
+  }
+  return cells;
+}
+
+// drives(各要素に _userId 付き) + memberCount → 匿名集計プール {heatmap, areas, builtAt, memberCount}。
+// メンバー2人未満は空集計（誰のか分かる＝匿名が成立しないため）。
+// 直近 months ヶ月に絞ってから集計する。生drives・個人識別・合計は出力に残さない。
 export function buildGroupPool(drives, memberCount, opts = {}) {
-  const { nowIso, months = 6, maxItems = 5000 } = opts;
+  const { nowIso, months = 6 } = opts;
   const mc = Number(memberCount) || 0;
-  if (mc < 2) return { items: [], builtAt: nowIso, memberCount: mc };
+  if (mc < 2) return { heatmap: [], areas: [], builtAt: nowIso, memberCount: mc };
   const recent = selectRecentDrives(drives, nowIso, months);
-  let items = buildPoolItems(recent);
-  if (items.length > maxItems) items = items.slice(items.length - maxItems);
-  return { items, builtAt: nowIso, memberCount: mc };
+  const heatmap = flattenHeatmap(peerMedianHourlyDow(recent));
+  const areas = dropoffAreaAnalysis(recent);
+  return { heatmap, areas, builtAt: nowIso, memberCount: mc };
 }
 
 // 注入式オーケストレータ。実Firestoreは Worker 側で deps として渡す（テスト可能化）。
 //   deps.readGroup(groupId)         -> { memberUserIds: [] } | null
 //   deps.readPool(groupId)          -> pool | null
-//   deps.readMemberDrives(uid, since) -> drives[]  (since='YYYY-MM-DD' 以降)
+//   deps.readMemberDrives(uid, since) -> drives[]  (since='YYYY-MM-DD' 以降・_userIdなし)
 //   deps.writePool(groupId, pool)   -> Promise<void>
 export async function refreshGroupPool(deps, groupId, opts = {}) {
-  const { nowIso, nowMs, ttlMs = 3600000, months = 6, maxItems = 5000, force = false } = opts;
+  const { nowIso, nowMs, ttlMs = 3600000, months = 6, force = false } = opts;
   const group = await deps.readGroup(groupId);
   if (!group) return { status: 'no-group' };
   const members = Array.isArray(group.memberUserIds) ? group.memberUserIds : [];
@@ -59,16 +81,20 @@ export async function refreshGroupPool(deps, groupId, opts = {}) {
     }
   }
   if (members.length < 2) {
-    const empty = { items: [], builtAt: nowIso, memberCount: members.length };
+    const empty = { heatmap: [], areas: [], builtAt: nowIso, memberCount: members.length };
     await deps.writePool(groupId, empty);
     return { status: 'too-few', memberCount: members.length };
   }
   const since = monthsAgoDate(nowIso, months);
+  // 各メンバーの drives に _userId を付与（peerMedianHourlyDow の per-user 中央値計算用）。
+  // _userId は集計の中間でのみ使い、出力(heatmap/areas)には残さない。
   const perMember = await Promise.all(
-    members.map(uid => deps.readMemberDrives(uid, since).then(d => Array.isArray(d) ? d : []))
+    members.map(uid => deps.readMemberDrives(uid, since).then(d =>
+      (Array.isArray(d) ? d : []).map(drv => ({ ...drv, _userId: uid }))
+    ))
   );
   const allDrives = perMember.flat();
-  const pool = buildGroupPool(allDrives, members.length, { nowIso, months, maxItems });
+  const pool = buildGroupPool(allDrives, members.length, { nowIso, months });
   await deps.writePool(groupId, pool);
-  return { status: 'rebuilt', count: pool.items.length, memberCount: members.length };
+  return { status: 'rebuilt', cells: pool.heatmap.length, areas: pool.areas.length, memberCount: members.length };
 }

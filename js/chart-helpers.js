@@ -761,6 +761,23 @@ export function peerMedianHourlyDow(drives) {
   return result;
 }
 
+// flattenHeatmap(group-pool-core)の逆変換: cellのフラット配列 → 7×24 matrix。
+// グループプール(集計保存型)を読んだ UI が、既存の peerMedian 描画に渡すために使う。
+// 未指定セルは空デフォルト。各 cell = { dow, h, hourlyA, days, peerValues }。
+export function heatmapFromCells(cells) {
+  const m = Array.from({ length: 7 }, () =>
+    Array.from({ length: 24 }, () => ({ hourlyA: 0, days: 0, peerValues: [] }))
+  );
+  if (!Array.isArray(cells)) return m;
+  for (const c of cells) {
+    if (!c) continue;
+    const dow = c.dow, h = c.h;
+    if (!(dow >= 0 && dow < 7 && h >= 0 && h < 24)) continue;
+    m[dow][h] = { hourlyA: c.hourlyA || 0, days: c.days || 0, peerValues: Array.isArray(c.peerValues) ? c.peerValues : [] };
+  }
+  return m;
+}
+
 // エリア × 時刻(0-23時) 別の実労働時間効率マップ
 // cycleMin = (前trip降車から今trip乗車までの待ち) + 実車時間
 // 待ちは「乗務中の空車待ち」を含めるため上限を4時間に拡大(4時間超は休憩・帰庫扱いで除外)
@@ -1344,7 +1361,7 @@ export function zoneDailyValues(drives, zones) {
 
 // ヒートマップ凡例＋使い方1行。scope: 'self' | 'all'
 export function heatmapLegendHtml(scope) {
-  if (scope === 'all') {
+  if (scope === 'all' || scope === 'group') {
     return `<div class="heat-legend" style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:8px;">
       <b>みんなの傾向（各ドライバーの中央値）</b>。数字＝時給（1時間あたりの稼ぎ）。時給が高い時間ほど<b>稼ぎ時</b>、低い時間は<b>休憩向き</b>。<b>◎</b>=みんな揃って稼げる / <b>△</b>=人によって差が大きい / 薄いセル=人数がまだ少ない。<br>
       👉 休憩は「休憩向き」の時間に取ると、稼ぎ時を逃しません。

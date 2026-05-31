@@ -29,39 +29,7 @@ test('selectRecentDrives: 配列以外は空配列', () => {
 
 const TRIP = (boardPlace, amount) => ({ type: 'trip', boardTime: '19:00', boardPlace, alightPlace: '港区', km: 3, amount, isPickup: false, isCancel: false });
 
-test('buildGroupPool: メンバー2人以上で匿名itemsを返す', () => {
-  const drives = [{ date: '2026-05-01', trips: [TRIP('中央区銀座8', 3000)] }];
-  const pool = buildGroupPool(drives, 2, { nowIso: '2026-05-30T00:00:00.000Z' });
-  assert.equal(pool.memberCount, 2);
-  assert.equal(pool.builtAt, '2026-05-30T00:00:00.000Z');
-  assert.equal(pool.items.length, 1);
-  assert.equal(pool.items[0].pickupArea, '中央区銀座');
-});
-
-test('buildGroupPool: メンバー2人未満は空プール（min2ゲート）', () => {
-  const drives = [{ date: '2026-05-01', trips: [TRIP('中央区銀座8', 3000)] }];
-  const pool = buildGroupPool(drives, 1, { nowIso: '2026-05-30T00:00:00.000Z' });
-  assert.deepEqual(pool.items, []);
-  assert.equal(pool.memberCount, 1);
-});
-
-test('buildGroupPool: 直近6ヶ月外のdriveは入らない', () => {
-  const drives = [
-    { date: '2024-01-01', trips: [TRIP('品川区', 1000)] }, // 古い→除外
-    { date: '2026-05-01', trips: [TRIP('中央区銀座8', 3000)] },
-  ];
-  const pool = buildGroupPool(drives, 2, { nowIso: '2026-05-30T00:00:00.000Z', months: 6 });
-  assert.equal(pool.items.length, 1);
-});
-
-test('buildGroupPool: maxItems で件数を上限し新しい方を残す', () => {
-  const trips = Array.from({ length: 5 }, (_, i) => TRIP('港区' + i, 1000 + i));
-  const drives = [{ date: '2026-05-01', trips }];
-  const pool = buildGroupPool(drives, 2, { nowIso: '2026-05-30T00:00:00.000Z', maxItems: 3 });
-  assert.equal(pool.items.length, 3);
-  // slice(末尾)で後方(新しい入力順)を残す
-  assert.equal(pool.items[2].amount, 1004);
-});
+// 注: buildGroupPool の集計(heatmap/areas)契約は tests/group-pool-aggregate.test.js で網羅。
 
 test('shouldRebuild: プール無しは再構築', () => {
   assert.equal(shouldRebuild(null, Date.parse('2026-05-30T12:00:00Z'), 3600000), true);
@@ -96,7 +64,8 @@ test('refreshGroupPool: 2人以上→再構築してwriteする', async () => {
   const r = await refreshGroupPool(deps, 'g1', OPTS);
   assert.equal(r.status, 'rebuilt');
   assert.equal(writes.length, 1);
-  assert.equal(writes[0].pool.items.length, 2); // 2メンバー×1trip
+  assert.ok(Array.isArray(writes[0].pool.heatmap)); // 集計保存型
+  assert.equal(writes[0].pool.items, undefined);
   assert.equal(writes[0].pool.memberCount, 2);
 });
 
@@ -118,7 +87,8 @@ test('refreshGroupPool: 2人未満は空プールをwrite', async () => {
   const { deps, writes } = makeDeps({ readGroup: async () => ({ memberUserIds: ['taro'] }) });
   const r = await refreshGroupPool(deps, 'g1', OPTS);
   assert.equal(r.status, 'too-few');
-  assert.deepEqual(writes[0].pool.items, []);
+  assert.deepEqual(writes[0].pool.heatmap, []);
+  assert.deepEqual(writes[0].pool.areas, []);
 });
 
 test('refreshGroupPool: グループ無しは no-group・writeしない', async () => {

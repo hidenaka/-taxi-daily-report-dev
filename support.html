@@ -139,10 +139,10 @@ if (location.hostname.includes('-dev')) {
     <div class="section-h">
       <strong>曜日 × 時間の時給 <span style="font-size:10px;color:var(--muted);font-weight:normal;" id="hourEffScopeLabel">(自分のデータ)</span></strong>
     </div>
-    <!-- 「全員統合(他の乗務員)」はステージ制で再設計中のため一旦非表示。hourScopeは'self'固定で動作。コードは温存し再設計時に戻す -->
+    <!-- グループ集計スコープ。グループ未所属なら非表示(self固定)。所属時に showGroupScopeIfMember() が表示。 -->
     <div class="sort-tabs" id="hourScopeTabs" style="display:none;">
       <button data-scope="self" class="active">自分のみ</button>
-      <button data-scope="all">全員統合</button>
+      <button data-scope="group" id="groupScopeBtn">グループ</button>
     </div>
     <div id="hourEffBody"></div>
     <div class="detail-tip" id="hourEffTip"></div>
@@ -208,7 +208,9 @@ import {
   filterDrivesByVehicle,
   renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
-import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml } from './js/chart-helpers.js';
+import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, nextBoardBreakdown, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, heatmapFromCells } from './js/chart-helpers.js';
+import { auth, db } from './js/firebase-init.js';
+import { resolveWorkerBase, refreshPool, listMyGroups } from './js/group-client.js';
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
@@ -266,7 +268,14 @@ let currentPeriods = [];
 let myUserId = '';      // 履歴で自分/他人を区別する用
 let areaSort = 'dropoffs';
 let neighborMap = {};
-let hourScope = 'self'; // 'self' | 'all'
+let hourScope = 'self'; // 'self' | 'group'（グループ集計スコープ）
+// --- グループ集計(Plan4) ---
+let myGroups = [];           // listMyGroups の結果 [{groupId, name, memberUserIds...}]
+let currentGroupId = null;   // 表示対象グループ（既定で1つ目）
+let groupMatrix = null;      // プールの heatmap を 7×24 に復元したもの（renderHourEff group用）
+let groupAreas = [];         // プールの areas（renderArea group用）
+let groupPoolLoaded = false; // 一度ロードしたら再フェッチしない（タブ切替の都度叩かない）
+let groupPoolLoading = false;
 let gpsWideAreas = null; // GPS推定でフォールバックした時の同区広域エリア配列。検索時に直接target areasとして使う
 let recWideLabel = null;  // GPS範囲モードの見出し用ラベル(例:「大田区上池台 周辺」)。gpsWideAreas と対で更新
 let recWideDetailHtml = ''; // GPS範囲モードの内部詳細(原文/muniCd/起点)。「詳細」トグルに格納する
@@ -432,15 +441,73 @@ document.querySelectorAll('#areaSortTabs button').forEach(b => {
   };
 });
 document.querySelectorAll('#hourScopeTabs button').forEach(b => {
-  b.onclick = () => {
+  b.onclick = async () => {
     document.querySelectorAll('#hourScopeTabs button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     hourScope = b.dataset.scope;
     document.getElementById('hourEffScopeLabel').textContent =
-      hourScope === 'self' ? '(自分のデータ)' : '(全員統合)';
-    renderHourEff();
+      hourScope === 'self' ? '(自分のデータ)' : '(グループ集計)';
+    if (hourScope === 'group' && !groupPoolLoaded) {
+      await loadGroupPool();
+    }
+    applyScopeRender();
   };
 });
+
+// グループスコープを反映してヒートマップ・エリア・高期待値カードを再描画する。
+// 高期待値(highValue)はプールに集計を持たないため group では非表示にする。
+function applyScopeRender() {
+  const isGroup = hourScope === 'group';
+  const hvCard = document.getElementById('highValueCard');
+  if (hvCard) hvCard.style.display = isGroup ? 'none' : '';
+  renderHourEff();
+  renderArea();
+}
+
+// グループプールをオンデマンド再構築(/group-pool-refresh)してから groups/{id}/pool/current を読む。
+// heatmap(cell配列)→7×24に復元、areasを保持。失敗してもヒートマップは空表示にとどめる。
+async function loadGroupPool() {
+  if (groupPoolLoading || !currentGroupId) return;
+  groupPoolLoading = true;
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const ctx = { idToken, workerBase: resolveWorkerBase() };
+    // 鮮度確保（TTL内ならWorker側がスキップ）。失敗しても既存プールを読む。
+    try { await refreshPool(ctx, currentGroupId); } catch (e) { console.warn('refreshPool失敗', e); }
+    const fs = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+    const snap = await fs.getDoc(fs.doc(db, 'groups', currentGroupId, 'pool', 'current'));
+    const pool = snap.exists() ? snap.data() : null;
+    groupMatrix = heatmapFromCells(pool && pool.heatmap);
+    groupAreas = (pool && Array.isArray(pool.areas)) ? pool.areas : [];
+    groupPoolLoaded = true;
+  } catch (e) {
+    console.warn('loadGroupPool失敗', e);
+    groupMatrix = heatmapFromCells([]);
+    groupAreas = [];
+  } finally {
+    groupPoolLoading = false;
+  }
+}
+
+// グループに所属していればスコープタブを表示（既定は1つ目のグループ）。
+async function showGroupScopeIfMember() {
+  try {
+    const uid = getMyUserId();
+    if (!uid) return;
+    const fs = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+    myGroups = await listMyGroups(fs, db, uid);
+    if (!myGroups.length) return;
+    currentGroupId = myGroups[0].groupId;
+    const tabs = document.getElementById('hourScopeTabs');
+    if (tabs) tabs.style.display = '';
+    const btn = document.getElementById('groupScopeBtn');
+    if (btn && myGroups[0].memberUserIds) {
+      btn.textContent = `グループ(${myGroups[0].memberUserIds.length}人)`;
+    }
+  } catch (e) {
+    console.warn('showGroupScopeIfMember失敗', e);
+  }
+}
 
 function updateDataSourceInfo() {
   const el = document.getElementById('dataSourceInfo');
@@ -1067,11 +1134,11 @@ function renderBoardHistoryHTML(area, zoneKey) {
 }
 
 function renderHourEff() {
-  const isAll = hourScope === 'all';
-  const sourceDrives = isAll ? allDrives : myDrives;
-  const matrix = isAll ? peerMedianHourlyDow(sourceDrives) : hourlyDowEfficiency(sourceDrives);
-  const daily = isAll ? null : hourlyDowDailyValues(sourceDrives);
-  const statVals = (dow, h) => isAll ? matrix[dow][h].peerValues : daily[dow][h];
+  const isGroup = hourScope === 'group';
+  // group: プール復元済み matrix(peerMedian shape)。self: 自分drivesから集計。
+  const matrix = isGroup ? (groupMatrix || heatmapFromCells([])) : hourlyDowEfficiency(myDrives);
+  const daily = isGroup ? null : hourlyDowDailyValues(myDrives);
+  const statVals = (dow, h) => isGroup ? matrix[dow][h].peerValues : daily[dow][h];
   const validValues = [];
   for (let dow = 0; dow < 7; dow++) for (const h of HOUR_ORDER) {
     if (matrix[dow][h].days >= 3 && matrix[dow][h].hourlyA > 0) validValues.push(matrix[dow][h].hourlyA);
@@ -1129,7 +1196,7 @@ function renderHourEff() {
       const tier = sv.length >= 3 ? classifyEarning(c.hourlyA, validValues) : 'none';
       const tierTxt = tier === 'earn' ? '🟢 稼ぎ時' : tier === 'rest' ? '🔵 休憩向き' : tier === 'normal' ? '普通' : '';
       const stab2 = stabilityTier(sv);
-      if (isAll) {
+      if (isGroup) {
         const stabTxt = stab2 === 'stable' ? '◎ みんな揃って稼げる' : stab2 === 'mid' ? '○ やや差あり' : stab2 === 'volatile' ? '△ 人によって差が大きい' : '— 人数がまだ少ない';
         const range = sv.length ? `${formatYen(Math.min(...sv))}〜${formatYen(Math.max(...sv))}/h` : '—';
         tip.innerHTML = `
@@ -1152,7 +1219,9 @@ function renderHourEff() {
 }
 
 function renderArea() {
-  const all = dropoffAreaAnalysis(allDrives);
+  const isGroup = hourScope === 'group';
+  // group: プールの集計エリア。self: 自分drivesから集計。
+  const all = isGroup ? groupAreas : dropoffAreaAnalysis(allDrives);
   let rows = all.filter(a => a.dropoffs >= 5);
   rows.sort((a, b) => {
     if (areaSort === 'dropoffs') return b.dropoffs - a.dropoffs;
@@ -1169,7 +1238,7 @@ function renderArea() {
     const salesPct = r.medianNextSales ? (r.medianNextSales / maxMedSales * 100) : 0;
     const waitMed = r.medianWait != null ? formatMin(r.medianWait) : '—';
     const waitAvg = r.avgWait != null ? formatMin(r.avgWait) : '—';
-    html += `<tr data-area="${r.area}" style="cursor:pointer;">
+    html += `<tr data-area="${r.area}"${isGroup ? '' : ' style="cursor:pointer;"'}>
       <td class="l">${r.area}</td>
       <td>${r.dropoffs}</td>
       <td>${waitMed}<br><span style="font-size:9px;color:var(--muted);">平${waitAvg}</span></td>
@@ -1177,10 +1246,13 @@ function renderArea() {
     </tr>`;
   }
   html += '</tbody></table></div>';
-  if (top.length === 0) html = '<p class="muted" style="font-size:11px;">5件以上のエリアがありません</p>';
+  if (isGroup) html += '<p class="muted" style="font-size:10px;margin-top:6px;">※ グループ集計では個別の乗車履歴は表示されません（みんなの中央値・件数のみ）。</p>';
+  if (top.length === 0) html = `<p class="muted" style="font-size:11px;">${isGroup ? 'グループの集計データがまだありません（5件以上のエリアが必要）' : '5件以上のエリアがありません'}</p>`;
   const areaBody = document.getElementById('areaBody');
   if (!areaBody) return; // ロック状態 (applyAggregateAccessGate がカード上書き済み) の時は何もしない
   areaBody.innerHTML = html;
+  // group では他人の生drivesを持たないためドリルダウン(個別履歴)は無効。
+  if (isGroup) return;
   document.querySelectorAll('#areaBody tr[data-area]').forEach(tr => {
     tr.onclick = () => {
       const area = tr.dataset.area;
@@ -1195,6 +1267,7 @@ function renderArea() {
 renderPaceCard();
 load();
 applyAggregateAccessGate();
+showGroupScopeIfMember(); // グループ所属なら「グループ」スコープタブを表示(Plan4)
 </script>
 </body>
 </html>

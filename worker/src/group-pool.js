@@ -96,8 +96,9 @@ export function makeFirestoreDeps({ env, token, firestoreGet, firestoreBase }) {
         .map(r => decodeFields(r.document.fields));
     },
 
-    // 書き込みは groups/{id}/pool/current のみ。items は配列なので encodeValue で。
-    // updateMask なし（ドキュメント全体を置換）。
+    // 書き込みは groups/{id}/pool/current のみ。Plan4: 集計結果型(heatmap/areas)を保存。
+    // heatmap は cell のフラット配列(各 cell は map)。生drives・個人識別・合計は保存しない。
+    // updateMask なし（ドキュメント全体を置換 → 旧 items フィールドも消える）。
     async writePool(groupId, pool) {
       const url = firestoreBase(env) + '/groups/' + groupId + '/pool/current';
       const res = await fetch(url, {
@@ -108,7 +109,8 @@ export function makeFirestoreDeps({ env, token, firestoreGet, firestoreBase }) {
         },
         body: JSON.stringify({
           fields: {
-            items: encodeValue(pool.items || []),
+            heatmap: encodeValue(pool.heatmap || []),
+            areas: encodeValue(pool.areas || []),
             builtAt: encodeValue(pool.builtAt),
             memberCount: encodeValue(pool.memberCount),
           },
