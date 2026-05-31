@@ -151,6 +151,9 @@ if (location.hostname.includes('-dev')) {
     </details>
   </section>
 
+  <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:8px;">
+    <input type="checkbox" id="shareOptOutInput"> 👥 この日報はグループに共有しない
+  </label>
   <button class="btn btn-block" id="saveBtn" style="font-size:16px;padding:14px;">保存</button>
   <div id="saveStatus" class="muted" style="margin-top:6px;text-align:center;"></div>
 </main>
@@ -247,6 +250,8 @@ async function init() {
       document.getElementById('totalKmInput').value = existing.totalDistanceKm != null ? existing.totalDistanceKm : '';
       document.getElementById('memoInput').value = existing.memo || '';
       writeViolations(existing.violations || null);
+      const so = document.getElementById('shareOptOutInput');
+      if (so && existing && existing.shareOptOut) so.checked = true;
       // 既存trips/restsをparsedに直接セットしてプレビュー描画
       parsed = { trips: existing.trips, rests: existing.rests, returnTime: existing.returnTime, format: 'edit' };
       renderPreview();
@@ -581,6 +586,7 @@ document.getElementById('saveBtn').onclick = async () => {
     rests: (parsed.rests || []).map(stripOcrMeta),
     weather,
     violations: readViolations(),
+    shareOptOut: document.getElementById('shareOptOutInput')?.checked || false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
