@@ -46,9 +46,9 @@ export function renderHeatmap(container, bins) {
 export function renderLegend(container) {
   if (!container || container.dataset.rendered === '1') return;
   container.innerHTML = `
-    <span class="legend-item legend-low"><span class="legend-swatch"></span>少ない (300人未満/30分)</span>
-    <span class="legend-item legend-mid"><span class="legend-swatch"></span>普通 (300〜600人)</span>
-    <span class="legend-item legend-high"><span class="legend-swatch"></span>多い (600人以上)</span>
+    <span class="legend-item legend-low"><span class="legend-swatch"></span>少ない</span>
+    <span class="legend-item legend-mid"><span class="legend-swatch"></span>普通</span>
+    <span class="legend-item legend-high"><span class="legend-swatch"></span>多い</span>
     <span class="legend-item legend-intl"><span class="legend-swatch"></span>国際線</span>
   `;
   container.dataset.rendered = '1';

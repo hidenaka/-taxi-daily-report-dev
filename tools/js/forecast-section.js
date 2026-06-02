@@ -167,7 +167,7 @@ function renderHourlySparkline(hourlyData) {
     </div>`;
   }).join('');
   return `<div class="fc-sparkline">
-    <div class="fc-spark-label">1時間ごとの出庫数 (波形)</div>
+    <div class="fc-spark-label">1時間ごとの出庫数</div>
     ${rows}
   </div>`;
 }
@@ -188,7 +188,7 @@ async function renderActualsMode(metaEl, tableEl, detail) {
   }
   const accum = computeAccumulatedTotal(data.slots, new Date());
   const tsPart = ts ? `実績 ${ts} 時点まで` : '';
-  const accumPart = `営業日 8:00 起点 累計 ${accum}台`;
+  const accumPart = `本日の累計 ${accum}台`;
   const scopeLabel = detail ? '今日全部' : '直近2時間';
   metaEl.textContent = tsPart
     ? `${tsPart}  /  ${accumPart}  /  ${scopeLabel}表示`
