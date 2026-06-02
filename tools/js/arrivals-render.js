@@ -71,7 +71,11 @@ export function renderSummary(container, summary) {
   const reachNonePart = summary.reachNoneCount > 0
     ? `<span class="summary-item summary-reach-none">🔴 ${summary.reachNoneCount}便（公共交通不可）</span>`
     : '';
+  const cancelledPart = summary.cancelledCount > 0
+    ? `<span class="summary-item summary-cancelled">🚫 欠航 ${summary.cancelledCount}便（降客数から除外済み）</span>`
+    : '';
   container.innerHTML = `
+    ${cancelledPart}
     <span class="summary-item">${summary.windowLabel} <strong>${summary.totalPax.toLocaleString()}人</strong></span>
     <span class="summary-item">時間あたり <strong>${summary.hourlyAvg.toLocaleString()}人</strong></span>
     <span class="summary-item">${summary.totalFlights}便</span>
@@ -204,11 +208,13 @@ export function renderStaleBanner(container, classification) {
 // 1便分の flight-row 要素を生成して container に append する純関数。
 function appendFlightRow(container, f) {
   const isDelayed = f.status === '遅延';
+  const isCancelled = f.status === '欠航';
   const isUnknown = f.aircraftCode === null;
   const colorKey = airlineToColorKey(f.airline);
   const row = document.createElement('div');
   row.className = 'flight-row airline-' + colorKey
     + (isDelayed ? ' is-delayed' : '')
+    + (isCancelled ? ' is-cancelled' : '')
     + (isUnknown ? ' is-unknown' : '');
   const time = f.estimatedTime ?? f.scheduledTime ?? '--:--';
   const aircraft = f.aircraftCode ?? '機材不明';
@@ -239,7 +245,9 @@ function appendFlightRow(container, f) {
       ${terminalTag}
     </div>
     <div class="flight-line2">${paxLine}</div>
-    <div class="flight-line3">機材 ${aircraft} ・ <span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span></div>
+    <div class="flight-line3">機材 ${aircraft} ・ ${isCancelled
+      ? `<span class="status status-cancelled">🚫 欠航</span>`
+      : `<span class="status">${f.status}${statusIcon}${delayBoostBadge}${lightningBadge}</span>`}</div>
   `;
   container.appendChild(row);
 }

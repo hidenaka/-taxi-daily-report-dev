@@ -76,10 +76,12 @@ export function aggregateHeatmapClient(flights) {
       bins.set(key, {
         bin: key, totalPax: 0, internationalPax: 0,
         flightCount: 0, unknownCount: 0, delayedCount: 0, internationalCount: 0,
-        reachNoneCount: 0
+        reachNoneCount: 0, cancelledCount: 0
       });
     }
     const b = bins.get(key);
+    // 欠航便は降客をもたらさない。降客数には含めず別計上する。
+    if (f.status === '欠航') { b.cancelledCount += 1; continue; }
     b.flightCount += 1;
     if (f.estimatedPax === null) b.unknownCount += 1;
     else {
@@ -100,22 +102,25 @@ export function aggregateHeatmapClient(flights) {
 export function summarizeFlights(flights, opts = {}) {
   const windowHours = opts.windowHours ?? 3.5;
   const windowLabel = opts.windowLabel ?? '直近3時間';
-  const totalPax = flights.reduce((s, f) => s + (f.estimatedPax ?? 0), 0);
-  const internationalPax = flights
+  // 欠航便は降客をもたらさないので集計から除外し、別途 cancelledCount で数える。
+  const cancelledCount = flights.filter(f => f.status === '欠航').length;
+  const operating = flights.filter(f => f.status !== '欠航');
+  const totalPax = operating.reduce((s, f) => s + (f.estimatedPax ?? 0), 0);
+  const internationalPax = operating
     .filter(f => f.isInternational)
     .reduce((s, f) => s + (f.estimatedPax ?? 0), 0);
-  const totalFlights = flights.length;
-  const internationalCount = flights.filter(f => f.isInternational).length;
-  const delayedCount = flights.filter(f => f.status === '遅延').length;
-  const unknownCount = flights.filter(f => f.estimatedPax === null).length;
+  const totalFlights = operating.length;
+  const internationalCount = operating.filter(f => f.isInternational).length;
+  const delayedCount = operating.filter(f => f.status === '遅延').length;
+  const unknownCount = operating.filter(f => f.estimatedPax === null).length;
   const hourlyAvg = totalFlights > 0 ? Math.round(totalPax / windowHours) : 0;
-  const reachNoneCount = flights.filter(f => f.reachTier === 'none').length;
+  const reachNoneCount = operating.filter(f => f.reachTier === 'none').length;
   return {
     totalPax, internationalPax,
     totalFlights, internationalCount,
     delayedCount, unknownCount, hourlyAvg,
     windowLabel,
-    reachNoneCount
+    reachNoneCount, cancelledCount
   };
 }
 
