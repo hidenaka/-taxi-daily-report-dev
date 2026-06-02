@@ -169,6 +169,13 @@
     #forecast-section .fc-spark-bar-fill { display: block; background: var(--accent); height: 100%; border-radius: 2px; min-width: 2px; }
     #forecast-section .fc-spark-total { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
     #forecast-section .fc-scope { margin: 0 0 6px; color: var(--sub); font-size: 11px; }
+    #stall-movement-block .sm-title { color: var(--fg); font-weight: 600; font-size: 12px; margin-bottom: 6px; }
+    #stall-movement-block .sm-rows { display: flex; flex-direction: column; gap: 3px; }
+    #stall-movement-block .sm-row { display: grid; grid-template-columns: 88px 56px 1fr; gap: 6px; align-items: baseline; }
+    #stall-movement-block .sm-stall { color: var(--sub); }
+    #stall-movement-block .sm-actual { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+    #stall-movement-block .sm-fc { color: var(--sub); font-size: 11px; font-variant-numeric: tabular-nums; }
+    #stall-movement-block .sm-note { color: var(--sub); font-size: 10px; margin-top: 6px; }
     .fc-meta { color: var(--sub); font-size: 12px; margin-bottom: 8px; }
     .fc-empty { color: var(--sub); font-size: 13px; }
     .fc-table { border-collapse: collapse; width: 100%; }
@@ -241,12 +248,14 @@
       <div id="pool-status-stalls" style="margin-top:8px; font-size:13px; line-height:1.7;"></div>
       <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
+    <div id="stall-movement-block" style="display:none; margin:4px 0 12px; padding:8px 10px; background:#14141a; border-radius:6px; font-size:13px;"></div>
     <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
         <p style="margin:0 0 4px;"><strong>今日の流れ</strong>：直近1時間の出庫数を、過去の同曜日（祝日・連休も区別）と比べて活発か・少なめかを表示。</p>
         <p style="margin:0 0 4px;"><strong>乗り場の動き</strong>：直近30分の動きが活発か・少なめかを乗り場ごとに表示。</p>
+        <p style="margin:0 0 4px;"><strong>列移動回数（直近15分）</strong>：乗り場の列が前に進んだ回数の目安。実測と予測を乗り場ごとに表示。計測の都合で実際より少なめに出ます。</p>
         <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データから、ロビーに出る予定の便を表示。</p>
         <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせた目安を表示しています。</p>
         <p style="margin:0;">※数値は目安です。実数とズレることがあります。</p>

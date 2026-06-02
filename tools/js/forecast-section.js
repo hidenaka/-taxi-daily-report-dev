@@ -90,6 +90,36 @@ export async function loadActuals(fetchFn = fetch) {
   }
 }
 
+// 列移動回数(実測+予測) JSON を取得する。失敗は { data:null, error } で返す。
+export async function loadAdvanceForecast(fetchFn = fetch) {
+  try {
+    const res = await fetchFn('data/advance-forecast.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { data: await res.json(), error: null };
+  } catch (e) {
+    return { data: null, error: e.message };
+  }
+}
+
+const STALL_LABELS = { stall1: '第1', stall2: '第2', stall3: '第3', stall4: '第4' };
+
+// 乗り場ごとの「列移動回数（直近15分・実測/予測）」ブロックを HTML 文字列で返す。
+export function renderMovement(adv) {
+  const cur = adv && adv.current;
+  if (!cur || !cur.stalls) return '';
+  const rows = Object.keys(STALL_LABELS).map((s) => {
+    const v = cur.stalls[s] || {};
+    const actual = (typeof v.actual === 'number') ? `${v.actual}回` : '—';
+    const fc = (typeof v.forecast === 'number') ? v.forecast : '—';
+    return `<div class="sm-row"><span class="sm-stall">${STALL_LABELS[s]}乗り場</span>`
+      + `<span class="sm-actual">${actual}</span>`
+      + `<span class="sm-fc">予測 ${fc}</span></div>`;
+  }).join('');
+  return `<div class="sm-title">乗り場の動き（列移動回数・直近15分）</div>`
+    + `<div class="sm-rows">${rows}</div>`
+    + `<div class="sm-note">※計測の都合で実際より少なめに出ます</div>`;
+}
+
 // 15分ビン配列を HTML テーブルに描画する。
 function renderTable(bins) {
   if (bins.length === 0) return '<p class="fc-empty">予測データなし</p>';
@@ -279,6 +309,16 @@ export async function initForecastSection() {
   }
   if (scopeRecentBtn) scopeRecentBtn.addEventListener('click', () => setDetail(false));
   if (scopeAllBtn) scopeAllBtn.addEventListener('click', () => setDetail(true));
+
+  // 列移動回数(直近15分・実測/予測)を併記。モード非依存で1回描画。
+  const movEl = document.getElementById('stall-movement-block');
+  if (movEl) {
+    loadAdvanceForecast().then(({ data }) => {
+      const html = data ? renderMovement(data) : '';
+      movEl.innerHTML = html;
+      movEl.style.display = html ? '' : 'none';
+    }).catch(() => { movEl.style.display = 'none'; });
+  }
 
   await render();
   return render;
