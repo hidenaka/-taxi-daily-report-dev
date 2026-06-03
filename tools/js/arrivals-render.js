@@ -6,17 +6,27 @@ const VALID_TERMINALS = new Set(['T1', 'T2', 'T3']);
 export function renderNoribaCards(container, summary) {
   if (!container) return;
   const { lanes, undetermined, windowMin } = summary;
+  const isLate = summary.isLateNight;
   const cards = lanes.map((l) => {
-    const next = l.flights[0];
-    const nextLine = next
-      ? `<div class="nc-next">直近 ${next.time} ${next.fromName ?? ''}</div>`
-      : `<div class="nc-next nc-none">予定なし</div>`;
+    // 通常は直近便、21時以降は最終便を出す
+    let lastLine;
+    if (isLate) {
+      lastLine = l.lastFlight
+        ? `<div class="nc-last">🏁 最終 ${l.lastFlight.time} ${l.lastFlight.fromName ?? ''}${l.lastFlight.seatCount ? ` 定員${l.lastFlight.seatCount}` : ''}</div>`
+        : `<div class="nc-last nc-none">本日の到着終了</div>`;
+    } else {
+      const next = l.flights[0];
+      lastLine = next
+        ? `<div class="nc-next">直近 ${next.time} ${next.fromName ?? ''}</div>`
+        : `<div class="nc-next nc-none">予定なし</div>`;
+    }
+    const seatUnk = l.seatUnknown > 0 ? ` ・定員不明${l.seatUnknown}便` : '';
     return `
     <div class="noriba-card nlane-${l.lane}">
       <div class="nc-head"><span class="nc-num">${l.lane}号</span><span class="nc-label">${l.label}</span></div>
-      <div class="nc-pax">${l.taxiPax}<span class="nc-unit">人</span></div>
-      <div class="nc-sub">${l.count}便</div>
-      ${nextLine}
+      <div class="nc-pax">${l.seatSum}<span class="nc-unit">人(定員)</span></div>
+      <div class="nc-sub">${l.count}便 ・推定${l.taxiPax}人${seatUnk}</div>
+      ${lastLine}
     </div>`;
   }).join('');
   const foot = undetermined > 0
@@ -27,12 +37,12 @@ export function renderNoribaCards(container, summary) {
   ).join('');
   container.innerHTML = `
     <div class="noriba-head">
-      <h2>🚕 乗り場別 到着見込み</h2>
+      <h2>🚕 乗り場別 到着見込み${isLate ? '（最終便）' : ''}</h2>
       <div class="nc-window" role="group" aria-label="対象時間">${wins}</div>
     </div>
     <div class="noriba-cards">${cards}</div>
     ${foot}
-    <div class="nc-note">推定タクシー客数＝到着客のうちタクシー利用見込み。欠航便は除外。</div>`;
+    <div class="nc-note">定員＝便の最大座席数（確実）。推定＝タクシー利用見込み（来ない場合あり）。欠航除外。</div>`;
 }
 
 const TIER_INFO = {

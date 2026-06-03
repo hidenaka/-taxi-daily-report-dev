@@ -143,12 +143,18 @@ export function sortFlightsByTime(flights) {
 // poolLane(1-4) が未確定の便(出口未割当)は undetermined として別数える。
 export const NORIBA_LABELS = { 1: 'T1 南', 2: 'T1 北', 3: 'T2 北', 4: 'T2 南・国際' };
 
+// 21時以降は「最終便」を明確に出すための基準時刻(JST 時)。
+export const LATE_NIGHT_FROM_HOUR = 21;
+
 export function summarizeByNoriba(arrivals, nowDate, windowMin) {
   const lanes = {};
-  for (const n of [1, 2, 3, 4]) lanes[n] = { lane: n, label: NORIBA_LABELS[n], count: 0, taxiPax: 0, flights: [] };
+  for (const n of [1, 2, 3, 4]) {
+    lanes[n] = { lane: n, label: NORIBA_LABELS[n], count: 0, taxiPax: 0, seatSum: 0, seatUnknown: 0, flights: [], lastFlight: null, _lastDiff: -1 };
+  }
   let undetermined = 0;
+  const isLateNight = nowDate.getHours() >= LATE_NIGHT_FROM_HOUR;
   if (!arrivals || !Array.isArray(arrivals.flights)) {
-    return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin };
+    return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin, isLateNight };
   }
   const nowMin = nowDate.getHours() * 60 + nowDate.getMinutes();
   for (const f of arrivals.flights) {
@@ -156,17 +162,34 @@ export function summarizeByNoriba(arrivals, nowDate, windowMin) {
     const t = f.lobbyExitTime ?? f.estimatedTime ?? f.scheduledTime;
     const fMin = timeToMinutes(t);
     if (fMin === null) continue;
-    let diff = fMin - nowMin;
-    if (diff < -180) diff += 1440; // 日付またぎ(翌日早朝便)
-    if (diff < 0 || diff > windowMin) continue; // 「これから windowMin 分以内」
-    if (!Number.isInteger(f.poolLane) || f.poolLane < 1 || f.poolLane > 4) { undetermined++; continue; }
+    // arrivals.json は当日分の時刻表。過去の便(diff<0)は対象外。
+    // 日付またぎ補正は入れない(過去の早朝便を翌日と誤判定し「最終便」が壊れるため)。
+    const diff = fMin - nowMin;
+    if (diff < 0) continue; // 既に過ぎた便は対象外
+    if (!Number.isInteger(f.poolLane) || f.poolLane < 1 || f.poolLane > 4) {
+      if (diff <= windowMin) undetermined++;
+      continue;
+    }
     const lane = lanes[f.poolLane];
-    lane.count += 1;
-    lane.taxiPax += (typeof f.estimatedTaxiPax === 'number' ? f.estimatedTaxiPax : 0);
-    lane.flights.push({ time: t, fromName: f.fromName, flightNumber: f.flightNumber, taxiPax: f.estimatedTaxiPax ?? null });
+    const seat = (typeof f.seatCount === 'number' && f.seatCount > 0) ? f.seatCount : null;
+    // 最終便: これから到着する便のうち最も遅い到着(窓に関係なく当日全体)
+    if (diff > lane._lastDiff) {
+      lane._lastDiff = diff;
+      lane.lastFlight = { time: f.estimatedTime ?? f.scheduledTime ?? t, fromName: f.fromName, flightNumber: f.flightNumber, seatCount: seat };
+    }
+    // 窓内の集計
+    if (diff <= windowMin) {
+      lane.count += 1;
+      lane.taxiPax += (typeof f.estimatedTaxiPax === 'number' ? f.estimatedTaxiPax : 0);
+      if (seat !== null) lane.seatSum += seat; else lane.seatUnknown += 1;
+      lane.flights.push({ time: t, fromName: f.fromName, flightNumber: f.flightNumber, taxiPax: f.estimatedTaxiPax ?? null, seatCount: seat });
+    }
   }
-  for (const n of [1, 2, 3, 4]) lanes[n].flights.sort((a, b) => (timeToMinutes(a.time) ?? 0) - (timeToMinutes(b.time) ?? 0));
-  return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin };
+  for (const n of [1, 2, 3, 4]) {
+    lanes[n].flights.sort((a, b) => (timeToMinutes(a.time) ?? 0) - (timeToMinutes(b.time) ?? 0));
+    delete lanes[n]._lastDiff;
+  }
+  return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin, isLateNight };
 }
 
 // 大幅遅延とみなす遅延分数の下限。
