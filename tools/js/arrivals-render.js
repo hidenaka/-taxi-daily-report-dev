@@ -236,15 +236,15 @@ function appendFlightRow(container, f) {
     ? ` <span class="lightning-boost">⚡ラッシュ</span>` : '';
   const terminalTag = (f.terminal && VALID_TERMINALS.has(f.terminal))
     ? `<span class="terminal-tag ${f.terminal.toLowerCase()}">${f.terminal}</span>` : '';
-  const wingTag = (f.wing === '北' || f.wing === '南')
-    ? `<span class="wing-tag wing-${f.wing === '北' ? 'n' : 's'}">${f.wing}</span>` : '';
+  const laneTag = (Number.isInteger(f.poolLane) && f.poolLane >= 1 && f.poolLane <= 4)
+    ? `<span class="lane-tag lane-${f.poolLane}">${f.poolLane}号</span>` : '';
   row.innerHTML = `
     <div class="flight-line1">
       <span class="time">${time}</span>
       <span class="flight-no">${f.flightNumber}</span>
       <span class="from">${f.fromName}</span>
       <span class="reach">${reachIcon}</span>
-      ${terminalTag}${wingTag}
+      ${terminalTag}${laneTag}
     </div>
     <div class="flight-line2">${paxLine}</div>
     <div class="flight-line3">機材 ${aircraft} ・ ${isCancelled
