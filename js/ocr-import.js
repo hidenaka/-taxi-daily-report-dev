@@ -25,6 +25,14 @@ const statusEl = document.getElementById("ocrStatus");
 async function fileToJpegBlob(file) {
   const bitmap = await createImageBitmap(file);
   const MAX = 4000;
+  // 既にJPEGで長辺が上限内なら、canvas再エンコード(JPEG再圧縮)せず原本バイトを
+  // そのまま送る。再圧縮は明細の細い罫線や小さな文字を潰してOCR精度を落とすため
+  // (実測: 同一明細で再圧縮版は休憩行を取りこぼし営業回数が+3水増しした)。
+  // HEIC/PNG や 4000px超 だけ従来どおり canvas で JPEG 化・縮小する。
+  if (file.type === "image/jpeg" && Math.max(bitmap.width, bitmap.height) <= MAX) {
+    if (bitmap.close) bitmap.close();
+    return file;
+  }
   const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
   const h = Math.round(bitmap.height * scale);
