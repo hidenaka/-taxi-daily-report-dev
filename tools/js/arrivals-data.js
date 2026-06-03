@@ -138,6 +138,37 @@ export function sortFlightsByTime(flights) {
   });
 }
 
+// 乗り場(号)別 到着見込み。これから windowMin 分以内にロビー出口へ出てくる便を号別に集計。
+// 欠航は除外。時刻は lobbyExitTime 優先(無ければ estimatedTime/scheduledTime)。
+// poolLane(1-4) が未確定の便(出口未割当)は undetermined として別数える。
+export const NORIBA_LABELS = { 1: 'T1 南', 2: 'T1 北', 3: 'T2 北', 4: 'T2 南・国際' };
+
+export function summarizeByNoriba(arrivals, nowDate, windowMin) {
+  const lanes = {};
+  for (const n of [1, 2, 3, 4]) lanes[n] = { lane: n, label: NORIBA_LABELS[n], count: 0, taxiPax: 0, flights: [] };
+  let undetermined = 0;
+  if (!arrivals || !Array.isArray(arrivals.flights)) {
+    return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin };
+  }
+  const nowMin = nowDate.getHours() * 60 + nowDate.getMinutes();
+  for (const f of arrivals.flights) {
+    if (f.status === '欠航') continue;
+    const t = f.lobbyExitTime ?? f.estimatedTime ?? f.scheduledTime;
+    const fMin = timeToMinutes(t);
+    if (fMin === null) continue;
+    let diff = fMin - nowMin;
+    if (diff < -180) diff += 1440; // 日付またぎ(翌日早朝便)
+    if (diff < 0 || diff > windowMin) continue; // 「これから windowMin 分以内」
+    if (!Number.isInteger(f.poolLane) || f.poolLane < 1 || f.poolLane > 4) { undetermined++; continue; }
+    const lane = lanes[f.poolLane];
+    lane.count += 1;
+    lane.taxiPax += (typeof f.estimatedTaxiPax === 'number' ? f.estimatedTaxiPax : 0);
+    lane.flights.push({ time: t, fromName: f.fromName, flightNumber: f.flightNumber, taxiPax: f.estimatedTaxiPax ?? null });
+  }
+  for (const n of [1, 2, 3, 4]) lanes[n].flights.sort((a, b) => (timeToMinutes(a.time) ?? 0) - (timeToMinutes(b.time) ?? 0));
+  return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin };
+}
+
 // 大幅遅延とみなす遅延分数の下限。
 export const BIG_DELAY_MIN = 30;
 

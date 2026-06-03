@@ -2,6 +2,39 @@ import { airlineToColorKey } from './airline-color.js';
 
 const VALID_TERMINALS = new Set(['T1', 'T2', 'T3']);
 
+// 乗り場(号)別 到着見込みカード。summary = summarizeByNoriba() の戻り値。
+export function renderNoribaCards(container, summary) {
+  if (!container) return;
+  const { lanes, undetermined, windowMin } = summary;
+  const cards = lanes.map((l) => {
+    const next = l.flights[0];
+    const nextLine = next
+      ? `<div class="nc-next">直近 ${next.time} ${next.fromName ?? ''}</div>`
+      : `<div class="nc-next nc-none">予定なし</div>`;
+    return `
+    <div class="noriba-card nlane-${l.lane}">
+      <div class="nc-head"><span class="nc-num">${l.lane}号</span><span class="nc-label">${l.label}</span></div>
+      <div class="nc-pax">${l.taxiPax}<span class="nc-unit">人</span></div>
+      <div class="nc-sub">${l.count}便</div>
+      ${nextLine}
+    </div>`;
+  }).join('');
+  const foot = undetermined > 0
+    ? `<div class="nc-foot">＋ 乗り場未定 ${undetermined}便（到着が近づくと判明）</div>`
+    : '';
+  const wins = [30, 60, 120].map((w) =>
+    `<button type="button" class="ncw-btn${w === windowMin ? ' is-active' : ''}" data-win="${w}">今後${w}分</button>`
+  ).join('');
+  container.innerHTML = `
+    <div class="noriba-head">
+      <h2>🚕 乗り場別 到着見込み</h2>
+      <div class="nc-window" role="group" aria-label="対象時間">${wins}</div>
+    </div>
+    <div class="noriba-cards">${cards}</div>
+    ${foot}
+    <div class="nc-note">推定タクシー客数＝到着客のうちタクシー利用見込み。欠航便は除外。</div>`;
+}
+
 const TIER_INFO = {
   high: { label: '多い', emoji: '🟥' },
   mid:  { label: '普通', emoji: '🟧' },

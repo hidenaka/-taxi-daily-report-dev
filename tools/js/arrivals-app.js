@@ -1,5 +1,5 @@
-import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner } from './arrivals-render.js';
+import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba } from './arrivals-data.js';
+import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderNoribaCards } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle } from './pool-status-section.js';
 
@@ -11,8 +11,10 @@ const TAB_TERMINALS = {
 };
 
 const ORIGIN_FILTER_KEY = 'arrivalsOriginFilter';
-const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '' };
+const NORIBA_WINDOW_KEY = 'arrivalsNoribaWindow';
+const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60 };
 try { state.originFilter = localStorage.getItem(ORIGIN_FILTER_KEY) || ''; } catch { /* ignore */ }
+try { const w = parseInt(localStorage.getItem(NORIBA_WINDOW_KEY), 10); if ([30, 60, 120].includes(w)) state.noribaWindow = w; } catch { /* ignore */ }
 
 // 予測セクションの再描画関数。initForecastSection 解決後に差し替わる。
 // それまでは何もしない（更新ボタンが早く押されてもエラーにしない）。
@@ -48,6 +50,11 @@ function render() {
     ? visible.filter(f => f.fromName === state.originFilter)
     : visible;
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
+  // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
+  renderNoribaCards(
+    document.getElementById('noriba-cards-section'),
+    summarizeByNoriba(state.arrivals, new Date(), state.noribaWindow)
+  );
   renderTopics(document.getElementById('topics'), topics);
   renderSummary(document.getElementById('summary'), summary);
   renderHeatmap(document.getElementById('heatmap'), bins);
@@ -125,11 +132,26 @@ function setupOriginFilter() {
   });
 }
 
+function setupNoribaWindow() {
+  const el = document.getElementById('noriba-cards-section');
+  if (!el) return;
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('.ncw-btn');
+    if (!btn) return;
+    const w = parseInt(btn.dataset.win, 10);
+    if (![30, 60, 120].includes(w)) return;
+    state.noribaWindow = w;
+    try { localStorage.setItem(NORIBA_WINDOW_KEY, String(w)); } catch { /* ignore */ }
+    if (state.arrivals) render();
+  });
+}
+
 renderLegend(document.getElementById('legend'));
 setupTerminalTabs();
 setupReload();
 setupDetailToggle();
 setupOriginFilter();
+setupNoribaWindow();
 refresh();
 initForecastSection().then(fn => { if (fn) refreshForecast = fn; });
 initForecastSectionToggle();
