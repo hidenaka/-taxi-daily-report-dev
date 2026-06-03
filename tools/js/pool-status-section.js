@@ -83,6 +83,10 @@ export function formatStallLineV2(stall) {
 }
 
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
+const NORIBA_HEAD = { 1: '1号（T1 南）', 2: '2号（T1 北）', 3: '3号（T2 北）', 4: '4号（T2 南・国際）' };
+
+/** 席数表示。null/0/不明は「席数不明」。 */
+function seatText(s) { return (typeof s === 'number' && s > 0) ? `${s}席` : '席数不明'; }
 
 /** 「分」を2桁ゼロ埋めの文字列に。負値は0扱い。 */
 function minutesText(min) {
@@ -100,18 +104,33 @@ function padEndDisplay(s, targetWidth) {
   return s + ' '.repeat(Math.max(0, targetWidth - displayWidth(s)));
 }
 
-/** terminalArrivalsList を「T1 (JAL) / あとN分 便名 fromから N席」の行配列に。 */
-export function formatArrivalsList(list) {
-  if (!list) return [];
+function arrivalLine(f) {
+  const fromField = padEndDisplay(`${f.fromName ?? ''}から`, 13);
+  return `  ${minutesText(f.lobbyExitMinutes)}  ${f.flightNumber}  ${fromField}${seatText(f.seatCount)}`;
+}
+
+/** 到着便リストを行配列に。noribaList(号別 1-4)があれば号別に、無ければ terminalList(T1/T2)に。
+ * 後方互換: 第1引数に {T1,T2} を渡す旧呼び出しも terminal 表示として動く。 */
+export function formatArrivalsList(noribaList, terminalList) {
+  const hasNoriba = noribaList && [1, 2, 3, 4].some(n => Array.isArray(noribaList[n]) && noribaList[n].length);
   const lines = [];
+  if (hasNoriba) {
+    for (const n of [1, 2, 3, 4]) {
+      const arr = noribaList[n] || [];
+      if (arr.length === 0) continue;
+      lines.push(NORIBA_HEAD[n]);
+      for (const f of arr) lines.push(arrivalLine(f));
+    }
+    return lines;
+  }
+  // フォールバック: 号別データが無ければ従来の T1/T2 表示。
+  const list = terminalList ?? noribaList;
+  if (!list) return [];
   for (const t of ['T1', 'T2']) {
     const arr = list[t] || [];
     if (arr.length === 0) continue;
     lines.push(TERMINAL_HEAD[t]);
-    for (const f of arr) {
-      const fromField = padEndDisplay(`${f.fromName}から`, 13);
-      lines.push(`  ${minutesText(f.lobbyExitMinutes)}  ${f.flightNumber}  ${fromField}${f.seatCount}席`);
-    }
+    for (const f of arr) lines.push(arrivalLine(f));
   }
   return lines;
 }
@@ -220,7 +239,7 @@ export async function initPoolStatusSection() {
       }
     }
     if (arrivalsEl) {
-      const lines = formatArrivalsList(data.terminalArrivalsList);
+      const lines = formatArrivalsList(data.noribaArrivalsList, data.terminalArrivalsList);
       if (lines.length) {
         const head = '<div style="color:var(--sub); font-size:12px; margin-top:8px; margin-bottom:4px;">✈ これからお客がロビーに出る便</div>';
         arrivalsEl.innerHTML = head + lines

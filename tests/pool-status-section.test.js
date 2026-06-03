@@ -128,6 +128,29 @@ test('formatArrivalsList: null/未提供は空配列', async () => {
   assert.deepEqual(formatArrivalsList({ T1: [], T2: [] }), []);
 });
 
+test('formatArrivalsList: noribaList があれば号別表示・席数nullは席数不明', async () => {
+  const noriba = {
+    1: [{ flightNumber: 'JL138', fromName: '伊丹', seatCount: 200, lobbyExitMinutes: 3 }],
+    2: [{ flightNumber: 'JL918', fromName: '那覇', seatCount: 369, lobbyExitMinutes: 3 }],
+    3: [{ flightNumber: 'NH472', fromName: '那覇', seatCount: null, lobbyExitMinutes: 3 }],
+    4: [],
+  };
+  const lines = formatArrivalsList(noriba, { T1: [], T2: [] });
+  assert.deepEqual(lines, [
+    '1号（T1 南）',
+    '  あと03分  JL138  伊丹から     200席',
+    '2号（T1 北）',
+    '  あと03分  JL918  那覇から     369席',
+    '3号（T2 北）',
+    '  あと03分  NH472  那覇から     席数不明',
+  ]);
+});
+
+test('formatArrivalsList: noribaList 空なら terminalList にフォールバック', async () => {
+  const lines = formatArrivalsList({ 1: [], 2: [], 3: [], 4: [] }, { T1: [{ flightNumber: 'JL024', fromName: '関西', seatCount: 244, lobbyExitMinutes: 10 }], T2: [] });
+  assert.deepEqual(lines, ['T1ターミナル', '  あと10分  JL024  関西から     244席']);
+});
+
 test('formatStallLineV2: rankHint=most-active + percent あり', async () => {
   assert.equal(
     formatStallLineV2({
