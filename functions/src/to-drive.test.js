@@ -74,3 +74,52 @@ test("isRevenueTrip: 番号が無くても内容(金額/km/降車地)があれ�
 test("isRevenueTrip: 番号も内容も無い行(回送/空行)は除外", () => {
   assert.equal(isRevenueTrip({ boardTime: "8:56", alightTime: "8:56", no: null, amount: 0, km: 0, alightPlace: "" }), false);
 });
+
+// --- No連番補正 ---
+import { correctTripNumbers } from "./to-drive.js";
+
+test("correctTripNumbers: 連番に挟まれた外れ値を補正(1,21,3→1,2,3)", () => {
+  const trips = [{ no: 1 }, { no: 21 }, { no: 3 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [1, 2, 3]);
+});
+
+test("correctTripNumbers: 6,1,8 の真ん中は7に補正", () => {
+  const trips = [{ no: 6 }, { no: 1 }, { no: 8 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [6, 7, 8]);
+});
+
+test("correctTripNumbers: 連続した外れ値も前から順に補正", () => {
+  const trips = [{ no: 1 }, { no: 21 }, { no: 3 }, { no: 4 }, { no: 1 }, { no: 6 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [1, 2, 3, 4, 5, 6]);
+});
+
+test("correctTripNumbers: 正しい連番は変えない", () => {
+  const trips = [{ no: 1 }, { no: 2 }, { no: 3 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [1, 2, 3]);
+});
+
+test("correctTripNumbers: 正当なギャップ(行欠落)は触らない", () => {
+  const trips = [{ no: 1 }, { no: 2 }, { no: 4 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [1, 2, 4]);
+});
+
+test("correctTripNumbers: null(キャンセル等)は飛ばす", () => {
+  const trips = [{ no: 1 }, { no: null }, { no: 3 }];
+  correctTripNumbers(trips);
+  assert.deepEqual(trips.map(t => t.no), [1, null, 3]);
+});
+
+test("rowsToDrive: No外れ値を連番補正して返す", () => {
+  const rows = [
+    { No: "1", 乗車: "8:18", 降車: "8:24", 降車地: "港区", 営Km: "2", 合計: "1700" },
+    { No: "21", 乗車: "8:35", 降車: "8:47", 降車地: "港区", 営Km: "4", 合計: "2700" },
+    { No: "3", 乗車: "8:47", 降車: "8:56", 降車地: "港区", 営Km: "1", 合計: "600" },
+  ];
+  const { trips } = rowsToDrive(rows);
+  assert.deepEqual(trips.map(t => t.no), [1, 2, 3]);
+});

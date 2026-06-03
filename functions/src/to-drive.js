@@ -111,5 +111,32 @@ export function rowsToDrive(rows) {
   }
 
   // 非営業行（ETC明細・回送・空行）を営業回数から除外する。
-  return { trips: trips.filter(isRevenueTrip), rests };
+  const revenueTrips = trips.filter(isRevenueTrip);
+  // No の単発誤読を連番補正する（営業明細の No は 1..N の連番）。
+  correctTripNumbers(revenueTrips);
+  return { trips: revenueTrips, rests };
+}
+
+/**
+ * 営業トリップの No 列の単発誤読を連番補正する（破壊的・配列を直接書き換える）。
+ * 営業明細の No は順に 1,2,3,…N の連番。前後が連番(no[i-1] と no[i+1]=no[i-1]+2)
+ * なのに no[i] がそれに合わない外れ値（例: "2"→"21", "7"→"1" の誤読）を no[i-1]+1 に直す。
+ * 前後で挟めるものだけ直すので、正当なギャップ(行欠落)や null(キャンセル等)は触らない。
+ * @param {Array<{no:number|null}>} trips 順序通りの営業トリップ配列
+ * @returns {Array} 同じ配列（補正済み）
+ */
+export function correctTripNumbers(trips) {
+  if (!Array.isArray(trips)) return trips;
+  for (let i = 1; i < trips.length - 1; i++) {
+    const prev = trips[i - 1] && trips[i - 1].no;
+    const cur = trips[i] && trips[i].no;
+    const next = trips[i + 1] && trips[i + 1].no;
+    if (
+      Number.isFinite(prev) && Number.isFinite(cur) && Number.isFinite(next) &&
+      next === prev + 2 && cur !== prev + 1
+    ) {
+      trips[i].no = prev + 1;
+    }
+  }
+  return trips;
 }
