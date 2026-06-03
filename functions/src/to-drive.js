@@ -33,25 +33,22 @@ function parseKm(s) {
   return Number.isFinite(v) ? v : 0;
 }
 
-const HHMM = /^\d{1,2}:\d{2}$/;
-
 /**
  * その trip 行が「営業（売上対象）トリップ」か判定する。
- * 非営業行（ETC明細の行・回送・休憩の取りこぼし・OCRノイズの空行）を
- * 営業回数に数えないためのフィルタ。判定は誤読に強い構造的特徴で行う:
- *  - 営業明細の本表トリップは乗車・降車の両時刻を必ず持つ。
- *    ETC明細表は時刻列が1つ（降車時刻なし）なので両時刻条件で落ちる。
- *  - 番号付き(No)の行は本表の営業行。END列ズレ等で金額/降車地が空に見えても残す。
+ * 回送・休憩の取りこぼし・OCRノイズの空行を営業回数に数えないためのフィルタ。
+ *  - 番号付き(No)の行は本表の営業行。END列ズレ等で金額/降車地が空でも残す。
+ *  - 金額/km/降車地のいずれかがあれば営業行として残す。
  *  - キャンセルは営業試行として残す（アプリ側で別途キャンセル件数に集計）。
- *  - 上記に当たらず、番号も内容（金額/km/降車地）も無い行は回送/空行として除外。
+ *  - 番号も内容も無い行（乗降同時刻・0円0km・降車地なしの回送や空行）だけ除外。
+ *
+ * 注: 時刻の有無では判定しない。斜め撮影で列がずれ降車時刻が空になっても本物の
+ *     トリップを落とさないため。ETC明細表の行は reconstructRows の etcY カット
+ *     （位置ベース・預り金/会社負担ラベル）で本表から除外済みなのでここには来ない。
  * @param {Object} t  rowsToDrive が組み立てた trip オブジェクト
  * @returns {boolean}
  */
 export function isRevenueTrip(t) {
   if (!t) return false;
-  const hasBoard = HHMM.test(String(t.boardTime || "").trim());
-  const hasAlight = HHMM.test(String(t.alightTime || "").trim());
-  if (!hasBoard || !hasAlight) return false;
   if (t.isCancel) return true;
   const hasNo = Number.isFinite(t.no) && t.no > 0;
   const hasContent =

@@ -509,10 +509,15 @@ export function reconstructRows(ocr) {
   const grid = buildGrid(loc);
   const { colBoundsPx, pitch } = grid;
 
-  // ETC明細マーカーで下端カット
+  // ETC明細セクションで下端カット。
+  // 見出し「ETC明細」はOCRで崩れやすく(実測: 細→辅/明組/期柜 等)、それだけだと
+  // カットに失敗しETC明細表の行を乗車として拾う(営業回数の水増し)。そこで ETC明細表
+  // だけに現れる列ラベル「預り金」「会社負担」も目印にする。これらは営業明細の地名
+  // (区+町名)にも上部サマリーにも出ないので min-Y を取っても本表を誤って切らない
+  // (「乗務員」は上部「乗務員氏名」に出るため使わない)。
   let etcY = Infinity;
   for (const b of boxes) {
-    if (/ETC明細|ＥＴＣ明細|ＥＴＣ明組|ETC明組/.test(txt(b))) {
+    if (/ETC明細|ＥＴＣ明細|ＥＴＣ明組|ETC明組|預り?金|会社負担/.test(txt(b))) {
       etcY = Math.min(etcY, b.bbox[1]);
     }
   }
