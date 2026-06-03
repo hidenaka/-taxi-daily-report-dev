@@ -651,19 +651,30 @@ export function reconstructRows(ocr) {
   // 1〜2 box の偽クラスタを作り、順序対応を 1 ズラすため除外する。
   // 偽クラスタの特徴: box 数が少なく、かつ全 box がヘッダー列名そのもの
   // （= 数値データでない）。データ行は 営Km/合計/料金 等に数字を含む。
+  // box が「ヘッダー列名(の誤読)」か。降車地ヘッダーは誤読で "晓車地" 等の地名様に
+  // なり matchHeaderLabel を外すため、「車地」で終わる語も列名扱いにする(地名は
+  // 区+町名で "車地" 終わりにならない)。
+  const isHeaderLabelBox = (it) => {
+    const t = normalizeKanji(txt(it.b));
+    return matchHeaderLabel(t) !== null || /車地$/.test(t);
+  };
+  // box が実データ(2桁以上の数値 or 降車地列の地名)か。
+  const isDataBox = (it) => {
+    if (isHeaderLabelBox(it)) return false;
+    const t = normalizeKanji(txt(it.b));
+    if (t.replace(/[^0-9]/g, "").length >= 2) return true;  // 数値データ（2桁以上）
+    if (it.ci === 6 && /[一-鿿]{2,}/.test(t)) return true;  // 降車地列の地名
+    return false;
+  };
+  // 実体のある END 物理行だけ残す。表ヘッダーの END 列ラベル行(降車地/営Km/合計…。
+  // 降車地は誤読で地名様になる)や、備考折り返し断片を END 物理行に数えると、END が
+  // 1つ増えて以降のエントリ対応が全て1つズレる(各乗車の降車地/運賃が1つ前のものに)。
+  // データboxが皆無でラベル様boxを含む行はヘッダー行として落とす。
   const endRowsRaw = endRowsAll.filter((er) => {
+    const dataish = er.items.some(isDataBox);
+    if (!dataish && er.items.some(isHeaderLabelBox)) return false;
     if (er.items.length >= 3) return true;
-    // 2 box 以下: 実データ（数値 or 降車地の地名）を持つクラスタのみ残す。
-    // 備考テキストの折り返し断片（例: "ネット決済ETC羽田(千代田)" の2行目
-    // "代田）"）は、立替/備考列に紛れて 1 box の偽 END 物理行になる。これを
-    // 行と数えると END 対応が1つズレる。数値でも降車地の地名でもないので落とす。
-    return er.items.some((it) => {
-      const t = normalizeKanji(txt(it.b));
-      if (matchHeaderLabel(t)) return false;                  // ヘッダー列名そのもの
-      if (t.replace(/[^0-9]/g, "").length >= 2) return true;  // 数値データ（2桁以上）
-      if (it.ci === 6 && /[一-鿿]{2,}/.test(t)) return true;  // 降車地列の地名
-      return false;
-    });
+    return dataish;
   });
 
   function rawYc(row) {
