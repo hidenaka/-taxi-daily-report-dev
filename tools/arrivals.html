@@ -238,7 +238,7 @@
   <div id="weather-banner" hidden></div>
 
   <section id="forecast-section">
-    <h2>🚕 タクシープール現況・出庫<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
+    <h2>🚕 タクシープール現況・列移動<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
     <div id="forecast-body">
     <div id="pool-status-block" style="margin:8px 0 12px;">
@@ -253,7 +253,7 @@
       <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
     <div id="stall-movement-block" style="display:none; margin:4px 0 12px; padding:8px 10px; background:#14141a; border-radius:6px; font-size:13px;"></div>
-    <p class="fc-scope">※台数は第1〜第4乗り場（東京車両ポール）の合計です</p>
+    <p class="fc-scope">※列移動回数は第1〜第4乗り場（東京車両ポール）の合計です。計測の都合で実際より少なめに出ます</p>
     <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
@@ -261,8 +261,8 @@
         <p style="margin:0 0 4px;"><strong>乗り場の動き</strong>：直近30分の動きが活発か・少なめかを乗り場ごとに表示。</p>
         <p style="margin:0 0 4px;"><strong>列移動回数（直近15分）</strong>：乗り場の列が前に進んだ回数の目安。実測と予測を乗り場ごとに表示。計測の都合で実際より少なめに出ます。</p>
         <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データから、ロビーに出る予定の便を表示。</p>
-        <p style="margin:0 0 4px;"><strong>予測</strong>：過去の出庫記録から、その日の条件に合わせた目安を表示しています。</p>
-        <p style="margin:0;">※数値は目安です。実数とズレることがあります。</p>
+        <p style="margin:0 0 4px;"><strong>実測／予測（列移動回数）</strong>：乗り場の列が前に進んだ回数を15分ごと・乗り場別に表示。実測＝今日の計測値、予測＝過去の同時間帯から育てた目安。計測の都合で実際より少なめに出ます。</p>
+        <p style="margin:0;">※数値は相対的な目安です。実数とズレることがあります。</p>
       </div>
     </details>
     <div class="fc-controls">

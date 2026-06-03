@@ -193,65 +193,87 @@ function renderHourlySparkline(hourlyData) {
     return `<div class="fc-spark-row">
       <span class="fc-spark-hour">${h.hour}時</span>
       <span class="fc-spark-bar"><span class="fc-spark-bar-fill" style="width:${pct}%"></span></span>
-      <span class="fc-spark-total">${h.total}台</span>
+      <span class="fc-spark-total">${h.total}回</span>
     </div>`;
   }).join('');
   return `<div class="fc-sparkline">
-    <div class="fc-spark-label">1時間ごとの出庫数</div>
+    <div class="fc-spark-label">1時間ごとの列移動回数</div>
     ${rows}
   </div>`;
 }
 
-// 実績モードを描画する。
-async function renderActualsMode(metaEl, tableEl, detail) {
-  const { data, error } = await loadActuals();
-  if (error) {
-    metaEl.textContent = '出庫実績データを取得できていません。しばらくしてから更新してください。';
-    tableEl.innerHTML = '';
-    return;
-  }
-  const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
-  if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
-    metaEl.textContent = '出庫実績データを取得できていません。しばらくしてから更新してください。';
-    tableEl.innerHTML = '';
-    return;
-  }
-  const accum = computeAccumulatedTotal(data.slots, new Date());
-  const tsPart = ts ? `実績 ${ts} 時点まで` : '';
-  const accumPart = `本日の累計 ${accum}台`;
-  const scopeLabel = detail ? '今日全部' : '直近2時間';
-  metaEl.textContent = tsPart
-    ? `${tsPart}  /  ${accumPart}  /  ${scopeLabel}表示`
-    : `${accumPart}  /  ${scopeLabel}表示`;
-  tableEl.innerHTML = renderActualsTable(limitSlotsToRecent(data.slots, detail));
-  // sparkline は data.slots 全体 (営業日全部) を 1時間集計して描画
-  const sparkEl = document.getElementById('forecast-sparkline');
-  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(aggregateBy1Hour(data.slots));
+// advance-forecast.json の slots/actualsToday ([{time, stalls}]) を表テーブル用 bin 形に変換。
+function advSlotsToBins(slots) {
+  return (slots || []).map((s) => {
+    const [h, m] = String(s.time).split(':').map(Number);
+    const endM = (h * 60 + m + 15);
+    const eh = String(Math.floor(endM / 60) % 24).padStart(2, '0');
+    const em = String(endM % 60).padStart(2, '0');
+    const st = s.stalls || {};
+    const v = (k) => Number(st[k] ?? 0);
+    const r = { label: `${s.time}-${eh}:${em}`, stall1: v('stall1'), stall2: v('stall2'), stall3: v('stall3'), stall4: v('stall4') };
+    r.total = Number((r.stall1 + r.stall2 + r.stall3 + r.stall4).toFixed(1));
+    return r;
+  });
 }
 
-// 予測モードを描画する。
-async function renderForecastMode(metaEl, tableEl, detail) {
-  const { data, error } = await loadEnsemble();
-  if (error) {
-    metaEl.textContent = '出庫予測データを取得できていません。しばらくしてから更新してください。';
+// bin 配列 → 1時間ごとの {hour,total} (sparkline用)。
+function advHourly(bins) {
+  const m = new Map();
+  for (const b of bins) {
+    const h = parseInt(String(b.label).slice(0, 2), 10);
+    if (Number.isNaN(h)) continue;
+    m.set(h, (m.get(h) || 0) + b.total);
+  }
+  return [...m.entries()].sort((a, b) => a[0] - b[0]).map(([hour, total]) => ({ hour, total: Number(total.toFixed(1)) }));
+}
+
+// 実績モード（列移動回数・今日の実測）を描画する。
+async function renderActualsMode(metaEl, tableEl, detail) {
+  const { data, error } = await loadAdvanceForecast();
+  if (error || !data) {
+    metaEl.textContent = '列移動データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
   const ts = (data.generatedAt || '').slice(0, 16).replace('T', ' ');
-  if (isStale(data.generatedAt, new Date(), STALE_MINUTES)) {
-    metaEl.textContent = '出庫予測データを取得できていません。しばらくしてから更新してください。';
+  const bins = advSlotsToBins(data.actualsToday);
+  if (bins.length === 0) {
+    metaEl.textContent = '本日の列移動 実測データはまだありません。';
+    tableEl.innerHTML = '<p class="fc-empty">実測データなし</p>';
+    return;
+  }
+  const accum = Number(bins.reduce((s, b) => s + b.total, 0).toFixed(0));
+  const scopeLabel = detail ? '今日全部' : '直近2時間';
+  metaEl.textContent = `実測（列移動回数）${ts ? ts + ' 時点' : ''}  /  本日累計 ${accum}回  /  ${scopeLabel}表示  ※計測の都合で少なめ`;
+  tableEl.innerHTML = renderTable(limitSlotsToRecent(bins, detail));
+  const sparkEl = document.getElementById('forecast-sparkline');
+  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(advHourly(bins));
+}
+
+// 予測モード（列移動回数・モデル予測）を描画する。
+async function renderForecastMode(metaEl, tableEl, detail) {
+  const { data, error } = await loadAdvanceForecast();
+  if (error || !data) {
+    metaEl.textContent = '列移動の予測データを取得できていません。しばらくしてから更新してください。';
     tableEl.innerHTML = '';
     return;
   }
-  const scopeLabel = detail ? '今後全部' : '今後2時間';
-  metaEl.textContent = ts
-    ? `予測時刻 ${ts} 時点  /  ${scopeLabel}表示`
-    : `${scopeLabel}表示`;
-  const aggSlots = aggregateTo15min(data.slots);
-  tableEl.innerHTML = renderTable(limitSlotsToRecent(aggSlots, detail));
-  // 予測モードでも 1時間 sparkline を表示（予測波形が見える）
+  const bins = advSlotsToBins(data.slots);
+  if (bins.length === 0) {
+    metaEl.textContent = '列移動の予測データがまだありません。';
+    tableEl.innerHTML = '<p class="fc-empty">予測データなし</p>';
+    return;
+  }
+  const scopeLabel = detail ? '今日全部' : '今後2時間';
+  metaEl.textContent = `予測（列移動回数・時間帯の目安）  /  ${scopeLabel}表示  ※計測の都合で少なめ`;
+  // 予測カーブは時間帯の目安。現在時刻以降に絞って表示。
+  const nowHM = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(11, 16);
+  const upcoming = bins.filter((b) => b.label.slice(0, 5) >= nowHM);
+  const shown = (upcoming.length ? upcoming : bins);
+  tableEl.innerHTML = renderTable(detail ? shown : shown.slice(0, 8));
   const sparkEl = document.getElementById('forecast-sparkline');
-  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(aggregateBy1Hour(aggSlots));
+  if (sparkEl) sparkEl.innerHTML = renderHourlySparkline(advHourly(bins));
 }
 
 // 到着便ページの予測セクションを初期化・描画する。
