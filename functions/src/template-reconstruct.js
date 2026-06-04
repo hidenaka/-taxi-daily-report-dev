@@ -658,13 +658,15 @@ export function reconstructRows(ocr) {
     const t = normalizeKanji(txt(it.b));
     return matchHeaderLabel(t) !== null || /車地$/.test(t);
   };
-  // box が実データ(2桁以上の数値 or 降車地列の地名)か。
+  // box が実データ(2桁以上の数値=営Km/合計/料金 等)か。
+  // 注: 「降車地の地名だけ」は実データに数えない。回送(回)行も降車地を持ち、その END は
+  //     "降車地:◯◯" 1box(金額/kmなし)で END 物理行になる。これを残すと numbered トリップの
+  //     END 対応が1つズレる(No.11以降の降車地/運賃が1つ前のものに)。本物のトリップ END は
+  //     必ず合計/料金等の数値を持ち、3box以上として別途残るので地名cluseは不要。
   const isDataBox = (it) => {
     if (isHeaderLabelBox(it)) return false;
     const t = normalizeKanji(txt(it.b));
-    if (t.replace(/[^0-9]/g, "").length >= 2) return true;  // 数値データ（2桁以上）
-    if (it.ci === 6 && /[一-鿿]{2,}/.test(t)) return true;  // 降車地列の地名
-    return false;
+    return t.replace(/[^0-9]/g, "").length >= 2;  // 数値データ（2桁以上）
   };
   // 実体のある END 物理行だけ残す。表ヘッダーの END 列ラベル行(降車地/営Km/合計…。
   // 降車地は誤読で地名様になる)や、備考折り返し断片を END 物理行に数えると、END が
@@ -714,15 +716,9 @@ export function reconstructRows(ocr) {
     .map((er) => ({ er, ey: rawYc(er) }))
     .sort((a, b) => a.ey - b.ey);
 
-  // END 物理行 j とトリップ numberedIdx[k] は同じ物理行群に属する。
-  // END 物理行 j の y は numberedIdx[k] の START 行 y とおおむね同じ
-  // （END は自分のトリップ行の1つ上だが、隣接トリップ間 pitch 程度のズレ）。
-  // 貪欲＋ズレ監視で対応づける。
   let k = 0;
   for (const { er, ey } of endSorted) {
     if (k >= numberedIdx.length) break;
-    // 現在候補トリップの START 行より END 行 y が大きく下なら、
-    // 落ちた numbered 行があるので候補を進める。
     while (
       k + 1 < numberedIdx.length &&
       ey - startRawYc[numberedIdx[k]] > pitch * 1.4
