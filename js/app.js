@@ -1,3 +1,6 @@
+// アプリ更新の自動検知＋「今すぐ更新」帯（読み込むだけで作動。app.jsは主要ページ共通）
+import './app-update.js';
+
 // 開発環境判定 (GitHub Actions test)
 export function isDevEnvironment() {
   return location.hostname.includes('-dev') || 
