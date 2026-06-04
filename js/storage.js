@@ -6,9 +6,19 @@ const USE_FIREBASE = true;
 // Active provider module (loaded dynamically)
 let provider;
 
-// Firebase: initialize auth before loading storage
+// Firebase: 認証の初期化はバックグラウンドで開始するだけにし、描画クリティカルパスを
+// ブロックしない（コールドスタート対策・案1）。
+//
+// 以前はここで `await initAuth()` していたため、storage を import する全画面（特にホーム）の
+// 描画スクリプトが、Firebase 認証の復元＋Firestore 往復が終わるまで1行も動けなかった。
+// その結果コールドスタートでホームが数秒ブランクになっていた。
+//
+// 撤廃して安全な理由: ネットワークに触れる provider 関数はすべて内部で `await waitForAuth()`
+// してから通信する。一方 getConfig / getDrivesForMonth は waitForAuth の前に localStorage の
+// TTLキャッシュを即返しするため、キャッシュがあれば認証を待たずホームを即描画できる。
+// initAuth() は promise を返し、waitForAuth() が同じ promise を再利用する（多重実行されない）。
 const { initAuth } = await import('./firebase-auth.js');
-await initAuth();
+initAuth(); // fire-and-forget: 起動はするが await しない
 provider = await import('./firebase-storage.js');
 
 // Re-export all storage functions from the active provider

@@ -52,24 +52,41 @@ export async function initAuth() {
         }
         
         // 匿名ユーザーの場合
+        const localUserId = localStorage.getItem('taxi_user_id');
+        const localValid = localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId);
+
+        if (localValid) {
+          // 復帰ユーザーの通常ケース（コールドスタートの大半）: userId は localStorage で
+          // 確定できる。認証をここで即解決し、users/{uid} の同期(書き込み)は描画を止めず
+          // 裏で行う（案2）。以前は結果を使わない getDoc + setDoc の往復2回を resolve 前に
+          // 待っており、それがホームのブランク時間になっていた。
+          // users/{uid} は前回セッションで作成済みのため、裏書きでも Firestore ルール依存は無い。
+          currentUserId = localUserId;
+          unsubscribe();
+          resolve(user);
+          setDoc(doc(db, 'users', user.uid), {
+            userId: localUserId,
+            updatedAt: new Date().toISOString(),
+            isAnonymous: true
+          }, { merge: true }).catch(e => console.warn('user doc sync (bg) failed:', e));
+          return;
+        }
+
+        // localStorage に有効な userId が無い（端末初回相当）→ userId 確定のため users/{uid} を読む。
+        // この経路は users/{uid} 作成のルール依存があり得るため、従来どおり await する。
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
-          const localUserId = localStorage.getItem('taxi_user_id');
-          
-          // localStorageの有効なuserIdを優先（アカウント切り替え対応）
-          const effectiveUserId = (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId))
-            ? localUserId
-            : (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
-          
+          const effectiveUserId = (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
+
           currentUserId = effectiveUserId;
           localStorage.setItem('taxi_user_id', effectiveUserId);
-          
+
           await setDoc(doc(db, 'users', user.uid), {
             userId: effectiveUserId,
             updatedAt: new Date().toISOString(),
             isAnonymous: true
           }, { merge: true });
-          
+
           unsubscribe();
           resolve(user);
         } catch (e) {
