@@ -150,6 +150,16 @@ test(`detectTopics: ${BIG_DELAY_MIN}分以上の遅延便だけ拾う`, () => {
   assert.equal(topics[0].delayMin, 45);
 });
 
+test('detectTopics: poolLane(号)を topic に持たせる(未確定は null)', () => {
+  const flights = [
+    { flightNumber: 'JL9', scheduledTime: '10:00', estimatedTime: '10:45', terminal: 'T2', poolLane: 4 },
+    { flightNumber: 'JL8', scheduledTime: '11:00', estimatedTime: '11:50' }, // poolLane 未確定
+  ];
+  const topics = detectTopics(flights);
+  assert.equal(topics.find(t => t.flightNumber === 'JL9').poolLane, 4);
+  assert.equal(topics.find(t => t.flightNumber === 'JL8').poolLane, null);
+});
+
 test('detectTopics: 到着済みの便は除外する', () => {
   const flights = [
     { flightNumber: 'NH4', scheduledTime: '09:00', estimatedTime: '10:00', status: '到着' },

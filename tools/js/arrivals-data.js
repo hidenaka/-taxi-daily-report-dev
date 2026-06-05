@@ -214,6 +214,7 @@ export function detectTopics(flights) {
       flightNumber: f.flightNumber,
       fromName: f.fromName,
       terminal: f.terminal,
+      poolLane: f.poolLane ?? null,
       scheduledTime: f.scheduledTime,
       estimatedTime: f.estimatedTime ?? f.scheduledTime,
       delayMin,

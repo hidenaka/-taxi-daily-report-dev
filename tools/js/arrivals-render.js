@@ -141,11 +141,14 @@ export function renderTopics(container, topics) {
       ? `約${t.estimatedPax}人`
       : '推定不可';
     const detail = `${t.scheduledTime}→${t.estimatedTime} (${t.delayMin}分遅延) / ${paxLabel}`;
+    // ターミナルの隣に号(poolLane 1-4)を併記。未確定は号を出さない。
+    const laneSuffix = (Number.isInteger(t.poolLane) && t.poolLane >= 1 && t.poolLane <= 4)
+      ? ` <span class="topic-lane lane-${t.poolLane}">${t.poolLane}号</span>` : '';
     return `<div class="topic-item">
       <span class="topic-flight">${t.flightNumber}</span>
       <span class="topic-from">${t.fromName}</span>
       <span class="topic-detail">${detail}</span>
-      <span class="topic-terminal">${t.terminal}</span>
+      <span class="topic-terminal">${t.terminal}${laneSuffix}</span>
     </div>`;
   }).join('');
   container.innerHTML = `
