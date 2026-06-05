@@ -466,6 +466,28 @@
     .hv-video { width: 100%; max-width: 300px; margin: 0 auto; display: block; border-radius: 12px; background: #000; aspect-ratio: 9 / 16; object-fit: contain; }
     .hv-cap { font-size: 11px; color: #9aa0a6; text-align: center; margin: 8px 0 0; }
     .hv-close { display: block; width: 100%; min-height: 0; margin-top: 10px; padding: 9px; background: #e8f1fb; color: #0066cc; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.mode-switch { display: flex; gap: 6px; margin-bottom: 12px; }
+.mode-btn {
+  flex: 1; padding: 8px 6px; border: 1px solid var(--line, #d8d2bf);
+  background: #fff; border-radius: 8px; font-size: 14px; cursor: pointer; color: #555;
+}
+.mode-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; font-weight: 700; }
+.countdown-panel {
+  margin-bottom: 14px; padding: 12px; background: #f4f6fb;
+  border: 1px solid #dbe2f0; border-radius: 10px; text-align: left;
+}
+.cd-label { font-size: 12px; color: #666; margin-bottom: 6px; }
+.cd-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.cd-preset {
+  padding: 6px 12px; border: 1px solid #cdd6ea; background: #fff;
+  border-radius: 999px; font-size: 13px; cursor: pointer; color: #333;
+}
+.cd-preset.active { background: #1f6feb; color: #fff; border-color: #1f6feb; font-weight: 700; }
+.cd-custom { margin-bottom: 10px; }
+.cd-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-top: 6px; cursor: pointer; }
+#stopwatch-display.over { color: #c83a2c; }
+@keyframes cd-flash { 0%,100% { background: transparent; } 50% { background: #f6dcd6; } }
+.stopwatch.flash { animation: cd-flash 0.5s ease-in-out 3; border-radius: 12px; }
   </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -491,6 +513,31 @@
     <div class="help-video" id="help-video-timer" style="padding:0 4px;"></div>
 
     <section class="stopwatch">
+      <div class="mode-switch" role="tablist" aria-label="計測モード">
+        <button id="mode-up" class="mode-btn active" type="button" role="tab" aria-selected="true">カウントアップ</button>
+        <button id="mode-down" class="mode-btn" type="button" role="tab" aria-selected="false">カウントダウン</button>
+      </div>
+
+      <div id="countdown-panel" class="countdown-panel" hidden>
+        <div class="cd-label">目標</div>
+        <div class="cd-presets" id="cd-presets">
+          <button class="cd-preset" type="button" data-min="11">11分</button>
+          <button class="cd-preset" type="button" data-min="15">15分</button>
+          <button class="cd-preset" type="button" data-min="27">27分</button>
+          <button class="cd-preset" type="button" data-min="30">30分</button>
+          <button class="cd-preset" type="button" data-min="45">45分</button>
+          <button class="cd-preset" type="button" data-min="60">60分</button>
+        </div>
+        <div class="cd-custom hm-input">
+          <input type="number" id="cd-hour" min="0" max="23" step="1" inputmode="numeric">
+          <span>時間</span>
+          <input type="number" id="cd-min" min="0" max="59" step="1" inputmode="numeric">
+          <span>分</span>
+        </div>
+        <label class="cd-toggle"><input type="checkbox" id="cd-sound"> 0で音を鳴らす</label>
+        <label class="cd-toggle"><input type="checkbox" id="cd-wakelock"> 休憩中は画面を消さない</label>
+      </div>
+
       <div id="stopwatch-display">00:00:00</div>
       <div id="stopwatch-started" class="stopwatch-started"></div>
       <div id="provisional-break" class="provisional-break"></div>
