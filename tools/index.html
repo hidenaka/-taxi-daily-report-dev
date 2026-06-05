@@ -1158,6 +1158,7 @@ $('break-count-min').addEventListener('change', onBreakCountChange);
 function setMode(mode) {
   state.mode = mode === 'down' ? 'down' : 'up';
   prevRemainingMs = null;            // モード切替で0クロス追跡をリセット
+  countdownNotified = false;         // モード切替で通知を再武装
   saveState(state);
   renderAll();
 }
