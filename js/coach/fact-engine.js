@@ -5,6 +5,7 @@ import {
   hourlyDowEfficiency,
   nextBoardBreakdown,
   highValueAreas,
+  getPeriodKey,
 } from '../chart-helpers.js';
 import { computeGoalProgress } from './daily-goal.js';
 
@@ -55,12 +56,12 @@ export function buildFactPack(input) {
     .slice(0, 3)
     .map((r) => ({ area: r.area, count: Number(r.count) || 0 }));
 
-  // --- highValue: 高期待値エリア上位3件 ---
-  const hv = highValueAreas(drives, { minSamples: 1 }).slice(0, 3).map((h) => ({
-    area: h.area,
-    period: h.period,
-    avgSales: Math.round(h.avgSales),
-  }));
+  // --- highValue: 高期待値エリア上位3件（現在の時間帯のみ） ---
+  const curPeriod = getPeriodKey(`${String(hour).padStart(2, '0')}:00`);
+  const hv = highValueAreas(drives, { minSamples: 1 })
+    .filter((h) => h.period === curPeriod)
+    .slice(0, 3)
+    .map((h) => ({ area: h.area, period: h.period, avgSales: Math.round(h.avgSales) }));
 
   // --- goal: 目標逆算 ---
   const goalProgress = goal

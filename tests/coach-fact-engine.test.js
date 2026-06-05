@@ -85,4 +85,19 @@ describe('buildFactPack', () => {
     assert.ok(typeof first.area === 'string' && first.area.length > 0);
     assert.ok(typeof first.count === 'number' && first.count > 0);
   });
+
+  it('highValue(spots)は現在の時間帯のみ（夜に午前の高単価を出さない）', () => {
+    const mixed = [
+      { date: '2026-05-01', departureTime: '07:00', returnTime: '23:00', trips: [
+        { amount: 3000, boardTime: '10:00', alightTime: '10:20', boardPlace: '新宿区西新宿1', alightPlace: '渋谷区渋谷1', isPickup: false, isCancel: false },
+        { amount: 2500, boardTime: '19:00', alightTime: '19:20', boardPlace: '港区六本木6', alightPlace: '渋谷区恵比寿1', isPickup: false, isCancel: false },
+      ] },
+    ];
+    const evening = buildFactPack({ drives: mixed, ctx: { area: '港区六本木', dow: 5, hour: 19, nowMin: 1140, vehicleType: 'premium' }, goal: null, todaySales: 0 });
+    assert.ok(evening.highValue.every((h) => h.period === 'evening'), '夜なのにevening以外が混入');
+    assert.ok(!evening.highValue.some((h) => h.area === '新宿区西新宿'), '午前の高単価エリアが夜に出ている');
+
+    const morning = buildFactPack({ drives: mixed, ctx: { area: '新宿区西新宿', dow: 5, hour: 10, nowMin: 600, vehicleType: 'premium' }, goal: null, todaySales: 0 });
+    assert.ok(morning.highValue.every((h) => h.period === 'morning'), '午前なのにmorning以外が混入');
+  });
 });
