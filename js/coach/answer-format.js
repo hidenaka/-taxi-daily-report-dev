@@ -23,11 +23,15 @@ export function formatAnswer(plan) {
     lines.push('今わかる範囲でお答えします');
   }
 
-  if (Array.isArray(plan.moves) && plan.moves.length) {
+  const regime = plan.regime || { kind: 'unknown' };
+  if (regime.kind === 'volume') lines.push('🔁 今は回転の時間（数で稼ぐ）');
+  else if (regime.kind === 'value') lines.push('💎 今は単価の時間（1組を大きく）');
+
+  if (regime.kind !== 'value' && Array.isArray(plan.moves) && plan.moves.length) {
     lines.push(`次の一手：${plan.moves.map((m) => m.area).join(' → ')}`);
   }
 
-  if (Array.isArray(plan.spots) && plan.spots.length) {
+  if (regime.kind !== 'volume' && Array.isArray(plan.spots) && plan.spots.length) {
     lines.push(`高期待値：${plan.spots.map((s) => `${s.area}(${s.period}) ¥${yen(s.avgSales)}`).join('、')}`);
   }
 

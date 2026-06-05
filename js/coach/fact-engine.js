@@ -8,6 +8,7 @@ import {
   getPeriodKey,
 } from '../chart-helpers.js';
 import { computeGoalProgress } from './daily-goal.js';
+import { expectedRideDensity, classifyRegime } from './regime.js';
 
 /**
  * drives 内の非キャンセル trip の売上平均を返す。
@@ -68,11 +69,15 @@ export function buildFactPack(input) {
     ? computeGoalProgress(goal, { todaySales, nowMin, avgTripYen: avgTripYen(drives) })
     : null;
 
+  const density = expectedRideDensity(drives, dow, hour);
+  const regime = { kind: classifyRegime(density), density };
+
   return {
     now: { area, dow, hour, vehicleType },
     you: { hourlyA },
     nextMoves,
     highValue: hv,
     goal: goalProgress,
+    regime,
   };
 }

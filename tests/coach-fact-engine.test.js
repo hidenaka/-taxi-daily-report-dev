@@ -86,6 +86,23 @@ describe('buildFactPack', () => {
     assert.ok(typeof first.count === 'number' && first.count > 0);
   });
 
+  it('regime: dow×hourの期待乗車数からvolume/valueを判定して載せる', () => {
+    const busy = [
+      { date: '2026-05-01', departureTime: '07:00', returnTime: '23:00', trips: [
+        { amount: 2000, boardTime: '19:10', alightTime: '19:25', boardPlace: '港区六本木6', alightPlace: '渋谷区恵比寿1', isCancel: false },
+        { amount: 2200, boardTime: '19:40', alightTime: '19:55', boardPlace: '港区西麻布2', alightPlace: '目黒区中目黒1', isCancel: false },
+      ] },
+      { date: '2026-05-08', departureTime: '07:00', returnTime: '23:00', trips: [
+        { amount: 2400, boardTime: '19:15', alightTime: '19:30', boardPlace: '港区六本木6', alightPlace: '渋谷区渋谷2', isCancel: false },
+      ] },
+    ];
+    const fp = buildFactPack({ drives: busy, ctx: { area: '港区六本木', dow: 5, hour: 19, nowMin: 1140, vehicleType: 'premium' }, goal: null, todaySales: 0 });
+    assert.strictEqual(fp.regime.kind, 'volume');
+    assert.strictEqual(fp.regime.density, 1.5);
+    const fp2 = buildFactPack({ drives: busy, ctx: { area: '港区六本木', dow: 1, hour: 19, nowMin: 1140, vehicleType: 'premium' }, goal: null, todaySales: 0 });
+    assert.strictEqual(fp2.regime.kind, 'unknown');
+  });
+
   it('highValue(spots)は現在の時間帯のみ（夜に午前の高単価を出さない）', () => {
     const mixed = [
       { date: '2026-05-01', departureTime: '07:00', returnTime: '23:00', trips: [

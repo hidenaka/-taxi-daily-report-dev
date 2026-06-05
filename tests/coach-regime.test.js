@@ -33,4 +33,5 @@ describe('classifyRegime', () => {
   it('しきい値は opts で変更可', () => {
     assert.strictEqual(classifyRegime(2.5, { threshold: 3 }), 'value');
   });
+  it('しきい値ちょうど(1.5)は volume (>=)', () => { assert.strictEqual(classifyRegime(1.5), 'volume'); });
 });

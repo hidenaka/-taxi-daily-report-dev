@@ -70,6 +70,34 @@ describe('formatAnswer', () => {
     assert.ok(!t.includes('分で目標時刻'), '分で目標時刻を含まない');
   });
 
+  it('volumeレジーム: 回転見出し＋次の一手を出し、高単価エリアは出さない', () => {
+    const plan = { intent: 'assess-here', status: 'in-progress',
+      facts: { remainingYen: null, neededTrips: null, remainingMin: null, hourlyA: 3900 },
+      moves: [ { area: '港区西麻布', count: 3 } ], spots: [ { area: '港区六本木', period: '夜', avgSales: 2600 } ],
+      basis: [], regime: { kind: 'volume', density: 2.5 } };
+    const t = formatAnswer(plan).join('\n');
+    assert.ok(t.includes('回転'));
+    assert.ok(t.includes('港区西麻布'));
+    assert.ok(!t.includes('高期待値'));
+  });
+  it('valueレジーム: 単価見出し＋高単価エリアを出す', () => {
+    const plan = { intent: 'assess-here', status: 'in-progress',
+      facts: { remainingYen: null, neededTrips: null, remainingMin: null, hourlyA: 3900 },
+      moves: [ { area: '港区西麻布', count: 3 } ], spots: [ { area: '港区六本木', period: '夜', avgSales: 2600 } ],
+      basis: [], regime: { kind: 'value', density: 0.5 } };
+    const t = formatAnswer(plan).join('\n');
+    assert.ok(t.includes('単価'));
+    assert.ok(t.includes('高期待値'));
+    assert.ok(t.includes('港区六本木'));
+  });
+  it('regime未指定は従来通り（moves も spots も出す）', () => {
+    const plan = { intent: 'reach-goal', status: 'in-progress',
+      facts: { remainingYen: 8600, neededTrips: 4, remainingMin: null, hourlyA: 3900 },
+      moves: [ { area: '港区西麻布', count: 3 } ], spots: [ { area: '港区六本木', period: '夜', avgSales: 2600 } ], basis: [] };
+    const t = formatAnswer(plan).join('\n');
+    assert.ok(t.includes('港区西麻布') && t.includes('高期待値'));
+  });
+
   it('yen()丸め: remainingYen=1234.5 のとき小数点付き金額を出さない', () => {
     const plan = { intent: 'reach-goal', status: 'in-progress',
       facts: { remainingYen: 1234.5, neededTrips: null, remainingMin: null, hourlyA: null }, moves: [], spots: [], basis: [] };

@@ -37,5 +37,6 @@ export function composeAnswer(factPack, intent) {
   if (facts.hourlyA != null) basis.push('your-hourly');
   if (highValue.length) basis.push('high-value');
 
-  return { intent, status, facts, moves, basis, spots };
+  const regime = factPack.regime || { kind: 'unknown', density: null };
+  return { intent, status, facts, moves, basis, spots, regime };
 }

@@ -65,4 +65,13 @@ describe('composeAnswer', () => {
   it('未知の intent は throw', () => {
     assert.throws(() => composeAnswer(baseFactPack, 'bogus'), /unknown intent/);
   });
+  it('regime を AnswerPlan に載せる', () => {
+    const fp = { ...baseFactPack, regime: { kind: 'value', density: 0.5 } };
+    const a = composeAnswer(fp, 'assess-here');
+    assert.deepStrictEqual(a.regime, { kind: 'value', density: 0.5 });
+  });
+  it('regime 未指定なら kind unknown を既定にする', () => {
+    const a = composeAnswer(baseFactPack, 'assess-here');
+    assert.strictEqual(a.regime.kind, 'unknown');
+  });
 });
