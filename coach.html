@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Cabis ｜ AI営業相談</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+.goal-type-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.goal-type-row label { display: flex; align-items: center; gap: 4px; font-size: 13px; cursor: pointer; }
+.goal-input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.goal-input-row input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+.goal-save-btn { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.goal-display { font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 6px; }
+.goal-edit-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; }
+#chips { display: flex; flex-direction: column; gap: 8px; margin-bottom: 0; }
+.chip-btn { background: var(--surface, #fff); border: 1px solid var(--primary); color: var(--primary); padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: left; }
+.chip-btn:active { background: var(--primary); color: #fff; }
+#answer { margin-top: 6px; }
+.coach-msg { font-size: 14px; line-height: 1.7; padding: 6px 0; border-bottom: 1px solid #f0f0f0; color: #333; }
+.coach-msg:last-child { border-bottom: none; }
+#areaStatus { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 18px; }
+.gps-btn { background: #fff; color: var(--primary); border: 1px solid var(--primary); padding: 8px 14px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; }
+</style>
+<style>body{visibility:hidden;pointer-events:none;}</style>
+</head>
+<body>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+localStorage.removeItem('github_token');
+localStorage.removeItem('github_data_repo');
+
+if (location.hostname.includes('-dev')) {
+  document.addEventListener('DOMContentLoaded', () => {
+    const badge = document.createElement('div');
+    badge.textContent = '🚧 開発環境';
+    badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ff9800;color:#fff;padding:4px 8px;font-size:11px;text-align:center;font-weight:600;z-index:9999;';
+    document.body.appendChild(badge);
+  });
+}
+</script>
+<main style="padding:14px;">
+  <h1 style="margin-top:0;">AI営業相談</h1>
+
+  <!-- 目標カード -->
+  <section class="card" id="goalCard">
+    <strong>今日の目標</strong>
+    <div id="goalDisplay" style="margin-top:8px;"></div>
+    <div id="goalForm" style="margin-top:8px;">
+      <div class="goal-type-row">
+        <label><input type="radio" name="goalType" value="money" checked> 金額 ¥</label>
+        <label><input type="radio" name="goalType" value="time"> 帰宅時刻 HH:MM</label>
+      </div>
+      <div class="goal-input-row">
+        <input type="number" id="goalMoney" placeholder="例: 35000" min="1" style="display:block;">
+        <input type="time" id="goalTime" style="display:none;">
+        <button class="goal-save-btn" id="goalSaveBtn">保存</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 現在地カード -->
+  <section class="card" id="areaCard">
+    <strong>現在地</strong>
+    <div style="margin-top:8px;">
+      <button class="gps-btn" id="gpsBtn">📍 現在地を取得</button>
+      <div id="areaStatus"></div>
+    </div>
+  </section>
+
+  <!-- チップ -->
+  <section class="card">
+    <strong>何を相談しますか？</strong>
+    <div id="chips" style="margin-top:10px;">
+      <button class="chip-btn" data-intent="reach-goal">目標まで どう動く</button>
+      <button class="chip-btn" data-intent="assess-here">今の場所どう？</button>
+      <button class="chip-btn" data-intent="finish-early">早く帰りたい</button>
+    </div>
+  </section>
+
+  <!-- 回答 -->
+  <section class="card" id="answerCard" style="display:none;">
+    <strong>アドバイス</strong>
+    <div id="answer" style="margin-top:8px;"></div>
+  </section>
+</main>
+<div id="navHost"></div>
+<script type="module" src="./js/coach/coach-ui.js"></script>
+</body>
+</html>
