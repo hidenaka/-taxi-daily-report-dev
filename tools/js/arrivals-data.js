@@ -50,6 +50,57 @@ export function filterByLane(flights, lane) {
   return (flights || []).filter(f => f.poolLane === lane);
 }
 
+// 「到着の谷間」検出: ロビーに出る時刻(遅延込み=lobbyExitTime優先)を15分ビンで並べ、
+// ロビー客がぐっと減る区間(=次にタクシー需要が手薄になる時間帯)を返す。
+// 遅延で便が後ろにずれてできた空白も lobbyExitTime で見るので自動的に拾える。
+// 判定: ビンのロビー出 pax が「直近の中央値×lowRatio」と下限 lowFloor の大きい方を下回る or 便0 → 手薄。
+//       手薄が連続し、その後に通常の到着が戻る(末尾の本日終了は除外)区間を「谷間/手薄」とする。
+// 返り値: { kind:'gap'(>=minGapMin) | 'lull', startMin, endMin, durationMin } または null。
+export function detectArrivalGap(flights, nowMin, opts = {}) {
+  const BIN = opts.binMin ?? 15;
+  const lookahead = opts.lookaheadMin ?? 240;
+  const minGap = opts.minGapMin ?? 30;
+  const lowRatio = opts.lowRatio ?? 0.4;
+  const lowFloor = opts.lowFloor ?? 350;
+  const t2m = (t) => {
+    if (!t || String(t).length < 4) return null;
+    const a = String(t).split(':'); const h = +a[0], m = +a[1];
+    return Number.isFinite(h) && Number.isFinite(m) ? h * 60 + m : null;
+  };
+  const upcoming = [];
+  for (const f of (flights || [])) {
+    if (f.status === '欠航') continue;
+    const tm = t2m(f.lobbyExitTime ?? f.estimatedTime ?? f.scheduledTime);
+    if (tm == null || tm < nowMin || tm > nowMin + lookahead) continue;
+    upcoming.push({ tm, pax: typeof f.estimatedPax === 'number' ? f.estimatedPax : 0 });
+  }
+  if (upcoming.length === 0) return null;
+  const lastMin = Math.max(...upcoming.map((u) => u.tm));
+  const bins = new Map();
+  for (const u of upcoming) {
+    const b = Math.floor(u.tm / BIN) * BIN;
+    const cur = bins.get(b) || { pax: 0, count: 0 };
+    cur.pax += u.pax; cur.count += 1; bins.set(b, cur);
+  }
+  const paxVals = [...bins.values()].map((b) => b.pax).sort((a, b) => a - b);
+  const ref = paxVals.length ? paxVals[Math.floor(paxVals.length / 2)] : 0;
+  const threshold = Math.max(lowFloor, ref * lowRatio);
+  const isLull = (slot) => { const b = bins.get(slot); return !b || b.count === 0 || b.pax < threshold; };
+  const startSlot = Math.floor(nowMin / BIN) * BIN;
+  const lastSlot = Math.floor(lastMin / BIN) * BIN;
+  for (let slot = startSlot; slot <= lastSlot; slot += BIN) {
+    if (!isLull(slot)) continue;
+    let run = slot;
+    while (run + BIN <= lastSlot && isLull(run + BIN)) run += BIN;
+    if (run < lastSlot) { // run の後に通常の到着が戻る(=末尾の本日終了ではない)
+      const durationMin = (run + BIN) - slot;
+      return { kind: durationMin >= minGap ? 'gap' : 'lull', startMin: slot, endMin: run + BIN, durationMin };
+    }
+    break; // 末尾の空白(以降便なし)は谷間にしない
+  }
+  return null;
+}
+
 export function filterByTimeWindow(flights, nowDate, pastMinutes = 30, futureMinutes = 180) {
   const nowMin = nowDate.getHours() * 60 + nowDate.getMinutes();
   return flights.filter(f => {

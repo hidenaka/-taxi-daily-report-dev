@@ -128,6 +128,21 @@ export function renderSummary(container, summary) {
   `;
 }
 
+// 「到着の谷間/手薄」バナー。detectArrivalGap の戻り値(または null)を受け取る。
+export function renderArrivalGap(container, gap) {
+  if (!container) return;
+  if (!gap) { container.innerHTML = ''; container.hidden = true; container.className = 'arrival-gap'; return; }
+  const fmt = (m) => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+  container.hidden = false;
+  if (gap.kind === 'gap') {
+    container.className = 'arrival-gap is-gap';
+    container.innerHTML = `⏳ <b>到着の谷間 ${fmt(gap.startMin)}〜${fmt(gap.endMin)}</b>　この間はロビーに出る客がぐっと減ります`;
+  } else {
+    container.className = 'arrival-gap is-lull';
+    container.innerHTML = `△ <b>${fmt(gap.startMin)}頃は到着が手薄</b>　ロビーに出る客が少なめ`;
+  }
+}
+
 export function renderTopics(container, topics) {
   if (!container) return;
   if (topics.length === 0) {

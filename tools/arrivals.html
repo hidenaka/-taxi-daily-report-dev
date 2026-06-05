@@ -81,6 +81,9 @@
     #flight-list-section .section-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     #flight-list-section .section-head h2 { margin: 8px 0; }
     .origin-filter { padding: 4px 8px; background: #16161c; color: var(--fg); border: 1px solid #333; border-radius: 6px; font-size: 13px; max-width: 200px; }
+    .arrival-gap { margin: 8px 12px; padding: 9px 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+    .arrival-gap.is-gap { background: #2a2012; border: 1px solid #6b4f1d; color: #ffd9a0; }
+    .arrival-gap.is-lull { background: #1a1a22; border: 1px solid #34344a; color: var(--sub); }
     .lane-filter { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 8px; }
     .lane-btn { background: #1a1a1d; color: var(--sub); border: none; border-radius: 6px; padding: 5px 11px; font-size: 13px; cursor: pointer; }
     .lane-btn.is-active { background: var(--accent); color: #000; font-weight: 700; }
@@ -284,6 +287,9 @@
   <div id="weather-banner" hidden></div>
 
   <section id="noriba-cards-section" class="noriba-section"></section>
+
+  <!-- 到着の谷間/手薄: 遅延込みで「ロビー客がぐっと減る時間帯」を予告 -->
+  <div id="arrival-gap" class="arrival-gap" hidden></div>
 
   <!-- 大幅遅延便情報: 乗り場別到着見込みの下・プール現況/列移動の上(ドライバーに重要な情報のため上部に配置) -->
   <div id="topics" hidden></div>

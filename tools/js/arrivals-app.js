@@ -1,5 +1,5 @@
-import { loadArrivals, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderNoribaCards } from './arrivals-render.js';
+import { loadArrivals, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba, detectArrivalGap } from './arrivals-data.js';
+import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderNoribaCards, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle } from './pool-status-section.js';
 
@@ -59,6 +59,12 @@ function render() {
   renderNoribaCards(
     document.getElementById('noriba-cards-section'),
     summarizeByNoriba(state.arrivals, new Date(), state.noribaWindow)
+  );
+  // 到着の谷間/手薄(遅延込みのロビー出が減る時間帯)。タブ非依存・全便で判定。
+  const nowD = new Date();
+  renderArrivalGap(
+    document.getElementById('arrival-gap'),
+    detectArrivalGap(state.arrivals.flights, nowD.getHours() * 60 + nowD.getMinutes())
   );
   renderTopics(document.getElementById('topics'), topics);
   renderSummary(document.getElementById('summary'), summary);

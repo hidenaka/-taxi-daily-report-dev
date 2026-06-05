@@ -1,5 +1,44 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap } from '../tools/js/arrivals-data.js';
+
+// ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
+const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
+
+test('detectArrivalGap: 便が30分以上途切れる区間を gap として返す', () => {
+  // 10:00台は便あり→10:15〜11:00は空→11:00便あり。now=10:00
+  const flights = [gf('10:00', 1000), gf('10:05', 1000), gf('11:00', 1000)];
+  const r = detectArrivalGap(flights, 600);
+  assert.equal(r.kind, 'gap');
+  assert.equal(r.startMin, 615); // 10:15
+  assert.equal(r.endMin, 660);   // 11:00
+  assert.equal(r.durationMin, 45);
+});
+
+test('detectArrivalGap: 単発の手薄枠は lull として返す', () => {
+  // 全枠混むが12:30だけロビー出が激減(200)。now=12:00
+  const flights = [gf('12:00', 1500), gf('12:15', 1500), gf('12:30', 200), gf('12:45', 1500), gf('13:00', 1500)];
+  const r = detectArrivalGap(flights, 720);
+  assert.equal(r.kind, 'lull');
+  assert.equal(r.startMin, 750); // 12:30
+  assert.equal(r.endMin, 765);   // 12:45
+});
+
+test('detectArrivalGap: 途切れず続くなら null', () => {
+  const flights = [gf('12:00', 1500), gf('12:15', 1400), gf('12:30', 1600), gf('12:45', 1500)];
+  assert.equal(detectArrivalGap(flights, 720), null);
+});
+
+test('detectArrivalGap: 末尾の空白(以降に便なし=本日の到着終了)は谷間にしない', () => {
+  const flights = [gf('12:00', 1500)]; // これ以降便なし
+  assert.equal(detectArrivalGap(flights, 720), null);
+});
+
+test('detectArrivalGap: 欠航便は無視する', () => {
+  const flights = [gf('12:00', 1500), { lobbyExitTime: '12:30', estimatedPax: 1500, status: '欠航' }, gf('13:00', 1500)];
+  const r = detectArrivalGap(flights, 720);
+  assert.equal(r.kind, 'gap'); // 12:15〜13:00 が空く
+  assert.equal(r.startMin, 735);
+});
 
 test('filterByLane: 0/未指定は全便、1-4はpoolLane一致のみ', () => {
   const flights = [
