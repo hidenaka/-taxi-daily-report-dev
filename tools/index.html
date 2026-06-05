@@ -997,10 +997,14 @@ function renderAll() {
 // ============================================================
 
 $('btn-start').addEventListener('click', () => {
+  ensureAudio();                    // iOS 音解除（ユーザー操作内で）
   state.stopwatch.running = true;
   state.stopwatch.startedAt = Date.now();
   state.stopwatch.elapsedMs = 0;
+  prevRemainingMs = null;           // 0クロス追跡リセット
+  countdownNotified = false;        // 通知を再武装
   saveState(state);
+  syncWakeLock();                   // 走行開始でWake Lock反映（Task 6）
   renderAll();
 });
 
@@ -1201,6 +1205,42 @@ $('btn-settings-toggle').addEventListener('click', () => {
   toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
 });
 
+// --- 0クロス通知 ---
+let audioCtx = null;
+function ensureAudio() {
+  // iOS の自動再生制限解除のため、ユーザー操作(スタート)時に生成/resume する
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  } catch (e) { /* 非対応環境は無視 */ }
+}
+function beep() {
+  if (!state.soundOn || !audioCtx) return;
+  try {
+    const now = audioCtx.currentTime;
+    [0, 0.25].forEach((offset) => {           // 短音×2
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.0001, now + offset);
+      gain.gain.exponentialRampToValueAtTime(0.3, now + offset + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.18);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now + offset); osc.stop(now + offset + 0.2);
+    });
+  } catch (e) { /* 無視 */ }
+}
+function fireZeroNotification() {
+  beep();                                       // soundOn のときだけ鳴る
+  try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+  const sw = document.querySelector('.stopwatch');
+  if (sw) { sw.classList.remove('flash'); void sw.offsetWidth; sw.classList.add('flash'); }
+}
+
 const RESET_UNDO_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
 
 function captureResetSnapshot() {
@@ -1265,6 +1305,17 @@ setInterval(() => {
     saveState(state);
     renderAll();
     return;
+  }
+  // カウントダウンの0クロス検出（前面表示中のみ動作）
+  if (state.mode === 'down' && state.stopwatch.running) {
+    const remaining = computeRemainingMs(currentStopwatchMs(), state.countdownTargetMin);
+    if (!countdownNotified && prevRemainingMs !== null && crossedZero(prevRemainingMs, remaining)) {
+      countdownNotified = true;
+      fireZeroNotification();
+    }
+    prevRemainingMs = remaining;
+  } else {
+    prevRemainingMs = null;
   }
   renderStopwatch();
   renderMetrics();
