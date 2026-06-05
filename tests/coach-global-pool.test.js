@@ -48,4 +48,11 @@ describe('buildGlobalPool', () => {
     const gp = buildGlobalPool([], { nowIso: '2026-05-10T00:00:00.000Z' });
     assert.deepStrictEqual(gp.byVehicleType, {});
   });
+  it('heatmapセルに個人特定可能な peerValues を含めない（匿名化）', () => {
+    const gp = buildGlobalPool(drivesPremium, { nowIso: '2026-05-10T00:00:00.000Z' });
+    for (const cell of gp.byVehicleType.premium.heatmap) {
+      assert.ok(!('peerValues' in cell), 'peerValues が残存');
+      assert.ok(typeof cell.hourlyA === 'number' && typeof cell.days === 'number');
+    }
+  });
 });

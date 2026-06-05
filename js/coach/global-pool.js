@@ -18,7 +18,9 @@ export function buildGlobalPool(drives, opts = {}) {
     const users = new Set();
     for (const d of segDrives) { if (d && d._userId) users.add(d._userId); }
     const pool = buildGroupPool(segDrives, users.size, { nowIso, months });
-    pool.heatmap = (pool.heatmap || []).filter((c) => c.days >= 2);
+    pool.heatmap = (pool.heatmap || [])
+      .filter((c) => c.days >= 2)
+      .map((c) => ({ dow: c.dow, h: c.h, hourlyA: c.hourlyA, days: c.days }));
     byVehicleType[vt] = pool;
   }
 
