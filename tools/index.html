@@ -765,9 +765,25 @@ if (state.mode === 'down' && state.stopwatch.running) {
   if (computeRemainingMs(_ms, state.countdownTargetMin) <= 0) countdownNotified = true;
 }
 
-// Wake Lock のスタブ（Task 6 で実体に差し替える）。
-// これにより Task 4/5 で syncWakeLock() を呼んでも各コミットが動作する。
-function syncWakeLock() {}
+// Wake Lock（画面常時点灯）。wakeLockOn かつ 走行中 かつ 前面表示中 のときだけ取得。
+let wakeLockSentinel = null;
+async function syncWakeLock() {
+  const want = state.wakeLockOn && state.stopwatch.running && document.visibilityState === 'visible';
+  try {
+    if (want && !wakeLockSentinel && navigator.wakeLock) {
+      wakeLockSentinel = await navigator.wakeLock.request('screen');
+      wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+    } else if (!want && wakeLockSentinel) {
+      await wakeLockSentinel.release();
+      wakeLockSentinel = null;
+    }
+  } catch (e) {
+    // 非対応(iOS16.4未満等)やユーザー拒否は no-op
+    wakeLockSentinel = null;
+  }
+}
+// 復帰時に再取得（iOSはタブ非表示で自動解放されるため）
+document.addEventListener('visibilitychange', () => { syncWakeLock(); });
 
 function currentStopwatchMs() {
   if (!state.stopwatch.running) return state.stopwatch.elapsedMs;
@@ -1012,7 +1028,10 @@ $('btn-discard').addEventListener('click', () => {
   state.stopwatch.running = false;
   state.stopwatch.startedAt = null;
   state.stopwatch.elapsedMs = 0;
+  prevRemainingMs = null;
+  countdownNotified = false;
   saveState(state);
+  syncWakeLock();
   renderAll();
 });
 
@@ -1027,7 +1046,10 @@ $('btn-record').addEventListener('click', () => {
   state.stopwatch.running = false;
   state.stopwatch.startedAt = null;
   state.stopwatch.elapsedMs = 0;
+  prevRemainingMs = null;
+  countdownNotified = false;
   saveState(state);
+  syncWakeLock();
   renderAll();
 });
 
@@ -1272,6 +1294,7 @@ $('btn-reset').addEventListener('click', () => {
   baseline.setHours(h, m, 0, 0);
   state.shiftStartAt = baseline.getTime();
   saveState(state);
+  syncWakeLock();
   renderAll();
 });
 
@@ -1327,6 +1350,7 @@ setInterval(() => {
 // ============================================================
 
 renderAll();
+syncWakeLock();   // リロード時に running かつ wakeLockOn なら再取得
 
 // Keep tab navigation inside standalone/PWA mode on iOS (prevents kick-out to Safari)
 document.querySelectorAll('.app-tab').forEach(a => {
