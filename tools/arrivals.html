@@ -135,8 +135,10 @@
     .nc-window { display: flex; gap: 4px; }
     .ncw-btn { background: #1a1a1d; color: var(--sub); border: none; border-radius: 6px; padding: 5px 9px; font-size: 12px; cursor: pointer; }
     .ncw-btn.is-active { background: var(--accent); color: #000; font-weight: 700; }
-    .noriba-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-    .noriba-card { background: #15151a; border-radius: 8px; padding: 8px; border-left: 4px solid #555; }
+    /* minmax(0,1fr): 1fr の暗黙の min(=auto=中身の最小幅)を 0 にし、どの画面幅でも4列が必ず1/4ずつに収まるようにする(スマホでの横はみ出し防止)。 */
+    .noriba-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    /* min-width:0 + overflow:hidden で、nowrap の便名(nc-next/nc-last)がトラックを押し広げず ellipsis で省略されるようにする。 */
+    .noriba-card { background: #15151a; border-radius: 8px; padding: 8px; border-left: 4px solid #555; min-width: 0; overflow: hidden; }
     .noriba-card.nlane-1 { border-left-color: #f97316; }
     .noriba-card.nlane-2 { border-left-color: #eab308; }
     .noriba-card.nlane-3 { border-left-color: #14b8a6; }
