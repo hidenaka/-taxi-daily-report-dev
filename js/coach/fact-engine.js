@@ -11,6 +11,11 @@ import { computeGoalProgress } from './daily-goal.js';
 /**
  * drives 内の非キャンセル trip の売上平均を返す。
  * trip が 1 件もない場合は null。
+ *
+ * ※ chart-helpers.avgTripSales とは意図的に実装を分けている。
+ * avgTripSales は summary-only drive をスキップするが amount=0 のキャンセルを加算してしまう。
+ * こちらは neededTrips（目標到達に必要な本数）の算出用に「成立した運賃のみ」を平均したいため、
+ * isCancel / amount<=0 を除外している。
  */
 export function avgTripYen(drives) {
   let sum = 0, n = 0;
