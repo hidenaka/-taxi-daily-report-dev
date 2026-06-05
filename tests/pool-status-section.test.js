@@ -69,30 +69,51 @@ test('formatActivityLine: percentがマイナスは符号付き', async () => {
   assert.equal(formatActivityLine(activity), 'いつもより少なめ↓ （日曜・週末 同時間帯比 -20%）');
 });
 
-test('formatStallLineV2: 順位なし＝ふつう、普段比は別語彙でカッコ', async () => {
+test('formatStallLineV2: 段階バー＋台数（直近1時間の出庫台数）。flatはカッコなし', async () => {
   assert.equal(
-    formatStallLineV2({ label: '第1乗り場', trend: 'down', rankHint: null }),
-    '第1乗り場  ふつう（普段より静か）'
+    formatStallLineV2({ label: '第1乗り場', recent1hDep: 14, trend: 'flat' }),
+    '第1乗り場  ●●●●○  14台'
   );
 });
 
-test('formatStallLineV2: most-active＝🚕いちばん出てる', async () => {
+test('formatStallLineV2: 多め＝普段比カッコつき', async () => {
   assert.equal(
-    formatStallLineV2({ label: '第3乗り場', trend: 'up', rankHint: 'most-active' }),
-    '第3乗り場  🚕 いちばん出てる（普段より多め）'
+    formatStallLineV2({ label: '第2乗り場', recent1hDep: 14, trend: 'up' }),
+    '第2乗り場  ●●●●○  14台（普段より多め）'
   );
 });
 
-test('formatStallLineV2: most-low＝🅿出は少なめ（flatはカッコなし）', async () => {
+test('formatStallLineV2: 少なめは短いバー＋桁揃え', async () => {
   assert.equal(
-    formatStallLineV2({ label: '第4乗り場', trend: 'flat', rankHint: 'most-low' }),
-    '第4乗り場  🅿 出は少なめ'
+    formatStallLineV2({ label: '第4乗り場', recent1hDep: 7, trend: 'up' }),
+    '第4乗り場  ●●○○○   7台（普段より多め）'
   );
 });
 
-test('formatStallLineV2: trend 未定義は —', async () => {
+test('formatStallLineV2: 0台は空バー', async () => {
   assert.equal(
-    formatStallLineV2({ label: '第2乗り場' }),
+    formatStallLineV2({ label: '第3乗り場', recent1hDep: 0, trend: 'down' }),
+    '第3乗り場  ○○○○○   0台（普段より静か）'
+  );
+});
+
+test('formatStallLineV2: 多いとバー満タン(上限5)', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第1乗り場', recent1hDep: 25, trend: 'flat' }),
+    '第1乗り場  ●●●●●  25台'
+  );
+});
+
+test('formatStallLineV2: 少数でも最低1ドット', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第2乗り場', recent1hDep: 2, trend: 'flat' }),
+    '第2乗り場  ●○○○○   2台'
+  );
+});
+
+test('formatStallLineV2: recent1hDep 未定義は —', async () => {
+  assert.equal(
+    formatStallLineV2({ label: '第2乗り場', trend: 'flat' }),
     '第2乗り場  —'
   );
 });
@@ -151,70 +172,33 @@ test('formatArrivalsList: noribaList 空なら terminalList にフォールバ�
   assert.deepEqual(lines, ['T1ターミナル', '  あと10分  関西から  244人乗り']);
 });
 
-test('formatStallLineV2: most-active + percent あり', async () => {
+test('formatStallLineV2: percent があれば普段比は数字', async () => {
   assert.equal(
     formatStallLineV2({
-      label: '第3乗り場', trend: 'up', rankHint: 'most-active',
+      label: '第3乗り場', recent1hDep: 13, trend: 'up',
       sameConditionCompare: { peers_typical: 20, percent: 5, label: 'いつも通り', dayLabel: '火曜平日' }
     }),
-    '第3乗り場  🚕 いちばん出てる（いつもの +5%）'
+    '第3乗り場  ●●●○○  13台（いつもの +5%）'
   );
 });
 
-test('formatStallLineV2: most-low + percent マイナス', async () => {
+test('formatStallLineV2: percent マイナス', async () => {
   assert.equal(
     formatStallLineV2({
-      label: '第1乗り場', trend: 'down', rankHint: 'most-low',
+      label: '第1乗り場', recent1hDep: 9, trend: 'down',
       sameConditionCompare: { peers_typical: 22, percent: -23, label: 'いつもより少なめ', dayLabel: '火曜平日' }
     }),
-    '第1乗り場  🅿 出は少なめ（いつもの -23%）'
-  );
-});
-
-test('formatStallLineV2: 順位なし + percent あり', async () => {
-  assert.equal(
-    formatStallLineV2({
-      label: '第2乗り場', trend: 'flat', rankHint: null,
-      sameConditionCompare: { peers_typical: 10, percent: -2, label: 'いつも通り', dayLabel: '火曜平日' }
-    }),
-    '第2乗り場  ふつう（いつもの -2%）'
-  );
-});
-
-test('formatStallLineV2: most-active + percent null は普段比を trend で補う', async () => {
-  assert.equal(
-    formatStallLineV2({
-      label: '第3乗り場', trend: 'up', rankHint: 'most-active',
-      sameConditionCompare: { peers_typical: null, percent: null, label: null, dayLabel: '火曜平日' }
-    }),
-    '第3乗り場  🚕 いちばん出てる（普段より多め）'
-  );
-});
-
-test('formatStallLineV2: most-low + percent null（flatはカッコなし）', async () => {
-  assert.equal(
-    formatStallLineV2({
-      label: '第4乗り場', trend: 'flat', rankHint: 'most-low',
-      sameConditionCompare: null
-    }),
-    '第4乗り場  🅿 出は少なめ'
-  );
-});
-
-test('formatStallLineV2: 順位なし + flat + sc未提供＝ふつうのみ', async () => {
-  assert.equal(
-    formatStallLineV2({ label: '第2乗り場', trend: 'flat', rankHint: null }),
-    '第2乗り場  ふつう'
+    '第1乗り場  ●●○○○   9台（いつもの -23%）'
   );
 });
 
 test('formatStallLineV2: percent=0 は "+0%"', async () => {
   assert.equal(
     formatStallLineV2({
-      label: '第2乗り場', trend: 'flat', rankHint: null,
+      label: '第2乗り場', recent1hDep: 10, trend: 'flat',
       sameConditionCompare: { peers_typical: 10, percent: 0, label: 'いつも通り', dayLabel: '火曜平日' }
     }),
-    '第2乗り場  ふつう（いつもの +0%）'
+    '第2乗り場  ●●●○○  10台（いつもの +0%）'
   );
 });
 

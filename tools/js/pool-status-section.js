@@ -56,23 +56,23 @@ export function formatActivityLine(activity) {
   return `${activeLabel}${arrow}`;
 }
 
-// 主表示＝4乗り場の中での「出やすさ順位」。乗務員が一目で狙い目を判断できる軸。
-// most-active=今いちばん出てる(狙い目) / most-low=出は少なめ / それ以外=ふつう。
-const RANK_PRIMARY_JA = {
-  'most-active': '🚕 いちばん出てる',
-  'most-low': '🅿 出は少なめ',
-};
+// 出庫の勢いを段階バー(●○)で表す。直近1時間の出庫台数を 1ドット≒DOT_PER台 で 0〜5段階に。
+// 4乗り場を同じ物差しで並べるので、一目でどこが出てるか比較できる。
+const BAR_LEN = 5;
+const DOT_PER = 4; // 1ドット ≒ 4台/時
+export function activityBar(dep) {
+  if (typeof dep !== 'number' || dep < 0) return null;
+  const filled = dep <= 0 ? 0 : Math.min(BAR_LEN, Math.max(1, Math.round(dep / DOT_PER)));
+  return '●'.repeat(filled) + '○'.repeat(BAR_LEN - filled);
+}
 
-/** 乗り場1行（V2: 「出やすさ順位」を主役に、普段比はカッコで別語彙で添える）。
- *  旧版は「普段比(活発/少なめ)」と「順位(最も動き活発/少なめ)」を同じ語彙で並べて矛盾に見えたため、
- *  主＝順位(いちばん出てる/出は少なめ/ふつう)、カッコ＝普段比(いつもの±X% or 普段より多め/静か)に分離した。 */
+/** 乗り場1行（V2: 直近1時間の出庫台数を段階バー＋実数で。普段比はカッコで別語彙で添える）。
+ *  旧版は「普段比(活発/少なめ)」と「順位(最も動き活発/少なめ)」を同じ語彙で並べて矛盾に見え、
+ *  さらに中間の乗り場が全部「ふつう」で段階が出なかった。出庫台数のバーで4乗り場を等しく段階表示する。 */
 export function formatStallLineV2(stall) {
   if (!stall) return '';
-  // 主表示: 順位があればそれ、無ければ trend が取れていれば「ふつう」、観測なしは「—」。
-  let primary;
-  if (stall.rankHint && RANK_PRIMARY_JA[stall.rankHint]) primary = RANK_PRIMARY_JA[stall.rankHint];
-  else if (stall.trend) primary = 'ふつう';
-  else primary = '—';
+  const bar = activityBar(stall.recent1hDep);
+  if (bar === null) return `${stall.label}  —`; // 出庫台数の観測なし
 
   // カッコ＝普段との比較。percent があれば数字、無ければ trend を別語彙(多め/静か)で。flat/不明は付けない。
   const sc = stall.sameConditionCompare;
@@ -85,7 +85,7 @@ export function formatStallLineV2(stall) {
     note = '（普段より静か）';
   }
 
-  return `${stall.label}  ${primary}${note}`;
+  return `${stall.label}  ${bar}  ${String(stall.recent1hDep).padStart(2)}台${note}`;
 }
 
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
@@ -225,7 +225,7 @@ export async function initPoolStatusSection() {
       const stalls = data.stalls;
       if (stalls) {
         const order = ['stall1', 'stall2', 'stall3', 'stall4'];
-        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き</div>';
+        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き（バー＝直近1時間に出た台数）</div>';
         stallsEl.innerHTML = head + order
           .filter(k => stalls[k])
           .map(k => `<div>${formatStallLineV2(stalls[k])}</div>`)
