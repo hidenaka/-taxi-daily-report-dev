@@ -808,7 +808,15 @@ function renderBreakCount() {
 
 function renderStopwatch() {
   const ms = currentStopwatchMs();
-  $('stopwatch-display').textContent = fmtStopwatch(ms / 1000);
+  const display = $('stopwatch-display');
+  if (state.mode === 'down') {
+    const remaining = computeRemainingMs(ms, state.countdownTargetMin);
+    display.textContent = fmtCountdown(remaining);
+    display.classList.toggle('over', remaining < 0);
+  } else {
+    display.textContent = fmtStopwatch(ms / 1000);
+    display.classList.remove('over');
+  }
   const startedEl = $('stopwatch-started');
   const provisionalEl = $('provisional-break');
   if (state.stopwatch.running && state.stopwatch.startedAt) {
@@ -821,6 +829,31 @@ function renderStopwatch() {
     startedEl.textContent = '';
     provisionalEl.textContent = '';
   }
+}
+
+function renderCountdownPanel() {
+  // モードボタンの選択状態
+  const down = state.mode === 'down';
+  $('mode-up').classList.toggle('active', !down);
+  $('mode-down').classList.toggle('active', down);
+  $('mode-up').setAttribute('aria-selected', String(!down));
+  $('mode-down').setAttribute('aria-selected', String(down));
+  // パネル表示
+  $('countdown-panel').hidden = !down;
+  // プリセットの選択ハイライト
+  document.querySelectorAll('.cd-preset').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.min) === state.countdownTargetMin);
+  });
+  // 自由入力（フォーカス中は上書きしない）
+  const hourEl = $('cd-hour'), minEl = $('cd-min');
+  if (document.activeElement !== hourEl && document.activeElement !== minEl) {
+    const m = Math.max(0, Math.floor(state.countdownTargetMin));
+    hourEl.value = Math.floor(m / 60);
+    minEl.value = m % 60;
+  }
+  // トグル
+  $('cd-sound').checked = state.soundOn;
+  $('cd-wakelock').checked = state.wakeLockOn;
 }
 
 function renderButtons() {
@@ -951,6 +984,7 @@ function renderAll() {
   renderTargetBreak();
   renderContinuousDrive();
   renderBreakCount();
+  renderCountdownPanel();
   renderStopwatch();
   renderButtons();
   renderMetrics();
@@ -1119,6 +1153,44 @@ function onBreakCountChange() {
   renderAll();
 }
 $('break-count-min').addEventListener('change', onBreakCountChange);
+
+// --- カウントダウン: モード・目標・トグル ---
+function setMode(mode) {
+  state.mode = mode === 'down' ? 'down' : 'up';
+  prevRemainingMs = null;            // モード切替で0クロス追跡をリセット
+  saveState(state);
+  renderAll();
+}
+$('mode-up').addEventListener('click', () => setMode('up'));
+$('mode-down').addEventListener('click', () => setMode('down'));
+
+function setCountdownTarget(min) {
+  const v = Math.max(1, Math.floor(min));
+  state.countdownTargetMin = v;
+  prevRemainingMs = null;            // 目標変更で0クロス追跡をリセット
+  countdownNotified = false;         // 目標を変えたら通知を再武装
+  saveState(state);
+  renderAll();
+}
+document.querySelectorAll('.cd-preset').forEach(b => {
+  b.addEventListener('click', () => setCountdownTarget(Number(b.dataset.min)));
+});
+function onCdCustomChange() {
+  const total = readHMInput('cd-hour', 'cd-min');
+  setCountdownTarget(total > 0 ? total : 1);
+}
+$('cd-hour').addEventListener('change', onCdCustomChange);
+$('cd-min').addEventListener('change', onCdCustomChange);
+
+$('cd-sound').addEventListener('change', (e) => {
+  state.soundOn = !!e.target.checked;
+  saveState(state);
+});
+$('cd-wakelock').addEventListener('change', (e) => {
+  state.wakeLockOn = !!e.target.checked;
+  saveState(state);
+  syncWakeLock();
+});
 
 $('btn-settings-toggle').addEventListener('click', () => {
   const content = $('settings-content');
