@@ -69,24 +69,24 @@ test('formatActivityLine: percentがマイナスは符号付き', async () => {
   assert.equal(formatActivityLine(activity), 'いつもより少なめ↓ （日曜・週末 同時間帯比 -20%）');
 });
 
-test('formatStallLineV2: trend のみ', async () => {
+test('formatStallLineV2: 順位なし＝ふつう、普段比は別語彙でカッコ', async () => {
   assert.equal(
     formatStallLineV2({ label: '第1乗り場', trend: 'down', rankHint: null }),
-    '第1乗り場  少なめ↓'
+    '第1乗り場  ふつう（普段より静か）'
   );
 });
 
-test('formatStallLineV2: trend + most-active', async () => {
+test('formatStallLineV2: most-active＝🚕いちばん出てる', async () => {
   assert.equal(
     formatStallLineV2({ label: '第3乗り場', trend: 'up', rankHint: 'most-active' }),
-    '第3乗り場  活発↑ ← 最も動き活発'
+    '第3乗り場  🚕 いちばん出てる（普段より多め）'
   );
 });
 
-test('formatStallLineV2: trend + most-low', async () => {
+test('formatStallLineV2: most-low＝🅿出は少なめ（flatはカッコなし）', async () => {
   assert.equal(
     formatStallLineV2({ label: '第4乗り場', trend: 'flat', rankHint: 'most-low' }),
-    '第4乗り場  横ばい→ ← 最も動き少なめ'
+    '第4乗り場  🅿 出は少なめ'
   );
 });
 
@@ -110,17 +110,17 @@ test('formatArrivalsList: T1/T2 順、便ごと1行', async () => {
   const lines = formatArrivalsList(list);
   assert.deepEqual(lines, [
     'T1ターミナル',
-    '  あと10分  JL024  関西から     244席',
-    '  あと28分  JL026  福岡から     322席',
+    '  あと10分  関西から  244人乗り',
+    '  あと28分  福岡から  322人乗り',
     'T2ターミナル',
-    '  あと08分  NH032  新千歳から   195席',
+    '  あと8分  新千歳から  195人乗り',
   ]);
 });
 
 test('formatArrivalsList: 片側空ならその見出しは出さない', async () => {
   const list = { T1: [], T2: [{ flightNumber: 'NH032', airline: 'ANA', fromName: '新千歳', seatCount: 195, lobbyExitMinutes: 8 }] };
   const lines = formatArrivalsList(list);
-  assert.deepEqual(lines, ['T2ターミナル', '  あと08分  NH032  新千歳から   195席']);
+  assert.deepEqual(lines, ['T2ターミナル', '  あと8分  新千歳から  195人乗り']);
 });
 
 test('formatArrivalsList: null/未提供は空配列', async () => {
@@ -138,73 +138,73 @@ test('formatArrivalsList: noribaList があれば号別表示・席数nullは席
   const lines = formatArrivalsList(noriba, { T1: [], T2: [] });
   assert.deepEqual(lines, [
     '1号（T1 南）',
-    '  あと03分  JL138  伊丹から     200席',
+    '  あと3分  伊丹から  200人乗り',
     '2号（T1 北）',
-    '  あと03分  JL918  那覇から     369席',
+    '  あと3分  那覇から  369人乗り',
     '3号（T2 北）',
-    '  あと03分  NH472  那覇から     席数不明',
+    '  あと3分  那覇から  席数不明',
   ]);
 });
 
 test('formatArrivalsList: noribaList 空なら terminalList にフォールバック', async () => {
   const lines = formatArrivalsList({ 1: [], 2: [], 3: [], 4: [] }, { T1: [{ flightNumber: 'JL024', fromName: '関西', seatCount: 244, lobbyExitMinutes: 10 }], T2: [] });
-  assert.deepEqual(lines, ['T1ターミナル', '  あと10分  JL024  関西から     244席']);
+  assert.deepEqual(lines, ['T1ターミナル', '  あと10分  関西から  244人乗り']);
 });
 
-test('formatStallLineV2: rankHint=most-active + percent あり', async () => {
+test('formatStallLineV2: most-active + percent あり', async () => {
   assert.equal(
     formatStallLineV2({
       label: '第3乗り場', trend: 'up', rankHint: 'most-active',
       sameConditionCompare: { peers_typical: 20, percent: 5, label: 'いつも通り', dayLabel: '火曜平日' }
     }),
-    '第3乗り場  活発↑ ← 最も動き活発（いつもの +5%）'
+    '第3乗り場  🚕 いちばん出てる（いつもの +5%）'
   );
 });
 
-test('formatStallLineV2: rankHint=most-low + percent マイナス', async () => {
+test('formatStallLineV2: most-low + percent マイナス', async () => {
   assert.equal(
     formatStallLineV2({
       label: '第1乗り場', trend: 'down', rankHint: 'most-low',
       sameConditionCompare: { peers_typical: 22, percent: -23, label: 'いつもより少なめ', dayLabel: '火曜平日' }
     }),
-    '第1乗り場  少なめ↓ ← 最も動き少なめ（いつもの -23%）'
+    '第1乗り場  🅿 出は少なめ（いつもの -23%）'
   );
 });
 
-test('formatStallLineV2: rankHint なし + percent あり', async () => {
+test('formatStallLineV2: 順位なし + percent あり', async () => {
   assert.equal(
     formatStallLineV2({
       label: '第2乗り場', trend: 'flat', rankHint: null,
       sameConditionCompare: { peers_typical: 10, percent: -2, label: 'いつも通り', dayLabel: '火曜平日' }
     }),
-    '第2乗り場  横ばい→（いつもの -2%）'
+    '第2乗り場  ふつう（いつもの -2%）'
   );
 });
 
-test('formatStallLineV2: rankHint=most-active + percent null（サンプル不足、既存挙動）', async () => {
+test('formatStallLineV2: most-active + percent null は普段比を trend で補う', async () => {
   assert.equal(
     formatStallLineV2({
       label: '第3乗り場', trend: 'up', rankHint: 'most-active',
       sameConditionCompare: { peers_typical: null, percent: null, label: null, dayLabel: '火曜平日' }
     }),
-    '第3乗り場  活発↑ ← 最も動き活発'
+    '第3乗り場  🚕 いちばん出てる（普段より多め）'
   );
 });
 
-test('formatStallLineV2: rankHint=most-low + percent null', async () => {
+test('formatStallLineV2: most-low + percent null（flatはカッコなし）', async () => {
   assert.equal(
     formatStallLineV2({
       label: '第4乗り場', trend: 'flat', rankHint: 'most-low',
       sameConditionCompare: null
     }),
-    '第4乗り場  横ばい→ ← 最も動き少なめ'
+    '第4乗り場  🅿 出は少なめ'
   );
 });
 
-test('formatStallLineV2: rankHint なし + sameConditionCompare 未提供（旧データ、既存挙動）', async () => {
+test('formatStallLineV2: 順位なし + flat + sc未提供＝ふつうのみ', async () => {
   assert.equal(
     formatStallLineV2({ label: '第2乗り場', trend: 'flat', rankHint: null }),
-    '第2乗り場  横ばい→'
+    '第2乗り場  ふつう'
   );
 });
 
@@ -214,7 +214,7 @@ test('formatStallLineV2: percent=0 は "+0%"', async () => {
       label: '第2乗り場', trend: 'flat', rankHint: null,
       sameConditionCompare: { peers_typical: 10, percent: 0, label: 'いつも通り', dayLabel: '火曜平日' }
     }),
-    '第2乗り場  横ばい→（いつもの +0%）'
+    '第2乗り場  ふつう（いつもの +0%）'
   );
 });
 

@@ -56,57 +56,53 @@ export function formatActivityLine(activity) {
   return `${activeLabel}${arrow}`;
 }
 
-const RANK_HINT_JA = {
-  'most-active': '最も動き活発',
-  'most-low': '最も動き少なめ',
+// 主表示＝4乗り場の中での「出やすさ順位」。乗務員が一目で狙い目を判断できる軸。
+// most-active=今いちばん出てる(狙い目) / most-low=出は少なめ / それ以外=ふつう。
+const RANK_PRIMARY_JA = {
+  'most-active': '🚕 いちばん出てる',
+  'most-low': '🅿 出は少なめ',
 };
 
-/** 乗り場1行（V2: trend + rankHint + 同条件過去比較）。
- *  rankHint × sameConditionCompare.percent の有無で6パターン分岐。 */
+/** 乗り場1行（V2: 「出やすさ順位」を主役に、普段比はカッコで別語彙で添える）。
+ *  旧版は「普段比(活発/少なめ)」と「順位(最も動き活発/少なめ)」を同じ語彙で並べて矛盾に見えたため、
+ *  主＝順位(いちばん出てる/出は少なめ/ふつう)、カッコ＝普段比(いつもの±X% or 普段より多め/静か)に分離した。 */
 export function formatStallLineV2(stall) {
   if (!stall) return '';
-  const trend = stall.trend ? trendText(stall.trend) : '—';
-  const hint = stall.rankHint ? RANK_HINT_JA[stall.rankHint] : null;
+  // 主表示: 順位があればそれ、無ければ trend が取れていれば「ふつう」、観測なしは「—」。
+  let primary;
+  if (stall.rankHint && RANK_PRIMARY_JA[stall.rankHint]) primary = RANK_PRIMARY_JA[stall.rankHint];
+  else if (stall.trend) primary = 'ふつう';
+  else primary = '—';
+
+  // カッコ＝普段との比較。percent があれば数字、無ければ trend を別語彙(多め/静か)で。flat/不明は付けない。
   const sc = stall.sameConditionCompare;
-  const hasPercent = sc && typeof sc.percent === 'number';
-  // percent の符号付き表記
-  const pctText = hasPercent
-    ? `いつもの ${sc.percent >= 0 ? '+' : ''}${Math.round(sc.percent)}%`
-    : null;
+  let note = '';
+  if (sc && typeof sc.percent === 'number') {
+    note = `（いつもの ${sc.percent >= 0 ? '+' : ''}${Math.round(sc.percent)}%）`;
+  } else if (stall.trend === 'up') {
+    note = '（普段より多め）';
+  } else if (stall.trend === 'down') {
+    note = '（普段より静か）';
+  }
 
-  let tail = '';
-  if (hint && pctText) tail = ` ← ${hint}（${pctText}）`;
-  else if (hint) tail = ` ← ${hint}`;
-  else if (pctText) tail = `（${pctText}）`;
-
-  return `${stall.label}  ${trend}${tail}`;
+  return `${stall.label}  ${primary}${note}`;
 }
 
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
 const NORIBA_HEAD = { 1: '1号（T1 南）', 2: '2号（T1 北）', 3: '3号（T2 北）', 4: '4号（T2 南・国際）' };
 
-/** 席数表示。null/0/不明は「席数不明」。 */
-function seatText(s) { return (typeof s === 'number' && s > 0) ? `${s}席` : '席数不明'; }
+/** 定員表示。null/0/不明は「席数不明」。乗務員が客の規模を掴みやすい「人乗り」。 */
+function seatText(s) { return (typeof s === 'number' && s > 0) ? `${s}人乗り` : '席数不明'; }
 
-/** 「分」を2桁ゼロ埋めの文字列に。負値は0扱い。 */
+/** 「あと◯分」。ゼロ埋めしない(あと2分)。負値は0扱い。 */
 function minutesText(min) {
   const m = Math.max(0, min | 0);
-  return `あと${String(m).padStart(2, '0')}分`;
+  return `あと${m}分`;
 }
 
-/** 全角文字を2幅、ASCII を1幅として文字列の表示幅を返す。 */
-function displayWidth(s) {
-  return [...s].reduce((w, c) => w + (c.codePointAt(0) > 0x7f ? 2 : 1), 0);
-}
-
-/** 表示幅ベースの padEnd（全角対応）。 */
-function padEndDisplay(s, targetWidth) {
-  return s + ' '.repeat(Math.max(0, targetWidth - displayWidth(s)));
-}
-
+// 便1行: 「あと◯分 / どこから / 定員」だけ。便名は乗務員に不要なノイズなので出さない。
 function arrivalLine(f) {
-  const fromField = padEndDisplay(`${f.fromName ?? ''}から`, 13);
-  return `  ${minutesText(f.lobbyExitMinutes)}  ${f.flightNumber}  ${fromField}${seatText(f.seatCount)}`;
+  return `  ${minutesText(f.lobbyExitMinutes)}  ${f.fromName ?? ''}から  ${seatText(f.seatCount)}`;
 }
 
 /** 到着便リストを行配列に。noribaList(号別 1-4)があれば号別に、無ければ terminalList(T1/T2)に。
