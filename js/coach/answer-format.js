@@ -1,8 +1,9 @@
 // AnswerPlan → 日本語の表示行。最小版（Plan 3 UIで差し替え・拡張しうる）。
 
-function yen(n) { return Number(n).toLocaleString('ja-JP'); }
+function yen(n) { return Math.round(Number(n)).toLocaleString('ja-JP'); }
 
 export function formatAnswer(plan) {
+  if (!plan) return ['今わかる範囲でお答えします'];
   const lines = [];
   const f = plan.facts || {};
 

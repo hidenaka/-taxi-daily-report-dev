@@ -61,4 +61,20 @@ describe('formatAnswer', () => {
     assert.ok(t.includes('5,000'));
     assert.ok(!t.includes('本ペース'));
   });
+
+  it('finish-early かつ remainingMin=null のとき、フォールバック行になる', () => {
+    const plan = { intent: 'finish-early', status: 'in-progress',
+      facts: { remainingYen: 4000, neededTrips: 2, remainingMin: null, hourlyA: null }, moves: [], spots: [], basis: [] };
+    const t = joined(plan);
+    assert.ok(t.includes('今わかる範囲でお答えします'), 'フォールバック行を含む');
+    assert.ok(!t.includes('分で目標時刻'), '分で目標時刻を含まない');
+  });
+
+  it('yen()丸め: remainingYen=1234.5 のとき小数点付き金額を出さない', () => {
+    const plan = { intent: 'reach-goal', status: 'in-progress',
+      facts: { remainingYen: 1234.5, neededTrips: null, remainingMin: null, hourlyA: null }, moves: [], spots: [], basis: [] };
+    const t = joined(plan);
+    assert.ok(!t.includes('1,234.5'), '小数点付き金額が出ない');
+    assert.ok(t.includes('1,235') || t.includes('1,234'), '丸め後の整数金額を含む');
+  });
 });
