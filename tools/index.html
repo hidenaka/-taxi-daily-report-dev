@@ -488,6 +488,7 @@
 #stopwatch-display.over { color: #c83a2c; }
 @keyframes cd-flash { 0%,100% { background: transparent; } 50% { background: #f6dcd6; } }
 .stopwatch.flash { animation: cd-flash 0.5s ease-in-out 3; border-radius: 12px; }
+.countdown-over-note { font-size: 13px; color: #c83a2c; font-weight: 700; margin-top: 2px; min-height: 1em; }
   </style>
 <style>body{visibility:hidden;pointer-events:none;}</style>
 </head>
@@ -539,6 +540,7 @@
       </div>
 
       <div id="stopwatch-display">00:00:00</div>
+      <div id="countdown-over-note" class="countdown-over-note"></div>
       <div id="stopwatch-started" class="stopwatch-started"></div>
       <div id="provisional-break" class="provisional-break"></div>
       <div class="buttons">
@@ -640,7 +642,7 @@
   </dialog>
 
 <script type="module">
-import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState } from './js/countdown.js';
+import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote } from './js/countdown.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -825,13 +827,24 @@ function renderBreakCount() {
 function renderStopwatch() {
   const ms = currentStopwatchMs();
   const display = $('stopwatch-display');
+  const overNote = $('countdown-over-note');
   if (state.mode === 'down') {
     const remaining = computeRemainingMs(ms, state.countdownTargetMin);
-    display.textContent = fmtCountdown(remaining);
-    display.classList.toggle('over', remaining < 0);
+    if (remaining > 0) {
+      // 残りあり: カウントダウン表示
+      display.textContent = fmtCountdown(remaining);
+      display.classList.remove('over');
+      if (overNote) overNote.textContent = '';
+    } else {
+      // 0到達後: 合計経過をカウントアップ表示 + 目標/超過の注記
+      display.textContent = fmtClockShort(ms);
+      display.classList.add('over');
+      if (overNote) overNote.textContent = overtimeNote(ms, state.countdownTargetMin);
+    }
   } else {
     display.textContent = fmtStopwatch(ms / 1000);
     display.classList.remove('over');
+    if (overNote) overNote.textContent = '';
   }
   const startedEl = $('stopwatch-started');
   const provisionalEl = $('provisional-break');
