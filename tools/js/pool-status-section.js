@@ -59,33 +59,43 @@ export function formatActivityLine(activity) {
 // 出庫の勢いを段階バー(●○)で表す。直近1時間の出庫台数を 1ドット≒DOT_PER台 で 0〜5段階に。
 // 4乗り場を同じ物差しで並べるので、一目でどこが出てるか比較できる。
 const BAR_LEN = 5;
-const DOT_PER = 4; // 1ドット ≒ 4台/時
-export function activityBar(dep) {
-  if (typeof dep !== 'number' || dep < 0) return null;
-  const filled = dep <= 0 ? 0 : Math.min(BAR_LEN, Math.max(1, Math.round(dep / DOT_PER)));
+const DOT_PER = 8; // 1ドット ≒ 8台/時（5ドット=40台。列移動ベース出庫台数の実測レンジに合わせる）
+export function activityBar(vehicles) {
+  if (typeof vehicles !== 'number' || vehicles < 0) return null;
+  const filled = vehicles <= 0 ? 0 : Math.min(BAR_LEN, Math.max(1, Math.round(vehicles / DOT_PER)));
   return '●'.repeat(filled) + '○'.repeat(BAR_LEN - filled);
 }
 
-/** 乗り場1行（V2: 直近1時間の出庫台数を段階バー＋実数で。普段比はカッコで別語彙で添える）。
- *  旧版は「普段比(活発/少なめ)」と「順位(最も動き活発/少なめ)」を同じ語彙で並べて矛盾に見え、
- *  さらに中間の乗り場が全部「ふつう」で段階が出なかった。出庫台数のバーで4乗り場を等しく段階表示する。 */
+const STALL_KEYS_V2 = ['stall1', 'stall2', 'stall3', 'stall4'];
+const STALL_LABEL = { stall1: '第1乗り場', stall2: '第2乗り場', stall3: '第3乗り場', stall4: '第4乗り場' };
+
+/** advance-forecast.json から 乗り場別「直近1時間の出庫台数(列移動回数×横台数)」を出す。
+ *  actualsToday の直近4ビン(=1時間)の列移動回数を乗り場別に合計し rowWidth を掛ける。
+ *  rowWidth 欠落は既定(1号8/2号7/3号8/4号8)。advData なしは全0。 */
+export function recentHourVehiclesByStall(advData) {
+  const out = { stall1: 0, stall2: 0, stall3: 0, stall4: 0 };
+  if (!advData) return out;
+  const fallback = { stall1: 8, stall2: 7, stall3: 8, stall4: 8 };
+  const rw = advData.rowWidth || fallback;
+  const bins = Array.isArray(advData.actualsToday) ? advData.actualsToday.slice(-4) : [];
+  for (const b of bins) {
+    for (const s of STALL_KEYS_V2) {
+      const moves = (b && b.stalls && typeof b.stalls[s] === 'number') ? b.stalls[s] : 0;
+      const width = typeof rw[s] === 'number' ? rw[s] : fallback[s];
+      out[s] += Math.round(moves * width);
+    }
+  }
+  return out;
+}
+
+/** 乗り場1行（V2: 直近1時間の出庫台数を段階バー＋「約N台」で表示）。
+ *  数字は列移動の検出をもとにした推定なので「約」を付け、備考(欄外)で推定である旨を明記する。
+ *  普段比は出さない（乗務員には現在の出やすさだけ伝える）。 */
 export function formatStallLineV2(stall) {
   if (!stall) return '';
-  const bar = activityBar(stall.recent1hDep);
+  const bar = activityBar(stall.vehicles);
   if (bar === null) return `${stall.label}  —`; // 出庫台数の観測なし
-
-  // カッコ＝普段との比較。percent があれば数字、無ければ trend を別語彙(多め/静か)で。flat/不明は付けない。
-  const sc = stall.sameConditionCompare;
-  let note = '';
-  if (sc && typeof sc.percent === 'number') {
-    note = `（いつもの ${sc.percent >= 0 ? '+' : ''}${Math.round(sc.percent)}%）`;
-  } else if (stall.trend === 'up') {
-    note = '（普段より多め）';
-  } else if (stall.trend === 'down') {
-    note = '（普段より静か）';
-  }
-
-  return `${stall.label}  ${bar}  ${String(stall.recent1hDep).padStart(2)}台${note}`;
+  return `${stall.label}  ${bar}  約${stall.vehicles}台`;
 }
 
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
@@ -183,6 +193,17 @@ export async function loadPoolStatus(fetchFn = fetch) {
   }
 }
 
+// 乗り場の動きバー用に列移動ベースの出庫台数を読む(advance-forecast.json)。失敗は {data:null}。
+export async function loadAdvanceForecastForBar(fetchFn = fetch) {
+  try {
+    const res = await fetchFn('data/advance-forecast.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { data: await res.json(), error: null };
+  } catch (e) {
+    return { data: null, error: e.message };
+  }
+}
+
 export async function initPoolStatusSection() {
   const metaEl = document.getElementById('pool-status-meta');
   const srcErrEl = document.getElementById('pool-status-source-error');
@@ -222,14 +243,15 @@ export async function initPoolStatusSection() {
       actEl.innerHTML = `<strong>今日の流れ</strong> ${formatActivityLine(data.activity || {})}`;
     }
     if (stallsEl) {
-      const stalls = data.stalls;
-      if (stalls) {
+      // 乗り場の動き = 列移動ベースの直近1時間出庫台数(advance-forecast.json)を段階バーで。
+      const { data: advData } = await loadAdvanceForecastForBar();
+      if (advData) {
+        const veh = recentHourVehiclesByStall(advData);
         const order = ['stall1', 'stall2', 'stall3', 'stall4'];
-        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き（バー＝直近1時間に出た台数）</div>';
-        stallsEl.innerHTML = head + order
-          .filter(k => stalls[k])
-          .map(k => `<div>${formatStallLineV2(stalls[k])}</div>`)
-          .join('');
+        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き（バー＝直近1時間の出庫台数の目安）</div>';
+        const lines = order.map(k => `<div>${formatStallLineV2({ label: STALL_LABEL[k], vehicles: veh[k] })}</div>`).join('');
+        const note = '<div style="color:var(--sub); font-size:10px; margin-top:6px;">※列移動の検出をもとにした推定です。実数とずれることがあります。</div>';
+        stallsEl.innerHTML = head + lines + note;
       } else {
         stallsEl.innerHTML = '';
       }
