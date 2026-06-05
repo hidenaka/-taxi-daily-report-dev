@@ -1,4 +1,4 @@
-import { loadArrivals, filterByTerminals, filterByTimeWindow, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba } from './arrivals-data.js';
+import { loadArrivals, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderNoribaCards } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle } from './pool-status-section.js';
@@ -12,8 +12,10 @@ const TAB_TERMINALS = {
 
 const ORIGIN_FILTER_KEY = 'arrivalsOriginFilter';
 const NORIBA_WINDOW_KEY = 'arrivalsNoribaWindow';
-const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60 };
+const LANE_FILTER_KEY = 'arrivalsLaneFilter';
+const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60, laneFilter: 0 };
 try { state.originFilter = localStorage.getItem(ORIGIN_FILTER_KEY) || ''; } catch { /* ignore */ }
+try { const l = parseInt(localStorage.getItem(LANE_FILTER_KEY), 10); if ([1, 2, 3, 4].includes(l)) state.laneFilter = l; } catch { /* ignore */ }
 try { const w = parseInt(localStorage.getItem(NORIBA_WINDOW_KEY), 10); if ([30, 60, 120].includes(w)) state.noribaWindow = w; } catch { /* ignore */ }
 
 // 予測セクションの再描画関数。initForecastSection 解決後に差し替わる。
@@ -46,9 +48,12 @@ function render() {
   // 現在の visible に無ければ state.originFilter を '' にリセットする。
   // フィルタ適用前に呼ぶ必要がある（reset を flightsToShow 計算に反映するため）。
   syncOriginFilterOptions(visible);
-  const flightsToShow = state.originFilter
+  const originFiltered = state.originFilter
     ? visible.filter(f => f.fromName === state.originFilter)
     : visible;
+  // 号(poolLane 1-4)で絞り込み。0=全部。
+  const flightsToShow = filterByLane(originFiltered, state.laneFilter);
+  updateLaneButtons();
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   renderNoribaCards(
@@ -96,6 +101,13 @@ function updateDetailButton() {
   btn.classList.toggle('is-active', state.detailMode);
 }
 
+// 号フィルタの active ボタン表示を state に合わせる。
+function updateLaneButtons() {
+  document.querySelectorAll('#lane-filter .lane-btn').forEach(el => {
+    el.classList.toggle('is-active', parseInt(el.dataset.lane, 10) === state.laneFilter);
+  });
+}
+
 function setupTerminalTabs() {
   document.querySelectorAll('.terminal-tab').forEach(el => {
     el.addEventListener('click', () => {
@@ -132,6 +144,20 @@ function setupOriginFilter() {
   });
 }
 
+function setupLaneFilter() {
+  const el = document.getElementById('lane-filter');
+  if (!el) return;
+  el.addEventListener('click', (e) => {
+    const btn = e.target.closest('.lane-btn');
+    if (!btn) return;
+    const lane = parseInt(btn.dataset.lane, 10);
+    if (![0, 1, 2, 3, 4].includes(lane)) return;
+    state.laneFilter = lane;
+    try { localStorage.setItem(LANE_FILTER_KEY, String(lane)); } catch { /* ignore */ }
+    if (state.arrivals) render();
+  });
+}
+
 function setupNoribaWindow() {
   const el = document.getElementById('noriba-cards-section');
   if (!el) return;
@@ -151,6 +177,7 @@ setupTerminalTabs();
 setupReload();
 setupDetailToggle();
 setupOriginFilter();
+setupLaneFilter();
 setupNoribaWindow();
 refresh();
 initForecastSection().then(fn => { if (fn) refreshForecast = fn; });

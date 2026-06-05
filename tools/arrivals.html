@@ -78,6 +78,11 @@
     #flight-list-section .section-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     #flight-list-section .section-head h2 { margin: 8px 0; }
     .origin-filter { padding: 4px 8px; background: #16161c; color: var(--fg); border: 1px solid #333; border-radius: 6px; font-size: 13px; max-width: 200px; }
+    .lane-filter { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 8px; }
+    .lane-btn { background: #1a1a1d; color: var(--sub); border: none; border-radius: 6px; padding: 5px 11px; font-size: 13px; cursor: pointer; }
+    .lane-btn.is-active { background: var(--accent); color: #000; font-weight: 700; }
+    .lane-btn.is-active.lane-1 { background: #f97316; } .lane-btn.is-active.lane-2 { background: #eab308; }
+    .lane-btn.is-active.lane-3 { background: #14b8a6; } .lane-btn.is-active.lane-4 { background: #a78bfa; }
     #flight-list { display: flex; flex-direction: column; }
     #flight-list .flight-row { padding: 10px 8px; border-bottom: 1px solid #1a1a1d; }
     #flight-list .flight-row:last-child { border-bottom: none; }
@@ -344,6 +349,13 @@
       <select id="origin-filter" class="origin-filter" aria-label="出発地で絞り込み">
         <option value="">すべて</option>
       </select>
+    </div>
+    <div class="lane-filter" id="lane-filter" role="group" aria-label="乗り場の号で絞り込み">
+      <button class="lane-btn is-active" data-lane="0">全部</button>
+      <button class="lane-btn lane-1" data-lane="1">1号</button>
+      <button class="lane-btn lane-2" data-lane="2">2号</button>
+      <button class="lane-btn lane-3" data-lane="3">3号</button>
+      <button class="lane-btn lane-4" data-lane="4">4号</button>
     </div>
     <div id="flight-list"></div>
   </section>

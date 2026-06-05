@@ -44,6 +44,12 @@ export function filterByTerminals(arrivals, terminals) {
   return arrivals.flights.filter(f => set.has(f.terminal));
 }
 
+// poolLane(乗り場号 1-4) で便を絞る。lane が 0/falsy なら全件(フィルタ無し)。
+export function filterByLane(flights, lane) {
+  if (!lane) return flights || [];
+  return (flights || []).filter(f => f.poolLane === lane);
+}
+
 export function filterByTimeWindow(flights, nowDate, pastMinutes = 30, futureMinutes = 180) {
   const nowMin = nowDate.getHours() * 60 + nowDate.getMinutes();
   return flights.filter(f => {

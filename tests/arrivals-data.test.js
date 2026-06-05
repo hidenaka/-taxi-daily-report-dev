@@ -1,5 +1,19 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane } from '../tools/js/arrivals-data.js';
+
+test('filterByLane: 0/未指定は全便、1-4はpoolLane一致のみ', () => {
+  const flights = [
+    { flightNumber: 'JL1', poolLane: 1 },
+    { flightNumber: 'NH2', poolLane: 3 },
+    { flightNumber: 'JL3', poolLane: 1 },
+    { flightNumber: 'XX4' }, // poolLane 未確定
+  ];
+  assert.equal(filterByLane(flights, 0).length, 4);
+  assert.equal(filterByLane(flights, 1).length, 2);
+  assert.deepEqual(filterByLane(flights, 3).map(f => f.flightNumber), ['NH2']);
+  assert.equal(filterByLane(flights, 4).length, 0);
+  assert.deepEqual(filterByLane(null, 1), []);
+});
 
 test('normalizeArrivals: "to be determined" estimatedTime を null にする', () => {
   const data = {
