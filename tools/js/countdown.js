@@ -26,6 +26,28 @@ export function crossedZero(prevRemainingMs, nowRemainingMs) {
   return prevRemainingMs > 0 && nowRemainingMs <= 0;
 }
 
+// 経過ミリ秒 → "MM:SS"（1時間以上は "H:MM:SS"）。負は 00:00。カウントダウン0到達後の合計表示用。
+export function fmtClockShort(ms) {
+  const totalSec = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
+// 経過と目標(分)から注記文字列を返す。
+//   超過<0: ''（未到達）
+//   0<=超過<60秒: '目標{target}分 到達'
+//   超過>=60秒: '目標{target}分 ＋ 超過{floor分}分'
+export function overtimeNote(elapsedMs, targetMin) {
+  const overtimeMs = elapsedMs - targetMin * 60 * 1000;
+  if (overtimeMs < 0) return '';
+  if (overtimeMs < 60 * 1000) return `目標${targetMin}分 到達`;
+  return `目標${targetMin}分 ＋ 超過${Math.floor(overtimeMs / 60000)}分`;
+}
+
 // localStorage から読んだ生オブジェクトを既定値で正規化（後方互換）。
 export function normalizeTimerState(parsed) {
   const p = (parsed && typeof parsed === 'object') ? parsed : {};

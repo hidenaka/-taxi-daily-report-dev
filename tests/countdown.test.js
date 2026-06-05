@@ -5,6 +5,8 @@ import {
   fmtCountdown,
   crossedZero,
   normalizeTimerState,
+  fmtClockShort,
+  overtimeNote,
 } from '../tools/js/countdown.js';
 
 test('computeRemainingMs: 目標分 - 実経過ms', () => {
@@ -61,4 +63,24 @@ test('normalizeTimerState: 不正な countdownTargetMin は 27、soundOn=false �
 
 test('normalizeTimerState: Infinity/NaN は fallback 値にフォールバック', () => {
   assert.equal(normalizeTimerState({ countdownTargetMin: Infinity }).countdownTargetMin, 27);
+});
+
+test('fmtClockShort: 経過msを MM:SS（1時間以上は H:MM:SS）。負は00:00', () => {
+  assert.equal(fmtClockShort(0), '00:00');
+  assert.equal(fmtClockShort(32 * 60 * 1000), '32:00');
+  assert.equal(fmtClockShort(5 * 60 * 1000 + 3 * 1000), '05:03');
+  assert.equal(fmtClockShort(60 * 60 * 1000 + 2 * 60 * 1000 + 5 * 1000), '1:02:05');
+  assert.equal(fmtClockShort(-1000), '00:00');
+});
+
+test('overtimeNote: 超過<1分は「到達」、以降は「＋ 超過N分」（floor）', () => {
+  assert.equal(overtimeNote(27 * 60 * 1000, 27), '目標27分 到達');           // 超過0
+  assert.equal(overtimeNote(27 * 60 * 1000 + 30 * 1000, 27), '目標27分 到達'); // 超過30秒
+  assert.equal(overtimeNote(27 * 60 * 1000 + 60 * 1000, 27), '目標27分 ＋ 超過1分');
+  assert.equal(overtimeNote(32 * 60 * 1000, 27), '目標27分 ＋ 超過5分');
+  assert.equal(overtimeNote(27 * 60 * 1000 + 5 * 60 * 1000 + 59 * 1000, 27), '目標27分 ＋ 超過5分'); // floor
+});
+
+test('overtimeNote: まだ目標未到達（超過<0）は空文字', () => {
+  assert.equal(overtimeNote(10 * 60 * 1000, 27), '');
 });
