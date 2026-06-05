@@ -592,7 +592,8 @@
     </form>
   </dialog>
 
-<script>
+<script type="module">
+import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState } from './js/countdown.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -656,23 +657,12 @@ function addMinutes(date, minutes) {
 const STORAGE_KEY = 'taxi-timer-v1';
 
 function loadState() {
-  const defaults = { shiftStart: '07:00', records: [], runningStartedAt: null, targetBreakMin: 180, continuousDriveMin: 360, shiftStartAt: null, lastResetSnapshot: null, breakCountMin: 11 };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaults;
-    const parsed = JSON.parse(raw);
-      return {
-        shiftStart: parsed.shiftStart || '07:00',
-        records: Array.isArray(parsed.records) ? parsed.records : [],
-        runningStartedAt: typeof parsed.runningStartedAt === 'number' ? parsed.runningStartedAt : null,
-        targetBreakMin: (typeof parsed.targetBreakMin === 'number' && parsed.targetBreakMin >= 0) ? parsed.targetBreakMin : 180,
-        continuousDriveMin: (typeof parsed.continuousDriveMin === 'number' && parsed.continuousDriveMin > 0) ? parsed.continuousDriveMin : 360,
-        shiftStartAt: typeof parsed.shiftStartAt === 'number' ? parsed.shiftStartAt : null,
-        lastResetSnapshot: (parsed.lastResetSnapshot && typeof parsed.lastResetSnapshot === 'object') ? parsed.lastResetSnapshot : null,
-        breakCountMin: (typeof parsed.breakCountMin === 'number' && parsed.breakCountMin >= 0) ? parsed.breakCountMin : 11
-      };
+    if (!raw) return normalizeTimerState(null);
+    return normalizeTimerState(JSON.parse(raw));
   } catch (e) {
-    return defaults;
+    return normalizeTimerState(null);
   }
 }
 
@@ -684,7 +674,11 @@ function saveState(state) {
     continuousDriveMin: state.continuousDriveMin,
     shiftStartAt: state.shiftStartAt,
     lastResetSnapshot: state.lastResetSnapshot,
-    breakCountMin: state.breakCountMin
+    breakCountMin: state.breakCountMin,
+    mode: state.mode,
+    countdownTargetMin: state.countdownTargetMin,
+    soundOn: state.soundOn,
+    wakeLockOn: state.wakeLockOn
   };
   if (state.stopwatch.running && state.stopwatch.startedAt) {
     data.runningStartedAt = state.stopwatch.startedAt;
@@ -706,10 +700,27 @@ const state = {
   shiftStartAt: _loaded.shiftStartAt,
   lastResetSnapshot: _loaded.lastResetSnapshot,
   breakCountMin: _loaded.breakCountMin,
+  mode: _loaded.mode,
+  countdownTargetMin: _loaded.countdownTargetMin,
+  soundOn: _loaded.soundOn,
+  wakeLockOn: _loaded.wakeLockOn,
   stopwatch: _loaded.runningStartedAt
     ? { running: true, startedAt: _loaded.runningStartedAt, elapsedMs: 0 }
     : { running: false, startedAt: null, elapsedMs: 0 }
 };
+
+// カウントダウン0クロス検出用のランタイム状態（永続化しない）
+let prevRemainingMs = null;          // 直前tickの残りms（null=未計測）
+let countdownNotified = false;       // この走行で0通知済みか
+// ロード時点で既に超過しているなら再読込で鳴らさない
+if (state.mode === 'down' && state.stopwatch.running) {
+  const _ms = state.stopwatch.elapsedMs + (Date.now() - state.stopwatch.startedAt);
+  if (computeRemainingMs(_ms, state.countdownTargetMin) <= 0) countdownNotified = true;
+}
+
+// Wake Lock のスタブ（Task 6 で実体に差し替える）。
+// これにより Task 4/5 で syncWakeLock() を呼んでも各コミットが動作する。
+function syncWakeLock() {}
 
 function currentStopwatchMs() {
   if (!state.stopwatch.running) return state.stopwatch.elapsedMs;

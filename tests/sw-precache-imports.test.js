@@ -19,19 +19,27 @@ function listHtml() {
 }
 
 // HTML から静的 import される ./js/X.js を抽出（`from '...'` と 副作用 import の両形式）。
+// tools/ サブディレクトリの HTML で ./js/X.js を import する場合は tools/js/ 相対となるため、
+// sw.js での登録パス（./tools/js/X.js）に正規化して返す。
 function staticJsImports(html) {
   const src = readFileSync(join(ROOT, html), 'utf8');
+  const htmlDir = html.includes('/') ? html.slice(0, html.lastIndexOf('/') + 1) : '';
   const set = new Set();
   const re = /(?:from|import)\s*['"](\.\/js\/[a-zA-Z0-9_-]+\.js)['"]/g;
   let m;
-  while ((m = re.exec(src))) set.add(m[1]);
+  while ((m = re.exec(src))) {
+    // ./js/X.js を HTML の位置を考慮してリポジトリルート相対パスに正規化する
+    // 例: tools/index.html + ./js/countdown.js → ./tools/js/countdown.js
+    const normalized = htmlDir ? `./${htmlDir}${m[1].slice(2)}` : m[1];
+    set.add(normalized);
+  }
   return set;
 }
 
 function staticFilesInSw() {
   const sw = readFileSync(join(ROOT, 'sw.js'), 'utf8');
   const set = new Set();
-  const re = /['"](\.\/js\/[a-zA-Z0-9_-]+\.js)['"]/g;
+  const re = /['"](\.\/(?:[a-zA-Z0-9_-]+\/)*js\/[a-zA-Z0-9_-]+\.js)['"]/g;
   let m;
   while ((m = re.exec(sw))) set.add(m[1]);
   return set;
