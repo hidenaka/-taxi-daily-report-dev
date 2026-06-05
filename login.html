@@ -198,16 +198,6 @@ function resetTurnstile(widgetId) {
   }
 }
 
-function billingApiBase() {
-  const isDev = location.hostname.includes('-dev')
-    || location.pathname.includes('-dev')
-    || location.hostname === 'localhost'
-    || location.hostname === '127.0.0.1';
-  return isDev
-    ? 'https://cabis-billing-dev.haqei64384.workers.dev'
-    : 'https://cabis-billing.haqei64384.workers.dev';
-}
-
 async function verifyTurnstile(token) {
   try {
     const res = await fetch(billingApiBase() + '/verify-turnstile', {

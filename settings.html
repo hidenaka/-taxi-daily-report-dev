@@ -324,7 +324,7 @@ import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
-import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
+import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth, waitForAuth } from './js/firebase-auth.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import './js/help-toggle.js';
 import {
@@ -376,6 +376,9 @@ async function initCancelSection() {
 // 紹介セクション（同じ会社の同僚に紹介する）
 async function initReferralSection() {
   try {
+    // 認証完了を待ってから companyId を読む。これがないと top-level 実行時に
+    // 認証未完了で getMyCompanyId() が null を返し、招待UIが初回表示されない。
+    await waitForAuth();
     const userId = getMyUserId();
     const companyId = await getMyCompanyId();
     if (!userId || !companyId) {
