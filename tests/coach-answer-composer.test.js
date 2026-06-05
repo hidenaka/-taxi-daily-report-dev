@@ -23,6 +23,7 @@ describe('composeAnswer', () => {
     assert.strictEqual(a.facts.hourlyA, 3900);
     assert.deepStrictEqual(a.moves, [ { area: '港区西麻布', count: 3 }, { area: '渋谷区恵比寿', count: 2 } ]);
     assert.deepStrictEqual(a.basis, ['goal-remaining', 'next-board', 'your-hourly', 'high-value']);
+    assert.deepStrictEqual(a.spots, [ { area: '港区六本木', period: '夜', avgSales: 2600 } ]);
   });
   it('goal到達済みは status=reached', () => {
     const fp = { ...baseFactPack, goal: { ...baseFactPack.goal, remainingYen: 0, neededTrips: 0, reached: true } };
@@ -39,6 +40,7 @@ describe('composeAnswer', () => {
     assert.strictEqual(a.facts.remainingMin, null);
     assert.ok(!a.basis.includes('goal-remaining'));
     assert.ok(a.basis.includes('your-hourly'));
+    assert.deepStrictEqual(a.basis, ['next-board', 'your-hourly', 'high-value']);
   });
   it('nextMoves空なら moves空・basisにnext-board無し', () => {
     const fp = { ...baseFactPack, nextMoves: [] };
@@ -58,6 +60,7 @@ describe('composeAnswer', () => {
     assert.strictEqual(a.intent, 'finish-early');
     assert.strictEqual(a.facts.remainingMin, 40);
     assert.strictEqual(a.status, 'in-progress');
+    assert.deepStrictEqual(a.basis, ['goal-remaining', 'next-board', 'your-hourly', 'high-value']);
   });
   it('未知の intent は throw', () => {
     assert.throws(() => composeAnswer(baseFactPack, 'bogus'), /unknown intent/);
