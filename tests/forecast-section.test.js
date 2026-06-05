@@ -1,5 +1,32 @@
 import { test, assert } from './run.js';
-import { aggregateTo15min, loadEnsemble, isStale, loadActuals, renderActualsTable, computeAccumulatedTotal } from '../tools/js/forecast-section.js';
+import { aggregateTo15min, loadEnsemble, isStale, loadActuals, renderActualsTable, computeAccumulatedTotal, toVehicleBins } from '../tools/js/forecast-section.js';
+
+// --- toVehicleBins: 列移動回数 × 横台数 = 出庫台数 ---
+
+test('toVehicleBins: 列移動回数×横台数で出庫台数に変換する', () => {
+  const bins = [{ label: '08:00-08:15', stall1: 2, stall2: 1, stall3: 3, stall4: 0, total: 6 }];
+  const rw = { stall1: 8, stall2: 7, stall3: 8, stall4: 8 };
+  const v = toVehicleBins(bins, rw);
+  assert.equal(v[0].stall1, 16); // 2*8
+  assert.equal(v[0].stall2, 7);  // 1*7
+  assert.equal(v[0].stall3, 24); // 3*8
+  assert.equal(v[0].stall4, 0);  // 0*8
+  assert.equal(v[0].total, 47);  // 16+7+24+0
+  assert.equal(v[0].label, '08:00-08:15');
+});
+
+test('toVehicleBins: 小数の予測値は四捨五入 / rowWidth欠落は等倍(×1)', () => {
+  const bins = [{ label: '09:00-09:15', stall1: 1.5, stall2: 2, stall3: 0, stall4: 0, total: 3.5 }];
+  const v = toVehicleBins(bins, { stall1: 8 }); // stall2-4 の width 無し
+  assert.equal(v[0].stall1, 12); // round(1.5*8)=12
+  assert.equal(v[0].stall2, 2);  // width無し→×1
+  assert.equal(v[0].total, 14);  // 12+2
+});
+
+test('toVehicleBins: rowWidth未指定(null)は入力をそのまま返す', () => {
+  const bins = [{ label: '10:00-10:15', stall1: 2, stall2: 0, stall3: 0, stall4: 0, total: 2 }];
+  assert.deepEqual(toVehicleBins(bins, null), bins);
+});
 
 // --- aggregateTo15min: 5分スロット → 15分ビン合算 ---
 
