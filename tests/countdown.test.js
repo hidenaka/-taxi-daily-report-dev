@@ -23,6 +23,7 @@ test('fmtCountdown: 残>=0 は MM:SS / 1時間以上は H:MM:SS', () => {
 test('fmtCountdown: 残<0 は「超過 +…」', () => {
   assert.equal(fmtCountdown(-3 * 60 * 1000 - 20 * 1000), '超過 +03:20');
   assert.equal(fmtCountdown(-1000), '超過 +00:01');
+  assert.equal(fmtCountdown(-(90 * 60 * 1000)), '超過 +1:30:00');
 });
 
 test('crossedZero: 直前>0 かつ 今回<=0 の瞬間だけ true', () => {
@@ -56,4 +57,8 @@ test('normalizeTimerState: 不正な countdownTargetMin は 27、soundOn=false �
   assert.equal(normalizeTimerState({ countdownTargetMin: -5 }).countdownTargetMin, 27);
   assert.equal(normalizeTimerState({ countdownTargetMin: 45 }).countdownTargetMin, 45);
   assert.equal(normalizeTimerState({ soundOn: false }).soundOn, false);
+});
+
+test('normalizeTimerState: Infinity/NaN は fallback 値にフォールバック', () => {
+  assert.equal(normalizeTimerState({ countdownTargetMin: Infinity }).countdownTargetMin, 27);
 });

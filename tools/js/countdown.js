@@ -30,13 +30,13 @@ export function crossedZero(prevRemainingMs, nowRemainingMs) {
 export function normalizeTimerState(parsed) {
   const p = (parsed && typeof parsed === 'object') ? parsed : {};
   const numAtLeast = (v, min, fallback) =>
-    (typeof v === 'number' && v >= min) ? v : fallback;
+    (Number.isFinite(v) && v >= min) ? v : fallback;
   return {
     shiftStart: p.shiftStart || '07:00',
     records: Array.isArray(p.records) ? p.records : [],
     runningStartedAt: typeof p.runningStartedAt === 'number' ? p.runningStartedAt : null,
     targetBreakMin: numAtLeast(p.targetBreakMin, 0, 180),
-    continuousDriveMin: (typeof p.continuousDriveMin === 'number' && p.continuousDriveMin > 0) ? p.continuousDriveMin : 360,
+    continuousDriveMin: (Number.isFinite(p.continuousDriveMin) && p.continuousDriveMin > 0) ? p.continuousDriveMin : 360,
     shiftStartAt: typeof p.shiftStartAt === 'number' ? p.shiftStartAt : null,
     lastResetSnapshot: (p.lastResetSnapshot && typeof p.lastResetSnapshot === 'object') ? p.lastResetSnapshot : null,
     breakCountMin: numAtLeast(p.breakCountMin, 0, 11),
