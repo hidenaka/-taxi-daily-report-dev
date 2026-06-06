@@ -1,3 +1,6 @@
+import { isCoachEnabled } from './coach-flag.js';
+if (!isCoachEnabled()) { location.replace('index.html'); throw new Error('coach disabled on this host'); }
+
 import { renderBottomNav, todayIso, currentBillingPeriod } from '../app.js';
 import { getConfig, getDrivesForMonth } from '../storage.js';
 import { enforceAccess } from '../access-control.js';

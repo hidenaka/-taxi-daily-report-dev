@@ -132,7 +132,7 @@ if (location.hostname.includes('-dev')) {
     <p style="font-size:11px;line-height:1.6;color:#9a6a4a;margin:10px 0 0;">まだ写真が無い方は、次の乗務のあとに明細の写真を撮っておきましょう。</p>
   </section>
   <section class="card" id="todayHintCard" style="display:none;"></section>
-  <section class="card" style="padding:14px;">
+  <section class="card" id="coachEntryCard" style="display:none;padding:14px;">
     <a href="coach.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;">
       <span style="font-size:28px;">🤖</span>
       <div>
@@ -1280,6 +1280,11 @@ function pickWeatherIcon(w) {
 }
 
 load();
+</script>
+<script type="module">
+import { isCoachEnabled } from './js/coach/coach-flag.js';
+const _ce = document.getElementById('coachEntryCard');
+if (_ce && isCoachEnabled()) _ce.style.display = '';
 </script>
 </body>
 </html>

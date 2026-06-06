@@ -62,7 +62,7 @@ if (location.hostname.includes('-dev')) {
     <p>施設ごとの入港ルート・注意事項を地図で確認</p>
   </a>
 
-  <a href="coach.html" class="tool-card">
+  <a href="coach.html" class="tool-card" id="coachToolCard" style="display:none">
     <div class="icon">🤖</div>
     <h3>AI営業相談</h3>
     <p>目標と今の状況に合わせて動き方を相談</p>
@@ -91,6 +91,11 @@ renderLegalFooter();
         if (el) el.style.display = '';
       }
     } catch (e) { /* 未ログイン等は出さないままで良い */ }
+  </script>
+  <script type="module">
+import { isCoachEnabled } from './js/coach/coach-flag.js';
+const _ct = document.getElementById('coachToolCard');
+if (_ct && isCoachEnabled()) _ct.style.display = '';
   </script>
 </body>
 </html>

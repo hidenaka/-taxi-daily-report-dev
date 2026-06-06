@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v284';
+const CACHE_NAME = CACHE_PREFIX + 'v285';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -109,7 +109,8 @@ const STATIC_FILES = [
   './js/coach/place.js',
   './js/coach/coach-context.js',
   './js/coach/coach-run.js',
-  './js/coach/coach-ui.js'
+  './js/coach/coach-ui.js',
+  './js/coach/coach-flag.js'
 ];
 // 外部依存（Firebase SDK・バージョン固定で不変）。失敗が install 全体を壊さないよう個別に追加。
 const EXTERNAL_FILES = [
