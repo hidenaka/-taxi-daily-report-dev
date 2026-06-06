@@ -1406,12 +1406,15 @@ function onMovePosition(pos) {
   if (!breakStartCoord) { breakStartCoord = cur; return; }              // 最初のfixを基準点に
   const dist = distanceMeters(breakStartCoord, cur);
   if (dist >= state.moveThresholdM) {
-    moveCrossingAt = Date.now();
-    movePrompting = true;
     const dlg = $('move-detect-dialog');
-    $('move-detect-dist').textContent = `約${Math.round(dist)}m`;
-    $('move-detect-end').textContent = fmtTime(new Date(moveCrossingAt));
-    if (dlg && typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
+    // ダイアログが実際に開けた時だけ prompting を立てる（開けないまま固まり防止）
+    if (dlg && typeof dlg.showModal === 'function' && !dlg.open) {
+      moveCrossingAt = Date.now();
+      movePrompting = true;
+      $('move-detect-dist').textContent = `約${Math.round(dist)}m`;
+      $('move-detect-end').textContent = fmtTime(new Date(moveCrossingAt));
+      dlg.showModal();
+    }
   }
 }
 
@@ -1422,7 +1425,8 @@ $('move-detect-yes').addEventListener('click', () => {
   // しきい値を超えた時刻で休憩を締めて記録（開始は既知なので正確）
   if (state.stopwatch.running && startedAt && end && end > startedAt) {
     const durationSec = Math.floor((end - startedAt) / 1000);
-    if (durationSec > 0) {
+    // 手動「記録」と同じく休憩カウント最低分を満たす時だけ記録（満たない短い停車は記録せず停止のみ）
+    if (durationSec >= state.breakCountMin * 60) {
       state.records.push({ recordedAt: new Date(end).toISOString(), durationSec });
     }
   }
@@ -1440,6 +1444,13 @@ $('move-detect-yes').addEventListener('click', () => {
 $('move-detect-no').addEventListener('click', () => {
   $('move-detect-dialog').close();
   // 継続。基準点をリセット（次のfixを新基準に）→ また500m動くまで再表示しない
+  breakStartCoord = null;
+  moveCrossingAt = null;
+  movePrompting = false;
+});
+// ESC等でダイアログを閉じた場合も「いいえ」と同じく基準点をリセットして監視継続
+// （これが無いと movePrompting が立ったまま検知が止まる）
+$('move-detect-dialog').addEventListener('cancel', () => {
   breakStartCoord = null;
   moveCrossingAt = null;
   movePrompting = false;
