@@ -48,6 +48,21 @@ export function overtimeNote(elapsedMs, targetMin) {
   return `目標${targetMin}分 ＋ 超過${Math.floor(overtimeMs / 60000)}分`;
 }
 
+// 2点間の直線距離(m)。ハバーサイン。引数 {lat, lon}（度）。移動検知用。
+export function distanceMeters(a, b) {
+  if (!a || !b) return 0;
+  const R = 6371000; // 地球半径(m)
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 // localStorage から読んだ生オブジェクトを既定値で正規化（後方互換）。
 export function normalizeTimerState(parsed) {
   const p = (parsed && typeof parsed === 'object') ? parsed : {};
@@ -66,5 +81,10 @@ export function normalizeTimerState(parsed) {
     countdownTargetMin: numAtLeast(p.countdownTargetMin, 1, 27),
     soundOn: typeof p.soundOn === 'boolean' ? p.soundOn : true,
     wakeLockOn: typeof p.wakeLockOn === 'boolean' ? p.wakeLockOn : false,
+    // 通知音の長さ(秒)。0=止めるまで鳴り続ける。
+    alertDurationSec: numAtLeast(p.alertDurationSec, 0, 5),
+    // 移動検知ポップアップ
+    moveDetectOn: typeof p.moveDetectOn === 'boolean' ? p.moveDetectOn : true,
+    moveThresholdM: numAtLeast(p.moveThresholdM, 100, 500),
   };
 }
