@@ -485,6 +485,16 @@
 .cd-preset.active { background: #1f6feb; color: #fff; border-color: #1f6feb; font-weight: 700; }
 .cd-custom { margin-bottom: 10px; }
 .cd-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-top: 6px; cursor: pointer; }
+.cd-sound-dur { margin: 8px 0 2px; }
+.cd-sound-dur .cd-label { margin-bottom: 4px; }
+.cd-sound-dur[hidden] { display: none; }
+.btn-stop-alert { display: block; width: 100%; margin-top: 10px; padding: 12px; background: #c83a2c; color: #fff; border: 0; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; }
+.btn-stop-alert[hidden] { display: none; }
+.setting-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-top: 10px; cursor: pointer; }
+#move-threshold-row[hidden] { display: none; }
+.move-detect-msg { font-size: 15px; margin: 8px 0; }
+.move-detect-end { font-size: 14px; color: #555; margin: 4px 0 8px; }
+#move-detect-dialog .btn-save { background: #c83a2c; }
 #stopwatch-display.over { color: #c83a2c; }
 @keyframes cd-flash { 0%,100% { background: transparent; } 50% { background: #f6dcd6; } }
 .stopwatch.flash { animation: cd-flash 0.5s ease-in-out 3; border-radius: 12px; }
@@ -536,6 +546,17 @@
           <span>分</span>
         </div>
         <label class="cd-toggle"><input type="checkbox" id="cd-sound"> 0で音を鳴らす</label>
+        <div class="cd-sound-dur" id="cd-sound-dur">
+          <div class="cd-label">通知音の長さ</div>
+          <div class="cd-presets" id="alert-dur-presets">
+            <button class="cd-preset" type="button" data-sec="1">1秒</button>
+            <button class="cd-preset" type="button" data-sec="3">3秒</button>
+            <button class="cd-preset" type="button" data-sec="5">5秒</button>
+            <button class="cd-preset" type="button" data-sec="10">10秒</button>
+            <button class="cd-preset" type="button" data-sec="30">30秒</button>
+            <button class="cd-preset" type="button" data-sec="0">止めるまで</button>
+          </div>
+        </div>
         <label class="cd-toggle"><input type="checkbox" id="cd-wakelock"> 休憩中は画面を消さない</label>
       </div>
 
@@ -548,6 +569,7 @@
         <button id="btn-record" type="button" disabled>記録</button>
         <button id="btn-discard" type="button" disabled>破棄</button>
       </div>
+      <button id="btn-stop-alert" class="btn-stop-alert" type="button" hidden>🔕 音を止める</button>
     </section>
 
     <section class="metrics">
@@ -613,6 +635,14 @@
             <span>分</span>
           </div>
         </div>
+        <label class="setting-toggle"><input type="checkbox" id="move-detect-on"> 移動を検知して休憩終了を知らせる</label>
+        <div class="setting-row" id="move-threshold-row">
+          <label for="move-threshold-m">検知する距離</label>
+          <div class="hm-input">
+            <input type="number" id="move-threshold-m" min="100" max="5000" step="50" inputmode="numeric">
+            <span>m</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -641,8 +671,20 @@
     </form>
   </dialog>
 
+  <dialog id="move-detect-dialog">
+    <div class="dialog-body">
+      <h3>🚗 移動を検知しました</h3>
+      <p class="move-detect-msg">開始地点から<span id="move-detect-dist">約500m</span>離れました。<br>休憩を終了しますか？</p>
+      <p class="move-detect-end">終了時刻 <strong id="move-detect-end">--:--</strong></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-cancel" id="move-detect-no">いいえ・まだ休憩中</button>
+        <button type="button" class="btn-save" id="move-detect-yes">はい・終了する</button>
+      </div>
+    </div>
+  </dialog>
+
 <script type="module">
-import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote } from './js/countdown.js';
+import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters } from './js/countdown.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -727,7 +769,10 @@ function saveState(state) {
     mode: state.mode,
     countdownTargetMin: state.countdownTargetMin,
     soundOn: state.soundOn,
-    wakeLockOn: state.wakeLockOn
+    wakeLockOn: state.wakeLockOn,
+    alertDurationSec: state.alertDurationSec,
+    moveDetectOn: state.moveDetectOn,
+    moveThresholdM: state.moveThresholdM
   };
   if (state.stopwatch.running && state.stopwatch.startedAt) {
     data.runningStartedAt = state.stopwatch.startedAt;
@@ -753,6 +798,9 @@ const state = {
   countdownTargetMin: _loaded.countdownTargetMin,
   soundOn: _loaded.soundOn,
   wakeLockOn: _loaded.wakeLockOn,
+  alertDurationSec: _loaded.alertDurationSec,
+  moveDetectOn: _loaded.moveDetectOn,
+  moveThresholdM: _loaded.moveThresholdM,
   stopwatch: _loaded.runningStartedAt
     ? { running: true, startedAt: _loaded.runningStartedAt, elapsedMs: 0 }
     : { running: false, startedAt: null, elapsedMs: 0 }
@@ -869,8 +917,8 @@ function renderCountdownPanel() {
   $('mode-down').setAttribute('aria-selected', String(down));
   // パネル表示
   $('countdown-panel').hidden = !down;
-  // プリセットの選択ハイライト
-  document.querySelectorAll('.cd-preset').forEach(b => {
+  // 目標プリセットの選択ハイライト（#cd-presets に限定。長さチップを巻き込まない）
+  document.querySelectorAll('#cd-presets .cd-preset').forEach(b => {
     b.classList.toggle('active', Number(b.dataset.min) === state.countdownTargetMin);
   });
   // 自由入力（フォーカス中は上書きしない）
@@ -883,6 +931,11 @@ function renderCountdownPanel() {
   // トグル
   $('cd-sound').checked = state.soundOn;
   $('cd-wakelock').checked = state.wakeLockOn;
+  // 通知音の長さ（音ONのときだけ出す + 選択チップをハイライト）
+  $('cd-sound-dur').hidden = !state.soundOn;
+  document.querySelectorAll('#alert-dur-presets .cd-preset').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.sec) === state.alertDurationSec);
+  });
 }
 
 function renderButtons() {
@@ -1019,6 +1072,7 @@ function renderAll() {
   renderMetrics();
   renderHistory();
   renderUndoReset();
+  renderMoveSettings();
 }
 
 // ============================================================
@@ -1027,6 +1081,7 @@ function renderAll() {
 
 $('btn-start').addEventListener('click', () => {
   ensureAudio();                    // iOS 音解除（ユーザー操作内で）
+  stopAlertSound();                 // 前回の鳴りっぱなしがあれば止める
   state.stopwatch.running = true;
   state.stopwatch.startedAt = Date.now();
   state.stopwatch.elapsedMs = 0;
@@ -1034,10 +1089,13 @@ $('btn-start').addEventListener('click', () => {
   countdownNotified = false;        // 通知を再武装
   saveState(state);
   syncWakeLock();                   // 走行開始でWake Lock反映（Task 6）
+  startMoveWatch();                 // 移動検知の監視開始
   renderAll();
 });
 
 $('btn-discard').addEventListener('click', () => {
+  stopAlertSound();
+  stopMoveWatch();
   state.stopwatch.running = false;
   state.stopwatch.startedAt = null;
   state.stopwatch.elapsedMs = 0;
@@ -1056,6 +1114,8 @@ $('btn-record').addEventListener('click', () => {
     durationSec: Math.floor(ms / 1000)
   };
   state.records.push(record);
+  stopAlertSound();
+  stopMoveWatch();
   state.stopwatch.running = false;
   state.stopwatch.startedAt = null;
   state.stopwatch.elapsedMs = 0;
@@ -1212,7 +1272,7 @@ function setCountdownTarget(min) {
   saveState(state);
   renderAll();
 }
-document.querySelectorAll('.cd-preset').forEach(b => {
+document.querySelectorAll('#cd-presets .cd-preset').forEach(b => {
   b.addEventListener('click', () => setCountdownTarget(Number(b.dataset.min)));
 });
 function onCdCustomChange() {
@@ -1222,9 +1282,21 @@ function onCdCustomChange() {
 $('cd-hour').addEventListener('change', onCdCustomChange);
 $('cd-min').addEventListener('change', onCdCustomChange);
 
+// 通知音の長さチップ（data-sec。0=止めるまで）
+document.querySelectorAll('#alert-dur-presets .cd-preset').forEach(b => {
+  b.addEventListener('click', () => {
+    const sec = Number(b.dataset.sec);
+    state.alertDurationSec = Number.isFinite(sec) && sec >= 0 ? sec : 5;
+    saveState(state);
+    renderCountdownPanel();
+  });
+});
+
 $('cd-sound').addEventListener('change', (e) => {
   state.soundOn = !!e.target.checked;
+  if (!state.soundOn) stopAlertSound();   // 音OFFにしたら鳴っている音を止める
   saveState(state);
+  renderCountdownPanel();                 // 長さ設定の表示/非表示を更新
 });
 $('cd-wakelock').addEventListener('change', (e) => {
   state.wakeLockOn = !!e.target.checked;
@@ -1252,8 +1324,9 @@ function ensureAudio() {
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   } catch (e) { /* 非対応環境は無視 */ }
 }
-function beep() {
-  if (!state.soundOn || !audioCtx) return;
+// 短音×2を1回だけ鳴らす（旧 beep の本体）。
+function playBlip() {
+  if (!audioCtx) return;
   try {
     const now = audioCtx.currentTime;
     [0, 0.25].forEach((offset) => {           // 短音×2
@@ -1269,12 +1342,129 @@ function beep() {
     });
   } catch (e) { /* 無視 */ }
 }
+
+// 通知音を alertDurationSec ぶん繰り返す。0=止めるまで鳴り続ける。
+let alertTimer = null;       // 繰り返し用 setInterval id
+let alertStopTimer = null;   // 自動停止用 setTimeout id
+function startAlertSound() {
+  if (!state.soundOn || !audioCtx) return;   // 音OFF/非対応なら鳴らさない（ボタンも出さない）
+  stopAlertSound();                          // 二重起動防止
+  playBlip();
+  alertTimer = setInterval(playBlip, 900);   // 約0.9秒ごとに繰り返す
+  if (state.alertDurationSec > 0) {
+    alertStopTimer = setTimeout(stopAlertSound, state.alertDurationSec * 1000);
+  }
+  const btn = $('btn-stop-alert');
+  if (btn) btn.hidden = false;               // 鳴っている間だけ「音を止める」を出す
+}
+function stopAlertSound() {
+  if (alertTimer) { clearInterval(alertTimer); alertTimer = null; }
+  if (alertStopTimer) { clearTimeout(alertStopTimer); alertStopTimer = null; }
+  const btn = $('btn-stop-alert');
+  if (btn) btn.hidden = true;
+}
+
 function fireZeroNotification() {
-  beep();                                       // soundOn のときだけ鳴る
+  startAlertSound();                            // soundOn のときだけ鳴る（中で判定）
   try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
   const sw = document.querySelector('.stopwatch');
   if (sw) { sw.classList.remove('flash'); void sw.offsetWidth; sw.classList.add('flash'); }
 }
+
+$('btn-stop-alert').addEventListener('click', stopAlertSound);
+
+// --- 移動検知（休憩終了ポップアップ） ---
+// 休憩中、GPSで開始地点からの直線距離を監視。moveThresholdM を超えたら
+// 「終了する？」のポップアップを出す。前面表示中のみ動作（iOSは裏で凍結）。
+let moveWatchId = null;
+let breakStartCoord = null;   // {lat, lon} 休憩開始地点（最初のGPS fix）
+let moveCrossingAt = null;    // しきい値を超えた時刻(ms)
+let movePrompting = false;    // ポップアップ表示中フラグ
+
+function startMoveWatch() {
+  stopMoveWatch();
+  if (!state.moveDetectOn || !navigator.geolocation) return;
+  try {
+    moveWatchId = navigator.geolocation.watchPosition(onMovePosition, () => {}, {
+      enableHighAccuracy: false, timeout: 20000, maximumAge: 5000
+    });
+  } catch (e) { moveWatchId = null; }   // 非対応/拒否は無効
+}
+function stopMoveWatch() {
+  if (moveWatchId != null && navigator.geolocation) {
+    try { navigator.geolocation.clearWatch(moveWatchId); } catch (e) {}
+  }
+  moveWatchId = null;
+  breakStartCoord = null;
+  moveCrossingAt = null;
+  movePrompting = false;
+}
+function onMovePosition(pos) {
+  if (!state.stopwatch.running || movePrompting) return;
+  if (pos.coords.accuracy != null && pos.coords.accuracy > 200) return; // 精度悪い読みは無視
+  const cur = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+  if (!breakStartCoord) { breakStartCoord = cur; return; }              // 最初のfixを基準点に
+  const dist = distanceMeters(breakStartCoord, cur);
+  if (dist >= state.moveThresholdM) {
+    moveCrossingAt = Date.now();
+    movePrompting = true;
+    const dlg = $('move-detect-dialog');
+    $('move-detect-dist').textContent = `約${Math.round(dist)}m`;
+    $('move-detect-end').textContent = fmtTime(new Date(moveCrossingAt));
+    if (dlg && typeof dlg.showModal === 'function' && !dlg.open) dlg.showModal();
+  }
+}
+
+$('move-detect-yes').addEventListener('click', () => {
+  $('move-detect-dialog').close();
+  const startedAt = state.stopwatch.startedAt;
+  const end = moveCrossingAt;
+  // しきい値を超えた時刻で休憩を締めて記録（開始は既知なので正確）
+  if (state.stopwatch.running && startedAt && end && end > startedAt) {
+    const durationSec = Math.floor((end - startedAt) / 1000);
+    if (durationSec > 0) {
+      state.records.push({ recordedAt: new Date(end).toISOString(), durationSec });
+    }
+  }
+  stopAlertSound();
+  state.stopwatch.running = false;
+  state.stopwatch.startedAt = null;
+  state.stopwatch.elapsedMs = 0;
+  prevRemainingMs = null;
+  countdownNotified = false;
+  stopMoveWatch();
+  saveState(state);
+  syncWakeLock();
+  renderAll();
+});
+$('move-detect-no').addEventListener('click', () => {
+  $('move-detect-dialog').close();
+  // 継続。基準点をリセット（次のfixを新基準に）→ また500m動くまで再表示しない
+  breakStartCoord = null;
+  moveCrossingAt = null;
+  movePrompting = false;
+});
+
+function renderMoveSettings() {
+  $('move-detect-on').checked = state.moveDetectOn;
+  const thRow = $('move-threshold-row');
+  if (thRow) thRow.hidden = !state.moveDetectOn;
+  const thEl = $('move-threshold-m');
+  if (thEl && document.activeElement !== thEl) thEl.value = state.moveThresholdM;
+}
+$('move-detect-on').addEventListener('change', (e) => {
+  state.moveDetectOn = !!e.target.checked;
+  saveState(state);
+  renderMoveSettings();
+  if (!state.moveDetectOn) stopMoveWatch();
+  else if (state.stopwatch.running) startMoveWatch();
+});
+$('move-threshold-m').addEventListener('change', () => {
+  const v = parseInt($('move-threshold-m').value, 10);
+  state.moveThresholdM = (Number.isFinite(v) && v >= 100) ? v : 500;
+  saveState(state);
+  renderMoveSettings();
+});
 
 const RESET_UNDO_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
 
@@ -1296,6 +1486,8 @@ function isResetSnapshotValid(snap) {
 $('btn-reset').addEventListener('click', () => {
   const hasData = state.records.length > 0 || state.shiftStartAt !== null || state.stopwatch.running;
   if (hasData && !confirm('現在の乗務記録をリセットして新しい乗務を開始します。よろしいですか？')) return;
+  stopAlertSound();
+  stopMoveWatch();
   state.lastResetSnapshot = captureResetSnapshot();
   state.records = [];
   state.stopwatch.running = false;
@@ -1364,6 +1556,7 @@ setInterval(() => {
 
 renderAll();
 syncWakeLock();   // リロード時に running かつ wakeLockOn なら再取得
+if (state.stopwatch.running) startMoveWatch();   // リロード時も休憩中なら移動検知を再開
 
 // Keep tab navigation inside standalone/PWA mode on iOS (prevents kick-out to Safari)
 document.querySelectorAll('.app-tab').forEach(a => {
