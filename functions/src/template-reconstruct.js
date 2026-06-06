@@ -235,7 +235,7 @@ function toHalf(s) {
 const CONF_THRESHOLD = 0.55;
 
 // セルの生テキストを列 type で正規化する。戻り値 { text, lowConfidence }
-function normalizeCell(rawText, type, confidence) {
+export function normalizeCell(rawText, type, confidence) {
   const raw = toHalf(rawText).trim();
   let text = raw;
   let lowConfidence = false;
@@ -271,7 +271,11 @@ function normalizeCell(rawText, type, confidence) {
     text = digits ? String(parseInt(digits, 10)) : '';
   } else if (type === 'int') {
     const digits = raw.replace(/[^0-9]/g, '');
-    if (digits) {
+    // 貸切マーカー「貸1」等は接頭辞「貸」を保持する(数字だけに切り詰めると
+    // 下流 to-drive の isCharter 判定が外れ貸切が消える)。休と同じ特例扱い。
+    if (/貸/.test(raw)) {
+      text = digits ? `貸${parseInt(digits, 10)}` : '貸';
+    } else if (digits) {
       text = String(parseInt(digits, 10));
     } else if (/[休保㈱]/.test(raw)) {
       text = '休';
