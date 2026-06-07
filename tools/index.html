@@ -1096,7 +1096,7 @@ function renderUndoReset() {
     if (snap) { state.lastResetSnapshot = null; saveState(state); }
     return;
   }
-  const count = Array.isArray(snap.records) ? snap.records.length : 0;
+  const count = Array.isArray(snap.records) ? snap.records.filter(r => !r.deleted).length : 0;
   const t = fmtTime(new Date(snap.savedAt));
   btn.hidden = false;
   btn.textContent = `↩ ${t} のリセットを取り消す（記録${count}件を復元）`;
