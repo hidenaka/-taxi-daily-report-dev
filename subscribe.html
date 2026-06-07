@@ -88,7 +88,7 @@ if (location.hostname.includes('-dev')) {
     <h3>プランを選ぶ</h3>
     <label class="plan-opt">
       <input type="radio" name="plan" value="full" checked>
-      <span><strong>普通プラン ¥1,000／月</strong><br><span class="muted" style="font-size:12px;line-height:1.6;">全機能。日報・給与計算・乗務タイマー・IC判定・需要予測 ＋ 営業サポート（降車エリア統計・推奨検索・ペース管理）</span></span>
+      <span><strong>フルプラン ¥1,000／月</strong><br><span class="muted" style="font-size:12px;line-height:1.6;">全機能。日報・給与計算・乗務タイマー・IC判定・需要予測 ＋ 営業サポート（降車エリア統計・推奨検索・ペース管理）</span></span>
     </label>
     <label class="plan-opt">
       <input type="radio" name="plan" value="simple">
@@ -104,7 +104,7 @@ if (location.hostname.includes('-dev')) {
       <div style="margin-top:6px;">
         <span class="price-amount" id="priceAmount">1,000</span><span class="price-unit"> 円（税込）／月</span>
       </div>
-      <div class="muted" id="planLabel" style="font-size:12px;margin-top:4px;">通常プラン</div>
+      <div class="muted" id="planLabel" style="font-size:12px;margin-top:4px;">フルプラン</div>
     </div>
   </section>
 
@@ -112,7 +112,7 @@ if (location.hostname.includes('-dev')) {
   <section class="card" id="confirmCard">
     <h3>お申し込み内容の確認</h3>
     <div>
-      <div class="confirm-row"><div class="ck">提供内容</div><div class="cv" id="cvProvide">キャビス 普通プラン（全機能）</div></div>
+      <div class="confirm-row"><div class="ck">提供内容</div><div class="cv" id="cvProvide">キャビス フルプラン（全機能）</div></div>
       <div class="confirm-row"><div class="ck">月額料金</div><div class="cv"><span class="hl" id="cvPrice">1,000円</span>（税込）</div></div>
       <div class="confirm-row"><div class="ck">初月無料</div><div class="cv">お申し込みから<span class="hl">30日間は無料</span>。無料期間の終了後、<span id="cvPrice2">月額1,000円</span>の自動課金が始まります。</div></div>
       <div class="confirm-row"><div class="ck">支払方法</div><div class="cv">クレジットカード・月額前払い（Stripe決済）</div></div>
@@ -190,9 +190,9 @@ const AGREEMENT_VERSIONS = { terms: '2026-05-08', privacy: '2026-05-08', tokutei
 
 // 個人プランは2種（普通¥1,000／シンプル¥700）。組合割引コードは廃止。
 const PLAN_PRICES = { full: 1000, simple: 700 };
-const PLAN_LABELS = { full: '普通プラン', simple: 'シンプルプラン' };
+const PLAN_LABELS = { full: 'フルプラン', simple: 'シンプルプラン' };
 const PLAN_PROVIDE = {
-  full: 'キャビス 普通プラン（全機能：日報・給与計算・IC判定・需要予測＋営業サポート）',
+  full: 'キャビス フルプラン（全機能：日報・給与計算・IC判定・需要予測＋営業サポート）',
   simple: 'キャビス シンプルプラン（日報・給与計算・カレンダー・IC判定・需要予測。営業サポートは対象外）',
 };
 let selectedPlan = 'full';
