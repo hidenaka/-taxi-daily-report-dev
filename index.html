@@ -539,8 +539,18 @@ async function render() {
           const projectedTakeHome = projectedTotal * takeHomeRate;
 
           // 残出番のシム (vehicleType 補完用)
+          // 着地予測(predictMonthly)と同じ前提で残出番の車種を見込む(現状のプレミアム比率を踏襲)。
+          // これにより achieve-line(requiredUniformSales)の incentive 見積もりが
+          // 着地総支給(predicted.total)と同じ前提になり、両者の不整合(残出番を一般車固定で
+          // プレミアム手当を過小に見ていた)を解消する。
+          const _premiumCount = rawDrives.filter(d => d.vehicleType === 'premium').length;
+          const _premiumRemaining = rawDrives.length > 0
+            ? Math.round(remainingShifts * (_premiumCount / rawDrives.length))
+            : 0;
           const remainingShiftList = [];
-          for (let i = 0; i < remainingShifts; i++) remainingShiftList.push({ vehicleType: 'japantaxi' });
+          for (let i = 0; i < remainingShifts; i++) {
+            remainingShiftList.push({ vehicleType: i < _premiumRemaining ? 'premium' : 'japantaxi' });
+          }
 
           // 目標達成ライン計算 (target種別ごと)
           const calcAchieveLine = (target, targetType) => {
