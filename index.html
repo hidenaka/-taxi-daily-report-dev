@@ -527,7 +527,15 @@ async function render() {
           const incentivePart = predicted ? predicted.incentive : actualResult.incentive;
           const paidLeavePart = actualResult.paidLeaveAmount;
           // 着地予測の総支給・手取り
-          const projectedTotal = projectedSalesExcl * currentTier.rate + incentivePart + paidLeavePart;
+          // predicted(predictMonthly=段階歩率の正式計算)があればそれを使う。
+          // 旧概算 projectedSalesExcl×単一rate は projectedSalesExcl が
+          // 「平均×tierShiftCount(=最大11)」のため、責任出番が12以上だと12乗務目以降を
+          // 丸ごと落とし着地額を過小評価する(ヒーローの月度予想総支給=predicted.total と乖離)。
+          // よって predicted があれば predicted.total に統一し、ヒーローと一致させる。
+          // predicted が無い経路(過去月度等)のみ従来概算へフォールバック。
+          const projectedTotal = predicted
+            ? predicted.total
+            : (projectedSalesExcl * currentTier.rate + incentivePart + paidLeavePart);
           const projectedTakeHome = projectedTotal * takeHomeRate;
 
           // 残出番のシム (vehicleType 補完用)
