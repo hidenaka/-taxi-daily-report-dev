@@ -33,7 +33,14 @@ jobs:
             --exclude='node_modules/' \
             --exclude='CNAME' \
             dev/ prod/
-          
+
+      - name: Cache-bust local JS (prevent stale-import skew)
+        # index.html(短命)と tools/js/*.js(最大4hキャッシュ)の版ズレで ESM import が
+        # 失敗しタイマー等が停止するのを恒久防止。デプロイ毎にコミットSHAをJS参照URLへ
+        # 付与し、4時間キャッシュを確実に貫通させる(新HTMLは必ず同デプロイの新JSを取得)。
+        # scripts/ は rsync 除外なので dev 側にのみ存在。失敗時はジョブが止まり本番は前版維持。
+        run: node dev/scripts/cache-bust.mjs prod "${{ github.sha }}"
+
       - name: Commit and push to prod
         working-directory: prod
         run: |
