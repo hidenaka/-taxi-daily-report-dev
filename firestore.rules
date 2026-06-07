@@ -44,6 +44,12 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // --- timerStates/{userId} ---
+    match /timerStates/{userId} {
+      allow read, write: if isOwnerByUserId(userId);
+      allow read, write: if isAdmin();
+    }
+
     // --- drives/{userId}/daily/{date} ---
     match /drives/{userId}/daily/{date} {
       allow read, write: if isOwnerByUserId(userId);
