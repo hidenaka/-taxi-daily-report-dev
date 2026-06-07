@@ -8,6 +8,7 @@ import {
   fmtClockShort,
   overtimeNote,
   distanceMeters,
+  normalizeCountdownPresets,
 } from '../tools/js/countdown.js';
 
 test('computeRemainingMs: 目標分 - 実経過ms', () => {
@@ -130,4 +131,32 @@ test('normalizeTimerState: moveThresholdMは>=100で保持、不正/小さすぎ
 test('normalizeTimerState: moveDetectOnはboolean保持、無ければtrue', () => {
   assert.equal(normalizeTimerState({ moveDetectOn: false }).moveDetectOn, false);
   assert.equal(normalizeTimerState({}).moveDetectOn, true);
+});
+
+test('normalizeCountdownPresets: 既定は[11,15,27,30,45,60]', () => {
+  assert.deepEqual(normalizeCountdownPresets(null), [11, 15, 27, 30, 45, 60]);
+  assert.deepEqual(normalizeCountdownPresets(undefined), [11, 15, 27, 30, 45, 60]);
+  assert.deepEqual(normalizeCountdownPresets('x'), [11, 15, 27, 30, 45, 60]);
+});
+
+test('normalizeCountdownPresets: 妥当な6個はそのまま（floor）', () => {
+  assert.deepEqual(normalizeCountdownPresets([25, 40, 5, 60, 90, 120]), [25, 40, 5, 60, 90, 120]);
+  assert.deepEqual(normalizeCountdownPresets([25.7, 40.2, 5, 60, 90, 120]), [25, 40, 5, 60, 90, 120]);
+});
+
+test('normalizeCountdownPresets: 不正な要素は同位置の既定にフォールバック', () => {
+  assert.deepEqual(
+    normalizeCountdownPresets([25, 'x', -3, Infinity, 0, 45]),
+    [25, 15, 27, 30, 45, 45]
+  );
+});
+
+test('normalizeCountdownPresets: 短い配列は不足分を既定で埋める / 上限600', () => {
+  assert.deepEqual(normalizeCountdownPresets([20]), [20, 15, 27, 30, 45, 60]);
+  assert.deepEqual(normalizeCountdownPresets([700, 15, 27, 30, 45, 60]), [11, 15, 27, 30, 45, 60]);
+});
+
+test('normalizeTimerState: countdownPresets を含む（既定6個）', () => {
+  assert.deepEqual(normalizeTimerState(null).countdownPresets, [11, 15, 27, 30, 45, 60]);
+  assert.deepEqual(normalizeTimerState({ countdownPresets: [25, 40, 5, 60, 90, 120] }).countdownPresets, [25, 40, 5, 60, 90, 120]);
 });

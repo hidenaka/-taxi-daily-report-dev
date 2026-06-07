@@ -63,6 +63,19 @@ export function distanceMeters(a, b) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
+// カウントダウン目標プリセット(分)6個を正規化。各要素は1〜600の整数、
+// 不正・不足は同じ位置の既定値で埋める。ユーザーが編集可能。
+const DEFAULT_PRESETS = [11, 15, 27, 30, 45, 60];
+export function normalizeCountdownPresets(arr) {
+  const src = Array.isArray(arr) ? arr : [];
+  const out = [];
+  for (let i = 0; i < 6; i++) {
+    const v = src[i];
+    out.push((Number.isFinite(v) && v >= 1 && v <= 600) ? Math.floor(v) : DEFAULT_PRESETS[i]);
+  }
+  return out;
+}
+
 // localStorage から読んだ生オブジェクトを既定値で正規化（後方互換）。
 export function normalizeTimerState(parsed) {
   const p = (parsed && typeof parsed === 'object') ? parsed : {};
@@ -86,5 +99,7 @@ export function normalizeTimerState(parsed) {
     // 移動検知ポップアップ
     moveDetectOn: typeof p.moveDetectOn === 'boolean' ? p.moveDetectOn : true,
     moveThresholdM: numAtLeast(p.moveThresholdM, 100, 500),
+    // カウントダウン目標プリセット(分)6個。ユーザー編集可能。
+    countdownPresets: normalizeCountdownPresets(p.countdownPresets),
   };
 }

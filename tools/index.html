@@ -485,6 +485,11 @@
 .cd-preset.active { background: #1f6feb; color: #fff; border-color: #1f6feb; font-weight: 700; }
 .cd-custom { margin-bottom: 10px; }
 .cd-toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; margin-top: 6px; cursor: pointer; }
+.cd-edit-link { background: none; border: 0; color: #1f6feb; font-size: 12px; cursor: pointer; padding: 0 4px; }
+.cd-presets-editor { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.cd-presets-editor[hidden] { display: none; }
+.cd-preset-edit { width: 56px; padding: 6px; border: 1px solid #cdd6ea; border-radius: 8px; font-size: 14px; text-align: center; }
+.cd-edit-done { padding: 6px 12px; border: 0; background: #1f6feb; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
 .cd-sound-dur { margin: 8px 0 2px; }
 .cd-sound-dur .cd-label { margin-bottom: 4px; }
 .cd-sound-dur[hidden] { display: none; }
@@ -530,7 +535,7 @@
       </div>
 
       <div id="countdown-panel" class="countdown-panel" hidden>
-        <div class="cd-label">目標</div>
+        <div class="cd-label">目標 <button type="button" id="cd-presets-edit" class="cd-edit-link">✏️ プリセット編集</button></div>
         <div class="cd-presets" id="cd-presets">
           <button class="cd-preset" type="button" data-min="11">11分</button>
           <button class="cd-preset" type="button" data-min="15">15分</button>
@@ -538,6 +543,15 @@
           <button class="cd-preset" type="button" data-min="30">30分</button>
           <button class="cd-preset" type="button" data-min="45">45分</button>
           <button class="cd-preset" type="button" data-min="60">60分</button>
+        </div>
+        <div class="cd-presets-editor" id="cd-presets-editor" hidden>
+          <input type="number" class="cd-preset-edit" data-idx="0" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット1(分)">
+          <input type="number" class="cd-preset-edit" data-idx="1" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット2(分)">
+          <input type="number" class="cd-preset-edit" data-idx="2" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット3(分)">
+          <input type="number" class="cd-preset-edit" data-idx="3" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット4(分)">
+          <input type="number" class="cd-preset-edit" data-idx="4" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット5(分)">
+          <input type="number" class="cd-preset-edit" data-idx="5" min="1" max="600" step="1" inputmode="numeric" aria-label="プリセット6(分)">
+          <button type="button" id="cd-presets-edit-done" class="cd-edit-done">✓ 完了</button>
         </div>
         <div class="cd-custom hm-input">
           <input type="number" id="cd-hour" min="0" max="23" step="1" inputmode="numeric">
@@ -684,7 +698,7 @@
   </dialog>
 
 <script type="module">
-import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters } from './js/countdown.js';
+import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters, normalizeCountdownPresets } from './js/countdown.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -772,7 +786,8 @@ function saveState(state) {
     wakeLockOn: state.wakeLockOn,
     alertDurationSec: state.alertDurationSec,
     moveDetectOn: state.moveDetectOn,
-    moveThresholdM: state.moveThresholdM
+    moveThresholdM: state.moveThresholdM,
+    countdownPresets: state.countdownPresets
   };
   if (state.stopwatch.running && state.stopwatch.startedAt) {
     data.runningStartedAt = state.stopwatch.startedAt;
@@ -801,6 +816,7 @@ const state = {
   alertDurationSec: _loaded.alertDurationSec,
   moveDetectOn: _loaded.moveDetectOn,
   moveThresholdM: _loaded.moveThresholdM,
+  countdownPresets: _loaded.countdownPresets,
   stopwatch: _loaded.runningStartedAt
     ? { running: true, startedAt: _loaded.runningStartedAt, elapsedMs: 0 }
     : { running: false, startedAt: null, elapsedMs: 0 }
@@ -917,8 +933,11 @@ function renderCountdownPanel() {
   $('mode-down').setAttribute('aria-selected', String(down));
   // パネル表示
   $('countdown-panel').hidden = !down;
-  // 目標プリセットの選択ハイライト（#cd-presets に限定。長さチップを巻き込まない）
-  document.querySelectorAll('#cd-presets .cd-preset').forEach(b => {
+  // 目標プリセット：ユーザー設定の分数を data-min と表示に反映＋選択ハイライト
+  // （#cd-presets に限定。長さチップを巻き込まない）
+  document.querySelectorAll('#cd-presets .cd-preset').forEach((b, i) => {
+    const min = state.countdownPresets[i];
+    if (Number.isFinite(min)) { b.dataset.min = String(min); b.textContent = `${min}分`; }
     b.classList.toggle('active', Number(b.dataset.min) === state.countdownTargetMin);
   });
   // 自由入力（フォーカス中は上書きしない）
@@ -1275,6 +1294,29 @@ function setCountdownTarget(min) {
 document.querySelectorAll('#cd-presets .cd-preset').forEach(b => {
   b.addEventListener('click', () => setCountdownTarget(Number(b.dataset.min)));
 });
+
+// --- 目標プリセットの編集 ---
+function openPresetEditor() {
+  document.querySelectorAll('.cd-preset-edit').forEach((inp, i) => {
+    inp.value = state.countdownPresets[i];
+  });
+  $('cd-presets').hidden = true;
+  $('cd-presets-editor').hidden = false;
+  $('cd-presets-edit').hidden = true;
+}
+function closePresetEditor(save) {
+  if (save) {
+    const vals = [...document.querySelectorAll('.cd-preset-edit')].map(inp => parseInt(inp.value, 10));
+    state.countdownPresets = normalizeCountdownPresets(vals);  // 不正値は同位置の既定へ
+    saveState(state);
+  }
+  $('cd-presets-editor').hidden = true;
+  $('cd-presets').hidden = false;
+  $('cd-presets-edit').hidden = false;
+  renderCountdownPanel();
+}
+$('cd-presets-edit').addEventListener('click', openPresetEditor);
+$('cd-presets-edit-done').addEventListener('click', () => closePresetEditor(true));
 function onCdCustomChange() {
   const total = readHMInput('cd-hour', 'cd-min');
   setCountdownTarget(total > 0 ? total : 1);
