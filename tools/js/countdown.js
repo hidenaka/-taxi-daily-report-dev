@@ -101,5 +101,7 @@ export function normalizeTimerState(parsed) {
     moveThresholdM: numAtLeast(p.moveThresholdM, 100, 500),
     // カウントダウン目標プリセット(分)6個。ユーザー編集可能。
     countdownPresets: normalizeCountdownPresets(p.countdownPresets),
+    // 設定の最終更新時刻(ms)。設定LWWマージ用。
+    settingsUpdatedAt: (Number.isFinite(p.settingsUpdatedAt) && p.settingsUpdatedAt >= 0) ? p.settingsUpdatedAt : 0,
   };
 }

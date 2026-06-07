@@ -699,6 +699,7 @@
 
 <script type="module">
 import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters, normalizeCountdownPresets } from './js/countdown.js';
+import { newRecordId, ensureRecordIds, mergeSyncDocs, pickSettings } from './js/timer-sync.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -771,7 +772,18 @@ function loadState() {
   }
 }
 
+// クラウドpushのスタブ（Task 4 で実体に置換）。saveStateから呼ぶため先に定義。
+function scheduleCloudPush() {}
+
 function saveState(state) {
+  // 設定が前回保存から変わっていれば settingsUpdatedAt を更新（設定LWW用・ここ1箇所だけ）
+  try {
+    const prevRaw = localStorage.getItem(STORAGE_KEY);
+    const prevSettings = prevRaw ? pickSettings(JSON.parse(prevRaw)) : null;
+    if (JSON.stringify(prevSettings) !== JSON.stringify(pickSettings(state))) {
+      state.settingsUpdatedAt = Date.now();
+    }
+  } catch (e) { /* 比較失敗時は据え置き */ }
   const data = {
     shiftStart: state.shiftStart,
     records: state.records,
@@ -787,12 +799,14 @@ function saveState(state) {
     alertDurationSec: state.alertDurationSec,
     moveDetectOn: state.moveDetectOn,
     moveThresholdM: state.moveThresholdM,
-    countdownPresets: state.countdownPresets
+    countdownPresets: state.countdownPresets,
+    settingsUpdatedAt: state.settingsUpdatedAt
   };
   if (state.stopwatch.running && state.stopwatch.startedAt) {
     data.runningStartedAt = state.stopwatch.startedAt;
   }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  scheduleCloudPush();
 }
 
 // ============================================================
@@ -817,10 +831,14 @@ const state = {
   moveDetectOn: _loaded.moveDetectOn,
   moveThresholdM: _loaded.moveThresholdM,
   countdownPresets: _loaded.countdownPresets,
+  settingsUpdatedAt: _loaded.settingsUpdatedAt,
   stopwatch: _loaded.runningStartedAt
     ? { running: true, startedAt: _loaded.runningStartedAt, elapsedMs: 0 }
     : { running: false, startedAt: null, elapsedMs: 0 }
 };
+
+// 既存recordにid/updatedAt/deletedを補完（移行）。以後 records は墓石を含む全集合。
+state.records = ensureRecordIds(state.records);
 
 // カウントダウン0クロス検出用のランタイム状態（永続化しない）
 let prevRemainingMs = null;          // 直前tickの残りms（null=未計測）
@@ -850,6 +868,9 @@ async function syncWakeLock() {
 }
 // 復帰時に再取得（iOSはタブ非表示で自動解放されるため）
 document.addEventListener('visibilitychange', () => { syncWakeLock(); });
+
+// 表示・集計用：墓石(deleted)を除いた活動レコード。
+function activeRecords() { return state.records.filter((r) => !r.deleted); }
 
 function currentStopwatchMs() {
   if (!state.stopwatch.running) return state.stopwatch.elapsedMs;
@@ -914,7 +935,7 @@ function renderStopwatch() {
   const provisionalEl = $('provisional-break');
   if (state.stopwatch.running && state.stopwatch.startedAt) {
     startedEl.textContent = `開始 ${fmtTime(new Date(state.stopwatch.startedAt))}`;
-    const recordedMin = Math.floor(state.records.reduce((s, r) => s + r.durationSec, 0) / 60);
+    const recordedMin = Math.floor(activeRecords().reduce((s, r) => s + r.durationSec, 0) / 60);
     const currentMin = Math.floor(ms / 60000);
     const provisionalMin = recordedMin + currentMin;
     provisionalEl.textContent = `暫定休憩 ${fmtMinutesSub(provisionalMin)}（記録済み ${fmtMinutesSub(recordedMin)} + 現在 ${fmtMinutesSub(currentMin)}）`;
@@ -967,7 +988,7 @@ function renderButtons() {
 
 function renderMetrics() {
   // 休憩時間メトリクス
-  const totalBreakSec = state.records.reduce((s, r) => s + r.durationSec, 0);
+  const totalBreakSec = activeRecords().reduce((s, r) => s + r.durationSec, 0);
   const totalBreakMin = Math.floor(totalBreakSec / 60);
   $('break-total-main').textContent = fmtMinutesMain(totalBreakMin);
   $('break-total-sub').textContent = fmtMinutesSub(totalBreakMin);
@@ -983,8 +1004,9 @@ function renderMetrics() {
   // 基準時刻: 最新記録 > 勤務開始時刻 > 未開始
   const now = new Date();
   let baseDate = null;
-  if (state.records.length > 0) {
-    baseDate = new Date(state.records[state.records.length - 1].recordedAt);
+  const _active = activeRecords();
+  if (_active.length > 0) {
+    baseDate = new Date(_active[_active.length - 1].recordedAt);
   } else if (state.shiftStartAt) {
     baseDate = new Date(state.shiftStartAt);
   }
@@ -1013,9 +1035,9 @@ function renderMetrics() {
 
 function renderHistory() {
   const list = $('history-list');
-  $('history-count').textContent = state.records.length;
+  $('history-count').textContent = activeRecords().length;
   list.innerHTML = '';
-  const sorted = [...state.records].sort(
+  const sorted = [...activeRecords()].sort(
     (a, b) => new Date(b.recordedAt) - new Date(a.recordedAt)
   );
   for (const r of sorted) {
@@ -1051,7 +1073,8 @@ function renderHistory() {
     delBtn.setAttribute('aria-label', '記録を削除');
     delBtn.addEventListener('click', () => {
       if (!confirm(`${fmtTime(startDate)} → ${fmtTime(recDate)} (${mins}分) を削除しますか？`)) return;
-      state.records = state.records.filter(x => x.recordedAt !== r.recordedAt);
+      const di = state.records.findIndex(x => x.id === r.id);
+      if (di >= 0) state.records[di] = { ...state.records[di], deleted: true, updatedAt: Date.now() };
       saveState(state);
       renderAll();
     });
@@ -1128,9 +1151,13 @@ $('btn-discard').addEventListener('click', () => {
 $('btn-record').addEventListener('click', () => {
   const ms = currentStopwatchMs();
   if (ms < state.breakCountMin * 60 * 1000) return; // 二重防御
+  const now = Date.now();
   const record = {
-    recordedAt: new Date().toISOString(),
-    durationSec: Math.floor(ms / 1000)
+    id: newRecordId(),
+    recordedAt: new Date(now).toISOString(),
+    durationSec: Math.floor(ms / 1000),
+    updatedAt: now,
+    deleted: false
   };
   state.records.push(record);
   stopAlertSound();
@@ -1154,13 +1181,13 @@ $('shift-start-input').addEventListener('change', (e) => {
 // ------------------------------------------------------------
 // 休憩記録の編集ダイアログ
 // ------------------------------------------------------------
-let editingRecordedAt = null;
+let editingRecordedId = null;
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 function hmFromDate(d) { return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
 
 function openEditDialog(record) {
-  editingRecordedAt = record.recordedAt;
+  editingRecordedId = record.id;
   const endDate = new Date(record.recordedAt);
   const startDate = new Date(endDate.getTime() - record.durationSec * 1000);
   $('edit-start').value = hmFromDate(startDate);
@@ -1185,7 +1212,7 @@ function dateFromHMOnSameDay(baseDate, hm) {
 }
 
 function computeEditedRange() {
-  const rec = state.records.find(x => x.recordedAt === editingRecordedAt);
+  const rec = state.records.find(x => x.id === editingRecordedId);
   if (!rec) return { error: '記録が見つかりません' };
   const startHM = parseHM($('edit-start').value);
   const endHM = parseHM($('edit-end').value);
@@ -1219,20 +1246,22 @@ $('edit-start').addEventListener('input', updateEditPreview);
 $('edit-end').addEventListener('input', updateEditPreview);
 
 $('edit-cancel').addEventListener('click', () => {
-  editingRecordedAt = null;
+  editingRecordedId = null;
   $('edit-dialog').close();
 });
 
 $('edit-save').addEventListener('click', () => {
   const r = computeEditedRange();
   if (r.error) return; // disabled時は呼ばれない想定だが念のため
-  const idx = state.records.findIndex(x => x.recordedAt === editingRecordedAt);
+  const idx = state.records.findIndex(x => x.id === editingRecordedId);
   if (idx < 0) { $('edit-dialog').close(); return; }
   state.records[idx] = {
+    ...state.records[idx],
     recordedAt: r.endDate.toISOString(),
-    durationSec: r.durationSec
+    durationSec: r.durationSec,
+    updatedAt: Date.now()
   };
-  editingRecordedAt = null;
+  editingRecordedId = null;
   saveState(state);
   renderAll();
   $('edit-dialog').close();
@@ -1469,7 +1498,7 @@ $('move-detect-yes').addEventListener('click', () => {
     const durationSec = Math.floor((end - startedAt) / 1000);
     // 手動「記録」と同じく休憩カウント最低分を満たす時だけ記録（満たない短い停車は記録せず停止のみ）
     if (durationSec >= state.breakCountMin * 60) {
-      state.records.push({ recordedAt: new Date(end).toISOString(), durationSec });
+      state.records.push({ id: newRecordId(), recordedAt: new Date(end).toISOString(), durationSec, updatedAt: Date.now(), deleted: false });
     }
   }
   stopAlertSound();
@@ -1522,7 +1551,7 @@ $('move-threshold-m').addEventListener('change', () => {
 const RESET_UNDO_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
 
 function captureResetSnapshot() {
-  const hasData = state.records.length > 0 || state.shiftStartAt !== null;
+  const hasData = activeRecords().length > 0 || state.shiftStartAt !== null;
   if (!hasData) return null;
   return {
     records: [...state.records],
@@ -1537,7 +1566,7 @@ function isResetSnapshotValid(snap) {
 }
 
 $('btn-reset').addEventListener('click', () => {
-  const hasData = state.records.length > 0 || state.shiftStartAt !== null || state.stopwatch.running;
+  const hasData = activeRecords().length > 0 || state.shiftStartAt !== null || state.stopwatch.running;
   if (hasData && !confirm('現在の乗務記録をリセットして新しい乗務を開始します。よろしいですか？')) return;
   stopAlertSound();
   stopMoveWatch();
