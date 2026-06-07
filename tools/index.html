@@ -700,6 +700,8 @@
 <script type="module">
 import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters, normalizeCountdownPresets } from './js/countdown.js';
 import { newRecordId, ensureRecordIds, mergeSyncDocs, pickSettings } from './js/timer-sync.js';
+import { pullTimerState, pushTimerState } from './js/timer-cloud.js';
+import { waitForAuth } from '../js/firebase-auth.js';
 // ============================================================
 // --- Pure ---
 // 依存のない純粋関数。入出力のみで動く。
@@ -772,8 +774,44 @@ function loadState() {
   }
 }
 
-// クラウドpushのスタブ（Task 4 で実体に置換）。saveStateから呼ぶため先に定義。
-function scheduleCloudPush() {}
+// --- クラウド同期 ---
+function toSyncDoc() {
+  return { records: state.records, settings: pickSettings(state), settingsUpdatedAt: state.settingsUpdatedAt };
+}
+function applyMerged(merged) {
+  state.records = ensureRecordIds(merged.records);
+  const s = merged.settings || {};
+  for (const k of Object.keys(pickSettings(state))) {
+    if (k in s && s[k] !== undefined) state[k] = s[k];
+  }
+  state.settingsUpdatedAt = Number(merged.settingsUpdatedAt) || state.settingsUpdatedAt;
+}
+
+let cloudPushTimer = null;
+// 変更をデバウンス(4秒)でクラウドへ。オンライン＆ログイン時のみ・失敗は握りつぶす。
+function scheduleCloudPush() {
+  if (cloudPushTimer) clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(() => {
+    cloudPushTimer = null;
+    if (!navigator.onLine) return;
+    pushTimerState(toSyncDoc()).catch(() => {});
+  }, 4000);
+}
+
+let lastCloudSync = 0;
+// クラウドを取得→マージ→localStorage保存＋再描画＋書き戻し。失敗してもUIは止めない。
+async function syncWithCloud() {
+  if (!navigator.onLine) return;
+  try { await waitForAuth(); } catch (e) { return; }
+  let cloud = null;
+  try { cloud = await pullTimerState(); } catch (e) { return; }
+  const merged = mergeSyncDocs(toSyncDoc(), cloud);
+  applyMerged(merged);
+  saveState(state);
+  renderAll();
+  lastCloudSync = Date.now();
+  try { await pushTimerState(toSyncDoc()); } catch (e) {}
+}
 
 function saveState(state) {
   // 設定が前回保存から変わっていれば settingsUpdatedAt を更新（設定LWW用・ここ1箇所だけ）
@@ -867,7 +905,11 @@ async function syncWakeLock() {
   }
 }
 // 復帰時に再取得（iOSはタブ非表示で自動解放されるため）
-document.addEventListener('visibilitychange', () => { syncWakeLock(); });
+document.addEventListener('visibilitychange', () => {
+  syncWakeLock();
+  // 前面復帰時にクラウド取り込み（直近5秒の重複は抑制）
+  if (document.visibilityState === 'visible' && Date.now() - lastCloudSync > 5000) syncWithCloud();
+});
 
 // 表示・集計用：墓石(deleted)を除いた活動レコード。
 function activeRecords() { return state.records.filter((r) => !r.deleted); }
@@ -1639,6 +1681,7 @@ setInterval(() => {
 renderAll();
 syncWakeLock();   // リロード時に running かつ wakeLockOn なら再取得
 if (state.stopwatch.running) startMoveWatch();   // リロード時も休憩中なら移動検知を再開
+syncWithCloud();   // 初回: クラウドから復元/マージ
 
 // Keep tab navigation inside standalone/PWA mode on iOS (prevents kick-out to Safari)
 document.querySelectorAll('.app-tab').forEach(a => {
