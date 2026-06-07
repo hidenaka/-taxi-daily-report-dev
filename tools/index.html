@@ -1614,7 +1614,9 @@ $('btn-reset').addEventListener('click', () => {
   stopAlertSound();
   stopMoveWatch();
   state.lastResetSnapshot = captureResetSnapshot();
-  state.records = [];
+  // リセットは記録を墓石化（クラウド同期で復活させない）。表示はactiveRecordsで隠れる。
+  const _rnow = Date.now();
+  state.records = state.records.map(r => r.deleted ? r : ({ ...r, deleted: true, updatedAt: _rnow }));
   state.stopwatch.running = false;
   state.stopwatch.startedAt = null;
   state.stopwatch.elapsedMs = 0;
@@ -1631,7 +1633,9 @@ $('btn-reset').addEventListener('click', () => {
 $('btn-undo-reset').addEventListener('click', () => {
   const snap = state.lastResetSnapshot;
   if (!isResetSnapshotValid(snap)) return;
-  state.records = Array.isArray(snap.records) ? snap.records : [];
+  // 復元: スナップショットの状態に戻しつつ updatedAt を更新（リセットの墓石にLWWで勝つ）
+  const _unow = Date.now();
+  state.records = (Array.isArray(snap.records) ? snap.records : []).map(r => ({ ...r, updatedAt: _unow }));
   state.shiftStartAt = typeof snap.shiftStartAt === 'number' ? snap.shiftStartAt : null;
   state.shiftStart = snap.shiftStart || state.shiftStart;
   state.lastResetSnapshot = null;
@@ -1651,7 +1655,9 @@ setInterval(() => {
   if (state.shiftStartAt && Date.now() - state.shiftStartAt > MAX_SHIFT_MS) {
     state.lastResetSnapshot = captureResetSnapshot();
     state.shiftStartAt = null;
-    state.records = [];
+    // 20時間自動リセットも墓石化（クラウドで復活させない）
+    const _anow = Date.now();
+    state.records = state.records.map(r => r.deleted ? r : ({ ...r, deleted: true, updatedAt: _anow }));
     state.stopwatch.running = false;
     state.stopwatch.startedAt = null;
     state.stopwatch.elapsedMs = 0;
