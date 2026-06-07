@@ -87,6 +87,7 @@ const STATIC_FILES = [
   './js/groups-app.js',
   './tools/js/countdown.js',
   './tools/js/timer-sync.js',
+  './tools/js/timer-cloud.js',
   './tools/js/arrivals-app.js',
   './tools/js/arrivals-data.js',
   './tools/js/arrivals-render.js',

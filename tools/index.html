@@ -810,6 +810,7 @@ async function syncWithCloud() {
   saveState(state);
   renderAll();
   lastCloudSync = Date.now();
+  if (cloudPushTimer) { clearTimeout(cloudPushTimer); cloudPushTimer = null; }  // 直接pushするのでデバウンス分は取消(書込削減)
   try { await pushTimerState(toSyncDoc()); } catch (e) {}
 }
 
