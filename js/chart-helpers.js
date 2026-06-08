@@ -924,21 +924,6 @@ export function avgTripSales(drives) {
   return count > 0 ? sum / count : 0;
 }
 
-// 目標時給(¥/h) = 手取り目標 ÷ 控除前必要売上比 ÷ 月乗務数 ÷ 平均乗務時間
-// config: { takeHomeTarget, takeHomeRate, responsibilityShifts }
-export function calcTargetHourly(drives, config) {
-  const target = config.takeHomeTarget || 500000;
-  const rate = config.takeHomeRate || 0.75;
-  const shifts = config.responsibilityShifts || 12;
-  const requiredSales = target / rate;
-  // 平均乗務時間 (過去データから算出。データなしなら18h想定)
-  const detailed = drives.filter(d => !isSummaryOnly(d) && d.departureTime && d.returnTime);
-  let totalMin = 0;
-  for (const d of detailed) totalMin += calcTimeBreakdown(d).totalMin;
-  const avgShiftHours = detailed.length > 0 ? (totalMin / detailed.length / 60) : 18;
-  return requiredSales / shifts / avgShiftHours;
-}
-
 // 推奨スコア化: 1行を評価
 // efficiency, avgSales を targetHourly, avgSalesBaseline に対する比率で評価
 // ratio30 = 取得率(0-1)
