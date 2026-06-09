@@ -1,7 +1,7 @@
 // js/home-metrics.js
 // ホーム「あなたの数値」カードの算出。責任出番(1〜11)と公出(12〜)を必ず分離する。
 // 算出は payroll.js の純関数を再利用し、表示用の値のみを返す（DOM非依存）。
-import { calcDailySales, requiredUniformSales } from './payroll.js';
+import { calcDailySales, requiredUniformSales, calcTotalPay, predictMonthly } from './payroll.js';
 
 // 責任出番の上限（法律上11。12以降は公出＝固定歩率）
 export const RESP_CAP = 11;
@@ -54,5 +54,50 @@ export function requiredToRespCap(drives, config, periodStart, periodEnd) {
     perShiftIncl, perShiftExcl,
     totalIncl: perShiftIncl * remaining,
     totalExcl: perShiftExcl * remaining,
+  };
+}
+
+// breakdown から責任出番ぶん(11まで)の基本給を取り出す
+function base11Pay(bd) {
+  if (!bd) return 0;
+  return bd.mode === 'tiered_12_or_more' ? (bd.basePay11 || 0) : (bd.basePay || 0);
+}
+
+// 目標連動データを組む(案A: 目標未設定なら hasTarget=false・素の数値)
+function withTarget(landing, current, targetVal) {
+  if (targetVal > 0) {
+    const diff = landing - targetVal;
+    return { value: landing, current, hasTarget: true, target: targetVal, diff, willHit: diff >= 0 };
+  }
+  return { value: landing, current, hasTarget: false };
+}
+
+// 月度/責任/公出の着地値＋目標連動データ
+export function computeLandings(drives, config, periodStart, periodEnd, plannedShifts) {
+  const takeHomeRate = config.takeHomeRate || 0.75;
+  const actual = calcTotalPay(drives, config, periodStart, periodEnd, { useResponsibilityTier: true });
+  const predicted = (drives.length > 0 && drives.length < plannedShifts)
+    ? predictMonthly(drives, config, periodStart, periodEnd, plannedShifts)
+    : actual;
+
+  const aBd = actual.breakdown, pBd = predicted.breakdown;
+  const respLandTH = base11Pay(pBd) * takeHomeRate;
+  const respCurTH = base11Pay(aBd) * takeHomeRate;
+  const kosyuLandTH = ((pBd && pBd.extraTotal) || 0) * takeHomeRate;
+  const kosyuCurTH = ((aBd && aBd.extraTotal) || 0) * takeHomeRate;
+
+  return {
+    month: {
+      gross: withTarget(predicted.total, actual.total, config.grossTarget || 0),
+      takehome: withTarget(predicted.total * takeHomeRate, actual.total * takeHomeRate, config.takeHomeTarget || 0),
+      rate: predicted.rate || actual.rate || 0,
+    },
+    resp: {
+      takehome: withTarget(respLandTH, respCurTH, config.takeHomeAt11Target || 0),
+    },
+    kosyutsu: {
+      reaches: !!(pBd && pBd.mode === 'tiered_12_or_more'),
+      takehome: withTarget(kosyuLandTH, kosyuCurTH, config.takeHomeAfter11Target || 0),
+    },
   };
 }

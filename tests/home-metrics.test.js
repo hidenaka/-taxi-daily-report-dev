@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap } from '../js/home-metrics.js';
+import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap, computeLandings } from '../js/home-metrics.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 const mk = (n, amount) => Array.from({ length: n }, (_, i) => ({
@@ -60,4 +60,22 @@ test('requiredToRespCap: 11出番以上なら remaining=0・達成扱い', () =>
   assert.equal(r.remaining, 0);
   assert.equal(r.perShiftIncl, 0);
   assert.equal(r.totalIncl, 0);
+});
+
+test('computeLandings: 月度/責任/公出の着地と目標連動(案A: 目標なしは素の数値)', () => {
+  const cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  cfg.responsibilityShifts = 11;
+  cfg.takeHomeRate = 0.75;
+  cfg.grossTarget = 0;            // 未設定
+  cfg.takeHomeTarget = 500000;    // 設定あり
+  const drives = mk(9, 100000);
+  const L = computeLandings(drives, cfg, '2026-05-16', '2026-06-15', 12);
+  assert.ok(L.month.gross.value > 0);
+  assert.equal(L.month.gross.hasTarget, false);
+  assert.equal(L.month.takehome.hasTarget, true);
+  assert.equal(L.month.takehome.target, 500000);
+  assert.ok('willHit' in L.month.takehome);
+  assert.ok('diff' in L.month.takehome);
+  assert.ok(L.kosyutsu.takehome.value >= 0);
+  assert.ok(L.month.rate > 0 && L.month.rate < 1);
 });
