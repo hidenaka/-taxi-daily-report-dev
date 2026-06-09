@@ -1,5 +1,6 @@
 import { test, assert } from './run.js';
-import { RESP_CAP, splitDrives, salesAggregate } from '../js/home-metrics.js';
+import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap } from '../js/home-metrics.js';
+import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 const mk = (n, amount) => Array.from({ length: n }, (_, i) => ({
   date: `2026-06-${String(i + 1).padStart(2, '0')}`, vehicleType: 'japantaxi',
@@ -38,4 +39,25 @@ test('salesAggregate: 空配列は全て0（ゼロ除算しない）', () => {
   assert.equal(agg.totalIncl, 0);
   assert.equal(agg.avgIncl, 0);
   assert.equal(agg.avgExcl, 0);
+});
+
+test('requiredToRespCap: 責任11まで残りで必要な均等売上(税込/税抜)と総額', () => {
+  const cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  cfg.responsibilityShifts = 11;
+  cfg.takeHomeTarget = 500000;
+  const drives = mk(9, 100000); // 9出番済
+  const r = requiredToRespCap(drives, cfg, '2026-05-16', '2026-06-15');
+  assert.equal(r.remaining, 2);           // 11-9
+  assert.ok(r.perShiftIncl > 0);
+  assert.equal(Math.round(r.perShiftExcl), Math.round(r.perShiftIncl / 1.1));
+  assert.equal(Math.round(r.totalIncl), Math.round(r.perShiftIncl * 2));
+});
+
+test('requiredToRespCap: 11出番以上なら remaining=0・達成扱い', () => {
+  const cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  cfg.responsibilityShifts = 11;
+  const r = requiredToRespCap(mk(11, 100000), cfg, '2026-05-16', '2026-06-15');
+  assert.equal(r.remaining, 0);
+  assert.equal(r.perShiftIncl, 0);
+  assert.equal(r.totalIncl, 0);
 });
