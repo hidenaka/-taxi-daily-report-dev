@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap, computeLandings } from '../js/home-metrics.js';
+import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap, computeLandings, METRIC_CATALOG } from '../js/home-metrics.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 const mk = (n, amount) => Array.from({ length: n }, (_, i) => ({
@@ -78,4 +78,24 @@ test('computeLandings: 月度/責任/公出の着地と目標連動(案A: 目標
   assert.ok('diff' in L.month.takehome);
   assert.ok(L.kosyutsu.takehome.value >= 0);
   assert.ok(L.month.rate > 0 && L.month.rate < 1);
+});
+
+test('METRIC_CATALOG: 全項目が group(resp/kosyutsu/month)・id・label を持つ', () => {
+  assert.ok(METRIC_CATALOG.length >= 12);
+  for (const m of METRIC_CATALOG) {
+    assert.ok(['resp', 'kosyutsu', 'month'].includes(m.group), `bad group: ${m.id}`);
+    assert.ok(typeof m.id === 'string' && m.id.length > 0);
+    assert.ok(typeof m.label === 'string' && m.label.length > 0);
+  }
+});
+
+test('METRIC_CATALOG: id は一意', () => {
+  const ids = METRIC_CATALOG.map(m => m.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
+
+test('default-config: homeMetrics.selected は既定でカタログ内のidのみ', () => {
+  const ids = new Set(METRIC_CATALOG.map(m => m.id));
+  assert.ok(Array.isArray(DEFAULT_CONFIG.homeMetrics.selected));
+  for (const id of DEFAULT_CONFIG.homeMetrics.selected) assert.ok(ids.has(id), `unknown id: ${id}`);
 });

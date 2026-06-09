@@ -29,6 +29,15 @@ export const DEFAULT_CONFIG = {
   takeHomeAt11Target: 0,
   takeHomeAfter11Target: 0,
   paidLeaveAmount: 41340,
+  // ホーム「あなたの数値」カードで表示する数値のid配列(個人設定)
+  homeMetrics: {
+    selected: [
+      'resp.total.incl',
+      'resp.avg.incl',
+      'resp.needPer.incl', 'resp.needPer.excl',
+      'month.gross', 'month.takehome'
+    ]
+  },
   displayName: "",
   rateTable: {
     "11": [

@@ -101,3 +101,34 @@ export function computeLandings(drives, config, periodStart, periodEnd, plannedS
     },
   };
 }
+
+// 選べる数値のカタログ。group: resp(1〜11責任) / kosyutsu(12〜公出) / month(月度全体)
+// tax: 'incl' | 'excl' | null(税種なし)。pair: 税込/税抜が対になるなら基底キー。
+// targetField: 設定の目標フィールド名(あれば目標連動の対象)。
+export const METRIC_CATALOG = [
+  { id: 'resp.total.incl',  group: 'resp', label: '11出番までの合計売上', tax: 'incl', pair: 'resp.total' },
+  { id: 'resp.total.excl',  group: 'resp', label: '11出番までの合計売上', tax: 'excl', pair: 'resp.total' },
+  { id: 'resp.avg.incl',    group: 'resp', label: '11出番までの平均売上', tax: 'incl', pair: 'resp.avg' },
+  { id: 'resp.avg.excl',    group: 'resp', label: '11出番までの平均売上', tax: 'excl', pair: 'resp.avg' },
+  { id: 'resp.needTotal.incl', group: 'resp', label: '残り(11まで)で必要な総売上', tax: 'incl', pair: 'resp.needTotal' },
+  { id: 'resp.needTotal.excl', group: 'resp', label: '残り(11まで)で必要な総売上', tax: 'excl', pair: 'resp.needTotal' },
+  { id: 'resp.needPer.incl', group: 'resp', label: '残り・1出番あたり均等', tax: 'incl', pair: 'resp.needPer' },
+  { id: 'resp.needPer.excl', group: 'resp', label: '残り・1出番あたり均等', tax: 'excl', pair: 'resp.needPer' },
+  { id: 'resp.takehome',    group: 'resp', label: '11出番までの手取り', tax: null, targetField: 'takeHomeAt11Target' },
+  { id: 'kosyutsu.total.incl', group: 'kosyutsu', label: '公出ぶんの合計売上', tax: 'incl', pair: 'kosyutsu.total' },
+  { id: 'kosyutsu.total.excl', group: 'kosyutsu', label: '公出ぶんの合計売上', tax: 'excl', pair: 'kosyutsu.total' },
+  { id: 'kosyutsu.avg.incl',   group: 'kosyutsu', label: '公出ぶんの平均売上', tax: 'incl', pair: 'kosyutsu.avg' },
+  { id: 'kosyutsu.avg.excl',   group: 'kosyutsu', label: '公出ぶんの平均売上', tax: 'excl', pair: 'kosyutsu.avg' },
+  { id: 'kosyutsu.takehome',   group: 'kosyutsu', label: '公出ぶんの手取り', tax: null, targetField: 'takeHomeAfter11Target' },
+  { id: 'month.gross',     group: 'month', label: '月度予想 総支給(着地)', tax: null, targetField: 'grossTarget' },
+  { id: 'month.takehome',  group: 'month', label: '月度予想 手取り(着地)', tax: null, targetField: 'takeHomeTarget' },
+  { id: 'month.total.incl',group: 'month', label: '月度合計 営収', tax: 'incl', pair: 'month.total' },
+  { id: 'month.total.excl',group: 'month', label: '月度合計 営収', tax: 'excl', pair: 'month.total' },
+  { id: 'month.rate',      group: 'month', label: '着地歩率', tax: null },
+];
+
+export const METRIC_GROUPS = [
+  { key: 'resp', label: '責任出番（1〜11）', accent: '#1565c0', bg: '#e3f2fd' },
+  { key: 'kosyutsu', label: '公出（12出番目〜）', accent: '#8b5cf6', bg: '#f5f3ff' },
+  { key: 'month', label: '月度全体', accent: '#2e7d32', bg: '#ecfdf5' },
+];
