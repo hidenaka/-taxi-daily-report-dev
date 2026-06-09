@@ -142,6 +142,7 @@ if (location.hostname.includes('-dev')) {
     </a>
   </section>
   <section class="card" id="summaryCard">読み込み中…</section>
+  <div id="myMetricsCard" class="card" style="display:none;"></div>
   <section class="card" id="targetCard" style="display:none;"></section>
   <section class="card" id="calCard" style="display:none;"></section>
   <section class="card" id="sumTableCard" style="display:none;"></section>
@@ -154,6 +155,7 @@ import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBil
 import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
+import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
@@ -752,6 +754,18 @@ async function render() {
     targetCard.style.display = 'none';
   }
 
+  // 「あなたの数値」カード
+  const myCard = document.getElementById('myMetricsCard');
+  if (myCard && config.payrollMode !== 'fixed_rate') {
+    const mvals = resolveMetrics(rawDrives, config, range.start, range.end, respShifts);
+    myCard.style.display = '';
+    myCard.innerHTML = renderMyMetricsCard(mvals, (config.homeMetrics && config.homeMetrics.selected) || []);
+    const editBtn = document.getElementById('editMetricsBtn');
+    if (editBtn) editBtn.addEventListener('click', openMetricsPicker);
+  } else if (myCard) {
+    myCard.style.display = 'none';
+  }
+
   // 折りたたみの開閉状態を復元・記憶
   wireFolds();
 
@@ -761,6 +775,63 @@ async function render() {
   // 月度日別サマリー表(各日の4時間枠売上含む)
   renderSummaryTable(drives);
 }
+
+// 「あなたの数値」カード: 選択された数値をグループ見出し付きで並べる。
+// values = resolveMetrics(...) の返り値。selectedIds = config.homeMetrics.selected。
+function renderMyMetricsCard(values, selectedIds) {
+  const selected = new Set(selectedIds || []);
+  let body = '';
+  for (const g of METRIC_GROUPS) {
+    const inGroup = METRIC_CATALOG.filter(m => m.group === g.key && selected.has(m.id));
+    if (inGroup.length === 0) continue;
+    const rendered = new Set();
+    let rows = '';
+    for (const m of inGroup) {
+      if (rendered.has(m.id)) continue;
+      const v = values[m.id];
+      if (!v) continue;
+      if (m.targetField && v.hasTarget) {
+        const sign = v.diff >= 0 ? '+' : '−';
+        rows += `<div style="margin:6px 0;">
+          <div style="font-size:11px;color:#666;">${m.label}
+            <span style="color:${v.willHit ? g.accent : '#ff9800'};font-weight:700;">${v.willHit ? '✓達成見込' : '未達見込'}</span></div>
+          <div style="font-size:12px;color:#666;">目標 ${formatYen(v.target)} / 着地 ${formatYen(v.value)} /
+            <strong style="color:${v.willHit ? g.accent : '#ff9800'};">${sign}${formatYen(Math.abs(v.diff))}</strong></div>
+        </div>`;
+        rendered.add(m.id);
+        continue;
+      }
+      if (m.pair) {
+        const incl = inGroup.find(x => x.pair === m.pair && x.tax === 'incl');
+        const excl = inGroup.find(x => x.pair === m.pair && x.tax === 'excl');
+        const inclV = incl && values[incl.id]; const exclV = excl && values[excl.id];
+        let num = '';
+        if (inclV && exclV) num = `${formatYen(inclV.value)} <span style="color:#888;font-size:12px;">/ ${formatYen(exclV.value)}(税抜)</span>`;
+        else if (inclV) num = formatYen(inclV.value);
+        else if (exclV) num = `${formatYen(exclV.value)}(税抜)`;
+        rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}</div>
+          <div style="font-size:18px;font-weight:800;">${num}</div></div>`;
+        if (incl) rendered.add(incl.id);
+        if (excl) rendered.add(excl.id);
+        continue;
+      }
+      rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}</div>
+        <div style="font-size:18px;font-weight:800;">${m.id === 'month.rate' ? (v.value * 100).toFixed(1) + '%' : formatYen(v.value)}</div></div>`;
+      rendered.add(m.id);
+    }
+    if (rows) {
+      body += `<div style="margin-top:8px;padding:8px 10px;background:${g.bg};border-radius:6px;">
+        <div style="font-size:10px;font-weight:700;color:${g.accent};">${g.label}</div>${rows}</div>`;
+    }
+  }
+  return `<div style="display:flex;justify-content:space-between;align-items:center;">
+      <strong>📌 あなたの数値</strong>
+      <button id="editMetricsBtn" style="font-size:12px;color:#1565c0;background:none;border:none;cursor:pointer;">⚙ 数値を選ぶ</button>
+    </div>${body || '<p class="muted" style="font-size:12px;">「⚙ 数値を選ぶ」から表示する数値を選んでください</p>'}`;
+}
+
+// Task 8 で実装。今は配線エラー防止の空スタブ。
+function openMetricsPicker() {}
 
 // 任意の追加目標カード (総支給、11乗務目までの手取り)
 function renderSubTargetCards(config, actualResult, predicted, takeHomeRate) {

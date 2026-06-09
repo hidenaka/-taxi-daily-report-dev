@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v291';
+const CACHE_NAME = CACHE_PREFIX + 'v292';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -48,6 +48,7 @@ const STATIC_FILES = [
   './js/first-run.js',
   './js/parser.js',
   './js/payroll.js',
+  './js/home-metrics.js',
   './js/storage.js',
   './js/cache.js',
   './js/userid.js',
