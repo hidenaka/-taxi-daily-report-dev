@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay, requiredUniformSales } from '../js/payroll.js';
+import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay, requiredUniformSales, predictMonthly } from '../js/payroll.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 test('calcDailySales: trips のキャンセル除いた合計（税込）', () => {
@@ -157,4 +157,18 @@ test('requiredUniformSales: プレミアム車のインセンティブを考慮�
   const xPremium = requiredUniformSales([], allPremium, DEFAULT_CONFIG, '2026-05-01', '2026-05-31', target, takeHomeRate);
   // プレミアムは1乗務+2,000円のインセンティブが付くため、必要売上はJTより少なくて済む
   assert.ok(xPremium < xJt, `xPremium=${xPremium} should be < xJt=${xJt}`);
+});
+
+test('predictMonthly: 残り出番を平均で補完し12出番目以降は固定率で着地を出す', () => {
+  const cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  cfg.responsibilityShifts = 11;
+  const drives = Array.from({ length: 9 }, (_, i) => ({
+    date: `2026-06-0${i + 1}`, vehicleType: 'japantaxi',
+    trips: [{ amount: 100000, isCancel: false }]
+  }));
+  const p = predictMonthly(drives, cfg, '2026-05-16', '2026-06-15', 12);
+  assert.equal(p.breakdown.mode, 'tiered_12_or_more');
+  assert.ok(p.total > 0);
+  const p11 = predictMonthly(drives, cfg, '2026-05-16', '2026-06-15', 11);
+  assert.equal(p11.breakdown.mode, 'tiered_11_or_less');
 });

@@ -153,7 +153,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
@@ -1268,23 +1268,6 @@ async function renderTodayHint() {
   `;
 }
 
-
-function predictMonthly(drives, config, periodStart, periodEnd, targetShifts) {
-  const monthly = calcMonthlySales(drives);
-  const avgDailyInclTax = monthly.inclTax / drives.length;
-  const target = targetShifts ?? config.responsibilityShifts;
-  const remaining = target - drives.length;
-  if (remaining <= 0) return calcTotalPay(drives, config, periodStart, periodEnd);
-  // 現在の premium 比率を残乗務に反映 (incentive 予測用)
-  const premiumCount = drives.filter(d => d.vehicleType === 'premium').length;
-  const premiumRemaining = Math.round(remaining * (premiumCount / drives.length));
-  const simulated = [...drives];
-  for (let i = 0; i < remaining; i++) {
-    const vt = i < premiumRemaining ? 'premium' : 'japantaxi';
-    simulated.push({ trips: [{ amount: avgDailyInclTax, isCancel: false }], vehicleType: vt, date: '_p_' + i });
-  }
-  return calcTotalPay(simulated, config, periodStart, periodEnd);
-}
 
 function pickWeatherIcon(w) {
   if (!w) return '';

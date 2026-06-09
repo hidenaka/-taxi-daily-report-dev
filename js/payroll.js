@@ -257,3 +257,22 @@ export function requiredUniformSales(actualDrives, remainingShifts, config, peri
   }
   return hi;
 }
+
+// 残り出番を「これまでの1出番平均(税込)」で補完し、責任出番(段階歩率)＋
+// 公出(12出番目以降・固定率)を含めた月度着地を calcTotalPay で求める。
+// targetShifts = 予定出番数(plannedShifts)。残出番の車種は現状のプレミアム比率を踏襲。
+export function predictMonthly(drives, config, periodStart, periodEnd, targetShifts) {
+  const monthly = calcMonthlySales(drives);
+  const avgDailyInclTax = monthly.inclTax / drives.length;
+  const target = targetShifts ?? config.responsibilityShifts;
+  const remaining = target - drives.length;
+  if (remaining <= 0) return calcTotalPay(drives, config, periodStart, periodEnd);
+  const premiumCount = drives.filter(d => d.vehicleType === 'premium').length;
+  const premiumRemaining = Math.round(remaining * (premiumCount / drives.length));
+  const simulated = [...drives];
+  for (let i = 0; i < remaining; i++) {
+    const vt = i < premiumRemaining ? 'premium' : 'japantaxi';
+    simulated.push({ trips: [{ amount: avgDailyInclTax, isCancel: false }], vehicleType: vt, date: '_p_' + i });
+  }
+  return calcTotalPay(simulated, config, periodStart, periodEnd);
+}
