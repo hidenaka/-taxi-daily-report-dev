@@ -775,7 +775,7 @@ async function render() {
   if (myCard && config.payrollMode !== 'fixed_rate') {
     const mvals = resolveMetrics(rawDrives, config, range.start, range.end, respShifts);
     myCard.style.display = '';
-    myCard.innerHTML = renderMyMetricsCard(mvals, (config.homeMetrics && config.homeMetrics.selected) || []);
+    myCard.innerHTML = renderMyMetricsCard(mvals, selectedMetricIds());
     const editBtn = document.getElementById('editMetricsBtn');
     if (editBtn) editBtn.addEventListener('click', openMetricsPicker);
   } else if (myCard) {
@@ -790,6 +790,14 @@ async function render() {
 
   // 月度日別サマリー表(各日の4時間枠売上含む)
   renderSummaryTable(drives);
+}
+
+// 表示する数値id配列。config.homeMetrics 未設定(既存ユーザー)は既定選択にフォールバック。
+// ただしユーザーが明示的に空[]にした場合(homeMetrics存在)はその意思を尊重して空のまま。
+function selectedMetricIds() {
+  return config.homeMetrics
+    ? (config.homeMetrics.selected || [])
+    : ((DEFAULT_CONFIG.homeMetrics && DEFAULT_CONFIG.homeMetrics.selected) || []);
 }
 
 // 「あなたの数値」カード: 選択された数値をグループ見出し付きで並べる。
@@ -847,7 +855,7 @@ function renderMyMetricsCard(values, selectedIds) {
 }
 
 function openMetricsPicker() {
-  const selected = new Set((config.homeMetrics && config.homeMetrics.selected) || []);
+  const selected = new Set(selectedMetricIds());
   const bodyEl = document.getElementById('metricsPickerBody');
   let html = '';
   for (const g of METRIC_GROUPS) {
