@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap, computeLandings, METRIC_CATALOG } from '../js/home-metrics.js';
+import { RESP_CAP, splitDrives, salesAggregate, requiredToRespCap, computeLandings, METRIC_CATALOG, resolveMetrics } from '../js/home-metrics.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 const mk = (n, amount) => Array.from({ length: n }, (_, i) => ({
@@ -92,6 +92,17 @@ test('METRIC_CATALOG: 全項目が group(resp/kosyutsu/month)・id・label を�
 test('METRIC_CATALOG: id は一意', () => {
   const ids = METRIC_CATALOG.map(m => m.id);
   assert.equal(new Set(ids).size, ids.length);
+});
+
+test('resolveMetrics: id→表示データ(値/税種/目標連動)を返す', () => {
+  const cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+  cfg.responsibilityShifts = 11; cfg.takeHomeRate = 0.75; cfg.takeHomeTarget = 500000;
+  const drives = mk(9, 100000);
+  const r = resolveMetrics(drives, cfg, '2026-05-16', '2026-06-15', 12);
+  assert.equal(r['resp.total.incl'].value, 900000);
+  assert.equal(r['resp.avg.incl'].value, 100000);
+  assert.equal(r['month.takehome'].hasTarget, true);
+  assert.ok(r['month.rate'].value > 0 && r['month.rate'].value < 1);
 });
 
 test('default-config: homeMetrics.selected は既定でカタログ内のidのみ', () => {

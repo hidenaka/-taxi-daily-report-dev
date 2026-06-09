@@ -102,6 +102,44 @@ export function computeLandings(drives, config, periodStart, periodEnd, plannedS
   };
 }
 
+// 全カタログidの表示データを一括算出して返す。
+// 返り値: { [id]: { value:number, tax:'incl'|'excl'|null, hasTarget?, target?, diff?, willHit?, current? } }
+export function resolveMetrics(drives, config, periodStart, periodEnd, plannedShifts) {
+  const { resp, kosyutsu } = splitDrives(drives);
+  const ra = salesAggregate(resp);
+  const ka = salesAggregate(kosyutsu);
+  const ma = salesAggregate(drives);
+  const need = requiredToRespCap(drives, config, periodStart, periodEnd);
+  const L = computeLandings(drives, config, periodStart, periodEnd, plannedShifts);
+
+  const out = {};
+  const set = (id, value, tax) => { out[id] = { value, tax: tax ?? null }; };
+
+  set('resp.total.incl', ra.totalIncl, 'incl');
+  set('resp.total.excl', ra.totalExcl, 'excl');
+  set('resp.avg.incl', ra.avgIncl, 'incl');
+  set('resp.avg.excl', ra.avgExcl, 'excl');
+  set('resp.needTotal.incl', need.totalIncl, 'incl');
+  set('resp.needTotal.excl', need.totalExcl, 'excl');
+  set('resp.needPer.incl', need.perShiftIncl, 'incl');
+  set('resp.needPer.excl', need.perShiftExcl, 'excl');
+  out['resp.takehome'] = { tax: null, ...L.resp.takehome };
+
+  set('kosyutsu.total.incl', ka.totalIncl, 'incl');
+  set('kosyutsu.total.excl', ka.totalExcl, 'excl');
+  set('kosyutsu.avg.incl', ka.avgIncl, 'incl');
+  set('kosyutsu.avg.excl', ka.avgExcl, 'excl');
+  out['kosyutsu.takehome'] = { tax: null, reaches: L.kosyutsu.reaches, ...L.kosyutsu.takehome };
+
+  out['month.gross'] = { tax: null, ...L.month.gross };
+  out['month.takehome'] = { tax: null, ...L.month.takehome };
+  set('month.total.incl', ma.totalIncl, 'incl');
+  set('month.total.excl', ma.totalExcl, 'excl');
+  out['month.rate'] = { tax: null, value: L.month.rate };
+
+  return out;
+}
+
 // 選べる数値のカタログ。group: resp(1〜11責任) / kosyutsu(12〜公出) / month(月度全体)
 // tax: 'incl' | 'excl' | null(税種なし)。pair: 税込/税抜が対になるなら基底キー。
 // targetField: 設定の目標フィールド名(あれば目標連動の対象)。
