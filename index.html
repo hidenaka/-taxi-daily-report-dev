@@ -143,6 +143,16 @@ if (location.hostname.includes('-dev')) {
   </section>
   <section class="card" id="summaryCard">読み込み中…</section>
   <div id="myMetricsCard" class="card" style="display:none;"></div>
+  <div id="metricsPicker" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:50;">
+    <div style="background:#fff;max-width:520px;margin:5vh auto;max-height:88vh;overflow:auto;border-radius:12px;padding:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <strong>数値を選ぶ</strong>
+        <button id="metricsPickerClose" style="border:none;background:none;font-size:18px;cursor:pointer;">×</button>
+      </div>
+      <div id="metricsPickerBody" style="margin-top:10px;"></div>
+      <button id="metricsPickerSave" class="btn" style="width:100%;margin-top:12px;">保存</button>
+    </div>
+  </div>
   <section class="card" id="targetCard" style="display:none;"></section>
   <section class="card" id="calCard" style="display:none;"></section>
   <section class="card" id="sumTableCard" style="display:none;"></section>
@@ -152,7 +162,7 @@ if (location.hostname.includes('-dev')) {
 <div id="navHost"></div>
 <script type="module">
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
-import { getConfig, getDrivesForMonth, flushPendingQueue } from './js/storage.js';
+import { getConfig, getDrivesForMonth, flushPendingQueue, saveConfig } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
 import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
@@ -204,6 +214,12 @@ renderLegalFooter();
       banner.style.display = 'none';
     });
   } catch (e) {}
+})();
+
+// 数値ピッカー(⚙) のモーダル開閉ボタンを一度だけ配線
+(function initMetricsPickerButtons() {
+  document.getElementById('metricsPickerClose')?.addEventListener('click', closeMetricsPicker);
+  document.getElementById('metricsPickerSave')?.addEventListener('click', saveMetricsSelection);
 })();
 
 // PWA インストール促しバナー: standalone 起動でない時のみ表示・閉じたら覚える
@@ -830,8 +846,34 @@ function renderMyMetricsCard(values, selectedIds) {
     </div>${body || '<p class="muted" style="font-size:12px;">「⚙ 数値を選ぶ」から表示する数値を選んでください</p>'}`;
 }
 
-// Task 8 で実装。今は配線エラー防止の空スタブ。
-function openMetricsPicker() {}
+function openMetricsPicker() {
+  const selected = new Set((config.homeMetrics && config.homeMetrics.selected) || []);
+  const bodyEl = document.getElementById('metricsPickerBody');
+  let html = '';
+  for (const g of METRIC_GROUPS) {
+    const items = METRIC_CATALOG.filter(m => m.group === g.key);
+    html += `<div style="margin-top:10px;"><div style="font-size:11px;font-weight:700;color:${g.accent};">${g.label}</div>`;
+    for (const m of items) {
+      const taxLabel = m.tax === 'incl' ? '（税込）' : m.tax === 'excl' ? '（税抜）' : '';
+      html += `<label style="display:block;font-size:13px;margin:3px 0;">
+        <input type="checkbox" data-mid="${m.id}" ${selected.has(m.id) ? 'checked' : ''}> ${m.label}${taxLabel}</label>`;
+    }
+    html += `</div>`;
+  }
+  bodyEl.innerHTML = html;
+  document.getElementById('metricsPicker').style.display = '';
+}
+
+function closeMetricsPicker() { document.getElementById('metricsPicker').style.display = 'none'; }
+
+async function saveMetricsSelection() {
+  const checks = document.querySelectorAll('#metricsPickerBody input[data-mid]:checked');
+  const ids = Array.from(checks).map(c => c.getAttribute('data-mid'));
+  config.homeMetrics = { selected: ids };
+  await saveConfig(config);
+  closeMetricsPicker();
+  render();
+}
 
 // 任意の追加目標カード (総支給、11乗務目までの手取り)
 function renderSubTargetCards(config, actualResult, predicted, takeHomeRate) {
