@@ -1,5 +1,5 @@
-import { loadArrivals, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba, detectArrivalGap } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderNoribaCards, renderArrivalGap } from './arrivals-render.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, summarizeByNoriba, detectArrivalGap } from './arrivals-data.js';
+import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderPoolNotice, renderNoribaCards, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle } from './pool-status-section.js';
 
@@ -26,6 +26,7 @@ async function refresh() {
   const errorEl = document.getElementById('arrivals-error');
   try {
     state.arrivals = await loadArrivals();
+    state.poolNotice = await loadPoolNotice();
     // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。
     if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
     render();
@@ -54,6 +55,7 @@ function render() {
   // 号(poolLane 1-4)で絞り込み。0=全部。
   const flightsToShow = filterByLane(originFiltered, state.laneFilter);
   updateLaneButtons();
+  renderPoolNotice(document.getElementById('pool-notice-banner'), state.poolNotice ?? null);
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   renderNoribaCards(

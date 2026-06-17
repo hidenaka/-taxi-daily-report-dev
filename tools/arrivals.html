@@ -175,6 +175,11 @@
     footer.is-stale .updated { color: var(--warn); }
     .empty { color: var(--sub); padding: 12px 0; text-align: center; }
     #arrivals-error { background: #4a1a1a; color: #ffb; padding: 8px; border-radius: 4px; margin: 8px 12px; }
+    .pool-notice { margin: 8px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .pool-notice .pn-tail { background: #4a3a1a; color: #ffe; padding: 8px 10px; border-radius: 6px; font-size: 14px; }
+    .pool-notice .pn-flight { background: #1a3a2a; color: #eafff0; padding: 8px 10px; border-radius: 6px; }
+    .pool-notice .pn-h { font-weight: 700; margin-bottom: 4px; }
+    .pool-notice .pn-text { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.5; }
     /* 使い方動画ボタン（help-video-btn / help-video コンテナ） */
     .help-video-btn {
       display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
@@ -285,6 +290,8 @@
   <div id="arrivals-error" hidden></div>
 
   <div id="weather-banner" hidden></div>
+
+  <div id="pool-notice-banner" class="pool-notice" hidden></div>
 
   <section id="noriba-cards-section" class="noriba-section"></section>
 

@@ -340,3 +340,24 @@ export function renderUpdatedAt(container, updatedAt, totalUnknownAircraft) {
   `;
   container.classList.toggle('is-stale', stale);
 }
+
+// タクシーセンターの現地案内(末尾規制 + 遅延便案内)を描画。
+// notice が無い/案内が無ければ非表示(普段は邪魔しない)。
+export function renderPoolNotice(el, notice) {
+  if (!el) return;
+  if (!notice || (!notice.tailRegulation && !notice.hasFlightNotice)) {
+    el.hidden = true;
+    el.innerHTML = '';
+    return;
+  }
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const parts = [];
+  if (notice.tailRegulation) {
+    parts.push(`<div class="pn-tail">🚧 末尾規制：<b>${esc(notice.tailRegulation)}</b>（この末尾のみ入構可）</div>`);
+  }
+  if (notice.hasFlightNotice && notice.flightNoticeText) {
+    parts.push(`<div class="pn-flight"><div class="pn-h">🚖 タクシーセンター現地案内</div><pre class="pn-text">${esc(notice.flightNoticeText)}</pre></div>`);
+  }
+  el.innerHTML = parts.join('');
+  el.hidden = false;
+}
