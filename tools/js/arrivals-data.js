@@ -316,3 +316,21 @@ export function classifyStaleness(updatedAtIso, now) {
   return { level: 'critical', ageMinutes };
 }
 
+// 羽田プール現地案内(pool-notice.json)を取得。失敗時は null(バナー非表示で安全劣化)。
+export async function loadPoolNotice() {
+  try {
+    const res = await fetch(`./data/pool-notice.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// 号(乗り場)の表示文字列。確定号があり推定と異なれば "4→3"、同じなら確定号、確定なしは推定号。
+export function formatLaneDisplay(estimate, confirmed) {
+  if (confirmed == null) return estimate != null ? String(estimate) : '';
+  if (estimate != null && Number(estimate) !== Number(confirmed)) return `${estimate}→${confirmed}`;
+  return `${confirmed}`;
+}
+

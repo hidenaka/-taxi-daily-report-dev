@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay } from '../tools/js/arrivals-data.js';
 
 // ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
 const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
@@ -281,4 +281,17 @@ test('summarizeFlights: 欠航便を pax から除外し cancelledCount を返�
   assert.equal(s.totalPax, 100);     // 欠航2便分を除外
   assert.equal(s.cancelledCount, 2);
   assert.equal(s.totalFlights, 1);   // 運航便のみ
+});
+
+test('formatLaneDisplay: 確定なしは推定号(無しは空)', () => {
+  assert.equal(formatLaneDisplay(4, null), '4');
+  assert.equal(formatLaneDisplay(null, null), '');
+});
+
+test('formatLaneDisplay: 確定=推定は確定号のみ', () => {
+  assert.equal(formatLaneDisplay(3, 3), '3');
+});
+
+test('formatLaneDisplay: 確定≠推定は 4→3', () => {
+  assert.equal(formatLaneDisplay(4, 3), '4→3');
 });
