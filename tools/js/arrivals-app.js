@@ -1,7 +1,7 @@
 import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
-import { initPoolStatusSection, initForecastSectionToggle } from './pool-status-section.js';
+import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
 
 const TAB_TERMINALS = {
   'T1': ['T1'],
@@ -28,6 +28,7 @@ async function refresh() {
     state.arrivals = await loadArrivals();
     state.poolNotice = await loadPoolNotice();
     state.forecast = (await loadAdvanceForecast()).data;
+    state.poolStatus = (await loadPoolStatus()).data;
     // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。
     if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
     render();
@@ -61,8 +62,8 @@ function render() {
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   renderNoribaActivity(
     document.getElementById('noriba-cards-section'),
-    buildNoribaActivity(state.arrivals, state.forecast ?? null, new Date()),
-    { updatedLabel: state.arrivals.updatedAt ? new Date(state.arrivals.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '' }
+    buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date()),
+    { updatedLabel: (state.arrivals && state.arrivals.updatedAt) ? new Date(state.arrivals.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '' }
   );
   // 到着の谷間/手薄(遅延込みのロビー出が減る時間帯)。タブ非依存・全便で判定。
   const nowD = new Date();
