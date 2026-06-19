@@ -359,7 +359,9 @@ export function findActiveUntil(forward, peak) {
   return 'long';
 }
 
-// 占有(待機車両数)→0..5段。容量(その号の前列台数 rowWidth)比でスケール。
+// 号別の待機スロット総数（占有→段数スケールの容量。前列台数rowWidthではなく実スロット数）。
+export const STALL_CAPACITY = { 1: 16, 2: 14, 3: 16, 4: 12 };
+// 占有(待機車両数)→0..5段。容量(その号の実スロット総数)比でスケール。
 export function occupancySegments(occ, capacity) {
   if (typeof occ !== 'number' || !(capacity > 0)) return 0;
   return Math.max(0, Math.min(5, Math.round((occ / capacity) * 5)));
@@ -393,10 +395,10 @@ export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Da
       occupancy: { segments: 0, label: null, vehicles: null },
       movement: { level: null, normalRatio: null, ratioDir: null, activeUntil: null, sparkFuture: [], curve: null },
     };
-    // 待機車両(占有): pool-status の stallN.occ。容量は forecast.rowWidth（無ければ8）。
+    // 待機車両(占有): pool-status の stallN.occ。容量は実スロット数(STALL_CAPACITY)。
     const psStall = poolStatus && poolStatus.stalls ? poolStatus.stalls['stall' + lane] : null;
     if (psStall && typeof psStall.occ === 'number') {
-      const cap = (forecast && forecast.rowWidth && forecast.rowWidth['stall' + lane]) || 8;
+      const cap = STALL_CAPACITY[lane] || 16;
       const seg = occupancySegments(psStall.occ, cap);
       out.occupancy = { segments: seg, label: occupancyLabel(seg), vehicles: psStall.occ };
     }
