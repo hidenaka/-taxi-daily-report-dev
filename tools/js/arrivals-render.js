@@ -400,52 +400,67 @@ function _untilText(activeUntil) {
 function _esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
 // 号別メーターカードを描画。container は #noriba-cards-section を流用。
+// 号別「乗り場の状況」を中立に提示(評価しない)。container は #noriba-cards-section を流用。
 export function renderNoribaActivity(container, activity, opts = {}) {
   if (!container) return;
   if (!Array.isArray(activity) || activity.length === 0) { container.innerHTML = ''; return; }
-  const head = `<div class="nrf-head"><span>🚖 乗り場の今（号別）</span><span class="nrf-upd">${_esc(opts.updatedLabel || '')}</span></div>`
-    + (opts.poolLabel ? `<div class="nrf-pool">🅿 プール在台 ${_esc(opts.poolLabel)}</div>` : '');
+  const dots = (n) => { let h = ''; for (let i = 0; i < 5; i++) h += `<i class="${i < n ? 'on' : ''}"></i>`; return h; };
+  const segs = (n, hot) => { let h = ''; for (let i = 0; i < 5; i++) h += `<i class="${i < n ? (hot ? 'hi' : 'on') : ''}"></i>`; return h; };
+  const fwdText = (au) => {
+    if (au == null) return '';
+    if (au === 'soon') return 'まもなく落ち着き';
+    if (au === 'long') return 'しばらく続く見込み';
+    return `〜${au} ごろまで`;
+  };
   const cards = activity.map((a) => {
-    const tcls = _NORIBA_TERM_CLASS[a.terminal] || '';
-    const planes = '✈'.repeat(Math.max(0, a.demand.planeIcons)) + (a.demand.morePlanes ? '＋' : '') || '—';
-    const mvLevel = a.movement.level ? `動き ${a.movement.level}` : '動き —';
-    const barW = a.movement.level === '強' ? 92 : (a.movement.level === '中' ? 55 : (a.movement.level === '弱' ? 22 : 0));
-    const barColor = a.movement.level === '強' ? 'linear-gradient(90deg,#f4d35e,#ff5252)' : 'linear-gradient(90deg,#caa83a,#f4d35e)';
-    const until = _untilText(a.movement.activeUntil);
+    const tcls = a.terminal === 'T1' ? 't1' : 't2';
+    const mv = a.movement || {};
+    const fill = (typeof mv.fillPct === 'number') ? mv.fillPct : 0;
+    const lvl = mv.level || '—';
+    const flowRow = (mv.level != null)
+      ? `<span class="ns-lab">流れ</span><div class="ns-trk"><div class="fill" style="width:${fill}%"></div>${mv.normalMarkerPct != null ? `<div class="norm" style="left:${mv.normalMarkerPct}%"></div><div class="normlab" style="left:${mv.normalMarkerPct}%">通常</div>` : ''}</div><span class="ns-val">${_esc(lvl)}</span>`
+      : '';
+    const occRow = (a.occupancy && a.occupancy.label != null)
+      ? `<span class="ns-lab">待機車両</span><div class="ns-segs">${segs(a.occupancy.segments, a.occupancy.segments >= 4)}</div><span class="ns-val">${_esc(a.occupancy.label)}</span>`
+      : '';
+    const fwd = (mv.level != null && a.movement.curve)
+      ? `<div class="ns-fwd">この先 <span class="ns-spark" data-spark="${(mv.sparkFuture || []).join(',')}" data-color="#8a8f88"></span> ${_esc(fwdText(mv.activeUntil))}<span class="ns-more">詳細 ›</span></div>`
+      : `<div class="ns-fwd"><span class="ns-more" style="margin-left:auto">詳細 ›</span></div>`;
     const flList = (a.detailFlights || []).slice(0, 6).map((f) => {
       const pax = (typeof f.taxiPax === 'number') ? `・約${f.taxiPax}人` : '';
       const seat = (typeof f.seatCount === 'number') ? `定員${f.seatCount}` : '';
-      return `<div class="nrf-fl"><span class="o">${_esc(f.time)} ${_esc(f.fromName)}</span><span class="m">${seat}${pax}</span></div>`;
-    }).join('') || `<div class="nrf-fl"><span class="m">次60分の便はありません</span></div>`;
-    const last = a.demand.lastFlight ? `<div class="nrf-fl" style="border:0"><span class="o">🏁 最終便</span><span class="m">${_esc(a.demand.lastFlight.time)} ${_esc(a.demand.lastFlight.fromName)}</span></div>` : '';
-    const curveSvg = renderMovementCurveSvg(a.movement.curve);
-    const axis = a.movement.curve ? `<div class="nrf-axis"><span style="left:0;transform:none">${_esc(a.movement.curve.start)}</span><span class="now" style="left:${(a.movement.curve.nowIndex / (a.movement.curve.normal.length - 1) * 100).toFixed(1)}%">│今${_esc(a.movement.curve.now)}</span><span style="left:100%;transform:translateX(-100%)">${_esc(a.movement.curve.end)}</span></div>` : '';
-    const ratioTxt = (a.movement.ratioDir === 'up') ? 'いま通常より活発。' : (a.movement.ratioDir === 'down' ? 'いま通常より静か。' : (a.movement.ratioDir ? 'いま通常並み。' : ''));
-    const untilTxt = (typeof a.movement.activeUntil === 'string' && /^\d/.test(a.movement.activeUntil)) ? `この活発さは 〜${a.movement.activeUntil} 頃まで。` : '';
-    const detail = `<div class="nrf-detail" hidden>
-      <h5>来る便（次60分）</h5>${flList}
-      ${curveSvg ? `<div class="nrf-curve"><div class="nrf-clab">動きの推移 ── 今日(赤実=実測/赤破=予測) ┈通常(灰)</div>${curveSvg}${axis}<div class="nrf-clab">${ratioTxt}${untilTxt}</div></div>` : ''}
-      ${last}
-    </div>`;
-    return `<div class="nrf-card ${tcls}" data-noriba="${a.lane}">
-      <div class="nrf-main">
-        <div class="nrf-no">${a.lane}<span>号·${_esc(a.terminal)}</span></div>
-        <div class="nrf-body">
-          <div class="nrf-demand">${planes} <span class="cap">次60分 ${a.demand.flights60}便</span></div>
-          <div class="nrf-move"><span class="bar"><i style="width:${barW}%;background:${barColor}"></i></span><span class="mvlab">${mvLevel}</span>${_ratioBadge(a.movement.ratioDir)}</div>
-          <div class="nrf-until">${until}</div>
-        </div>
-        <span class="nrf-chev">›</span>
+      return `<div class="ns-fl"><span class="o">${_esc(f.time)} ${_esc(f.fromName)}</span><span class="m">${seat}${pax}</span></div>`;
+    }).join('') || `<div class="ns-fl"><span class="m">60分内の到着便はありません</span></div>`;
+    const last = a.demand && a.demand.lastFlight ? `<div class="ns-fl" style="border:0"><span class="o">最終便</span><span class="m">${_esc(a.demand.lastFlight.time)} ${_esc(a.demand.lastFlight.fromName)}</span></div>` : '';
+    const curveSvg = renderMovementCurveSvg(a.movement && a.movement.curve);
+    const nextF = a.demand && a.demand.nextFlight ? `次 ${_esc(a.demand.nextFlight.time)} ${_esc(a.demand.nextFlight.fromName)}` : '';
+    return `<div class="ns-card ${tcls}" data-noriba="${a.lane}">
+      <div class="ns-top"><span class="no">${a.lane}</span><span class="term">${_esc(a.terminal)}</span><span class="last">${nextF}</span></div>
+      <div class="ns-met">
+        <span class="ns-lab">到着便</span><div class="ns-planes">${dots(a.demand.planeIcons)}</div><span class="ns-val">60分内 ${a.demand.flights60}便</span>
+        ${occRow}
+        ${flowRow}
       </div>
-      ${detail}
+      ${fwd}
+      <div class="ns-detail" hidden>
+        <h5>到着便（60分内）</h5>${flList}
+        ${curveSvg ? `<div class="ns-curve"><div class="ns-clab">流れの推移 ── 今日(実測/予測) ┈通常</div>${curveSvg}</div>` : ''}
+        ${last}
+      </div>
     </div>`;
   }).join('');
-  container.innerHTML = `<div class="nrf-wrap">${head}${cards}</div>`;
-  container.querySelectorAll('.nrf-card').forEach((card) => {
-    const main = card.querySelector('.nrf-main');
-    if (!main) return;
-    main.addEventListener('click', () => {
-      const d = card.querySelector('.nrf-detail');
+  const head = `<div class="ns-hd"><span class="ttl">乗り場の状況</span></div><div class="ns-asof"><b>${_esc(opts.updatedLabel || '')}</b> 時点</div>`;
+  container.innerHTML = `<div class="ns-wrap">${head}${cards}</div>`;
+  container.querySelectorAll('[data-spark]').forEach((el) => {
+    const v = el.getAttribute('data-spark').split(',').map(Number).filter((x) => !Number.isNaN(x));
+    if (v.length < 2) return;
+    const w = 46, h = 12, mx = Math.max(...v, 1);
+    const pts = v.map((a, i) => `${(i / (v.length - 1) * w).toFixed(1)},${(h - a / mx * (h - 2) - 1).toFixed(1)}`).join(' ');
+    el.innerHTML = `<svg width="${w}" height="${h}" style="vertical-align:middle"><polyline points="${pts}" fill="none" stroke="${el.getAttribute('data-color')}" stroke-width="1.3"/></svg>`;
+  });
+  container.querySelectorAll('.ns-card').forEach((card) => {
+    card.addEventListener('click', () => {
+      const d = card.querySelector('.ns-detail');
       if (d) { d.hidden = !d.hidden; card.classList.toggle('open', !d.hidden); }
     });
   });
