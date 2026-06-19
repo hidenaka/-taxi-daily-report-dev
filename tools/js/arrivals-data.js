@@ -394,7 +394,9 @@ export function buildNoribaActivity(arrivals, forecast, now = new Date()) {
     if (peak > 0) { const r = actualNow / peak; level = r >= 0.66 ? '強' : (r >= 0.33 ? '中' : '弱'); }
     const forward = [];
     for (let i = bn; i < dayVals.length; i++) forward.push({ min: i * 15, val: dayVals[i] });
-    const activeUntil = findActiveUntil(forward, peak);
+    let activeUntil = findActiveUntil(forward, peak);
+    // 活発untilは「今活発な時」だけ意味がある。弱い/不明の時は出さない(閑散時に「まもなく落ち着く」と誤解させない)。
+    if (level !== '強' && level !== '中') activeUntil = null;
     const cStart = Math.max(0, bn - 8), cEnd = Math.min(dayVals.length - 1, bn + 8);
     const todayMap = {};
     if (Array.isArray(fc.actualsToday)) for (const a of fc.actualsToday) {

@@ -58,3 +58,15 @@ test('buildNoribaActivity: forecast欠落時は動き非表示で安全劣化', 
   assert.equal(a.movement.normalRatio, null);
   assert.equal(a.demand.flights60, 1);
 });
+
+test('buildNoribaActivity: 動きが弱い号は activeUntil を出さない(閑散時の誤解防止)', () => {
+  const slots = [];
+  for (let i = 0; i < 96; i++) {
+    const v = (i >= 88 && i <= 90) ? 10 : 1; // 夜にピーク10、昼は低い
+    slots.push({ time: `${String(Math.floor(i/4)).padStart(2,'0')}:${String((i%4)*15).padStart(2,'0')}`, stalls: { stall1: v, stall2: 1, stall3: 1, stall4: 1 } });
+  }
+  const f = { slots, actualsToday: [], current: { time: '14:00', stalls: { stall1: 1, stall2: 1, stall3: 1, stall4: 1 } } };
+  const a = buildNoribaActivity({ flights: [] }, f, new Date('2026-06-19T14:00:00+09:00'))[0];
+  assert.equal(a.movement.level, '弱');     // 現在1 / ピーク10
+  assert.equal(a.movement.activeUntil, null); // 弱いので活発untilは出さない
+});
