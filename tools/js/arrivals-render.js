@@ -361,3 +361,92 @@ export function renderPoolNotice(el, notice) {
   el.innerHTML = parts.join('');
   el.hidden = false;
 }
+
+// ── 乗り場アクティビティ（号別の今） ──────────────────────────────
+// 動きの推移カーブを SVG文字列で返す(viewBoxで幅100%スケール)。
+export function renderMovementCurveSvg(curve) {
+  if (!curve || !Array.isArray(curve.normal) || curve.normal.length < 2) return '';
+  const W = 304, H = 56, N = curve.normal.length;
+  const all = curve.normal.concat(curve.today.filter((v) => v != null), curve.forecast.filter((v) => v != null));
+  const mx = Math.max(1, ...all);
+  const X = (i) => (i / (N - 1) * W).toFixed(1);
+  const Y = (v) => (H - (v / mx) * (H - 8) - 4).toFixed(1);
+  const poly = (arr, color, dash) => {
+    const pts = arr.map((v, i) => (v == null ? null : `${X(i)},${Y(v)}`)).filter(Boolean).join(' ');
+    if (!pts) return '';
+    return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="${dash ? 1.3 : 2}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`;
+  };
+  const nx = X(curve.nowIndex);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`
+    + poly(curve.normal, '#7f8aa0', '4 3')
+    + poly(curve.today, '#ff9a9a', null)
+    + poly(curve.forecast, '#ff9a9a', '3 3')
+    + `<line x1="${nx}" y1="2" x2="${nx}" y2="${H - 2}" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/></svg>`;
+}
+
+const _NORIBA_TERM_CLASS = { T1: 'nt-t1', T2: 'nt-t2' };
+function _ratioBadge(dir) {
+  if (!dir) return '';
+  const txt = dir === 'up' ? '通常より多い' : (dir === 'down' ? '通常より静か' : '通常並み');
+  const arrow = dir === 'up' ? '↑' : (dir === 'down' ? '↓' : '≈');
+  return `<span class="nrbadge nr-${dir}">${txt}${arrow}</span>`;
+}
+function _untilText(activeUntil) {
+  if (activeUntil == null) return '';
+  if (activeUntil === 'soon') return '⏱ まもなく落ち着く';
+  if (activeUntil === 'long') return '⏱ 当面 活発';
+  return `⏱ 活発 〜${activeUntil}`;
+}
+function _esc(s) { return String(s == null ? '' : s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+// 号別メーターカードを描画。container は #noriba-cards-section を流用。
+export function renderNoribaActivity(container, activity, opts = {}) {
+  if (!container) return;
+  if (!Array.isArray(activity) || activity.length === 0) { container.innerHTML = ''; return; }
+  const head = `<div class="nrf-head"><span>🚖 乗り場の今（号別）</span><span class="nrf-upd">${_esc(opts.updatedLabel || '')}</span></div>`
+    + (opts.poolLabel ? `<div class="nrf-pool">🅿 プール在台 ${_esc(opts.poolLabel)}</div>` : '');
+  const cards = activity.map((a) => {
+    const tcls = _NORIBA_TERM_CLASS[a.terminal] || '';
+    const planes = '✈'.repeat(Math.max(0, a.demand.planeIcons)) + (a.demand.morePlanes ? '＋' : '') || '—';
+    const mvLevel = a.movement.level ? `動き ${a.movement.level}` : '動き —';
+    const barW = a.movement.level === '強' ? 92 : (a.movement.level === '中' ? 55 : (a.movement.level === '弱' ? 22 : 0));
+    const barColor = a.movement.level === '強' ? 'linear-gradient(90deg,#f4d35e,#ff5252)' : 'linear-gradient(90deg,#caa83a,#f4d35e)';
+    const until = _untilText(a.movement.activeUntil);
+    const flList = (a.detailFlights || []).slice(0, 6).map((f) => {
+      const pax = (typeof f.taxiPax === 'number') ? `・約${f.taxiPax}人` : '';
+      const seat = (typeof f.seatCount === 'number') ? `定員${f.seatCount}` : '';
+      return `<div class="nrf-fl"><span class="o">${_esc(f.time)} ${_esc(f.fromName)}</span><span class="m">${seat}${pax}</span></div>`;
+    }).join('') || `<div class="nrf-fl"><span class="m">次60分の便はありません</span></div>`;
+    const last = a.demand.lastFlight ? `<div class="nrf-fl" style="border:0"><span class="o">🏁 最終便</span><span class="m">${_esc(a.demand.lastFlight.time)} ${_esc(a.demand.lastFlight.fromName)}</span></div>` : '';
+    const curveSvg = renderMovementCurveSvg(a.movement.curve);
+    const axis = a.movement.curve ? `<div class="nrf-axis"><span style="left:0;transform:none">${_esc(a.movement.curve.start)}</span><span class="now" style="left:${(a.movement.curve.nowIndex / (a.movement.curve.normal.length - 1) * 100).toFixed(1)}%">│今${_esc(a.movement.curve.now)}</span><span style="left:100%;transform:translateX(-100%)">${_esc(a.movement.curve.end)}</span></div>` : '';
+    const ratioTxt = (a.movement.ratioDir === 'up') ? 'いま通常より活発。' : (a.movement.ratioDir === 'down' ? 'いま通常より静か。' : (a.movement.ratioDir ? 'いま通常並み。' : ''));
+    const untilTxt = (typeof a.movement.activeUntil === 'string' && /^\d/.test(a.movement.activeUntil)) ? `この活発さは 〜${a.movement.activeUntil} 頃まで。` : '';
+    const detail = `<div class="nrf-detail" hidden>
+      <h5>来る便（次60分）</h5>${flList}
+      ${curveSvg ? `<div class="nrf-curve"><div class="nrf-clab">動きの推移 ── 今日(赤実=実測/赤破=予測) ┈通常(灰)</div>${curveSvg}${axis}<div class="nrf-clab">${ratioTxt}${untilTxt}</div></div>` : ''}
+      ${last}
+    </div>`;
+    return `<div class="nrf-card ${tcls}" data-noriba="${a.lane}">
+      <div class="nrf-main">
+        <div class="nrf-no">${a.lane}<span>号·${_esc(a.terminal)}</span></div>
+        <div class="nrf-body">
+          <div class="nrf-demand">${planes} <span class="cap">次60分 ${a.demand.flights60}便</span></div>
+          <div class="nrf-move"><span class="bar"><i style="width:${barW}%;background:${barColor}"></i></span><span class="mvlab">${mvLevel}</span>${_ratioBadge(a.movement.ratioDir)}</div>
+          <div class="nrf-until">${until}</div>
+        </div>
+        <span class="nrf-chev">›</span>
+      </div>
+      ${detail}
+    </div>`;
+  }).join('');
+  container.innerHTML = `<div class="nrf-wrap">${head}${cards}</div>`;
+  container.querySelectorAll('.nrf-card').forEach((card) => {
+    const main = card.querySelector('.nrf-main');
+    if (!main) return;
+    main.addEventListener('click', () => {
+      const d = card.querySelector('.nrf-detail');
+      if (d) { d.hidden = !d.hidden; card.classList.toggle('open', !d.hidden); }
+    });
+  });
+}

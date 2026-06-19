@@ -180,6 +180,40 @@
     .pool-notice .pn-flight { background: #1a3a2a; color: #eafff0; padding: 8px 10px; border-radius: 6px; }
     .pool-notice .pn-h { font-weight: 700; margin-bottom: 4px; }
     .pool-notice .pn-text { margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 13px; line-height: 1.5; }
+    /* 乗り場アクティビティ（号別の今） */
+    .nrf-wrap { font-family: inherit; }
+    .nrf-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--sub); font-weight: 600; margin: 6px 12px 8px; }
+    .nrf-pool { display: flex; align-items: center; gap: 6px; background: #15151c; border: 1px solid #2a2a35; border-radius: 8px; padding: 5px 9px; font-size: 11px; color: var(--sub); margin: 0 12px 9px; }
+    .nrf-card { margin: 0 12px 7px; border-radius: 10px; border: 1px solid; }
+    .nrf-card.nt-t1 { background: #241416; border-color: #5a2a2a; }
+    .nrf-card.nt-t2 { background: #10202a; border-color: #2a4a5a; }
+    .nrf-main { display: flex; gap: 8px; align-items: flex-start; padding: 8px 9px; position: relative; cursor: pointer; }
+    .nrf-no { font-size: 20px; font-weight: 800; width: 38px; text-align: center; flex: 0 0 auto; line-height: 1.05; }
+    .nrf-no span { font-size: 9px; color: #cdd; font-weight: 600; display: block; }
+    .nrf-body { flex: 1; min-width: 0; }
+    .nrf-demand { font-size: 13.5px; letter-spacing: 1px; }
+    .nrf-demand .cap { font-size: 10.5px; color: #cdd; letter-spacing: 0; }
+    .nrf-move { display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+    .nrf-move .bar { flex: 1 1 70px; min-width: 60px; height: 8px; border-radius: 4px; background: rgba(0,0,0,.35); overflow: hidden; }
+    .nrf-move .bar i { display: block; height: 100%; }
+    .nrf-move .mvlab { font-size: 10.5px; color: #eee; white-space: nowrap; }
+    .nrbadge { font-size: 9.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+    .nr-up { background: #4a1818; color: #ffb0b0; border: 1px solid #8a3333; }
+    .nr-eq { background: #1c2230; color: #a9c2e0; border: 1px solid #3a4a60; }
+    .nr-down { background: #10222a; color: #8fe0cc; border: 1px solid #2a5a66; }
+    .nrf-until { font-size: 10.5px; color: #eee; margin-top: 6px; }
+    .nrf-chev { position: absolute; right: 9px; top: 9px; color: #cdd; font-size: 13px; }
+    .nrf-card.open .nrf-chev { transform: rotate(90deg); }
+    .nrf-detail { padding: 0 10px 9px 10px; border-top: 1px dashed rgba(255,255,255,.18); }
+    .nrf-detail h5 { margin: 8px 0 4px; font-size: 10.5px; color: #cdd; font-weight: 600; }
+    .nrf-fl { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+    .nrf-fl .o { color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nrf-fl .m { color: #cdd; text-align: right; white-space: nowrap; }
+    .nrf-curve { background: rgba(0,0,0,.3); border-radius: 6px; padding: 6px 7px; margin-top: 6px; }
+    .nrf-clab { font-size: 9.5px; color: var(--sub); line-height: 1.4; }
+    .nrf-axis { position: relative; height: 13px; margin-top: 2px; font-size: 8.5px; color: var(--sub); }
+    .nrf-axis span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+    .nrf-axis .now { color: #fff; font-weight: 700; }
     /* 使い方動画ボタン（help-video-btn / help-video コンテナ） */
     .help-video-btn {
       display: inline-flex; align-items: center; gap: 5px; margin-left: 8px;
