@@ -378,10 +378,10 @@ export function renderMovementCurveSvg(curve) {
   };
   const nx = X(curve.nowIndex);
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:56px;display:block">`
-    + poly(curve.normal, '#7f8aa0', '4 3')
-    + poly(curve.today, '#ff9a9a', null)
-    + poly(curve.forecast, '#ff9a9a', '3 3')
-    + `<line x1="${nx}" y1="2" x2="${nx}" y2="${H - 2}" stroke="#fff" stroke-width="1" stroke-dasharray="2 2"/></svg>`;
+    + poly(curve.normal, '#6f736f', '4 3')
+    + poly(curve.today, '#9fc0cf', null)
+    + poly(curve.forecast, '#9fc0cf', '3 3')
+    + `<line x1="${nx}" y1="2" x2="${nx}" y2="${H - 2}" stroke="#cfccc4" stroke-width="1" stroke-dasharray="2 2"/></svg>`;
 }
 
 const _NORIBA_TERM_CLASS = { T1: 'nt-t1', T2: 'nt-t2' };
@@ -433,6 +433,13 @@ export function renderNoribaActivity(container, activity, opts = {}) {
     }).join('') || `<div class="ns-fl"><span class="m">60分内の到着便はありません</span></div>`;
     const last = a.demand && a.demand.lastFlight ? `<div class="ns-fl" style="border:0"><span class="o">最終便</span><span class="m">${_esc(a.demand.lastFlight.time)} ${_esc(a.demand.lastFlight.fromName)}</span></div>` : '';
     const curveSvg = renderMovementCurveSvg(a.movement && a.movement.curve);
+    const c = a.movement && a.movement.curve;
+    const curveBlock = (curveSvg && c) ? `<div class="ns-curve">
+          <div class="ns-clegend"><span><i class="lg-today"></i>今日</span><span><i class="lg-fc"></i>予測</span><span><i class="lg-norm"></i>通常</span></div>
+          ${curveSvg}
+          <div class="ns-axis"><span style="left:0;transform:none">${_esc(c.start)}</span><span class="now" style="left:${(c.nowIndex / (c.normal.length - 1) * 100).toFixed(1)}%">今 ${_esc(c.now)}</span><span style="left:100%;transform:translateX(-100%)">${_esc(c.end)}</span></div>
+          <div class="ns-chint">流れ＝列の進み具合。実線(今日)が薄い線(通常)より上＝通常より流れている。右へ行くほど先の時間。</div>
+        </div>` : '';
     const nextF = a.demand && a.demand.nextFlight ? `次 ${_esc(a.demand.nextFlight.time)} ${_esc(a.demand.nextFlight.fromName)}` : '';
     return `<div class="ns-card ${tcls}" data-noriba="${a.lane}">
       <div class="ns-top"><span class="no">${a.lane}</span><span class="term">${_esc(a.terminal)}</span><span class="last">${nextF}</span></div>
@@ -444,7 +451,7 @@ export function renderNoribaActivity(container, activity, opts = {}) {
       ${fwd}
       <div class="ns-detail" hidden>
         <h5>到着便（60分内）</h5>${flList}
-        ${curveSvg ? `<div class="ns-curve"><div class="ns-clab">流れの推移 ── 今日(実測/予測) ┈通常</div>${curveSvg}</div>` : ''}
+        ${curveBlock}
         ${last}
       </div>
     </div>`;
