@@ -334,3 +334,89 @@ export function formatLaneDisplay(estimate, confirmed) {
   return `${confirmed}`;
 }
 
+// ── 乗り場アクティビティ（号別の今） ──────────────────────────────
+function minutesToHHMM(min) {
+  const h = Math.floor(min / 60) % 24, m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+// 通常比: 今日の実測 ÷ この時間帯の通常。基準が小さすぎる(≈0)時は非表示。
+export function classifyNormalRatio(actual, baseline) {
+  if (actual == null || !(baseline > 0.3)) return { ratio: null, dir: null };
+  const ratio = actual / baseline;
+  const dir = ratio > 1.25 ? 'up' : (ratio < 0.75 ? 'down' : 'eq');
+  return { ratio, dir };
+}
+
+// 活発はいつまで: 予測がピークの50%を下回る最初の時刻。直近で下回れば 'soon'、窓内ずっと高ければ 'long'。
+export function findActiveUntil(forward, peak) {
+  if (!Array.isArray(forward) || forward.length === 0 || !(peak > 0)) return null;
+  const thr = peak * 0.5;
+  if (forward[0].val < thr) return 'soon';
+  for (let i = 1; i < forward.length; i++) {
+    if (forward[i].val < thr) return i === 1 ? 'soon' : minutesToHHMM(forward[i].min);
+  }
+  return 'long';
+}
+
+// 号別アクティビティ: 需要(summarizeByNoriba) ＋ 動き(advance-forecast slots/actualsToday)。
+export function buildNoribaActivity(arrivals, forecast, now = new Date()) {
+  const demand = summarizeByNoriba(arrivals, now, 60).lanes; // [lane1..4]
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const nowBin = Math.floor(nowMin / 15);
+  const fc = (forecast && Array.isArray(forecast.slots) && forecast.slots.length >= 96) ? forecast : null;
+  return demand.map((d) => {
+    const lane = d.lane;
+    const out = {
+      lane,
+      terminal: lane <= 2 ? 'T1' : 'T2',
+      demand: {
+        flights60: d.count,
+        pax60: d.taxiPax,
+        planeIcons: Math.min(d.count, 5),
+        morePlanes: d.count > 5,
+        nextFlight: d.flights[0] || null,
+        lastFlight: d.lastFlight || null,
+      },
+      detailFlights: d.flights,
+      movement: { level: null, normalRatio: null, ratioDir: null, activeUntil: null, sparkFuture: [], curve: null },
+    };
+    if (!fc) return out;
+    const key = 'stall' + lane;
+    const dayVals = fc.slots.map((s) => (s.stalls && typeof s.stalls[key] === 'number') ? s.stalls[key] : 0);
+    const peak = Math.max(...dayVals, 0);
+    const bn = Math.min(nowBin, dayVals.length - 1);
+    const baselineNow = dayVals[bn] || 0;
+    const actualNow = (fc.current && fc.current.stalls && typeof fc.current.stalls[key] === 'number')
+      ? fc.current.stalls[key] : baselineNow;
+    const { ratio, dir } = classifyNormalRatio(actualNow, baselineNow);
+    let level = null;
+    if (peak > 0) { const r = actualNow / peak; level = r >= 0.66 ? '強' : (r >= 0.33 ? '中' : '弱'); }
+    const forward = [];
+    for (let i = bn; i < dayVals.length; i++) forward.push({ min: i * 15, val: dayVals[i] });
+    const activeUntil = findActiveUntil(forward, peak);
+    const cStart = Math.max(0, bn - 8), cEnd = Math.min(dayVals.length - 1, bn + 8);
+    const todayMap = {};
+    if (Array.isArray(fc.actualsToday)) for (const a of fc.actualsToday) {
+      if (a.stalls && typeof a.stalls[key] === 'number') todayMap[a.time] = a.stalls[key];
+    }
+    const normal = [], today = [], forecastArr = [];
+    for (let i = cStart; i <= cEnd; i++) {
+      normal.push(dayVals[i]);
+      const hhmm = minutesToHHMM(i * 15);
+      if (i <= bn) { today.push(todayMap[hhmm] ?? null); forecastArr.push(null); }
+      else { today.push(null); forecastArr.push(dayVals[i]); }
+    }
+    out.movement = {
+      level, normalRatio: ratio, ratioDir: dir, activeUntil,
+      sparkFuture: dayVals.slice(bn, bn + 6),
+      curve: {
+        start: minutesToHHMM(cStart * 15), now: minutesToHHMM(bn * 15), end: minutesToHHMM(cEnd * 15),
+        active: (typeof activeUntil === 'string' && /^\d/.test(activeUntil)) ? activeUntil : null,
+        normal, today, forecast: forecastArr, nowIndex: bn - cStart,
+      },
+    };
+    return out;
+  });
+}
+
