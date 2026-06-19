@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { classifyNormalRatio, findActiveUntil, buildNoribaActivity } from '../tools/js/arrivals-data.js';
+import { classifyNormalRatio, findActiveUntil, buildNoribaActivity, occupancySegments, occupancyLabel } from '../tools/js/arrivals-data.js';
 
 test('classifyNormalRatio: 多い/並み/静か/基準ゼロ/欠損', () => {
   assert.equal(classifyNormalRatio(5, 2.5).dir, 'up');
@@ -36,7 +36,7 @@ function arr() {
 const NOW = new Date('2026-06-19T22:00:00+09:00');
 
 test('buildNoribaActivity: 号→T1/T2 と 需要集計', () => {
-  const a = buildNoribaActivity(arr(), fc(), NOW);
+  const a = buildNoribaActivity(arr(), fc(), null, NOW);
   assert.equal(a.length, 4);
   assert.equal(a[0].lane, 1); assert.equal(a[0].terminal, 'T1');
   assert.equal(a[2].lane, 3); assert.equal(a[2].terminal, 'T2');
@@ -46,14 +46,14 @@ test('buildNoribaActivity: 号→T1/T2 と 需要集計', () => {
 });
 
 test('buildNoribaActivity: 3号は通常比up＋活発untilが時刻', () => {
-  const a = buildNoribaActivity(arr(), fc(), NOW)[2];
+  const a = buildNoribaActivity(arr(), fc(), null, NOW)[2];
   assert.equal(a.movement.ratioDir, 'up');
   assert.ok(typeof a.movement.activeUntil === 'string');
   assert.equal(a.movement.level, '強');
 });
 
 test('buildNoribaActivity: forecast欠落時は動き非表示で安全劣化', () => {
-  const a = buildNoribaActivity(arr(), null, NOW)[0];
+  const a = buildNoribaActivity(arr(), null, null, NOW)[0];
   assert.equal(a.movement.level, null);
   assert.equal(a.movement.normalRatio, null);
   assert.equal(a.demand.flights60, 1);
@@ -66,7 +66,43 @@ test('buildNoribaActivity: 動きが弱い号は activeUntil を出さない(閑
     slots.push({ time: `${String(Math.floor(i/4)).padStart(2,'0')}:${String((i%4)*15).padStart(2,'0')}`, stalls: { stall1: v, stall2: 1, stall3: 1, stall4: 1 } });
   }
   const f = { slots, actualsToday: [], current: { time: '14:00', stalls: { stall1: 1, stall2: 1, stall3: 1, stall4: 1 } } };
-  const a = buildNoribaActivity({ flights: [] }, f, new Date('2026-06-19T14:00:00+09:00'))[0];
+  const a = buildNoribaActivity({ flights: [] }, f, null, new Date('2026-06-19T14:00:00+09:00'))[0];
   assert.equal(a.movement.level, '弱');     // 現在1 / ピーク10
   assert.equal(a.movement.activeUntil, null); // 弱いので活発untilは出さない
+});
+
+test('occupancySegments: 占有→0..5段(容量比)', () => {
+  assert.equal(occupancySegments(0, 8), 0);
+  assert.equal(occupancySegments(4, 8), 3);   // round(4/8*5)=round(2.5)=3
+  assert.equal(occupancySegments(8, 8), 5);
+  assert.equal(occupancySegments(20, 8), 5);  // clamp
+  assert.equal(occupancySegments(4, 0), 0);   // 容量0は0
+});
+
+test('occupancyLabel: 段数→言葉', () => {
+  assert.equal(occupancyLabel(1), '少なめ');
+  assert.equal(occupancyLabel(3), '並程度');
+  assert.equal(occupancyLabel(5), '多め');
+  assert.equal(occupancyLabel(null), null);
+});
+
+test('buildNoribaActivity: pool-statusから待機車両を結合', () => {
+  const ps = { stalls: { stall3: { occ: 4 } } };
+  const a = buildNoribaActivity(arr(), fc(), ps, NOW)[2]; // 3号
+  assert.equal(a.occupancy.vehicles, 4);
+  assert.equal(a.occupancy.segments >= 1, true);
+  assert.equal(typeof a.occupancy.label, 'string');
+});
+
+test('buildNoribaActivity: pool-status欠落時は待機車両null(安全劣化)', () => {
+  const a = buildNoribaActivity(arr(), fc(), null, NOW)[0];
+  assert.equal(a.occupancy.vehicles, null);
+  assert.equal(a.occupancy.segments, 0);
+  assert.equal(a.occupancy.label, null);
+});
+
+test('buildNoribaActivity: 流れの通常目盛り位置(基準ありで数値)', () => {
+  const a = buildNoribaActivity(arr(), fc(), null, NOW)[2]; // 3号 基準あり
+  assert.equal(typeof a.movement.fillPct, 'number');
+  assert.equal(typeof a.movement.normalMarkerPct, 'number');
 });

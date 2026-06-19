@@ -359,8 +359,19 @@ export function findActiveUntil(forward, peak) {
   return 'long';
 }
 
-// 号別アクティビティ: 需要(summarizeByNoriba) ＋ 動き(advance-forecast slots/actualsToday)。
-export function buildNoribaActivity(arrivals, forecast, now = new Date()) {
+// 占有(待機車両数)→0..5段。容量(その号の前列台数 rowWidth)比でスケール。
+export function occupancySegments(occ, capacity) {
+  if (typeof occ !== 'number' || !(capacity > 0)) return 0;
+  return Math.max(0, Math.min(5, Math.round((occ / capacity) * 5)));
+}
+// 段数→短い量の言葉(評価でなく量の目安)。
+export function occupancyLabel(segments) {
+  if (segments == null) return null;
+  return segments <= 1 ? '少なめ' : (segments <= 3 ? '並程度' : '多め');
+}
+
+// 号別アクティビティ: 需要(summarizeByNoriba) ＋ 待機車両(pool-status) ＋ 動き(advance-forecast)。
+export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Date()) {
   const demand = summarizeByNoriba(arrivals, now, 60).lanes; // [lane1..4]
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const nowBin = Math.floor(nowMin / 15);
@@ -379,8 +390,16 @@ export function buildNoribaActivity(arrivals, forecast, now = new Date()) {
         lastFlight: d.lastFlight || null,
       },
       detailFlights: d.flights,
+      occupancy: { segments: 0, label: null, vehicles: null },
       movement: { level: null, normalRatio: null, ratioDir: null, activeUntil: null, sparkFuture: [], curve: null },
     };
+    // 待機車両(占有): pool-status の stallN.occ。容量は forecast.rowWidth（無ければ8）。
+    const psStall = poolStatus && poolStatus.stalls ? poolStatus.stalls['stall' + lane] : null;
+    if (psStall && typeof psStall.occ === 'number') {
+      const cap = (forecast && forecast.rowWidth && forecast.rowWidth['stall' + lane]) || 8;
+      const seg = occupancySegments(psStall.occ, cap);
+      out.occupancy = { segments: seg, label: occupancyLabel(seg), vehicles: psStall.occ };
+    }
     if (!fc) return out;
     const key = 'stall' + lane;
     const dayVals = fc.slots.map((s) => (s.stalls && typeof s.stalls[key] === 'number') ? s.stalls[key] : 0);
@@ -409,8 +428,10 @@ export function buildNoribaActivity(arrivals, forecast, now = new Date()) {
       if (i <= bn) { today.push(todayMap[hhmm] ?? null); forecastArr.push(null); }
       else { today.push(null); forecastArr.push(dayVals[i]); }
     }
+    const fillPct = peak > 0 ? Math.max(0, Math.min(100, Math.round((actualNow / peak) * 100))) : 0;
+    const normalMarkerPct = (peak > 0 && baselineNow > 0.3) ? Math.max(0, Math.min(100, Math.round((baselineNow / peak) * 100))) : null;
     out.movement = {
-      level, normalRatio: ratio, ratioDir: dir, activeUntil,
+      level, normalRatio: ratio, ratioDir: dir, activeUntil, fillPct, normalMarkerPct,
       sparkFuture: dayVals.slice(bn, bn + 6),
       curve: {
         start: minutesToHHMM(cStart * 15), now: minutesToHHMM(bn * 15), end: minutesToHHMM(cEnd * 15),
