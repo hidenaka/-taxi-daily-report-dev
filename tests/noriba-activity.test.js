@@ -49,7 +49,7 @@ test('buildNoribaActivity: 3号は通常比up＋活発untilが時刻', () => {
   const a = buildNoribaActivity(arr(), fc(), null, NOW)[2];
   assert.equal(a.movement.ratioDir, 'up');
   assert.ok(typeof a.movement.activeUntil === 'string');
-  assert.equal(a.movement.level, '強');
+  assert.equal(a.movement.level, '速い');
 });
 
 test('buildNoribaActivity: forecast欠落時は動き非表示で安全劣化', () => {
@@ -67,8 +67,8 @@ test('buildNoribaActivity: 動きが弱い号は activeUntil を出さない(閑
   }
   const f = { slots, actualsToday: [], current: { time: '14:00', stalls: { stall1: 1, stall2: 1, stall3: 1, stall4: 1 } } };
   const a = buildNoribaActivity({ flights: [] }, f, null, new Date('2026-06-19T14:00:00+09:00'))[0];
-  assert.equal(a.movement.level, '弱');     // 現在1 / ピーク10
-  assert.equal(a.movement.activeUntil, null); // 弱いので活発untilは出さない
+  assert.equal(a.movement.level, '遅い');     // 現在1 / ピーク10
+  assert.equal(a.movement.activeUntil, null); // 遅いので活発untilは出さない
 });
 
 test('occupancySegments: 占有→0..5段(容量比)', () => {
