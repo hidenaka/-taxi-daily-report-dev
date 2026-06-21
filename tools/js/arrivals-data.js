@@ -366,6 +366,11 @@ export function occupancySegments(occ, capacity) {
   if (typeof occ !== 'number' || !(capacity > 0)) return 0;
   return Math.max(0, Math.min(5, Math.round((occ / capacity) * 5)));
 }
+// 全レーン埋まり率(0-1)→0..5段。前列のみのoccでなく、後列まで含む全レーンの埋まり具合を反映。
+export function fillRateSegments(ratio) {
+  if (typeof ratio !== 'number' || ratio < 0) return 0;
+  return Math.max(0, Math.min(5, Math.round(ratio * 5)));
+}
 // 段数→短い量の言葉(評価でなく量の目安)。
 export function occupancyLabel(segments) {
   if (segments == null) return null;
@@ -395,9 +400,14 @@ export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Da
       occupancy: { segments: 0, label: null, vehicles: null },
       movement: { level: null, normalRatio: null, ratioDir: null, activeUntil: null, sparkFuture: [], curve: null },
     };
-    // 待機車両(占有): pool-status の stallN.occ。容量は実スロット数(STALL_CAPACITY)。
+    // 待機車両(占有): pool-status の stallN.fillRate(全レーン埋まり率0-1)を段数化。
+    // 旧 occ/実スロット数は前列のみで遠景の満車を過小評価していた(満車でも「並」)。後列まで含む
+    // 全レーン学習計測の fillRate を主系にし、fillRate 無いデータは従来 occ にフォールバック。
     const psStall = poolStatus && poolStatus.stalls ? poolStatus.stalls['stall' + lane] : null;
-    if (psStall && typeof psStall.occ === 'number') {
+    if (psStall && typeof psStall.fillRate === 'number') {
+      const seg = fillRateSegments(psStall.fillRate);
+      out.occupancy = { segments: seg, label: occupancyLabel(seg), vehicles: psStall.occ, fillPct: Math.round(psStall.fillRate * 100) };
+    } else if (psStall && typeof psStall.occ === 'number') {
       const cap = STALL_CAPACITY[lane] || 16;
       const seg = occupancySegments(psStall.occ, cap);
       out.occupancy = { segments: seg, label: occupancyLabel(seg), vehicles: psStall.occ };

@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { classifyNormalRatio, findActiveUntil, buildNoribaActivity, occupancySegments, occupancyLabel } from '../tools/js/arrivals-data.js';
+import { classifyNormalRatio, findActiveUntil, buildNoribaActivity, occupancySegments, occupancyLabel, fillRateSegments } from '../tools/js/arrivals-data.js';
 
 test('classifyNormalRatio: 多い/並み/静か/基準ゼロ/欠損', () => {
   assert.equal(classifyNormalRatio(5, 2.5).dir, 'up');
@@ -105,4 +105,30 @@ test('buildNoribaActivity: 流れの通常目盛り位置(基準ありで数値)
   const a = buildNoribaActivity(arr(), fc(), null, NOW)[2]; // 3号 基準あり
   assert.equal(typeof a.movement.fillPct, 'number');
   assert.equal(typeof a.movement.normalMarkerPct, 'number');
+});
+
+test('fillRateSegments: 全レーン埋まり率→0..5段', () => {
+  assert.equal(fillRateSegments(0), 0);
+  assert.equal(fillRateSegments(0.5), 3);  // round(2.5)=3
+  assert.equal(fillRateSegments(0.9), 5);  // round(4.5)=5 → 満車=多め
+  assert.equal(fillRateSegments(1), 5);
+  assert.equal(fillRateSegments(1.5), 5);  // clamp
+  assert.equal(fillRateSegments(null), 0);
+});
+
+test('buildNoribaActivity: fillRateがあれば全レーン埋まり率を主系に(満車→多め)', () => {
+  // 前列occは並(4/16)でも、全レーンfillRate=0.95(満車)なら 多め=seg5
+  const ps = { stalls: { stall3: { occ: 4, fillRate: 0.95 } } };
+  const a = buildNoribaActivity(arr(), fc(), ps, NOW)[2];
+  assert.equal(a.occupancy.segments, 5);
+  assert.equal(a.occupancy.label, '多め');
+  assert.equal(a.occupancy.fillPct, 95);
+  assert.equal(a.occupancy.vehicles, 4);   // occ も保持
+});
+
+test('buildNoribaActivity: fillRate無いデータは従来occにフォールバック', () => {
+  const ps = { stalls: { stall3: { occ: 16 } } }; // fillRate無し→occ/容量16=満
+  const a = buildNoribaActivity(arr(), fc(), ps, NOW)[2];
+  assert.equal(a.occupancy.segments, 5);
+  assert.equal(a.occupancy.fillPct, undefined); // fillPctは付かない
 });
