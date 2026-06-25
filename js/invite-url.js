@@ -124,6 +124,23 @@ export function buildCompanyInviteUrl(slug, baseUrl, refUserId = null) {
   return refUserId ? `${base}&ref=${encodeURIComponent(refUserId)}` : base;
 }
 
+// 招待リンク（?company=<slug>）を踏んだ訪問者を登録ページへ直行させるべきかの判定（純関数）。
+// hasCompanyParam: URL に company クエリがあるか（＝招待リンク着地か）
+// isAuthedEmailUser: 既にメール登録済み（非匿名）ユーザーか
+// 未登録の見込み客のみ登録ページへ送る。登録済みユーザーはホーム維持。
+export function shouldRedirectInviteToSignup(hasCompanyParam, isAuthedEmailUser) {
+  return !!hasCompanyParam && !isAuthedEmailUser;
+}
+
+// 招待リンク着地から登録フォーム（login.html の新規登録タブ）へ直行する遷移先URLを組み立てる純関数。
+// company/ref を引き継ぐことで login.html 側でも招待を確実に認識させる（localStorage 捕捉の二重化）。
+// slug 必須。refUserId は truthy のときのみ &ref=<id> を付与。
+export function buildSignupRedirectUrl(slug, refUserId = null) {
+  const params = new URLSearchParams({ mode: 'signup', company: slug });
+  if (refUserId) params.set('ref', refUserId);
+  return `login.html?${params.toString()}`;
+}
+
 // 招待URL を捕捉し、Firestore で存在検証 → 不正なら localStorage クリア + 警告 banner 表示。
 // 全ページ共通の呼出口。fire and forget（await 不要、UI ブロックしない）。
 export async function checkInviteAndWarn(searchParams, storage, fetchCompanyExistsFn) {

@@ -188,3 +188,34 @@ test('buildCompanyInviteUrl: 特殊文字を encodeURIComponent', () => {
     'https://app.taxicabis.com/?company=co-7q7ros&ref=a%26b'
   );
 });
+
+import { shouldRedirectInviteToSignup, buildSignupRedirectUrl } from '../js/invite-url.js';
+
+// shouldRedirectInviteToSignup: 招待リンク(?company=)を未登録者が踏んだら登録ページへ直行
+test('shouldRedirectInviteToSignup: company あり + 未登録 → true', () => {
+  assert.equal(shouldRedirectInviteToSignup(true, false), true);
+});
+
+test('shouldRedirectInviteToSignup: company あり + 登録済み(メール認証) → false（ホーム維持）', () => {
+  assert.equal(shouldRedirectInviteToSignup(true, true), false);
+});
+
+test('shouldRedirectInviteToSignup: company 無し → false（通常アクセスはホーム）', () => {
+  assert.equal(shouldRedirectInviteToSignup(false, false), false);
+  assert.equal(shouldRedirectInviteToSignup(false, true), false);
+});
+
+// buildSignupRedirectUrl: 登録フォームへ company/ref を引き継いで遷移
+test('buildSignupRedirectUrl: slug + ref → mode=signup&company&ref', () => {
+  assert.equal(
+    buildSignupRedirectUrl('co-swyg3o', 'user_self'),
+    'login.html?mode=signup&company=co-swyg3o&ref=user_self'
+  );
+});
+
+test('buildSignupRedirectUrl: ref なし → mode=signup&company のみ', () => {
+  const expected = 'login.html?mode=signup&company=co-swyg3o';
+  assert.equal(buildSignupRedirectUrl('co-swyg3o'), expected);
+  assert.equal(buildSignupRedirectUrl('co-swyg3o', null), expected);
+  assert.equal(buildSignupRedirectUrl('co-swyg3o', ''), expected);
+});

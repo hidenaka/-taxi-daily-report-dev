@@ -170,9 +170,9 @@ import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZ
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
-import { isEmailAuth } from './js/firebase-auth.js';
+import { isEmailAuth, waitForAuth } from './js/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
-import { checkInviteAndWarn, fetchCompanyExists } from './js/invite-url.js';
+import { checkInviteAndWarn, fetchCompanyExists, loadInviteSlug, loadReferrer, shouldRedirectInviteToSignup, buildSignupRedirectUrl } from './js/invite-url.js';
 import { shouldShowFirstRunCard } from './js/first-run.js';
 import './js/help-video.js';
 
@@ -186,6 +186,24 @@ const paramUser = urlParams.get('user');
 // 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
 // 不正 slug は localStorage に保存せず、画面上部に警告 banner を表示。
 checkInviteAndWarn(urlParams, localStorage, fetchCompanyExists);
+
+// 招待リンク（?company=<slug>）で来た未登録の見込み客は、ホームでなく
+// 登録ページ（login.html の新規登録タブ）へ直行させる。
+// company/ref は checkInviteAndWarn が同期捕捉済み。形式不正 slug は loadInviteSlug が
+// null を返すため直行せず、index 側の警告バナーに委ねる（存在検証は login.html が担う）。
+// 既にメール登録済みのユーザーはホーム維持（認証確定を待ってから判定）。
+(async function redirectInviteToSignup() {
+  try {
+    const slug = loadInviteSlug(localStorage);
+    if (!slug) return;
+    await waitForAuth();
+    if (!shouldRedirectInviteToSignup(true, isEmailAuth())) return;
+    location.replace(buildSignupRedirectUrl(slug, loadReferrer(localStorage)));
+  } catch (e) {
+    console.warn('invite redirect skipped:', e);
+  }
+})();
+
 let autoConfigured = false;
 if (paramUser) {
   const norm = paramUser.toLowerCase().replace(/[^a-z0-9_]/g, '').replace(/^[0-9_]+/, '');
