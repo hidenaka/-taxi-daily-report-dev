@@ -194,7 +194,11 @@ export async function signUp(userId, password) {
   currentUserId = userId;
   localStorage.setItem('taxi_user_id', userId);
   clearSubCache();
-  return { success: true };
+  // user を返す。login.html の登録ハンドラが r.user.getIdToken() で招待登録の
+  // admin 通知(postSignupNotify)に使う。返さないと r.user が undefined になり
+  // getIdToken() で例外→通知が静かにスキップされる（登録は成功するのにメールだけ
+  // 来ない不具合の真因）。
+  return { success: true, user: result.user };
 }
 
 // ログアウト
