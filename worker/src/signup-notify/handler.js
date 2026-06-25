@@ -1,5 +1,5 @@
 // POST /notify-signup — 招待登録の通知メールを admin に送る。
-// Firestore には書かない。PII（氏名・電話）をログに出さない。
+// Firestore には書かない。PII（氏名）をログに出さない。
 import { verifyFirebaseIdToken } from '../auth/verify-id-token.js';
 import { sendMail } from '../setup-request/mail.js';
 import { buildSignupNotificationBody } from './body.js';
@@ -11,7 +11,7 @@ export async function handleNotifySignup(request, env, helpers) {
   } catch {
     return helpers.json({ error: 'bad_json' }, 400);
   }
-  const { idToken, userId, name, phone } = payload || {};
+  const { idToken, userId, name } = payload || {};
 
   // 認証（登録直後の本人。スパム防止）
   let uid = null;
@@ -22,11 +22,10 @@ export async function handleNotifySignup(request, env, helpers) {
   }
   if (!uid) return helpers.json({ error: 'auth' }, 401);
 
-  // 検証（PIIはログしない）
+  // 検証（PIIはログしない）。電話番号は収集しない。
   const n = String(name || '').trim();
-  const p = String(phone || '').trim();
   if (!/^[a-z][a-z0-9_]*$/.test(String(userId || ''))) return helpers.json({ error: 'bad_userid' }, 400);
-  if (!n || n.length > 50 || !p || p.length > 30) return helpers.json({ error: 'bad_fields' }, 400);
+  if (!n || n.length > 50) return helpers.json({ error: 'bad_fields' }, 400);
 
   // companyId 併記（best-effort）
   let companyId = null;
@@ -37,7 +36,7 @@ export async function handleNotifySignup(request, env, helpers) {
   }
 
   const text = buildSignupNotificationBody({
-    userId, companyId, name: n, phone: p, submittedAt: new Date().toISOString(),
+    userId, companyId, name: n, submittedAt: new Date().toISOString(),
   });
   const r = await sendMail({
     apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM, to: env.MAIL_TO,

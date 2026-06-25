@@ -1,22 +1,22 @@
 import { test, assert } from './run.js';
 import { buildSignupNotificationBody } from '../worker/src/signup-notify/body.js';
 
-test('buildSignupNotificationBody: 氏名/電話/キーが本文に出る・DB非保存注記入り', () => {
+test('buildSignupNotificationBody: 氏名/キーが本文に出る・DB非保存注記入り・電話は出さない', () => {
   const t = buildSignupNotificationBody({
     userId: 'driver_a', companyId: 'co-swyg3o',
-    name: '山田太郎', phone: '090-1234-5678', submittedAt: '2026-05-30T12:00:00Z',
+    name: '山田太郎', submittedAt: '2026-05-30T12:00:00Z',
   });
   assert.ok(t.includes('driver_a'));
   assert.ok(t.includes('co-swyg3o'));
   assert.ok(t.includes('山田太郎'));
-  assert.ok(t.includes('090-1234-5678'));
+  assert.equal(t.includes('電話'), false);
   assert.ok(t.includes('Firestoreには保存していません'));
   assert.ok(t.includes('削除してください'));
 });
 
 test('buildSignupNotificationBody: companyId 無しは代替表記', () => {
   const t = buildSignupNotificationBody({
-    userId: 'driver_b', companyId: null, name: '佐藤', phone: '080', submittedAt: 'x',
+    userId: 'driver_b', companyId: null, name: '佐藤', submittedAt: 'x',
   });
   assert.ok(t.includes('取得できず') || t.includes('(なし)'));
 });
