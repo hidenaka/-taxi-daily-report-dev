@@ -125,11 +125,15 @@ export function buildCompanyInviteUrl(slug, baseUrl, refUserId = null) {
 }
 
 // 招待リンク（?company=<slug>）を踏んだ訪問者を登録ページへ直行させるべきかの判定（純関数）。
-// hasCompanyParam: URL に company クエリがあるか（＝招待リンク着地か）
-// isAuthedEmailUser: 既にメール登録済み（非匿名）ユーザーか
-// 未登録の見込み客のみ登録ページへ送る。登録済みユーザーはホーム維持。
-export function shouldRedirectInviteToSignup(hasCompanyParam, isAuthedEmailUser) {
-  return !!hasCompanyParam && !isAuthedEmailUser;
+// hasCompanyParam: いま開いた URL に company クエリがあるか（＝今まさに招待リンクで着地したか）。
+//   ※保存済み slug の有無ではない。保存済み slug だけで判定すると、過去に一度でも招待リンクを
+//     踏んだ既存ユーザーが通常起動のたびに登録ページへ飛ばされ、自分のデータに辿り着けなくなる。
+// isAuthedEmailUser: 既にメール登録済み（非匿名）ユーザーか。
+// isExistingLocalUser: この端末に既存のアカウント/データ（例: 過去の日報）があるか。
+//   匿名のまま使い続けている既存ユーザーを、招待リンク再訪時でもデータから引き剥がさないための保護。
+// 上記すべてを満たす「新規の見込み客」だけを登録ページへ送る。
+export function shouldRedirectInviteToSignup(hasCompanyParam, isAuthedEmailUser, isExistingLocalUser = false) {
+  return !!hasCompanyParam && !isAuthedEmailUser && !isExistingLocalUser;
 }
 
 // 招待リンク着地から登録フォーム（login.html の新規登録タブ）へ直行する遷移先URLを組み立てる純関数。

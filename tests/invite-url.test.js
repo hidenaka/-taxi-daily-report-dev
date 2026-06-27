@@ -205,6 +205,24 @@ test('shouldRedirectInviteToSignup: company 無し → false（通常アクセ�
   assert.equal(shouldRedirectInviteToSignup(false, true), false);
 });
 
+// 既存ユーザー保護（回帰防止）: 過去に招待 slug を保存しただけの既存ユーザーが、
+// 通常起動（?company= 無し）でアプリを開いたときに登録ページへ飛ばされてはならない。
+// 第1引数は「今の URL に ?company= があるか」であって、保存済み slug の有無ではない。
+test('shouldRedirectInviteToSignup: 保存済み slug あるが company param 無し → false（既存ユーザーはホーム）', () => {
+  // 通常起動では hasCompanyParam=false。未登録(匿名)でもホーム維持。
+  assert.equal(shouldRedirectInviteToSignup(false, false), false);
+});
+
+// 既にローカルにアカウント/データを持つ既存ユーザーは、招待リンクを再度踏んでも
+// 自分のデータから引き剥がさない（データ保護・第3引数 isExistingLocalUser）。
+test('shouldRedirectInviteToSignup: company あり + 未登録 + 既存ローカルデータあり → false（データ保護）', () => {
+  assert.equal(shouldRedirectInviteToSignup(true, false, true), false);
+});
+
+test('shouldRedirectInviteToSignup: company あり + 未登録 + 既存データ無し → true（新規見込み客）', () => {
+  assert.equal(shouldRedirectInviteToSignup(true, false, false), true);
+});
+
 // buildSignupRedirectUrl: 登録フォームへ company/ref を引き継いで遷移
 test('buildSignupRedirectUrl: slug + ref → mode=signup&company&ref', () => {
   assert.equal(

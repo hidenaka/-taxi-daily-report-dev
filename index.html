@@ -187,17 +187,24 @@ const paramUser = urlParams.get('user');
 // 不正 slug は localStorage に保存せず、画面上部に警告 banner を表示。
 checkInviteAndWarn(urlParams, localStorage, fetchCompanyExists);
 
-// 招待リンク（?company=<slug>）で来た未登録の見込み客は、ホームでなく
+// 招待リンク（?company=<slug>）で「今まさに」来た新規の見込み客だけを、ホームでなく
 // 登録ページ（login.html の新規登録タブ）へ直行させる。
-// company/ref は checkInviteAndWarn が同期捕捉済み。形式不正 slug は loadInviteSlug が
-// null を返すため直行せず、index 側の警告バナーに委ねる（存在検証は login.html が担う）。
-// 既にメール登録済みのユーザーはホーム維持（認証確定を待ってから判定）。
+// 判定は「いま開いた URL に ?company= があるか」で行う（urlParams）。保存済み slug の有無で
+// 判定してはいけない: 過去に一度でも招待リンクを踏んだ既存ユーザーが、通常起動のたびに
+// 登録ページへ飛ばされ自分のデータに辿り着けなくなる回帰の原因になる。
+// さらに、この端末に既存データ（cabis_has_drive）がある既存ユーザーは、招待リンク再訪でも
+// データから引き剥がさない（保護）。
+// 既にメール登録済みのユーザーもホーム維持（認証確定を待ってから判定）。
+// 遷移先の slug/ref は checkInviteAndWarn が同期捕捉した localStorage から引き継ぐ。
 (async function redirectInviteToSignup() {
   try {
+    const hasCompanyParam = urlParams.has('company');
+    if (!hasCompanyParam) return;
     const slug = loadInviteSlug(localStorage);
     if (!slug) return;
+    const isExistingLocalUser = localStorage.getItem('cabis_has_drive') === '1';
     await waitForAuth();
-    if (!shouldRedirectInviteToSignup(true, isEmailAuth())) return;
+    if (!shouldRedirectInviteToSignup(hasCompanyParam, isEmailAuth(), isExistingLocalUser)) return;
     location.replace(buildSignupRedirectUrl(slug, loadReferrer(localStorage)));
   } catch (e) {
     console.warn('invite redirect skipped:', e);
