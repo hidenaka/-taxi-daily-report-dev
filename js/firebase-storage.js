@@ -10,22 +10,28 @@ import {
   query, where, getDocs, orderBy, limit, writeBatch,
   Timestamp, serverTimestamp, deleteField
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { readFresh, writeCache, clearByPrefix } from './drive-cache.js';
+import {
+  readFresh, writeCache, clearByPrefix, userScopedKey,
+  DRIVES_CACHE_PREFIX, CONFIG_CACHE_PREFIX,
+} from './drive-cache.js';
 
 // ========== ページ切り替え高速化用 TTL キャッシュ ==========
 // getConfig / getDrivesForMonth を毎ページ Firestore へ往復させず、
 // TTL 以内はローカル即返しにして画面遷移を即時化する。
 // データ変更時は invalidateDrivesCache / invalidateConfigCache で無効化する。
+// キャッシュキーは userId で名前空間化する（drive-cache.userScopedKey）。
+// アカウント切替後に別ユーザーのキャッシュを読まないための構造的防止策。
 const CACHE_TTL_MS = 5 * 60 * 1000;        // 5分
-const CONFIG_CACHE_KEY = 'taxi_config_cache';
-const DRIVES_CACHE_PREFIX = 'taxi_drives_';
 const _ls = () => (typeof localStorage !== 'undefined' ? localStorage : null);
+// 現ユーザー別のキャッシュキー。getUserId() は currentUserId || localStorage.taxi_user_id。
+const _drivesKey = (period) => userScopedKey(DRIVES_CACHE_PREFIX, getUserId(), period);
+const _configKey = () => userScopedKey(CONFIG_CACHE_PREFIX, getUserId());
 
 function invalidateDrivesCache() {
   const s = _ls(); if (s) clearByPrefix(s, DRIVES_CACHE_PREFIX);
 }
 function invalidateConfigCache() {
-  const s = _ls(); if (s) { try { s.removeItem(CONFIG_CACHE_KEY); } catch (e) {} }
+  const s = _ls(); if (s) clearByPrefix(s, CONFIG_CACHE_PREFIX);
 }
 
 // ========== DRIVES ==========
@@ -99,7 +105,7 @@ export async function getDrivesForMonth(period) {
   // 認証待ちより前に返すことで、ウォーム遷移では auth の再検証もスキップできる。
   const s = _ls();
   if (s) {
-    const cached = readFresh(s, DRIVES_CACHE_PREFIX + period, CACHE_TTL_MS, Date.now());
+    const cached = readFresh(s, _drivesKey(period), CACHE_TTL_MS, Date.now());
     if (cached) return cached;
   }
 
@@ -118,7 +124,7 @@ export async function getDrivesForMonth(period) {
   const drives = snap.docs.map(d => d.data());
   // クライアント側でソート
   drives.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-  if (s) writeCache(s, DRIVES_CACHE_PREFIX + period, drives, Date.now());
+  if (s) writeCache(s, _drivesKey(period), drives, Date.now());
   return drives;
 }
 
@@ -149,7 +155,7 @@ export async function getConfig() {
   // 設定の変更は saveConfig / 会社切替で無効化される。
   const s = _ls();
   if (s) {
-    const cached = readFresh(s, CONFIG_CACHE_KEY, CACHE_TTL_MS, Date.now());
+    const cached = readFresh(s, _configKey(), CACHE_TTL_MS, Date.now());
     if (cached) return cached;
   }
 
@@ -172,7 +178,7 @@ export async function getConfig() {
   const companyProfile = await loadCompanyProfile();
   const { mergeCompanyConfig } = await import('./company-config.js');
   const merged = mergeCompanyConfig(companyProfile, userConfig);
-  if (s) writeCache(s, CONFIG_CACHE_KEY, merged, Date.now());
+  if (s) writeCache(s, _configKey(), merged, Date.now());
   return merged;
 }
 
@@ -330,20 +336,20 @@ export async function flushPendingQueue() {
 
 export function getConfigCached() {
   const s = _ls(); if (!s) return null;
-  return readFresh(s, CONFIG_CACHE_KEY, CACHE_TTL_MS, Date.now());
+  return readFresh(s, _configKey(), CACHE_TTL_MS, Date.now());
 }
 
 export function cacheConfig(config) {
-  const s = _ls(); if (s) writeCache(s, CONFIG_CACHE_KEY, config, Date.now());
+  const s = _ls(); if (s) writeCache(s, _configKey(), config, Date.now());
 }
 
 export function getDrivesForMonthCached(period) {
   const s = _ls(); if (!s) return null;
-  return readFresh(s, DRIVES_CACHE_PREFIX + period, CACHE_TTL_MS, Date.now());
+  return readFresh(s, _drivesKey(period), CACHE_TTL_MS, Date.now());
 }
 
 export function cacheDrivesForMonth(period, drives) {
-  const s = _ls(); if (s) writeCache(s, DRIVES_CACHE_PREFIX + period, drives, Date.now());
+  const s = _ls(); if (s) writeCache(s, _drivesKey(period), drives, Date.now());
 }
 
 // ========== COMPATIBILITY EXPORTS (match storage-github.js interface) ==========

@@ -38,3 +38,29 @@ export function clearByPrefix(storage, prefix) {
     keys.forEach(k => storage.removeItem(k));
   } catch (e) { /* 列挙失敗時も握る */ }
 }
+
+// ── キャッシュキーの単一の真実（userId で名前空間化）──
+// drives は `taxi_drives_<userId>_<period>`、config は `taxi_config_cache_<userId>`。
+// userId を含めることで、アカウント切替後に別ユーザーのキャッシュを「絶対に読まない」
+// （クロスユーザーのデータ漏れを構造的に防ぐ）。clearByPrefix(DRIVES_CACHE_PREFIX) で
+// 全ユーザーぶんまとめて無効化できるよう、接頭辞は userId の手前に置く。
+export const DRIVES_CACHE_PREFIX = 'taxi_drives_';
+export const CONFIG_CACHE_PREFIX = 'taxi_config_cache_';
+// v1.86 以前の非名前空間キャッシュキー（移行用に一掃する対象）。
+export const LEGACY_CONFIG_CACHE_KEY = 'taxi_config_cache';
+
+// ユーザー別キャッシュキーを組み立てる純関数。userId 未確定時は 'anon' にフォールバック。
+// suffix を渡すと `<prefix><userId>_<suffix>`（drives の period 用）、無ければ `<prefix><userId>`。
+export function userScopedKey(prefix, userId, suffix = '') {
+  const uid = userId || 'anon';
+  return suffix ? `${prefix}${uid}_${suffix}` : `${prefix}${uid}`;
+}
+
+// ログアウト/アカウント切替時に、この端末の全ユーザーぶんの drives/config キャッシュと
+// 旧・非名前空間キーを一掃する。端末に他人のデータを残さないため（プライバシー）。
+export function clearDataCaches(storage) {
+  if (!storage) return;
+  clearByPrefix(storage, DRIVES_CACHE_PREFIX);   // 旧 taxi_drives_<period> も接頭辞一致で消える
+  clearByPrefix(storage, CONFIG_CACHE_PREFIX);   // 名前空間化された config キー
+  try { storage.removeItem(LEGACY_CONFIG_CACHE_KEY); } catch (e) { /* 握る */ }
+}

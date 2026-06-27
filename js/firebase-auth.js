@@ -11,6 +11,7 @@ import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gst
 import { DEFAULT_CONFIG } from './default-config.js';
 import { buildNewUserDoc } from './user-doc.js';
 import { clearSubCache } from './sub-cache.js';
+import { clearDataCaches } from './drive-cache.js';
 import { loadInviteSlug, loadReferrer } from './invite-url.js';
 
 let currentUser = null;
@@ -209,6 +210,8 @@ export async function logout() {
   authInitPromise = null;
   localStorage.removeItem('taxi_user_id');
   clearSubCache();
+  // 端末に前ユーザーの日報/設定キャッシュを残さない（アカウント切替時のデータ漏れ/誤表示防止）。
+  try { clearDataCaches(localStorage); } catch (e) { /* best-effort */ }
 }
 
 // Get current user ID
