@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v304';
+const CACHE_NAME = CACHE_PREFIX + 'v305';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -148,6 +148,9 @@ self.addEventListener('fetch', e => {
   // GitHub API・天候API・migrate/admin はキャッシュせず素通し
   if (url.hostname === 'api.github.com' || url.hostname.includes('open-meteo')) return;
   if (url.pathname.includes('/migrate.html') || url.pathname.includes('/admin.html')) return;
+  // 強制アップデート(復旧)ページは絶対にキャッシュさせない＝常に最新をネットから取得。
+  // （このページ自身が SW/キャッシュを消す役目なので、古い版が出ると意味がない）
+  if (url.pathname.includes('/update.html')) return;
   // 使い方動画は素通し（キャッシュしない）。<video> の range/シークを壊さないため・オフライン非対応。
   if (/\.(mp4|webm|mov)$/i.test(url.pathname)) return;
   // 使い方動画のサムネ(media/help/*.jpg)もキャッシュに溜めない（差し替え時の陳腐化防止）。

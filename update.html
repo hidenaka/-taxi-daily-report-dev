@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>アプリを最新版に更新</title>
+<style>
+  html,body{margin:0;height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+    background:#fbfaf5;color:#1f2430;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:24px;-webkit-font-smoothing:antialiased}
+  .box{max-width:420px}
+  h1{font-size:22px;margin:0 0 12px}
+  p{font-size:15px;line-height:1.8;color:#5b6472;margin:8px 0}
+  .spin{width:42px;height:42px;border:4px solid #e7e3d6;border-top-color:#e8763a;
+    border-radius:50%;margin:8px auto 18px;animation:r 0.9s linear infinite}
+  @keyframes r{to{transform:rotate(360deg)}}
+  .note{font-size:13px;color:#2e9e6b;margin-top:14px}
+  .btn{display:none;margin-top:18px;padding:12px 22px;background:#2f6fd0;color:#fff;
+    text-decoration:none;border-radius:8px;font-weight:700;font-size:15px}
+  .err{color:#d4493e;font-size:13px;margin-top:10px;display:none}
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="spin" id="spin"></div>
+    <h1>アプリを最新版に更新しています</h1>
+    <p id="msg">そのまましばらくお待ちください…<br>自動でホーム画面に戻ります。</p>
+    <p class="note">※ ログイン状態と日報データは消えません。</p>
+    <a class="btn" id="homeBtn" href="index.html?fresh=1">ホームへ進む</a>
+    <p class="err" id="err">更新に時間がかかっています。下のボタンからホームへ進んでください。</p>
+  </div>
+<script>
+// 端末に残った古いバージョン（Service Worker / キャッシュ）を一掃して、
+// 最新版をネットワークから取り直させる「強制アップデート」ページ。
+// localStorage / IndexedDB（＝ログイン情報・設定）は触らない＝再ログイン不要。
+(async function () {
+  var done = false;
+  // 保険: 6秒で自動的にホームへ（何かで止まっても進めるように）
+  var fallback = setTimeout(function () { goHome(); }, 6000);
+
+  function goHome() {
+    if (done) return;
+    done = true;
+    clearTimeout(fallback);
+    // クエリで必ずネットワーク取得させ、戻るループも防ぐ
+    location.replace('index.html?fresh=' + Date.now());
+  }
+
+  try {
+    // 1) Service Worker を全解除
+    if ('serviceWorker' in navigator) {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(function (r) { return r.unregister(); }));
+    }
+    // 2) Cache Storage を全削除（このアプリ＋念のため全部）
+    if (window.caches && caches.keys) {
+      var keys = await caches.keys();
+      await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+    }
+  } catch (e) {
+    // 失敗してもホームへは進む（最悪でも通常起動に戻す）
+    try {
+      document.getElementById('err').style.display = 'block';
+      document.getElementById('homeBtn').style.display = 'inline-block';
+    } catch (_) {}
+  }
+  // 少し待ってからホームへ（解除の反映待ち）
+  setTimeout(goHome, 800);
+})();
+</script>
+</body>
+</html>
