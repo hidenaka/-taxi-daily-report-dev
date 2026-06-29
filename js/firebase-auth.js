@@ -37,91 +37,67 @@ const DEFAULT_ANONYMOUS_USER_ID = 'user_sample';
 export async function initAuth() {
   if (authInitPromise) return authInitPromise;
 
-  authInitPromise = new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        currentUser = user;
-        // メール認証ユーザーの場合
-        const emailUserId = getUserIdFromEmail(user.email);
-        if (emailUserId) {
-          currentUserId = emailUserId;
-          // localStorageにも同期
-          localStorage.setItem('taxi_user_id', emailUserId);
-          unsubscribe();
-          resolve(user);
-          return;
-        }
-        
-        // 匿名ユーザーの場合
-        const localUserId = localStorage.getItem('taxi_user_id');
-        const localValid = localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId);
+  authInitPromise = (async () => {
+    // 永続セッション(IndexedDB)の復元完了を待つ。これを待たずに onAuthStateChanged の初回
+    // null を「未ログイン」と誤認して signInAnonymously すると、復元中のメールセッションを
+    // 匿名で上書きしてしまう（重複ユーザーdoc・ログイン消失・ログイン画面ループの真因）。
+    // authStateReady 後の auth.currentUser が確定状態(復元済みユーザー or 本当に null)。
+    try { await auth.authStateReady(); } catch (_) { /* 古いSDKでも安全に無視 */ }
+    const user = auth.currentUser;
 
-        if (localValid) {
-          // 復帰ユーザーの通常ケース（コールドスタートの大半）: userId は localStorage で
-          // 確定できる。認証をここで即解決し、users/{uid} の同期(書き込み)は描画を止めず
-          // 裏で行う（案2）。以前は結果を使わない getDoc + setDoc の往復2回を resolve 前に
-          // 待っており、それがホームのブランク時間になっていた。
-          // users/{uid} は前回セッションで作成済みのため、裏書きでも Firestore ルール依存は無い。
-          currentUserId = localUserId;
-          unsubscribe();
-          resolve(user);
-          setDoc(doc(db, 'users', user.uid), {
-            userId: localUserId,
-            updatedAt: new Date().toISOString(),
-            isAnonymous: true
-          }, { merge: true }).catch(e => console.warn('user doc sync (bg) failed:', e));
-          return;
-        }
-
-        // localStorage に有効な userId が無い（端末初回相当）→ userId 確定のため users/{uid} を読む。
-        // この経路は users/{uid} 作成のルール依存があり得るため、従来どおり await する。
-        try {
-          const userDoc = await getDoc(doc(db, 'users', user.uid));
-          const effectiveUserId = (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
-
-          currentUserId = effectiveUserId;
-          localStorage.setItem('taxi_user_id', effectiveUserId);
-
-          await setDoc(doc(db, 'users', user.uid), {
-            userId: effectiveUserId,
-            updatedAt: new Date().toISOString(),
-            isAnonymous: true
-          }, { merge: true });
-
-          unsubscribe();
-          resolve(user);
-        } catch (e) {
-          unsubscribe();
-          reject(e);
-        }
-      } else {
-        // Not signed in, try anonymous (but don't generate random ID)
-        try {
-          const result = await signInAnonymously(auth);
-          currentUser = result.user;
-          
-          const existingUserId = localStorage.getItem('taxi_user_id');
-          currentUserId = (existingUserId && /^[a-z][a-z0-9_]*$/.test(existingUserId))
-            ? existingUserId
-            : DEFAULT_ANONYMOUS_USER_ID;
-          
-          localStorage.setItem('taxi_user_id', currentUserId);
-          
-          await setDoc(doc(db, 'users', currentUser.uid), {
-            userId: currentUserId,
-            createdAt: new Date().toISOString(),
-            isAnonymous: true
-          }, { merge: true });
-          
-          unsubscribe();
-          resolve(currentUser);
-        } catch (e) {
-          unsubscribe();
-          reject(e);
-        }
+    if (user) {
+      currentUser = user;
+      // メール認証ユーザーの場合
+      const emailUserId = getUserIdFromEmail(user.email);
+      if (emailUserId) {
+        currentUserId = emailUserId;
+        localStorage.setItem('taxi_user_id', emailUserId);
+        return user;
       }
-    });
-  });
+      // 匿名ユーザーの場合: localStorage の userId で確定。users/{uid} 同期は裏で。
+      const localUserId = localStorage.getItem('taxi_user_id');
+      if (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId)) {
+        currentUserId = localUserId;
+        setDoc(doc(db, 'users', user.uid), {
+          userId: localUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
+        }, { merge: true }).catch((e) => console.warn('user doc sync (bg) failed:', e));
+        return user;
+      }
+      // localStorage に有効な userId 無し（端末初回相当）→ users/{uid} を読んで確定。
+      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const effectiveUserId = (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
+      currentUserId = effectiveUserId;
+      localStorage.setItem('taxi_user_id', effectiveUserId);
+      await setDoc(doc(db, 'users', user.uid), {
+        userId: effectiveUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
+      }, { merge: true });
+      return user;
+    }
+
+    // user === null（復元完了後＝本当に未ログイン）。
+    // 登録済みID（匿名既定でない）が localStorage に残っているなら、メールユーザーの復帰の
+    // はず。ここで signInAnonymously するとメールアカウントを匿名で上書きしてしまうので、
+    // 匿名は作らず未ログインのまま返す（各画面のガードがログインへ誘導 → 再ログインで確立）。
+    const stored = localStorage.getItem('taxi_user_id');
+    const looksRegistered = stored && /^[a-z][a-z0-9_]*$/.test(stored) && stored !== DEFAULT_ANONYMOUS_USER_ID;
+    if (looksRegistered) {
+      currentUser = null;
+      currentUserId = stored;
+      return null;
+    }
+
+    // 新規 or 匿名既定ユーザー → 従来どおり匿名(ゲスト)サインインを作成。
+    const result = await signInAnonymously(auth);
+    currentUser = result.user;
+    const existingUserId = localStorage.getItem('taxi_user_id');
+    currentUserId = (existingUserId && /^[a-z][a-z0-9_]*$/.test(existingUserId))
+      ? existingUserId : DEFAULT_ANONYMOUS_USER_ID;
+    localStorage.setItem('taxi_user_id', currentUserId);
+    await setDoc(doc(db, 'users', result.user.uid), {
+      userId: currentUserId, createdAt: new Date().toISOString(), isAnonymous: true,
+    }, { merge: true });
+    return result.user;
+  })();
 
   return authInitPromise;
 }
@@ -302,24 +278,8 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 // Wait for auth to be ready
+// 復元待ち(authStateReady)と匿名フォールバックの判断は initAuth が一括で担う。
 export async function waitForAuth() {
-  if (currentUser) return currentUser;
-  // 永続セッション(IndexedDB/localStorage)の復元は authStateReady 後も数百ms 遅れて
-  // currentUser が null→実ユーザー へ変わることがある(実測 ~300ms)。これを待たずに
-  // initAuth に進むと、最初の null を拾って signInAnonymously に落ち、ログイン済みでも
-  // 一瞬 isEmailAuth()=false になる。その瞬間に subscribe/home が「アカウント登録/
-  // ログインして」を確定描画し、ログイン画面へ戻るループに見えていた(本不具合の真因)。
-  try { await auth.authStateReady(); } catch (_) { /* 古いSDKでも安全に無視 */ }
-  // 来訪歴(taxi_user_id)があるのにまだユーザー未確定なら、復元を猶予つきで待つ。
-  // 復元を検知したら即抜け。新規訪問者(履歴なし)は待たせない。
-  if (!auth.currentUser && localStorage.getItem('taxi_user_id')) {
-    await new Promise((res) => {
-      const timer = setTimeout(() => { try { off(); } catch (_) {} res(); }, 2000);
-      const off = onAuthStateChanged(auth, (u) => {
-        if (u) { clearTimeout(timer); off(); res(); }
-      });
-    });
-  }
   if (currentUser) return currentUser;
   return initAuth();
 }
