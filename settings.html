@@ -325,6 +325,7 @@ import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
 import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth, waitForAuth } from './js/firebase-auth.js';
+import { resolveAuthBadge } from './js/auth-state.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import './js/help-toggle.js';
 import {
@@ -730,22 +731,14 @@ document.getElementById('weatherDefaultBtn').onclick = () => {
 async function initUI() {
   try {
     await initAuth();
-    const user = getCurrentUser();
-    const isAnon = !user || user.isAnonymous;
+    // バッジ判定は純関数 resolveAuthBadge に集約（tests/auth-state.test.js で検証済み）。
+    // admin強制切替の閲覧(匿名+実userId)を「サンプルデータ」と誤表示しないのが要点。
+    const badge = resolveAuthBadge({ emailAuthed: isEmailAuth(), myId: getMyUserId() });
     const authBadge = document.getElementById('authTypeBadge');
-    
-    if (isAnon) {
-      // 匿名ユーザー: ログインフォームを表示
-      document.getElementById('anonymousLoginSection').style.display = '';
-      document.getElementById('logoutBtn').style.display = 'none';
-      authBadge.textContent = 'サンプルデータ（ログインしてください）';
-    } else {
-      // メール認証ユーザー: ログアウトボタンを表示
-      document.getElementById('anonymousLoginSection').style.display = 'none';
-      document.getElementById('logoutBtn').style.display = '';
-      authBadge.textContent = 'ログイン中';
-      authBadge.style.color = 'green';
-    }
+    document.getElementById('anonymousLoginSection').style.display = badge.showLoginForm ? '' : 'none';
+    document.getElementById('logoutBtn').style.display = badge.showLogout ? '' : 'none';
+    authBadge.textContent = badge.text;
+    authBadge.style.color = (badge.kind === 'sample') ? '' : 'green';
   } catch (e) {
     console.error('Auth check failed:', e);
   }

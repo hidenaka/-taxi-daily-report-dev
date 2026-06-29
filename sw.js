@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v312';
+const CACHE_NAME = CACHE_PREFIX + 'v313';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -73,6 +73,7 @@ const STATIC_FILES = [
   './js/default-config.js',
   './js/firebase-init.js',
   './js/firebase-auth.js',
+  './js/auth-state.js',
   './js/firebase-storage.js',
   './js/drive-cache.js',
   './js/company-config.js',

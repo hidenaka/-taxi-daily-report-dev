@@ -43,7 +43,23 @@ export async function initAuth() {
     // 匿名で上書きしてしまう（重複ユーザーdoc・ログイン消失・ログイン画面ループの真因）。
     // authStateReady 後の auth.currentUser が確定状態(復元済みユーザー or 本当に null)。
     try { await auth.authStateReady(); } catch (_) { /* 古いSDKでも安全に無視 */ }
-    const user = auth.currentUser;
+    let user = auth.currentUser;
+
+    // authStateReady 後でも null かつ「登録済みっぽい userId」が残っている場合のみ、復元が
+    // 遅れている可能性があるので最大2sだけ onAuthStateChanged を猶予待ちする。
+    //  - メールセッションの遅延復元 → ここで拾えるので匿名で上書き(クロバー)しない。
+    //  - admin強制切替/通常ログアウト → 復元は来ないので猶予後に下の匿名サインインへ進む
+    //    （= パスワード無しで対象 userId のデータを閲覧する「なりすまし」機能を維持）。
+    if (!user) {
+      const stored = localStorage.getItem('taxi_user_id');
+      const looksRegistered = stored && /^[a-z][a-z0-9_]*$/.test(stored) && stored !== DEFAULT_ANONYMOUS_USER_ID;
+      if (looksRegistered) {
+        user = await new Promise((resolve) => {
+          const off = onAuthStateChanged(auth, (u) => { if (u) { clearTimeout(t); off(); resolve(u); } });
+          const t = setTimeout(() => { off(); resolve(auth.currentUser); }, 2000);
+        });
+      }
+    }
 
     if (user) {
       currentUser = user;
@@ -74,19 +90,13 @@ export async function initAuth() {
       return user;
     }
 
-    // user === null（復元完了後＝本当に未ログイン）。
-    // 登録済みID（匿名既定でない）が localStorage に残っているなら、メールユーザーの復帰の
-    // はず。ここで signInAnonymously するとメールアカウントを匿名で上書きしてしまうので、
-    // 匿名は作らず未ログインのまま返す（各画面のガードがログインへ誘導 → 再ログインで確立）。
-    const stored = localStorage.getItem('taxi_user_id');
-    const looksRegistered = stored && /^[a-z][a-z0-9_]*$/.test(stored) && stored !== DEFAULT_ANONYMOUS_USER_ID;
-    if (looksRegistered) {
-      currentUser = null;
-      currentUserId = stored;
-      return null;
-    }
-
-    // 新規 or 匿名既定ユーザー → 従来どおり匿名(ゲスト)サインインを作成。
+    // ここに来る＝authStateReady後もnull、猶予待ちでも復元されなかった＝本当に未ログイン。
+    //  ・新規来訪 / ゲスト
+    //  ・admin強制切替(ログアウト後 taxi_user_id=対象 を残して reload) → 対象のなりすまし閲覧
+    //  ・通常ログアウト
+    // いずれも匿名(ゲスト)サインインを作成し、localStorage の userId でデータを表示する。
+    // 復元すべきメールセッションは上の if(user) 系で確定済みなので、ここでの匿名化で
+    // メールアカウントを上書きすることはない（クロバーは authStateReady+猶予待ちで遮断済み）。
     const result = await signInAnonymously(auth);
     currentUser = result.user;
     const existingUserId = localStorage.getItem('taxi_user_id');
