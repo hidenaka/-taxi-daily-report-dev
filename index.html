@@ -171,6 +171,8 @@ import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth, waitForAuth } from './js/firebase-auth.js';
+import { auth } from './js/firebase-init.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
 import { checkInviteAndWarn, fetchCompanyExists, loadInviteSlug, loadReferrer, shouldRedirectInviteToSignup, buildSignupRedirectUrl } from './js/invite-url.js';
 import { shouldShowFirstRunCard } from './js/first-run.js';
@@ -298,6 +300,16 @@ async function initOnboardBanner() {
   }
 }
 initOnboardBanner();
+
+// 認証復元の遅延対策(自己修復): 復元が遅れて最初は匿名→後からメール認証が確定すると、
+// 案内バナーに「ログイン」ボタンが残ってしまう(ログイン済みなのに再ログインを促す)。
+// ログイン確定時にそのボタンを畳む。タイミングに依存しない。
+onAuthStateChanged(auth, (user) => {
+  if (user && !user.isAnonymous) {
+    const ctaLogin = document.getElementById('onboardCtaLogin');
+    if (ctaLogin) ctaLogin.style.display = 'none';
+  }
+});
 
 let viewPeriod = currentBillingPeriod();
 let config = null;

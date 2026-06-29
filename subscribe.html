@@ -171,6 +171,8 @@ if (location.hostname.includes('-dev')) {
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, startCheckout, startFree, isPaying, formatStatus } from './js/subscription-state.js';
 import { isEmailAuth } from './js/firebase-auth.js';
+import { auth } from './js/firebase-init.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { checkInviteAndWarn, fetchCompanyExists, fetchCompanyProfile } from './js/invite-url.js';
 
 renderLegalFooter();
@@ -356,6 +358,25 @@ async function init() {
     isFreeCompany = false;
   }
 
+  await applyAccountState();
+}
+
+// フォーム表示へ復元: registerStep / alreadySection を隠し、申込フォームの各カードを出す。
+// 無償会社のときは init の設定(プラン/確認カード非表示)を尊重する。
+function showForm() {
+  document.querySelectorAll('main > section.card').forEach((s) => {
+    s.style.display = (s.id === 'registerStep' || s.id === 'alreadySection') ? 'none' : '';
+  });
+  if (isFreeCompany) {
+    const pc = document.getElementById('planSelectCard'); if (pc) pc.style.display = 'none';
+    const cc = document.getElementById('confirmCard'); if (cc) cc.style.display = 'none';
+  }
+}
+
+// 加入状態に応じてUIを出し分ける。永続セッションの復元はページ表示後に遅れて確定する
+// ことがあり(最初は匿名→後からメール認証)、一度きりの判定だと「登録ステップ」が残って
+// ログイン画面へ戻るループに見えた。onAuthStateChanged で再評価し自己修復する。
+async function applyAccountState() {
   try {
     const sub = await getSubscription();
     if (sub && isPaying(sub)) {
@@ -369,7 +390,8 @@ async function init() {
       // 未登録(匿名) → Step 1 アカウント登録だけ表示（申込フォームは出さない）
       showOnly('registerStep');
     } else {
-      // 登録済み・未課金 → 申込フォーム（registerStep / alreadySection は初期状態のまま非表示）
+      // 登録済み・未課金 → 申込フォーム
+      showForm();
       if (sub && sub.status === 'pending') {
         document.getElementById('pendingNote').style.display = '';
       }
@@ -378,7 +400,16 @@ async function init() {
     console.error('subscription load error:', e);
   }
 }
+
 init();
+
+// 認証復元の遅延対策(自己修復): ログインが確定(匿名→メール認証)したらUIを再評価し、
+// 誤って表示された「登録ステップ」を申込フォームへ畳む。タイミングに依存しない。
+onAuthStateChanged(auth, (user) => {
+  if (user && !user.isAnonymous) {
+    applyAccountState();
+  }
+});
 </script>
 </body>
 </html>
