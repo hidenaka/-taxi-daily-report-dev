@@ -22,7 +22,9 @@ export function resolveAuthBadge({ emailAuthed, myId }) {
     return { kind: 'login', text: 'ログイン中', showLoginForm: false, showLogout: true };
   }
   if (!isSampleGuestUserId(myId)) {
-    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: true, showLogout: false };
+    // admin強制切替での閲覧など。実データを表示中なのでログイン誘導は出さない
+    // （「{userId} のデータを表示中」なのに「ログインしてください」が出る矛盾を防ぐ）。
+    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: false, showLogout: false };
   }
   return { kind: 'sample', text: 'サンプルデータ（ログインしてください）', showLoginForm: true, showLogout: false };
 }

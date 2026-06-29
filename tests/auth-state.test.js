@@ -26,7 +26,7 @@ test('resolveAuthBadge: admin強制切替の閲覧(匿名+実userId)は「サン
   const r = resolveAuthBadge({ emailAuthed: false, myId: 'kohkuma1976' });
   assert.equal(r.kind, 'viewing');
   assert.equal(r.text, 'kohkuma1976 のデータを表示中');
-  assert.equal(r.showLoginForm, true);
+  assert.equal(r.showLoginForm, false); // 閲覧中はログイン誘導を出さない
   assert.equal(r.showLogout, false);
 });
 
