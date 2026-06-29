@@ -38,6 +38,12 @@ export async function initAuth() {
   if (authInitPromise) return authInitPromise;
 
   authInitPromise = new Promise((resolve, reject) => {
+    // Firebase の persistence 復元完了(authStateReady)を待ってからリスナーを張る。
+    // 待たずに onAuthStateChanged を張ると、復元前の null を最初に拾って
+    // signInAnonymously に落ち、匿名ユーザーで解決してしまうレースがある。
+    // その結果ログイン済みでも一瞬 isEmailAuth()=false となり、subscribe/home が
+    // 「アカウント登録/ログインして」を表示し、ログイン画面へ戻るループに見えていた。
+    auth.authStateReady().catch(() => {}).then(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
@@ -121,6 +127,7 @@ export async function initAuth() {
         }
       }
     });
+    }); // close auth.authStateReady().then
   });
 
   return authInitPromise;
