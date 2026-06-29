@@ -38,12 +38,6 @@ export async function initAuth() {
   if (authInitPromise) return authInitPromise;
 
   authInitPromise = new Promise((resolve, reject) => {
-    // Firebase の persistence 復元完了(authStateReady)を待ってからリスナーを張る。
-    // 待たずに onAuthStateChanged を張ると、復元前の null を最初に拾って
-    // signInAnonymously に落ち、匿名ユーザーで解決してしまうレースがある。
-    // その結果ログイン済みでも一瞬 isEmailAuth()=false となり、subscribe/home が
-    // 「アカウント登録/ログインして」を表示し、ログイン画面へ戻るループに見えていた。
-    auth.authStateReady().catch(() => {}).then(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
@@ -127,7 +121,6 @@ export async function initAuth() {
         }
       }
     });
-    }); // close auth.authStateReady().then
   });
 
   return authInitPromise;
@@ -310,6 +303,23 @@ onAuthStateChanged(auth, async (user) => {
 
 // Wait for auth to be ready
 export async function waitForAuth() {
+  if (currentUser) return currentUser;
+  // 永続セッション(IndexedDB/localStorage)の復元は authStateReady 後も数百ms 遅れて
+  // currentUser が null→実ユーザー へ変わることがある(実測 ~300ms)。これを待たずに
+  // initAuth に進むと、最初の null を拾って signInAnonymously に落ち、ログイン済みでも
+  // 一瞬 isEmailAuth()=false になる。その瞬間に subscribe/home が「アカウント登録/
+  // ログインして」を確定描画し、ログイン画面へ戻るループに見えていた(本不具合の真因)。
+  try { await auth.authStateReady(); } catch (_) { /* 古いSDKでも安全に無視 */ }
+  // 来訪歴(taxi_user_id)があるのにまだユーザー未確定なら、復元を猶予つきで待つ。
+  // 復元を検知したら即抜け。新規訪問者(履歴なし)は待たせない。
+  if (!auth.currentUser && localStorage.getItem('taxi_user_id')) {
+    await new Promise((res) => {
+      const timer = setTimeout(() => { try { off(); } catch (_) {} res(); }, 2000);
+      const off = onAuthStateChanged(auth, (u) => {
+        if (u) { clearTimeout(timer); off(); res(); }
+      });
+    });
+  }
   if (currentUser) return currentUser;
   return initAuth();
 }
