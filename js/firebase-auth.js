@@ -74,13 +74,13 @@ export async function initAuth() {
       const localUserId = localStorage.getItem('taxi_user_id');
       if (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId)) {
         currentUserId = localUserId;
-        // 登録済み userId を名乗る匿名(=admin強制切替の閲覧 等)では users doc を書かない。
-        // 既定ゲスト(user_sample)のときだけ共有ゲストdocを裏で同期する(userId重複防止)。
-        if (localUserId === DEFAULT_ANONYMOUS_USER_ID) {
-          setDoc(doc(db, 'users', user.uid), {
-            userId: localUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
-          }, { merge: true }).catch((e) => console.warn('user doc sync (bg) failed:', e));
-        }
+        // users/{uid}.userId は Firestore ルール isOwnerByUserId が drives/userConfigs 等の
+        // アクセス可否判定に参照する。admin強制切替の閲覧でも必ず書かないとルールが読取を
+        // 拒否するため、登録済み userId でも書く（isAnonymous:true で印付け）。重複(匿名docが
+        // 登録userIdを持つ)はサーバー側が anon!==false を優先して吸収する(findCompanyIdByUserId)。
+        setDoc(doc(db, 'users', user.uid), {
+          userId: localUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
+        }, { merge: true }).catch((e) => console.warn('user doc sync (bg) failed:', e));
         return user;
       }
       // localStorage に有効な userId 無し（端末初回相当）→ users/{uid} を読んで確定。
@@ -88,11 +88,9 @@ export async function initAuth() {
       const effectiveUserId = (userDoc.exists() ? userDoc.data().userId : null) || DEFAULT_ANONYMOUS_USER_ID;
       currentUserId = effectiveUserId;
       localStorage.setItem('taxi_user_id', effectiveUserId);
-      if (effectiveUserId === DEFAULT_ANONYMOUS_USER_ID) {
-        await setDoc(doc(db, 'users', user.uid), {
-          userId: effectiveUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
-        }, { merge: true });
-      }
+      await setDoc(doc(db, 'users', user.uid), {
+        userId: effectiveUserId, updatedAt: new Date().toISOString(), isAnonymous: true,
+      }, { merge: true });
       return user;
     }
 
@@ -109,15 +107,12 @@ export async function initAuth() {
     currentUserId = (existingUserId && /^[a-z][a-z0-9_]*$/.test(existingUserId))
       ? existingUserId : DEFAULT_ANONYMOUS_USER_ID;
     localStorage.setItem('taxi_user_id', currentUserId);
-    // 登録済み userId を名乗る匿名(=admin強制切替の閲覧 等)では users doc を書かない。
-    // 書くと「匿名doc が登録 userId を持つ」重複が生まれ、userId 一意を前提とするサーバー処理
-    // (findCompanyIdByUserId は limit2・件数≠1 で null)を壊す → 無料付与が no_company で
-    // 弾かれる実害があった。既定ゲスト(user_sample)のときだけ共有ゲストdocを書く。
-    if (currentUserId === DEFAULT_ANONYMOUS_USER_ID) {
-      await setDoc(doc(db, 'users', result.user.uid), {
-        userId: currentUserId, createdAt: new Date().toISOString(), isAnonymous: true,
-      }, { merge: true });
-    }
+    // users/{uid}.userId は Firestore ルールが drives/userConfigs 等のアクセス可否に参照するため、
+    // admin強制切替の閲覧(匿名+対象userId)でも必ず書く。重複(匿名docが登録userIdを持つ)が
+    // 生まれるが、それを前提に Worker findCompanyIdByUserId が anon!==false を優先して解決する。
+    await setDoc(doc(db, 'users', result.user.uid), {
+      userId: currentUserId, createdAt: new Date().toISOString(), isAnonymous: true,
+    }, { merge: true });
     return result.user;
   })();
 
