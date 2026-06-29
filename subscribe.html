@@ -386,8 +386,11 @@ async function applyAccountState() {
         `すでにご利用中です（状態：${formatStatus(sub.status)}）。`;
       // Phase 2: 有料(Stripe)契約中で、自分の会社が無償対象なら「無料に切り替える」を提案
       maybeOfferSwitchToFree(sub);
-    } else if (!isEmailAuth()) {
+    } else if (!(auth.currentUser && !auth.currentUser.isAnonymous)) {
       // 未登録(匿名) → Step 1 アカウント登録だけ表示（申込フォームは出さない）
+      // 判定は SDK の auth.currentUser を直接見る。モジュールの isEmailAuth() は
+      // 永続セッション復元(~300ms)より後に同期されることがあり、init の遅延実行(~400ms)で
+      // 誤って未ログイン扱い→登録ステップを再表示し、リスナーの修復を上書きしていたため。
       showOnly('registerStep');
     } else {
       // 登録済み・未課金 → 申込フォーム

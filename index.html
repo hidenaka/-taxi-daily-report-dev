@@ -285,7 +285,10 @@ async function initOnboardBanner() {
         : 'キャビスの全機能は初月無料でお試しいただけます。';
       ctaPrimary.textContent = '初月無料で申し込む →';
       ctaPrimary.style.display = '';
-      if (!isEmailAuth()) ctaLogin.style.display = '';
+      // ログイン導線は SDK の auth.currentUser で判定（モジュールの isEmailAuth() は
+      // 永続セッション復元より後に同期されることがあり、ログイン済みでも一瞬「ログイン」
+      // ボタンを出してしまうため）。
+      if (!(auth.currentUser && !auth.currentUser.isAnonymous)) ctaLogin.style.display = '';
       banner.style.display = '';
     } else if (isCanceledOrUnpaid(sub)) {
       // 退会・未払い → いつでも自己再開できる（Stripeで再申込）
