@@ -146,13 +146,13 @@ if (location.hostname.includes('-dev')) {
       <input type="checkbox" id="agreeTokuteishou">
       <label for="agreeTokuteishou"><a href="legal/tokuteishou.html" target="_blank" rel="noopener">特定商取引法に基づく表記</a>を確認しました</label>
     </div>
-    <div class="agree-row">
+    <div class="agree-row" id="agreeAllRow">
       <input type="checkbox" id="agreeAll">
-      <label for="agreeAll">初月無料期間の終了後、上記の月額料金が自動で課金されることを理解して申し込みます</label>
+      <label for="agreeAll" id="agreeAllLabel">初月無料期間の終了後、上記の月額料金が自動で課金されることを理解して申し込みます</label>
     </div>
     <button class="submit-btn" id="submitBtn" disabled>申し込む（初月無料・以降 月額1,000円）</button>
     <div id="statusMsg"></div>
-    <p class="muted" style="font-size:11px;margin-top:8px;">「申し込む」を押すと、クレジットカード情報の入力画面（Stripe）に移動します。</p>
+    <p class="muted" style="font-size:11px;margin-top:8px;" id="stripeNote">「申し込む」を押すと、クレジットカード情報の入力画面（Stripe）に移動します。</p>
   </section>
 
   <!-- 既に申込済み -->
@@ -350,6 +350,12 @@ async function init() {
         if (pt) pt.textContent = 'ご利用のお申し込み（無償）';
         const lt = document.getElementById('leadText');
         if (lt) lt.textContent = 'この会社の招待を受けた方は、キャビスを無償でご利用いただけます。アカウント登録のうえ、ご利用を開始してください。';
+        // 無償フローでは「課金される」「クレジットカード入力へ」等の有料用文言が矛盾するため
+        // 無償向けに差し替える（料金・カードは発生しない）。
+        const aal = document.getElementById('agreeAllLabel');
+        if (aal) aal.textContent = '上記を確認のうえ、無償での利用を開始します（料金・カード登録はありません）';
+        const sn = document.getElementById('stripeNote');
+        if (sn) sn.textContent = '「無償で利用を開始」を押すと、すぐにご利用を開始できます（クレジットカード登録は不要です）。';
       }
     }
   } catch (e) {
