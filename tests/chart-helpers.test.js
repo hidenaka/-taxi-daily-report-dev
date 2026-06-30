@@ -362,3 +362,28 @@ test('dropoffHistoryAtArea: 複数エリア(array)を渡すと範囲全体を集
   const single = dropoffHistoryAtArea(drives, '大田区蒲田', 20, 1, null, 30);
   assert.equal(single.stats.totalDropoffs, 1);
 });
+
+import { tripCountByHour, hourlyActivity } from '../js/chart-helpers.js';
+
+test('tripCountByHour: 乗車時刻の時間で非キャンセル営業をカウント', () => {
+  const drive = { trips: [
+    { boardTime: '08:10', alightTime: '08:30', amount: 2000, isCancel: false },
+    { boardTime: '08:50', alightTime: '09:05', amount: 1500, isCancel: false },
+    { boardTime: '09:20', alightTime: '09:40', amount: 1800, isCancel: false },
+    { boardTime: '10:00', alightTime: '10:10', amount: 0, isCancel: true },
+  ]};
+  const counts = tripCountByHour(drive);
+  assert.equal(counts[8], 2);
+  assert.equal(counts[9], 1);
+  assert.equal(counts[10], 0);
+});
+
+test('hourlyActivity: 各時間に tripCount を含む', () => {
+  const drive = { trips: [
+    { boardTime: '08:10', alightTime: '08:30', amount: 2000, isCancel: false },
+    { boardTime: '08:50', alightTime: '09:05', amount: 1500, isCancel: false },
+  ]};
+  const acts = hourlyActivity(drive, 7);
+  const h8 = acts.find(a => a.hour === 8);
+  assert.equal(h8.tripCount, 2);
+});

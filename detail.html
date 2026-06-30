@@ -36,6 +36,7 @@
 .hour-row .bar.rest { background: #757575; }
 .hour-row .vals { font-size: 10px; line-height: 1.3; text-align: right; color: var(--muted); }
 .hour-row .vals .y { color: #1b5e20; font-weight: 600; font-size: 11px; }
+.hour-row .vals .cnt { color: #1565c0; font-weight: 700; }
 .hour-row .vals .r { color: #555; }
 
 .trip-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
@@ -342,6 +343,7 @@ function renderHourChart(drive) {
     const salesPct = a.sales === 0 ? 0 : Math.max(2, (a.sales / maxSales) * 100);
     const restPct = a.restMin === 0 ? 0 : Math.max(2, (a.restMin / REST_FULL) * 100);
     const yenLabel = a.sales > 0 ? formatYen(a.sales) : '—';
+    const countLabel = a.tripCount > 0 ? `${a.tripCount}件` : '';
     const restLabel = a.restMin > 0 ? `休${a.restMin}分` : '';
     const tripLabel = a.tripMin > 0 ? `実${a.tripMin}分` : '';
     return `<div class="hour-row">
@@ -351,16 +353,16 @@ function renderHourChart(drive) {
         <div class="bar-bg"><div class="bar rest" style="width:${restPct}%"></div></div>
       </div>
       <div class="vals">
-        <div class="y">${yenLabel}</div>
+        <div class="y">${yenLabel}${countLabel ? ` ・ <span class="cnt">${countLabel}</span>` : ''}</div>
         <div class="r">${[tripLabel, restLabel].filter(Boolean).join(' / ') || '—'}</div>
       </div>
     </div>`;
   }).join('') || '<p class="muted" style="font-size:11px;">乗車なし</p>';
   const peakAct = filtered.length > 0 ? filtered.reduce((a, b) => a.sales >= b.sales ? a : b) : null;
   document.getElementById('hourCard').innerHTML = `
-    <div class="muted">時間別 売上(緑) と 休憩(グレー) ・7時スタート、深夜は25時〜</div>
+    <div class="muted">時間別 売上(緑)・営業件数 と 休憩(グレー) ・7時スタート、深夜は25時〜</div>
     <div class="hour-list">${rows}</div>
-    ${peakAct ? `<div class="legend">ピーク売上: <strong>${shiftHour(peakAct.hour)}時台 ${formatYen(peakAct.sales)} (実車${peakAct.tripMin}分)</strong></div>` : ''}
+    ${peakAct ? `<div class="legend">ピーク売上: <strong>${shiftHour(peakAct.hour)}時台 ${formatYen(peakAct.sales)} (${peakAct.tripCount}件・実車${peakAct.tripMin}分)</strong></div>` : ''}
   `;
 }
 

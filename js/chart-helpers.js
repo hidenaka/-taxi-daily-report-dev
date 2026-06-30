@@ -42,6 +42,18 @@ export function salesByHour(drive) {
   return hours;
 }
 
+// 1時間ごとの営業件数(乗車時刻の時間で集計・キャンセル除外)。salesByHour と同じ配分。
+export function tripCountByHour(drive) {
+  const hours = Array(24).fill(0);
+  for (const t of (drive.trips || [])) {
+    if (t.isCancel) continue;
+    const start = timeToMinutes(t.boardTime);
+    const h = Math.floor(start / 60);
+    if (h >= 0 && h < 24) hours[h] += 1;
+  }
+  return hours;
+}
+
 // 1時間ごとの実車時間(分)配列。tripが時間境界をまたぐ場合は分割
 export function tripMinByHour(drive) {
   const mins = Array(24).fill(0);
@@ -81,14 +93,15 @@ export function restMinByHour(drive) {
   return mins;
 }
 
-// 7時スタート(または指定)の順序で {hour, sales, tripMin, restMin} を返す
+// 7時スタート(または指定)の順序で {hour, sales, tripCount, tripMin, restMin} を返す
 export function hourlyActivity(drive, startHour = 7) {
   const sales = salesByHour(drive);
+  const counts = tripCountByHour(drive);
   const tripMins = tripMinByHour(drive);
   const restMins = restMinByHour(drive);
   return Array.from({ length: 24 }, (_, i) => {
     const h = (startHour + i) % 24;
-    return { hour: h, sales: sales[h], tripMin: tripMins[h], restMin: restMins[h] };
+    return { hour: h, sales: sales[h], tripCount: counts[h], tripMin: tripMins[h], restMin: restMins[h] };
   });
 }
 
