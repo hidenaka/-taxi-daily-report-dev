@@ -136,7 +136,8 @@ async function load() {
   const sales = calcDailySales(drive);
   const valid = (drive.trips || []).filter(t => !t.isCancel);
   const validCount = valid.length;
-  const km = valid.reduce((s, t) => s + (t.km || 0), 0);
+  const km = valid.reduce((s, t) => s + (t.km || 0), 0); // 実車距離(営Km合計)
+  const totalDistanceKm = drive.totalDistanceKm; // 総走行距離(回送込み・入力欄/OCRヘッダー由来)
   const breakdown = calcTimeBreakdown(drive);
   const totalHours = breakdown.totalMin / 60;
   const hourlyRate = totalHours > 0 ? sales.inclTax / totalHours : 0;
@@ -151,7 +152,7 @@ async function load() {
       <div><div class="lbl">時間単価(乗務)</div><div class="num">${formatYen(hourlyRate)}</div></div>
     </div>
     <div class="kpi-row" style="margin-top:8px;">
-      <div><div class="lbl">走行距離</div><div class="num">${km.toFixed(1)}<span style="font-size:11px;">km</span></div></div>
+      <div><div class="lbl">実車 / 走行</div><div class="num" style="font-size:15px;">${km.toFixed(1)} / ${totalDistanceKm != null ? totalDistanceKm : '—'}<span style="font-size:11px;">km</span></div></div>
       <div><div class="lbl">出庫</div><div class="num" style="font-size:14px;">${drive.departureTime || '-'}</div></div>
       <div><div class="lbl">帰庫</div><div class="num" style="font-size:14px;">${drive.returnTime || '-'}</div></div>
       <div><div class="lbl">車種</div><div class="num" style="font-size:14px;">${drive.vehicleType === 'premium' ? 'プレ' : '普通'}</div></div>
