@@ -97,6 +97,9 @@ if (location.hostname.includes('-dev')) {
     <!-- ログイン中のユーザー: ログアウト -->
     <button class="btn" id="logoutBtn" style="width:100%;margin-top:8px;display:none;background:var(--gray);color:#333;">ログアウト</button>
 
+    <!-- 管理者の閲覧(view-as)中: 自分に戻る -->
+    <button class="btn" id="exitViewAsBtn" style="width:100%;margin-top:8px;display:none;background:var(--gray);color:#333;">↩︎ 閲覧を終了して自分に戻る</button>
+
     <!-- 管理者のみ: アカウント切り替え -->
     <button class="btn" id="switchAccountBtn" style="width:100%;display:none;margin-top:8px;">🔄 アカウントを切り替え</button>
     <div id="switchAccountStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
@@ -324,7 +327,7 @@ import { renderQrSvg, downloadQrPng } from './js/qr-code.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay } from './js/payroll.js';
-import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth, waitForAuth } from './js/firebase-auth.js';
+import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth, waitForAuth, setViewAs, getViewAsUserId, clearViewAs } from './js/firebase-auth.js';
 import { resolveAuthBadge } from './js/auth-state.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import './js/help-toggle.js';
@@ -576,24 +579,23 @@ document.getElementById('switchAccountBtn').onclick = async () => {
   if (!trimmed) { status.textContent = '✗ userIdを入力してください'; return; }
   if (!isValidUserId(trimmed)) { status.textContent = '✗ userIdの形式が不正です（英小文字始まり・英小文字/数字/アンダースコアのみ）'; return; }
 
-  if (trimmed === currentId) { status.textContent = '✓ 同じuserIdです'; return; }
-
-  if (!confirm(`アカウントを「${currentId}」から「${trimmed}」に切り替えますか？\nページが再読み込みされます。`)) return;
+  if (!confirm(`「${trimmed}」のデータを閲覧します（管理者）。\nページが再読み込みされます。\n※閲覧できるのは管理者のみ（権限はサーバー側で判定）。`)) return;
 
   status.textContent = '切り替え中…';
-
-  // メール認証ユーザーの場合はログアウトして匿名に戻す（そうでないと onAuthStateChanged で上書きされる）
-  if (isEmailAuth()) {
-    try {
-      await logout();
-    } catch (e) {
-      console.warn('Logout failed:', e);
-    }
+  // view-as 方式（なりすまし書込みなし・isAdmin() で許可）。詳細は admin-settings.html 参照。
+  try {
+    setViewAs(trimmed);
+    status.textContent = `✓ 「${trimmed}」を閲覧します。再読み込みします…`;
+    setTimeout(() => location.reload(), 400);
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
   }
+};
 
-  setMyUserId(trimmed);
-  status.textContent = `✓ 「${trimmed}」に切り替えました。再読み込みします…`;
-  setTimeout(() => location.reload(), 400);
+// 閲覧を終了して自分に戻る
+document.getElementById('exitViewAsBtn').onclick = () => {
+  clearViewAs();
+  location.reload();
 };
 
 // ログイン（匿名 → メール認証）
@@ -732,11 +734,12 @@ async function initUI() {
   try {
     await initAuth();
     // バッジ判定は純関数 resolveAuthBadge に集約（tests/auth-state.test.js で検証済み）。
-    // admin強制切替の閲覧(匿名+実userId)を「サンプルデータ」と誤表示しないのが要点。
-    const badge = resolveAuthBadge({ emailAuthed: isEmailAuth(), myId: getMyUserId() });
+    // view-as(管理者の閲覧)中は最優先で「{対象} を閲覧中（管理者）」を表示する。
+    const badge = resolveAuthBadge({ emailAuthed: isEmailAuth(), myId: getMyUserId(), viewAs: getViewAsUserId() });
     const authBadge = document.getElementById('authTypeBadge');
     document.getElementById('anonymousLoginSection').style.display = badge.showLoginForm ? '' : 'none';
     document.getElementById('logoutBtn').style.display = badge.showLogout ? '' : 'none';
+    document.getElementById('exitViewAsBtn').style.display = badge.showExitViewAs ? '' : 'none';
     authBadge.textContent = badge.text;
     authBadge.style.color = (badge.kind === 'sample') ? '' : 'green';
   } catch (e) {

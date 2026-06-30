@@ -61,7 +61,8 @@ if (location.hostname.includes('-dev')) {
         <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">現在のアカウント</div>
         <div style="font-size:18px;font-weight:600;" id="currentUserIdDisplay">--</div>
       </div>
-      <button class="btn" id="switchAccountBtn" style="width:100%;">🔄 アカウントを切り替え</button>
+      <button class="btn" id="switchAccountBtn" style="width:100%;">🔄 別ユーザーを閲覧（管理者）</button>
+      <button class="btn" id="exitViewAsBtn" style="width:100%;margin-top:8px;display:none;background:var(--gray);color:#333;">↩︎ 閲覧を終了して自分に戻る</button>
       <div id="switchAccountStatus" class="muted" style="margin-top:4px;font-size:11px;"></div>
     </section>
 
@@ -119,7 +120,7 @@ showGpsPrivacyBanner();
 import { getConfig, saveConfig, getMyUserId, setMyUserId } from './js/storage.js';
 import { isValidUserId } from './js/userid.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth } from './js/firebase-auth.js';
+import { isEmailAuth, logout, loginWithUserId, getCurrentUser, initAuth, setViewAs, getViewAsUserId, clearViewAs } from './js/firebase-auth.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 
 document.getElementById('navHost').innerHTML = renderBottomNav('settings');
@@ -157,6 +158,16 @@ function showAdminUI(userId, isAnonymous = false) {
   document.getElementById('adminName').textContent = userId + (isAnonymous ? ' (匿名)' : '');
   // 匿名ユーザーの場合はログアウトボタン非表示（メール認証のみログアウト可能）
   document.getElementById('logoutBtn').style.display = isAnonymous ? 'none' : '';
+  // view-as（管理者の閲覧）中は、その旨を表示し「閲覧終了」ボタンを出す。
+  const viewAs = getViewAsUserId();
+  const disp = document.getElementById('currentUserIdDisplay');
+  if (viewAs) {
+    if (disp) disp.innerHTML = `${viewAs} <span class="muted" style="font-size:12px;">を閲覧中（管理者）</span>`;
+    document.getElementById('exitViewAsBtn').style.display = '';
+  } else {
+    if (disp) disp.textContent = userId;
+    document.getElementById('exitViewAsBtn').style.display = 'none';
+  }
   loadConfig();
 }
 
@@ -240,11 +251,15 @@ function renderRateTable(rt) {
   host.appendChild(rateDiv);
 }
 
+// 管理者の「閲覧（view-as）」。旧実装(ログアウト→匿名→users docのuserId書き換え=なりすまし)
+// は userId重複doc を作り、本人が書ける users.userId をアクセス権の根拠にする穴を使っていた。
+// 新実装は admin の認証を保ったまま taxi_view_as に対象を置くだけ。データ読取は Firestore
+// ルールの isAdmin() が許可する（非admin が押しても rules に弾かれ無害）。
 document.getElementById('switchAccountBtn').onclick = async () => {
   const status = document.getElementById('switchAccountStatus');
-  const currentId = getMyUserId();
+  const currentId = getViewAsUserId() || getMyUserId();
 
-  const newUserId = prompt(`アカウント切り替え\n\n現在: ${currentId}\n\n切り替え先のuserIdを入力してください:`);
+  const newUserId = prompt(`別ユーザーを閲覧（管理者）\n\n現在: ${currentId}\n\n閲覧したい userId を入力してください:`);
 
   if (newUserId === null) { status.textContent = 'キャンセルしました'; return; }
   const trimmed = newUserId.trim();
@@ -252,23 +267,22 @@ document.getElementById('switchAccountBtn').onclick = async () => {
   if (!trimmed) { status.textContent = '✗ userIdを入力してください'; return; }
   if (!isValidUserId(trimmed)) { status.textContent = '✗ userIdの形式が不正です（英小文字始まり・英小文字/数字/アンダースコアのみ）'; return; }
 
-  if (trimmed === currentId) { status.textContent = '✓ 同じuserIdです'; return; }
-
-  if (!confirm(`アカウントを「${currentId}」から「${trimmed}」に切り替えますか？\nページが再読み込みされます。`)) return;
+  if (!confirm(`「${trimmed}」のデータを閲覧します（管理者）。\nページが再読み込みされます。\n※閲覧できるのは管理者のみ（権限はサーバー側で判定）。`)) return;
 
   status.textContent = '切り替え中…';
-
-  if (isEmailAuth()) {
-    try {
-      await logout();
-    } catch (e) {
-      console.warn('Logout failed:', e);
-    }
+  try {
+    setViewAs(trimmed);
+    status.textContent = `✓ 「${trimmed}」を閲覧します。再読み込みします…`;
+    setTimeout(() => location.reload(), 400);
+  } catch (e) {
+    status.textContent = '✗ ' + e.message;
   }
+};
 
-  setMyUserId(trimmed);
-  status.textContent = `✓ 「${trimmed}」に切り替えました。再読み込みします…`;
-  setTimeout(() => location.reload(), 400);
+// 閲覧を終了して自分に戻る
+document.getElementById('exitViewAsBtn').onclick = () => {
+  clearViewAs();
+  location.reload();
 };
 
 document.getElementById('saveConfigBtn').onclick = async () => {

@@ -15,16 +15,20 @@ export function isSampleGuestUserId(myId) {
 
 // バッジ状態を決める純関数。
 //   emailAuthed: メール認証でログイン中か
-//   myId:        現在表示中の userId（currentUserId || localStorage.taxi_user_id）
-// 戻り値 kind: 'login'（メール認証） | 'viewing'（実データ閲覧・匿名） | 'sample'（既定ゲスト）
-export function resolveAuthBadge({ emailAuthed, myId }) {
+//   myId:        現在表示中の userId（getUserId() = view-as中なら対象, それ以外は本人）
+//   viewAs:      管理者の閲覧(view-as)対象 userId（無ければ null/undefined）
+// 戻り値 kind: 'viewing-admin'（admin閲覧） | 'login'（メール認証） | 'viewing'（匿名で実データ） | 'sample'
+export function resolveAuthBadge({ emailAuthed, myId, viewAs } = {}) {
+  if (viewAs) {
+    // 管理者の閲覧中。ログイン誘導は出さず「自分に戻る」を出す。
+    return { kind: 'viewing-admin', text: `${viewAs} を閲覧中（管理者）`, showLoginForm: false, showLogout: false, showExitViewAs: true };
+  }
   if (emailAuthed) {
-    return { kind: 'login', text: 'ログイン中', showLoginForm: false, showLogout: true };
+    return { kind: 'login', text: 'ログイン中', showLoginForm: false, showLogout: true, showExitViewAs: false };
   }
   if (!isSampleGuestUserId(myId)) {
-    // admin強制切替での閲覧など。実データを表示中なのでログイン誘導は出さない
-    // （「{userId} のデータを表示中」なのに「ログインしてください」が出る矛盾を防ぐ）。
-    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: false, showLogout: false };
+    // 匿名だが実 userId のデータを表示中（旧来の挙動・保険）。ログイン誘導は出さない。
+    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: false, showLogout: false, showExitViewAs: false };
   }
-  return { kind: 'sample', text: 'サンプルデータ（ログインしてください）', showLoginForm: true, showLogout: false };
+  return { kind: 'sample', text: 'サンプルデータ（ログインしてください）', showLoginForm: true, showLogout: false, showExitViewAs: false };
 }

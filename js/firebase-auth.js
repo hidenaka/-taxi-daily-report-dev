@@ -202,14 +202,46 @@ export async function logout() {
   currentUserId = null;
   authInitPromise = null;
   localStorage.removeItem('taxi_user_id');
+  clearViewAs();
   clearSubCache();
   // 端末に前ユーザーの日報/設定キャッシュを残さない（アカウント切替時のデータ漏れ/誤表示防止）。
   try { clearDataCaches(localStorage); } catch (e) { /* best-effort */ }
 }
 
+// ===== 管理者の「閲覧（view-as）」=====
+// admin が他ユーザーのデータを閲覧/編集する仕組み。旧実装は「ログアウト→匿名→users doc の
+// userId を対象に書き換え(なりすまし)」だったが、これは①userId重複doc を量産し②本人が書ける
+// users.userId をアクセス権の根拠にする穴を使っていた。新実装は admin の認証を保ったまま
+// taxi_view_as に対象 userId を置くだけ。データ読取は Firestore ルールの isAdmin() が許可する
+// （= adminUids に uid がある人だけ実際に読める。非adminが set しても rules に弾かれるので無害）。
+const VIEW_AS_KEY = 'taxi_view_as';
+
+export function getViewAsUserId() {
+  try {
+    const v = localStorage.getItem(VIEW_AS_KEY);
+    return (v && /^[a-z][a-z0-9_]*$/.test(v)) ? v : null;
+  } catch (_) { return null; }
+}
+
+export function setViewAs(userId) {
+  if (!/^[a-z][a-z0-9_]*$/.test(userId)) throw new Error('Invalid user ID format');
+  localStorage.setItem(VIEW_AS_KEY, userId);
+  clearSubCache();
+  try { clearDataCaches(localStorage); } catch (_) { /* best-effort */ }
+}
+
+export function clearViewAs() {
+  try { localStorage.removeItem(VIEW_AS_KEY); } catch (_) { /* noop */ }
+  clearSubCache();
+  try { clearDataCaches(localStorage); } catch (_) { /* best-effort */ }
+}
+
 // Get current user ID
+// view-as 中は対象 userId を返す（全データ操作が対象ユーザーを向く）。それ以外は本人の userId。
+// view-as は admin のなりすまし書込みを伴わない＝users doc は本人のまま。実アクセス可否は
+// ルールの isAdmin() が担保する。
 export function getUserId() {
-  return currentUserId || localStorage.getItem('taxi_user_id');
+  return getViewAsUserId() || currentUserId || localStorage.getItem('taxi_user_id');
 }
 
 // Set custom user ID

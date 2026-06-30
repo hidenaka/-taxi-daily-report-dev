@@ -21,6 +21,22 @@ test('resolveAuthBadge: メール認証中は「ログイン中」', () => {
   assert.equal(r.showLoginForm, false);
 });
 
+test('resolveAuthBadge: view-as 中は admin閲覧として最優先で表示', () => {
+  // view-as は emailAuthed/myId より優先。admin が自分のメールでログインしたまま対象を閲覧。
+  const r = resolveAuthBadge({ emailAuthed: true, myId: 'kohkuma1976', viewAs: 'kohkuma1976' });
+  assert.equal(r.kind, 'viewing-admin');
+  assert.equal(r.text, 'kohkuma1976 を閲覧中（管理者）');
+  assert.equal(r.showExitViewAs, true);
+  assert.equal(r.showLoginForm, false);
+  assert.equal(r.showLogout, false);
+});
+
+test('resolveAuthBadge: view-as 無しなら従来どおり', () => {
+  const r = resolveAuthBadge({ emailAuthed: true, myId: 'taro', viewAs: null });
+  assert.equal(r.kind, 'login');
+  assert.equal(r.showExitViewAs, false);
+});
+
 test('resolveAuthBadge: admin強制切替の閲覧(匿名+実userId)は「サンプル」にしない', () => {
   // これが今回の修正の核: 匿名セッションでも実 userId を見ているならサンプル扱い禁止。
   const r = resolveAuthBadge({ emailAuthed: false, myId: 'kohkuma1976' });
