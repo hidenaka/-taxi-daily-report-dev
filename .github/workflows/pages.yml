@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
@@ -33,7 +33,7 @@ jobs:
           destination: ./_site
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: ./_site
 
@@ -48,7 +48,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deploy
         continue-on-error: true
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Wait before first retry
         if: steps.deploy.outcome == 'failure'
@@ -58,7 +58,7 @@ jobs:
         id: deploy_retry_1
         if: steps.deploy.outcome == 'failure'
         continue-on-error: true
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       - name: Wait before second retry
         if: steps.deploy.outcome == 'failure' && steps.deploy_retry_1.outcome == 'failure'
@@ -67,4 +67,21 @@ jobs:
       - name: Deploy to GitHub Pages retry 2
         id: deploy_retry_2
         if: steps.deploy.outcome == 'failure' && steps.deploy_retry_1.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        continue-on-error: true
+        uses: actions/deploy-pages@v5
+
+      - name: Ignore transient deployment failure for data refresh
+        if: >-
+          steps.deploy.outcome == 'failure' &&
+          steps.deploy_retry_1.outcome == 'failure' &&
+          steps.deploy_retry_2.outcome == 'failure' &&
+          startsWith(github.event.head_commit.message, 'chore(data): relay taxi data')
+        run: echo "GitHub Pages deployment failed after retries for a data refresh; the next refresh will retry."
+
+      - name: Fail non-data deployment after retries
+        if: >-
+          steps.deploy.outcome == 'failure' &&
+          steps.deploy_retry_1.outcome == 'failure' &&
+          steps.deploy_retry_2.outcome == 'failure' &&
+          !startsWith(github.event.head_commit.message, 'chore(data): relay taxi data')
+        run: exit 1
