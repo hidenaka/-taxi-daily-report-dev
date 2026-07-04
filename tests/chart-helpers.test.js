@@ -90,7 +90,12 @@ test('classifyEarning: 値0や有効値3件未満は none', () => {
 });
 
 import { hourlyDowDailyValues, zoneDailyValues } from '../js/chart-helpers.js';
-import { ZONE_PRESETS } from '../js/chart-helpers.js';
+import { getShiftZones, ZONE_PRESETS } from '../js/chart-helpers.js';
+
+test('getShiftZones: 出庫時刻からの5時間区切り順を保つ', () => {
+  const labels = getShiftZones('09:05').map(z => z.label);
+  assert.deepEqual(labels, ['9-14時', '14-19時', '19-0時(翌)', '0-5時']);
+});
 
 test('hourlyDowDailyValues: 同じ曜日の別日が、その時間帯セルに日別¥/hとして積まれる', () => {
   // 2026-04-23(木) と 2026-04-30(木) の 19時台。各日 workingMin=60, 売上 6000/3000

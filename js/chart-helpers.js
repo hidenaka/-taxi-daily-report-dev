@@ -286,10 +286,8 @@ export function getShiftZones(departureTime) {
     raw.push({ start, end, idx: i });
     start = end;
   }
-  const normal = raw.filter(z => z.start < z.end);
-  const wrap = raw.filter(z => z.start > z.end);
   const colors = ['#1565c0', '#2e7d32', '#e65100', '#37474f'];
-  return [...normal, ...wrap].map(z => ({
+  return raw.map(z => ({
     key: `z${z.idx + 1}`,
     label: `${z.start}-${z.end}時${z.start > z.end ? '(翌)' : ''}`,
     start: z.start,
