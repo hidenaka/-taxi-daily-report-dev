@@ -123,10 +123,19 @@ export function renderMovement(adv, unit = 'count') {
   const vehicles = unit === 'vehicles' && adv.rowWidth;
   const u = vehicles ? '台' : '回';
   const conv = (s, n) => vehicles ? Math.round(n * (typeof adv.rowWidth[s] === 'number' ? adv.rowWidth[s] : 1)) : n;
+  const showDeparture = Object.keys(STALL_LABELS)
+    .some((s) => typeof cur.stalls[s]?.departure === 'number');
   const rows = Object.keys(STALL_LABELS).map((s) => {
     const v = cur.stalls[s] || {};
     const actual = (typeof v.actual === 'number') ? `${conv(s, v.actual)}${u}` : '—';
+    const departure = (typeof v.departure === 'number') ? `${conv(s, v.departure)}${u}` : '—';
     const fc = (typeof v.forecast === 'number') ? conv(s, v.forecast) : '—';
+    if (showDeparture) {
+      return `<div class="sm-row sm-row-direction"><span class="sm-stall">${STALL_LABELS[s]}乗り場</span>`
+        + `<span class="sm-actual">補充 ${actual}</span>`
+        + `<span class="sm-departure">抜け ${departure}</span>`
+        + `<span class="sm-fc">予測 ${fc}</span></div>`;
+    }
     return `<div class="sm-row"><span class="sm-stall">${STALL_LABELS[s]}乗り場</span>`
       + `<span class="sm-actual">${actual}</span>`
       + `<span class="sm-fc">予測 ${fc}</span></div>`;
