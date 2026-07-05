@@ -28,48 +28,17 @@ test('toVehicleBins: rowWidth未指定(null)は入力をそのまま返す', () 
   assert.deepEqual(toVehicleBins(bins, null), bins);
 });
 
-// --- renderMovement: 直近15分の補充/抜け表示 ---
-
-test('renderMovement: departure があると補充と抜けを分けて表示する', () => {
+test('renderMovement: departure 入りJSONでも従来の実測値表示を維持する', () => {
   const html = renderMovement({
     current: {
       stalls: {
-        stall1: { actual: 1, departure: 0, forecast: 1.0 },
-        stall2: { actual: 0, departure: 1, forecast: 1.3 },
-        stall3: { actual: 0, departure: 1, forecast: 1.4 },
-        stall4: { actual: 0, departure: 0, forecast: 1.1 },
+        stall1: { actual: 2, departure: 1, forecast: 1.2 },
       },
     },
   });
-  assert.ok(html.includes('補充 1回'), '補充ラベルを含む');
-  assert.ok(html.includes('抜け 1回'), '抜けラベルを含む');
-  assert.ok(html.includes('予測 1.3'), '予測は従来どおり表示する');
-});
-
-test('renderMovement: vehicles 単位では departure も横台数で換算する', () => {
-  const html = renderMovement({
-    rowWidth: { stall1: 8, stall2: 7, stall3: 8, stall4: 8 },
-    current: {
-      stalls: {
-        stall1: { actual: 1, departure: 0, forecast: 1 },
-        stall2: { actual: 0, departure: 1, forecast: 1 },
-      },
-    },
-  }, 'vehicles');
-  assert.ok(html.includes('補充 8台'), 'actual は台数に換算する');
-  assert.ok(html.includes('抜け 7台'), 'departure も台数に換算する');
-});
-
-test('renderMovement: departure が無い旧JSONでは従来の実測値だけを表示する', () => {
-  const html = renderMovement({
-    current: {
-      stalls: {
-        stall1: { actual: 2, forecast: 1 },
-      },
-    },
-  });
-  assert.ok(html.includes('<span class="sm-actual">2回</span>'), '旧表示の実測値を維持する');
-  assert.ok(!html.includes('抜け'), '旧JSONでは抜け列を出さない');
+  assert.ok(html.includes('<span class="sm-actual">2回</span>'), '実測値だけを表示する');
+  assert.ok(!html.includes('\u88dc\u5145'), '補充ラベルを表示しない');
+  assert.ok(!html.includes('\u629c\u3051'), '抜けラベルを表示しない');
 });
 
 // --- aggregateTo15min: 5分スロット → 15分ビン合算 ---
