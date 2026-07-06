@@ -32,6 +32,7 @@ function getUserIdFromEmail(email) {
 
 // Default anonymous user ID (no random generation)
 const DEFAULT_ANONYMOUS_USER_ID = 'user_sample';
+const USER_ID_RE = /^[a-z0-9][a-z0-9_]*$/;
 
 // Initialize auth
 export async function initAuth() {
@@ -52,7 +53,7 @@ export async function initAuth() {
     //    （= パスワード無しで対象 userId のデータを閲覧する「なりすまし」機能を維持）。
     if (!user) {
       const stored = localStorage.getItem('taxi_user_id');
-      const looksRegistered = stored && /^[a-z][a-z0-9_]*$/.test(stored) && stored !== DEFAULT_ANONYMOUS_USER_ID;
+      const looksRegistered = stored && USER_ID_RE.test(stored) && stored !== DEFAULT_ANONYMOUS_USER_ID;
       if (looksRegistered) {
         user = await new Promise((resolve) => {
           const off = onAuthStateChanged(auth, (u) => { if (u) { clearTimeout(t); off(); resolve(u); } });
@@ -72,7 +73,7 @@ export async function initAuth() {
       }
       // 匿名ユーザーの場合: localStorage の userId で確定。users/{uid} 同期は裏で。
       const localUserId = localStorage.getItem('taxi_user_id');
-      if (localUserId && /^[a-z][a-z0-9_]*$/.test(localUserId)) {
+      if (localUserId && USER_ID_RE.test(localUserId)) {
         currentUserId = localUserId;
         // users/{uid}.userId は Firestore ルール isOwnerByUserId が drives/userConfigs 等の
         // アクセス可否判定に参照する。admin強制切替の閲覧でも必ず書かないとルールが読取を
@@ -104,7 +105,7 @@ export async function initAuth() {
     const result = await signInAnonymously(auth);
     currentUser = result.user;
     const existingUserId = localStorage.getItem('taxi_user_id');
-    currentUserId = (existingUserId && /^[a-z][a-z0-9_]*$/.test(existingUserId))
+    currentUserId = (existingUserId && USER_ID_RE.test(existingUserId))
       ? existingUserId : DEFAULT_ANONYMOUS_USER_ID;
     localStorage.setItem('taxi_user_id', currentUserId);
     // users/{uid}.userId は Firestore ルールが drives/userConfigs 等のアクセス可否に参照するため、
@@ -165,8 +166,8 @@ export async function signUp(userId, password) {
   if (!loadInviteSlug(localStorage)) {
     return { success: false, error: '新規登録には招待URLが必要です。会社/組合から配布された招待URL経由でアクセスしてください。' };
   }
-  if (!/^[a-z][a-z0-9_]*$/.test(userId)) {
-    return { success: false, error: 'ログインIDは半角英小文字で始め、英小文字・数字・_ のみ使えます' };
+  if (!USER_ID_RE.test(userId)) {
+    return { success: false, error: 'ログインIDは半角英小文字または数字で始め、英小文字・数字・_ のみ使えます' };
   }
   if (userId.length < 3 || userId.length > 30) {
     return { success: false, error: 'ログインIDは3〜30文字にしてください' };
@@ -219,12 +220,12 @@ const VIEW_AS_KEY = 'taxi_view_as';
 export function getViewAsUserId() {
   try {
     const v = localStorage.getItem(VIEW_AS_KEY);
-    return (v && /^[a-z][a-z0-9_]*$/.test(v)) ? v : null;
+    return (v && USER_ID_RE.test(v)) ? v : null;
   } catch (_) { return null; }
 }
 
 export function setViewAs(userId) {
-  if (!/^[a-z][a-z0-9_]*$/.test(userId)) throw new Error('Invalid user ID format');
+  if (!USER_ID_RE.test(userId)) throw new Error('Invalid user ID format');
   localStorage.setItem(VIEW_AS_KEY, userId);
   clearSubCache();
   try { clearDataCaches(localStorage); } catch (_) { /* best-effort */ }
@@ -247,7 +248,7 @@ export function getUserId() {
 // Set custom user ID
 export async function setUserId(newId) {
   if (!currentUser) throw new Error('Not authenticated');
-  if (!/^[a-z][a-z0-9_]*$/.test(newId)) throw new Error('Invalid user ID format');
+  if (!USER_ID_RE.test(newId)) throw new Error('Invalid user ID format');
   
   currentUserId = newId;
   await setDoc(doc(db, 'users', currentUser.uid), {

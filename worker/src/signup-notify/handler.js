@@ -4,6 +4,12 @@ import { verifyFirebaseIdToken } from '../auth/verify-id-token.js';
 import { sendMail } from '../setup-request/mail.js';
 import { buildSignupNotificationBody } from './body.js';
 
+const SIGNUP_NOTIFY_USER_ID_RE = /^[a-z0-9][a-z0-9_]*$/;
+
+export function isValidSignupNotifyUserId(userId) {
+  return SIGNUP_NOTIFY_USER_ID_RE.test(String(userId || ''));
+}
+
 export async function handleNotifySignup(request, env, helpers) {
   let payload;
   try {
@@ -24,7 +30,7 @@ export async function handleNotifySignup(request, env, helpers) {
 
   // 検証（PIIはログしない）。電話番号は収集しない。
   const n = String(name || '').trim();
-  if (!/^[a-z][a-z0-9_]*$/.test(String(userId || ''))) return helpers.json({ error: 'bad_userid' }, 400);
+  if (!isValidSignupNotifyUserId(userId)) return helpers.json({ error: 'bad_userid' }, 400);
   if (!n || n.length > 50) return helpers.json({ error: 'bad_fields' }, 400);
 
   // companyId 併記（best-effort）

@@ -124,6 +124,15 @@ test('captureInviteSlug: company + ref 正常 → 両方保存', () => {
   assert.equal(storage._data.taxi_pending_referrer, 'taro_san');
 });
 
+test('captureInviteSlug: company + 数字始まり ref 正常 → 両方保存', () => {
+  const storage = makeStorage();
+  const params = new URLSearchParams('?company=keiho&ref=123driver');
+  const result = captureInviteSlug(params, storage);
+  assert.equal(result, 'keiho');
+  assert.equal(storage._data.taxi_pending_company, 'keiho');
+  assert.equal(storage._data.taxi_pending_referrer, '123driver');
+});
+
 test('captureInviteSlug: company 無し + ref あり → 何も保存しない（ref も依存）', () => {
   const storage = makeStorage();
   const params = new URLSearchParams('?ref=taro');
@@ -148,6 +157,11 @@ test('captureInviteSlug: ref が大文字始まり → 拒否', () => {
 test('loadReferrer: 保存済み ref を返す', () => {
   const storage = makeStorage({ taxi_pending_referrer: 'jiro' });
   assert.equal(loadReferrer(storage), 'jiro');
+});
+
+test('loadReferrer: 数字始まり ref を返す', () => {
+  const storage = makeStorage({ taxi_pending_referrer: '123driver' });
+  assert.equal(loadReferrer(storage), '123driver');
 });
 
 test('loadReferrer: 未保存 → null', () => {

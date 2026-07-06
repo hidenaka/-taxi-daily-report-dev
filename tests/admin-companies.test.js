@@ -136,6 +136,13 @@ test('buildReferralUrl: slug + 正常な userId → ref 付きURL', () => {
   );
 });
 
+test('buildReferralUrl: slug + 数字始まり userId → ref 付きURL', () => {
+  assert.strictEqual(
+    buildReferralUrl('keiho', '123driver'),
+    'https://app.taxicabis.com/?company=keiho&ref=123driver'
+  );
+});
+
 test('buildReferralUrl: ref 空 → 会社URLのみ', () => {
   assert.strictEqual(
     buildReferralUrl('keiho', ''),

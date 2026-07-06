@@ -93,12 +93,12 @@ if (location.hostname.includes('-dev')) {
         <label for="suId">ログインID（半角英数字）</label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="suId" autocapitalize="none" autocomplete="username"
-                 pattern="[a-z][a-z0-9_]{2,29}" maxlength="30"
+                 pattern="[a-z0-9][a-z0-9_]{2,29}" maxlength="30"
                  placeholder="例: driver_a1b2" style="flex:1;">
           <button type="button" id="genSuIdBtn" class="btn" style="white-space:nowrap;">🎲 自動生成</button>
         </div>
         <div id="suIdError" class="suid-error" style="color:#d33; font-size:11px; margin-top:4px; min-height:1em;"></div>
-        <div class="hint">半角英小文字で始め、英小文字・数字・_ が使えます（3〜30文字）。本名は避け、任意のIDを決めてください。</div>
+        <div class="hint">半角英小文字または数字で始め、英小文字・数字・_ が使えます（3〜30文字）。本名は避け、任意のIDを決めてください。</div>
       </div>
       <div class="field">
         <label for="suPw">パスワード</label>
@@ -213,7 +213,7 @@ async function verifyTurnstile(token) {
 const suIdEl = document.getElementById('suId');
 const suIdErrorEl = document.getElementById('suIdError');
 const signupBtn = document.getElementById('signupBtn');
-const SUID_RE = /^[a-z][a-z0-9_]{2,29}$/;
+const SUID_RE = /^[a-z0-9][a-z0-9_]{2,29}$/;
 
 function validateSuId() {
   const v = suIdEl ? suIdEl.value : '';
@@ -224,7 +224,7 @@ function validateSuId() {
     return false;
   }
   if (!SUID_RE.test(v)) {
-    if (suIdErrorEl) suIdErrorEl.textContent = '半角英小文字・数字・_ のみ使えます（3〜30文字、英小文字で始める）';
+    if (suIdErrorEl) suIdErrorEl.textContent = '半角英小文字・数字・_ のみ使えます（3〜30文字、先頭は英小文字または数字）';
     if (suIdEl) suIdEl.classList.add('error');
     if (signupBtn) signupBtn.disabled = true;
     return false;

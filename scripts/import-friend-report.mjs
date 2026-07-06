@@ -64,8 +64,8 @@ function parseArgs() {
 function validate(opts) {
   const errors = [];
   if (!opts.user) errors.push('--user が指定されていません');
-  else if (!/^[a-z][a-z0-9_]*$/.test(opts.user))
-    errors.push(`--user "${opts.user}" は無効です。英小文字始まり、英小文字・数字・アンダースコアのみ使用可`);
+  else if (!/^[a-z0-9][a-z0-9_]*$/.test(opts.user))
+    errors.push(`--user "${opts.user}" は無効です。英小文字または数字始まり、英小文字・数字・アンダースコアのみ使用可`);
 
   const hasPhotos = opts.photos.length > 0;
   const hasTexts  = opts.texts.length > 0;

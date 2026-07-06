@@ -9,7 +9,7 @@ const STORAGE_KEY = 'taxi_pending_company';
 const REF_KEY = 'taxi_pending_referrer';
 const SLUG_PATTERN = /^[a-z][a-z0-9_-]*$/;
 // 紹介者の userId 形式: js/firebase-auth.js / userid.js と一致させる
-const REF_PATTERN = /^[a-z][a-z0-9_]{2,29}$/;
+const REF_PATTERN = /^[a-z0-9][a-z0-9_]{2,29}$/;
 
 // URL の `?company=<slug>` を読み取り storage に保存。正常 slug のみ受理。
 // `?ref=<userId>` があれば紹介者として別キーに保存（任意・形式チェックで防御的）。

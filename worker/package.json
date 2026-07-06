@@ -2,6 +2,7 @@
   "name": "cabis-billing",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "キャビス課金バックエンド（Cloudflare Worker）— Stripe Checkout / Webhook / 解約",
   "scripts": {
     "dev": "wrangler dev",

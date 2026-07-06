@@ -16,7 +16,7 @@ export function getMyUserId() {
 export function setMyUserId(id) {
   const norm = normalizeUserId(id);
   if (!isValidUserId(norm)) {
-    throw new Error('userId は英小文字始まりで英小文字・数字・アンダースコアのみ使用可');
+    throw new Error('userId は英小文字または数字始まりで英小文字・数字・アンダースコアのみ使用可');
   }
   localStorage.setItem(USER_ID_KEY, norm);
   return norm;

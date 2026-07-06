@@ -233,7 +233,8 @@ async function handleStartFree(request, env) {
   return json(env, { ok: true });
 }
 
-// users コレクションを userId フィールドで検索し companyId を返す。0件/複数件は null。
+// users コレクションを userId フィールドで検索し companyId を返す。
+// 同じ userId の匿名stray doc が複数あるため、本登録(isAnonymous !== true)を優先する。
 async function findCompanyIdByUserId(env, token, userId) {
   const url = `https://firestore.googleapis.com/v1/projects/${env.FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`;
   const res = await fetch(url, {
@@ -242,14 +243,26 @@ async function findCompanyIdByUserId(env, token, userId) {
     body: JSON.stringify({ structuredQuery: {
       from: [{ collectionId: 'users' }],
       where: { fieldFilter: { field: { fieldPath: 'userId' }, op: 'EQUAL', value: { stringValue: userId } } },
-      limit: 2,
     } }),
   });
   if (!res.ok) return null;
   const rows = await res.json();
-  const docs = (Array.isArray(rows) ? rows : []).filter(r => r.document);
-  if (docs.length !== 1) return null; // 0件 or 複数件は安全側で拒否
-  const f = docs[0].document.fields || {};
+  return resolveCompanyIdFromUserQueryRows(rows);
+}
+
+export function resolveCompanyIdFromUserQueryRows(rows) {
+  const docs = (Array.isArray(rows) ? rows : [])
+    .map(r => r && r.document)
+    .filter(Boolean);
+  const registeredDocs = docs.filter((d) => {
+    const f = d.fields || {};
+    return !(f.isAnonymous && f.isAnonymous.booleanValue === true);
+  });
+  const candidates = registeredDocs.length > 0
+    ? registeredDocs
+    : (docs.length === 1 ? docs : []);
+  if (candidates.length !== 1) return null;
+  const f = candidates[0].fields || {};
   return (f.companyId && f.companyId.stringValue) || null;
 }
 

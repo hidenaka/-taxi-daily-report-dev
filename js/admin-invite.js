@@ -88,7 +88,7 @@ export async function generateInvite({ userId, pat, ttlHours, repo }) {
 }
 
 function isValidUserId(id) {
-  return typeof id === 'string' && /^[a-z][a-z0-9_]*$/.test(id);
+  return typeof id === 'string' && /^[a-z0-9][a-z0-9_]*$/.test(id);
 }
 
 // ユーザー一覧取得

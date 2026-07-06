@@ -265,7 +265,7 @@ document.getElementById('switchAccountBtn').onclick = async () => {
   const trimmed = newUserId.trim();
 
   if (!trimmed) { status.textContent = '✗ userIdを入力してください'; return; }
-  if (!isValidUserId(trimmed)) { status.textContent = '✗ userIdの形式が不正です（英小文字始まり・英小文字/数字/アンダースコアのみ）'; return; }
+  if (!isValidUserId(trimmed)) { status.textContent = '✗ userIdの形式が不正です（先頭は英小文字または数字・英小文字/数字/アンダースコアのみ）'; return; }
 
   if (!confirm(`「${trimmed}」のデータを閲覧します（管理者）。\nページが再読み込みされます。\n※閲覧できるのは管理者のみ（権限はサーバー側で判定）。`)) return;
 

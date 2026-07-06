@@ -99,6 +99,6 @@ export function buildCompanySignupUrl(slug, baseUrl = 'https://app.taxicabis.com
 export function buildReferralUrl(slug, referrerUserId, baseUrl = 'https://app.taxicabis.com') {
   const url = buildCompanySignupUrl(slug, baseUrl);
   if (!url || !referrerUserId) return url;
-  if (!/^[a-z][a-z0-9_]{2,29}$/.test(referrerUserId)) return url;
+  if (!/^[a-z0-9][a-z0-9_]{2,29}$/.test(referrerUserId)) return url;
   return `${url}&ref=${referrerUserId}`;
 }
