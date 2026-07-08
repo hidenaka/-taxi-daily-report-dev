@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+  <title>Cabis ｜ 乗り場傾向</title>
+  <link rel="icon" type="image/png" sizes="180x180" href="./icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <style>
+    :root { --bg:#0e0e10; --fg:#e8e8e8; --sub:#8d929a; --line:#252832; --panel:#15161b; --accent:#4ea1ff; --orange:#f97316; --yellow:#eab308; --teal:#14b8a6; --violet:#a78bfa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system, system-ui, sans-serif; font-size:15px; padding-bottom:64px; }
+    [hidden] { display:none !important; }
+    .app-tabs { display:flex; position:sticky; top:0; z-index:10; background:#0a0a0f; border-bottom:1px solid #222; padding-top:env(safe-area-inset-top); }
+    .app-tab { flex:1; padding:14px 8px; text-align:center; text-decoration:none; color:var(--sub); font-size:15px; font-weight:600; border-bottom:3px solid transparent; }
+    .app-tab.active { color:var(--fg); border-bottom-color:var(--accent); background:rgba(78,161,255,.08); }
+    .terminal-tabs { display:flex; gap:6px; padding:8px 12px; border-bottom:1px solid #222; flex-wrap:wrap; align-items:center; }
+    .terminal-tab { background:#1a1a1d; color:var(--sub); padding:6px 10px; border-radius:6px; border:0; text-decoration:none; font-size:13px; }
+    .terminal-tab.is-active { background:var(--accent); color:#000; font-weight:700; }
+    .terminal-tab.push { margin-left:auto; }
+    .dev-badge { display:none; margin:8px 12px 0; color:#111; background:#ffb84d; border-radius:6px; padding:5px 8px; font-size:12px; font-weight:800; width:max-content; }
+    body.is-dev .dev-badge { display:block; }
+    #noriba-trends-error { margin:10px 12px; padding:9px 10px; background:#4a1a1a; color:#ffdfba; border-radius:6px; font-size:13px; }
+    .trend-hero { display:flex; justify-content:space-between; align-items:flex-end; gap:12px; padding:14px 12px 8px; flex-wrap:wrap; }
+    .trend-eyebrow { margin:0 0 3px; color:var(--sub); font-size:12px; }
+    h1 { margin:0; font-size:26px; line-height:1.1; letter-spacing:0; }
+    .trend-segment { display:inline-flex; border:1px solid #333845; border-radius:7px; overflow:hidden; min-height:36px; }
+    .trend-segment-btn { min-width:62px; padding:7px 11px; background:#1a1a1d; color:var(--sub); border:0; border-left:1px solid #333845; font:inherit; font-size:13px; cursor:pointer; }
+    .trend-segment-btn:first-child { border-left:0; }
+    .trend-segment-btn.is-active { background:var(--accent); color:#000; font-weight:700; }
+    .trend-meta { display:flex; gap:8px; flex-wrap:wrap; padding:0 12px 10px; color:var(--sub); font-size:11px; }
+    .trend-meta span { background:#15161b; border:1px solid #242631; border-radius:5px; padding:3px 6px; }
+    .trend-cards { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:6px; padding:0 12px 10px; }
+    .trend-card { background:var(--panel); border:1px solid #242631; border-left:4px solid #555; border-radius:8px; padding:9px; min-width:0; }
+    .tone-orange { --tone:var(--orange); } .tone-yellow { --tone:var(--yellow); } .tone-teal { --tone:var(--teal); } .tone-violet { --tone:var(--violet); }
+    .trend-card.tone-orange, .trend-lane.tone-orange { border-left-color:var(--orange); }
+    .trend-card.tone-yellow, .trend-lane.tone-yellow { border-left-color:var(--yellow); }
+    .trend-card.tone-teal, .trend-lane.tone-teal { border-left-color:var(--teal); }
+    .trend-card.tone-violet, .trend-lane.tone-violet { border-left-color:var(--violet); }
+    .trend-card-head { display:flex; align-items:baseline; justify-content:space-between; gap:6px; }
+    .trend-stall { font-size:16px; font-weight:800; }
+    .trend-muted { color:var(--sub); font-size:11px; }
+    .trend-main { margin-top:5px; font-size:25px; line-height:1.05; font-weight:850; font-variant-numeric:tabular-nums; }
+    .trend-main span { margin-left:2px; font-size:11px; color:var(--sub); font-weight:500; }
+    .trend-meter { height:7px; margin:8px 0; background:#22242b; border-radius:2px; overflow:hidden; }
+    .trend-meter span { display:block; height:100%; background:var(--tone); border-radius:2px; }
+    .trend-kv { margin:0; display:grid; gap:4px; font-size:11px; }
+    .trend-kv div { display:flex; justify-content:space-between; gap:6px; min-width:0; }
+    .trend-kv dt { color:var(--sub); }
+    .trend-kv dd { margin:0; font-variant-numeric:tabular-nums; text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .trend-section { border-top:1px solid #222; padding:12px; }
+    .trend-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:8px; }
+    .trend-section h2 { margin:0; font-size:15px; }
+    .trend-section-head span { color:var(--sub); font-size:11px; }
+    .trend-lanes { display:grid; gap:8px; }
+    .trend-lane { display:grid; grid-template-columns:36px 1fr; gap:8px; align-items:end; border-left:3px solid #555; padding-left:7px; }
+    .trend-lane-label { color:var(--fg); font-weight:800; font-size:12px; }
+    .trend-bars { display:grid; grid-template-columns:repeat(96, minmax(2px, 1fr)); gap:1px; align-items:end; min-height:34px; }
+    .trend-bars span { display:block; background:var(--tone); border-radius:1px 1px 0 0; opacity:.88; min-height:3px; }
+    .trend-table { width:100%; border-collapse:collapse; }
+    .trend-table th, .trend-table td { padding:7px 8px; border-bottom:1px solid #222; text-align:right; font-variant-numeric:tabular-nums; }
+    .trend-table th { background:#16161c; color:var(--sub); font-size:12px; font-weight:500; }
+    .trend-table th:first-child, .trend-table td:first-child { text-align:left; }
+    .trend-total { color:var(--accent); font-weight:800; }
+    .trend-detail { margin:0 12px 18px; color:var(--sub); font-size:12px; }
+    .trend-detail summary { cursor:pointer; padding:9px 0; color:var(--accent); }
+    .trend-table-scroll { max-height:360px; overflow:auto; border-top:1px solid #222; }
+    nav.bottom { position:fixed; bottom:0; left:0; right:0; height:56px; background:#16161c; border-top:1px solid #222; display:flex; padding-bottom:env(safe-area-inset-bottom); z-index:50; }
+    nav.bottom a { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-decoration:none; color:var(--sub); font-size:11px; }
+    nav.bottom a.active { color:var(--accent); }
+    @media (max-width:680px) {
+      .trend-cards { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .terminal-tab.push { margin-left:0; }
+      .trend-main { font-size:23px; }
+    }
+    @media (max-width:390px) {
+      .trend-card { padding:8px 7px; }
+      .trend-kv { font-size:10.5px; }
+      .trend-bars { gap:0; }
+    }
+  </style>
+  <style>body{visibility:hidden;pointer-events:none;}</style>
+</head>
+<body>
+  <script type="module">
+    import { enforceAccess } from '../js/access-control.js';
+    if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
+      throw new Error('access-denied: redirected');
+    }
+    if (location.hostname.includes('-dev')) document.body.classList.add('is-dev');
+  </script>
+
+  <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
+    <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="ic.html" class="app-tab">🛣 IC判定</a>
+    <a href="arrivals.html" class="app-tab active" aria-current="page">✈ 空港ツール</a>
+    <a href="stands.html" id="tab-stands" class="app-tab" style="display:none">📍 乗り場</a>
+  </nav>
+  <script type="module" src="js/stands-tab.js"></script>
+
+  <div class="terminal-tabs">
+    <a href="arrivals.html" class="terminal-tab">到着便</a>
+    <a href="noriba-trends.html" class="terminal-tab is-active" aria-current="page">📊 乗り場傾向</a>
+    <a href="airport-fare.html" id="tab-airport-fare" class="terminal-tab push">💴 空港定額</a>
+  </div>
+
+  <div class="dev-badge">開発環境</div>
+  <div id="noriba-trends-error" hidden></div>
+  <main id="noriba-trends-root"></main>
+
+  <script type="module" src="./js/noriba-trends.js"></script>
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    import { showGpsPrivacyBanner } from '../js/gps-privacy-banner.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+    showGpsPrivacyBanner();
+  </script>
+</body>
+</html>

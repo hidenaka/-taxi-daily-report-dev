@@ -1,3 +1,56 @@
+# セッション引継ぎ: 2026-07-08 10:06
+
+## 現在のタスク
+羽田空港の画像計測由来データを使い、各乗り場の平均的な列移動傾向を見られる新しい空港ツールページを追加。実装・ローカル検証まで完了し、dev 反映用の commit 前状態。
+
+## 完了済み
+- [x] `tools/data/advance-forecast.json` の `slots` / `actualsToday` / `rowWidth` を使う方針を確認。
+- [x] 新ページ `tools/noriba-trends.html` を追加。
+- [x] 集計・描画ロジック `tools/js/noriba-trends.js` を追加。
+- [x] 到着便ページ `tools/arrivals.html` に「乗り場傾向」タブを追加。
+- [x] `sw.js` の `CACHE_NAME` を `v324` に更新し、新 HTML/JS をプリキャッシュ対象に追加。
+- [x] `tests/noriba-trends.test.js` を追加し、傾向ビン変換・台数換算・乗り場別サマリー・朝昼夕夜集計を回帰テスト化。
+- [x] ローカルサーバーで `tools/noriba-trends.html` / `tools/js/noriba-trends.js` / `tools/data/advance-forecast.json` が 200 で取得できることを確認。
+
+## 未完了・次のアクション（優先順）
+- [ ] 今回の変更を必要ファイルだけ commit し、dev `main` へ push。
+- [ ] dev Pages で `https://hidenaka.github.io/-taxi-daily-report-dev/tools/noriba-trends.html` を開き、ページ表示と「回数/台数」切り替えを確認。
+- [ ] 本番反映が必要ならタグ push で prod へ同期し、本番 `tools/noriba-trends.html` を確認。
+
+## 重要な決定事項
+- 初期版は新しいデータ生成パイプラインを増やさず、既存の `advance-forecast.json` を使う。
+- `slots` は平均傾向、`actualsToday` は今日実測、`rowWidth` は列移動回数から推定台数への換算に使う。
+- 朝=5-11時、昼=11-16時、夕方=16-21時、夜=21-5時で時間帯集計する。
+- Service Worker は cache-first なので、新ページ追加時も `CACHE_NAME` bump と `STATIC_FILES` 登録を行う。
+
+## 既知の問題・注意点
+- 現在の作業ブランチは `fix/pages-deploy-retry` で、追跡先は `dev/main`。プロジェクト指示上は `main` 作業だが、このブランチは現在 `dev/main` と同じ先端から作業している。
+- `CLAUDE.md`、`ocr-spike/`、`tmp/` は未追跡だが今回の作業対象外。
+- ローカルの `tools/data/advance-forecast.json` は古いサンプルの可能性があるため、公開環境では配信済みの最新 JSON で確認する。
+
+## 関連ファイル（現在の状態付き）
+- `tools/noriba-trends.html`: 新規追加。乗り場傾向ページ本体。
+- `tools/js/noriba-trends.js`: 新規追加。傾向データ変換、乗り場別サマリー、時間帯集計、画面描画。
+- `tests/noriba-trends.test.js`: 新規追加。純粋関数の回帰テスト。
+- `tools/arrivals.html`: 空港ツール内に「乗り場傾向」タブを追加。
+- `sw.js`: `v324` に更新し、新ページと新 JS を `STATIC_FILES` に追加。
+- `SESSION.md`: この引継ぎを先頭に追記。
+
+## 検証コマンド / 動作確認手順
+```bash
+node --test tests/noriba-trends.test.js
+node --test tests/noriba-trends.test.js tests/forecast-section.test.js
+npm test
+node --test tests/noriba-trends.test.js tests/sw-precache-imports.test.js tests/help-video-sw.test.js
+node --check tools/js/noriba-trends.js
+python3 -m http.server 8000
+curl -s -o /tmp/noriba-trends.html -w "%{http_code} %{size_download}\n" http://localhost:8000/tools/noriba-trends.html
+curl -s -o /tmp/noriba-trends.js -w "%{http_code} %{size_download}\n" http://localhost:8000/tools/js/noriba-trends.js
+curl -s -o /tmp/advance-forecast.json -w "%{http_code} %{size_download}\n" http://localhost:8000/tools/data/advance-forecast.json
+```
+
+---
+
 # セッション引継ぎ: 2026-07-06 19:24
 
 ## 現在のタスク
