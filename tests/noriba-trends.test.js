@@ -1,5 +1,6 @@
 import { test, assert } from './run.js';
 import {
+  buildNowMarker,
   buildTimelineHourMarkers,
   buildDaypartSummaries,
   initNoribaTrendsPage,
@@ -84,6 +85,13 @@ test('buildTimelineHourMarkers: 24時間グラフに6時間ごとの時刻目盛
   assert.deepEqual(markers.map(m => m.position), [0, 25, 50, 75, 100]);
 });
 
+test('buildNowMarker: 現在時刻を24時間グラフ上の位置に変換する', () => {
+  const marker = buildNowMarker(new Date('2026-07-08T12:30:00+09:00'));
+
+  assert.equal(marker.label, '現在 12:30');
+  assert.equal(marker.position, 52.1);
+});
+
 test('initNoribaTrendsPage: 回数が列移動の回数（参考）だと表示する', async () => {
   global.localStorage = { getItem: () => 'count', setItem: () => {} };
   const root = { innerHTML: '', querySelectorAll: () => [] };
@@ -103,4 +111,33 @@ test('initNoribaTrendsPage: 回数が列移動の回数（参考）だと表示�
   await initNoribaTrendsPage({ root, error, fetchFn });
 
   assert.ok(root.innerHTML.includes('列移動の回数（参考）'));
+});
+
+test('initNoribaTrendsPage: 現在時刻の縦線とライブカメラを表示する', async () => {
+  global.localStorage = { getItem: () => 'count', setItem: () => {} };
+  const root = { innerHTML: '', querySelectorAll: () => [] };
+  const error = { hidden: true, textContent: '' };
+  const fetchFn = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      generatedAt: '2026-07-08T10:00:00+09:00',
+      trainedRows: 1,
+      rowWidth: { stall1: 8, stall2: 7, stall3: 8, stall4: 8 },
+      slots: [{ time: '00:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 } }],
+      actualsToday: [],
+    }),
+  });
+
+  await initNoribaTrendsPage({
+    root,
+    error,
+    fetchFn,
+    now: new Date('2026-07-08T06:00:00+09:00'),
+  });
+
+  assert.ok(root.innerHTML.includes('trend-now-line'));
+  assert.ok(root.innerHTML.includes('現在 06:00'));
+  assert.ok(root.innerHTML.includes('data/pool-cam-real01.jpg'));
+  assert.ok(root.innerHTML.includes('data/pool-cam-real02.jpg'));
 });

@@ -134,6 +134,16 @@ export function buildTimelineHourMarkers(bins) {
   }));
 }
 
+export function buildNowMarker(now = new Date()) {
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const minutes = h * 60 + m;
+  return {
+    label: `現在 ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+    position: Math.round((minutes / (24 * 60)) * 1000) / 10,
+  };
+}
+
 function renderUnitControls(unit) {
   return `<div class="trend-segment" role="group" aria-label="単位">
     <button type="button" class="trend-segment-btn ${unit === 'count' ? 'is-active' : ''}" data-unit="count">回数</button>
@@ -162,20 +172,38 @@ function renderStallCards(summaries, todaySummaries, unitLabel) {
   }).join('')}</div>`;
 }
 
-function renderTimeline(bins, unitLabel) {
+function renderPoolCameras(now = new Date()) {
+  const cb = now.getTime();
+  return `<section class="trend-camera-section">
+    <div class="trend-section-head">
+      <h2>ライブカメラ</h2>
+      <span>到着便ページと同じ画像</span>
+    </div>
+    <div class="trend-cameras">
+      <img src="data/pool-cam-real01.jpg?t=${cb}" alt="タクシープール 第1から第4乗り場" loading="lazy">
+      <img src="data/pool-cam-real02.jpg?t=${cb}" alt="タクシープール 第4待機" loading="lazy">
+    </div>
+  </section>`;
+}
+
+function renderTimeline(bins, unitLabel, now = new Date()) {
   const max = Math.max(1, ...bins.map(row => Math.max(...STALLS.map(stall => row[stall.key] || 0))));
   const markers = buildTimelineHourMarkers(bins);
+  const nowMarker = buildNowMarker(now);
   return `<section class="trend-section">
     <div class="trend-section-head">
       <h2>24時間の平均パターン</h2>
-      <span>15分ごと / ${unitLabel}</span>
+      <span>${nowMarker.label} / 15分ごと / ${unitLabel}</span>
     </div>
     <div class="trend-lanes">${STALLS.map((stall) => `<div class="trend-lane tone-${stall.tone}">
       <div class="trend-lane-label">${stall.label}</div>
-      <div class="trend-bars">${bins.map((bin) => {
-        const height = Math.max(3, Math.round(((bin[stall.key] || 0) / max) * 28));
-        return `<span title="${bin.label} ${fmt(bin[stall.key] || 0)}${unitLabel}" style="height:${height}px"></span>`;
-      }).join('')}</div>
+      <div class="trend-bars-wrap">
+        <div class="trend-bars">${bins.map((bin) => {
+          const height = Math.max(3, Math.round(((bin[stall.key] || 0) / max) * 32));
+          return `<span title="${bin.label} ${fmt(bin[stall.key] || 0)}${unitLabel}" style="height:${height}px"></span>`;
+        }).join('')}</div>
+        <span class="trend-now-line" style="left:${nowMarker.position}%" title="${nowMarker.label}"></span>
+      </div>
     </div>`).join('')}</div>
     <div class="trend-time-axis" aria-label="時刻目盛り">
       ${markers.map(marker => `<span style="left:${marker.position}%">${marker.label}</span>`).join('')}
@@ -227,7 +255,7 @@ function formatGeneratedAt(value) {
   return String(value).slice(0, 16).replace('T', ' ');
 }
 
-function renderPage(root, data, unit) {
+function renderPage(root, data, unit, now = new Date()) {
   const unitLabel = unit === 'vehicles' ? '台' : '回';
   const typicalBins = unit === 'vehicles'
     ? toVehicleTrendBins(toTrendBins(data.slots || []), data.rowWidth)
@@ -255,7 +283,8 @@ function renderPage(root, data, unit) {
       <span>平均は画像計測由来の列移動履歴から算出</span>
     </div>
     ${renderStallCards(summaries, todaySummaries, unitLabel)}
-    ${renderTimeline(typicalBins, unitLabel)}
+    ${renderPoolCameras(now)}
+    ${renderTimeline(typicalBins, unitLabel, now)}
     ${renderDaypartTable(dayparts, unitLabel)}
     ${renderDetailTable(typicalBins, unitLabel)}
   `;
@@ -265,6 +294,7 @@ export async function initNoribaTrendsPage({
   root = document.getElementById('noriba-trends-root'),
   error = document.getElementById('noriba-trends-error'),
   fetchFn = fetch,
+  now = new Date(),
 } = {}) {
   if (!root) return;
   let unit = localStorage.getItem(UNIT_STORAGE_KEY) || 'count';
@@ -279,7 +309,7 @@ export async function initNoribaTrendsPage({
   }
 
   const redraw = () => {
-    renderPage(root, result.data, unit);
+    renderPage(root, result.data, unit, now);
     root.querySelectorAll('[data-unit]').forEach((button) => {
       button.addEventListener('click', () => {
         unit = button.dataset.unit === 'vehicles' ? 'vehicles' : 'count';
