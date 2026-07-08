@@ -15,6 +15,7 @@ const DAYPARTS = [
 ];
 
 const UNIT_STORAGE_KEY = 'noribaTrendsUnit';
+const REFERENCE_END_MINUTES = 5 * 60 + 30;
 
 function toMinutes(hhmm) {
   const [h, m] = String(hhmm || '').split(':').map(Number);
@@ -45,12 +46,74 @@ function daypartFor(minutes) {
   }) || DAYPARTS[0];
 }
 
+function confidenceFromQuality(quality) {
+  if (!quality || typeof quality !== 'object') return null;
+  const condition = quality.condition || '';
+  const confidence = quality.confidence || '';
+  const isReference = confidence === 'reference' || confidence === 'low' ||
+    condition === 'night' || condition === 'rain_night' || condition === 'early';
+  const isNormal = confidence === 'normal' || condition === 'day' || condition === 'rain_day';
+  if (!isReference && !isNormal) return null;
+  const labels = {
+    day: '昼',
+    rain_day: '雨昼',
+    night: '夜',
+    rain_night: '雨夜',
+    early: '早朝',
+  };
+  if (isReference) {
+    return {
+      key: 'reference',
+      label: '列移動の回数（参考）',
+      shortLabel: '参考',
+      note: labels[condition] ? `${labels[condition]}は参考扱い` : '画像/天候条件により参考扱い',
+    };
+  }
+  return {
+    key: 'normal',
+    label: '列移動の回数',
+    shortLabel: '通常',
+    note: labels[condition] ? `${labels[condition]}は通常扱い` : '通常扱い',
+  };
+}
+
+export function movementConfidenceForTime(timeLabel, quality = null) {
+  const qualityConfidence = confidenceFromQuality(quality);
+  if (qualityConfidence) return qualityConfidence;
+
+  const startLabel = String(timeLabel || '').split('-')[0];
+  const minutes = toMinutes(startLabel);
+  if (minutes === null) {
+    return {
+      key: 'normal',
+      label: '列移動の回数',
+      shortLabel: '通常',
+      note: '通常扱い',
+    };
+  }
+  const isReference = minutes >= 21 * 60 || minutes < REFERENCE_END_MINUTES;
+  if (isReference) {
+    return {
+      key: 'reference',
+      label: '列移動の回数（参考）',
+      shortLabel: '参考',
+      note: '夜・雨夜・早朝はライト/反射/明るさ変化で精度が落ちる',
+    };
+  }
+  return {
+    key: 'normal',
+    label: '列移動の回数',
+    shortLabel: '通常',
+    note: '昼・雨昼は通常の列移動回数として扱う',
+  };
+}
+
 export function toTrendBins(slots) {
   return (slots || []).map((slot) => {
     const start = toMinutes(slot.time);
     const label = start === null ? String(slot.time || '') : `${toHHMM(start)}-${toHHMM(start + 15)}`;
     const stalls = slot.stalls || {};
-    const row = { time: slot.time, label };
+    const row = { time: slot.time, label, quality: slot.quality || null };
     for (const stall of STALLS) row[stall.key] = Number(stalls[stall.key] ?? 0);
     row.total = round1(STALLS.reduce((sum, stall) => sum + row[stall.key], 0));
     return row;
@@ -60,7 +123,7 @@ export function toTrendBins(slots) {
 export function toVehicleTrendBins(bins, rowWidth) {
   if (!rowWidth || !Array.isArray(bins)) return bins || [];
   return bins.map((bin) => {
-    const row = { time: bin.time, label: bin.label };
+    const row = { time: bin.time, label: bin.label, quality: bin.quality || null };
     for (const stall of STALLS) {
       const width = typeof rowWidth[stall.key] === 'number' ? rowWidth[stall.key] : 1;
       row[stall.key] = Math.round((bin[stall.key] || 0) * width);
@@ -107,6 +170,9 @@ export function buildDaypartSummaries(bins) {
     stall3: 0,
     stall4: 0,
     total: 0,
+    normalRows: 0,
+    referenceRows: 0,
+    confidenceKey: 'normal',
   }));
   const byKey = new Map(rows.map(row => [row.key, row]));
   for (const bin of bins || []) {
@@ -116,10 +182,16 @@ export function buildDaypartSummaries(bins) {
     const row = byKey.get(daypartFor(minutes).key);
     for (const stall of STALLS) row[stall.key] += Number(bin[stall.key] || 0);
     row.total += Number(bin.total || 0);
+    const confidence = movementConfidenceForTime(bin.label, bin.quality);
+    if (confidence.key === 'reference') row.referenceRows += 1;
+    else row.normalRows += 1;
   }
   for (const row of rows) {
     for (const stall of STALLS) row[stall.key] = round1(row[stall.key]);
     row.total = round1(row.total);
+    if (row.referenceRows > 0 && row.normalRows > 0) row.confidenceKey = 'mixed';
+    else if (row.referenceRows > 0) row.confidenceKey = 'reference';
+    else row.confidenceKey = 'normal';
   }
   return rows;
 }
@@ -206,7 +278,7 @@ function renderTimeline(bins, unitLabel, now = new Date()) {
       <h2>24時間の平均パターン</h2>
       <span>${nowMarker.label} / 縦軸 ${unitLabel}</span>
     </div>
-    <div class="trend-axis-note">棒1本は15分平均。縦軸は各棒の${unitLabel}、薄い縦線は1時間ごと。</div>
+    <div class="trend-axis-note">棒1本は15分平均。縦軸は各棒の${unitLabel}、薄い縦線は1時間ごと。夜・雨夜・早朝と画像QCが弱い昼枠も参考扱い。</div>
     <div class="trend-lanes">${STALLS.map((stall) => `<div class="trend-lane tone-${stall.tone}">
       <div class="trend-lane-label">${stall.label}</div>
       <div class="trend-y-axis" aria-label="縦軸">
@@ -232,15 +304,21 @@ function renderTimeline(bins, unitLabel, now = new Date()) {
 }
 
 function renderDaypartTable(rows, unitLabel) {
+  const confidenceByKey = {
+    normal: '<span class="trend-confidence is-normal">通常</span>',
+    reference: '<span class="trend-confidence is-reference">参考</span>',
+    mixed: '<span class="trend-confidence is-mixed">一部参考</span>',
+  };
   return `<section class="trend-section">
     <div class="trend-section-head">
       <h2>時間帯別の合計</h2>
       <span>${unitLabel}</span>
     </div>
     <table class="trend-table">
-      <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
+      <thead><tr><th>時間帯</th><th>扱い</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
       <tbody>${rows.map(row => `<tr>
         <td><span class="trend-daypart-name">${row.label}</span><span class="trend-daypart-range">${row.range}</span></td>
+        <td>${confidenceByKey[row.confidenceKey] || ''}</td>
         <td>${fmt(row.stall1)}</td>
         <td>${fmt(row.stall2)}</td>
         <td>${fmt(row.stall3)}</td>
@@ -256,15 +334,19 @@ function renderDetailTable(bins, unitLabel) {
     <summary>15分ごとの元データ</summary>
     <div class="trend-table-scroll">
       <table class="trend-table">
-        <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
-        <tbody>${bins.map(row => `<tr>
+        <thead><tr><th>時間帯</th><th>扱い</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
+        <tbody>${bins.map(row => {
+          const confidence = movementConfidenceForTime(row.label, row.quality);
+          return `<tr>
           <td>${row.label}</td>
+          <td><span class="trend-confidence ${confidence.key === 'reference' ? 'is-reference' : 'is-normal'}" title="${confidence.note}">${confidence.shortLabel}</span></td>
           <td>${fmt(row.stall1)}</td>
           <td>${fmt(row.stall2)}</td>
           <td>${fmt(row.stall3)}</td>
           <td>${fmt(row.stall4)}</td>
           <td class="trend-total">${fmt(row.total)}</td>
-        </tr>`).join('')}</tbody>
+        </tr>`;
+        }).join('')}</tbody>
       </table>
     </div>
   </details>`;
@@ -299,7 +381,8 @@ function renderPage(root, data, unit, now = new Date()) {
     <div class="trend-meta">
       <span>更新 ${formatGeneratedAt(data.generatedAt)}</span>
       <span>学習 ${trainedRows} 行</span>
-      <span>回数は列移動の回数（参考）</span>
+      <span>昼・雨昼は列移動の回数</span>
+      <span>夜・雨夜・早朝は列移動の回数（参考）</span>
       <span>平均は画像計測由来の列移動履歴から算出</span>
     </div>
     ${renderStallCards(summaries, todaySummaries, unitLabel)}

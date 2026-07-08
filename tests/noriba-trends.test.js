@@ -5,6 +5,7 @@ import {
   buildTimelineHourMarkers,
   buildDaypartSummaries,
   initNoribaTrendsPage,
+  movementConfidenceForTime,
   summarizeStallTrends,
   toTrendBins,
   toVehicleTrendBins,
@@ -104,7 +105,21 @@ test('buildNowMarker: 現在時刻を24時間グラフ上の位置に変換す�
   assert.equal(marker.position, 52.1);
 });
 
-test('initNoribaTrendsPage: 回数が列移動の回数（参考）だと表示する', async () => {
+test('movementConfidenceForTime: 昼は通常、夜と早朝は参考にする', () => {
+  assert.equal(movementConfidenceForTime('12:00-12:15').label, '列移動の回数');
+  assert.equal(movementConfidenceForTime('21:00-21:15').label, '列移動の回数（参考）');
+  assert.equal(movementConfidenceForTime('05:15-05:30').label, '列移動の回数（参考）');
+  assert.equal(movementConfidenceForTime('05:30-05:45').label, '列移動の回数');
+});
+
+test('movementConfidenceForTime: qualityがあれば時刻より自動判定を優先する', () => {
+  assert.equal(movementConfidenceForTime('12:00-12:15', { condition: 'rain_day', confidence: 'normal' }).label, '列移動の回数');
+  assert.equal(movementConfidenceForTime('12:00-12:15', { condition: 'rain_night', confidence: 'reference' }).label, '列移動の回数（参考）');
+  assert.equal(movementConfidenceForTime('12:00-12:15', { condition: 'early', confidence: 'normal' }).label, '列移動の回数（参考）');
+  assert.equal(movementConfidenceForTime('12:00-12:15', { condition: 'day', confidence: 'low' }).label, '列移動の回数（参考）');
+});
+
+test('initNoribaTrendsPage: 昼通常と夜雨夜早朝参考を分けて表示する', async () => {
   global.localStorage = { getItem: () => 'count', setItem: () => {} };
   const root = { innerHTML: '', querySelectorAll: () => [] };
   const error = { hidden: true, textContent: '' };
@@ -115,14 +130,50 @@ test('initNoribaTrendsPage: 回数が列移動の回数（参考）だと表示�
       generatedAt: '2026-07-08T10:00:00+09:00',
       trainedRows: 1,
       rowWidth: { stall1: 8, stall2: 7, stall3: 8, stall4: 8 },
-      slots: [{ time: '00:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 } }],
+      slots: [
+        { time: '00:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 } },
+        { time: '12:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 } },
+      ],
       actualsToday: [],
     }),
   });
 
   await initNoribaTrendsPage({ root, error, fetchFn });
 
+  assert.ok(root.innerHTML.includes('昼・雨昼は列移動の回数'));
   assert.ok(root.innerHTML.includes('列移動の回数（参考）'));
+  assert.ok(root.innerHTML.includes('trend-confidence is-normal'));
+  assert.ok(root.innerHTML.includes('trend-confidence is-reference'));
+});
+
+test('initNoribaTrendsPage: advance-forecast qualityで扱いを自動表示する', async () => {
+  global.localStorage = { getItem: () => 'count', setItem: () => {} };
+  const root = { innerHTML: '', querySelectorAll: () => [] };
+  const error = { hidden: true, textContent: '' };
+  const fetchFn = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      generatedAt: '2026-07-08T10:00:00+09:00',
+      trainedRows: 2,
+      rowWidth: { stall1: 8, stall2: 7, stall3: 8, stall4: 8 },
+      slots: [
+        { time: '12:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 }, quality: { condition: 'rain_day', confidence: 'normal', reasons: ['rain'] } },
+        { time: '12:15', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 }, quality: { condition: 'rain_night', confidence: 'reference', reasons: ['night', 'rain'] } },
+      ],
+      actualsToday: [],
+    }),
+  });
+
+  await initNoribaTrendsPage({ root, error, fetchFn });
+
+  assert.ok(root.innerHTML.includes('雨昼'));
+  assert.ok(root.innerHTML.includes('雨夜'));
+  assert.ok(root.innerHTML.includes('画像QCが弱い昼枠も参考扱い'));
+  assert.ok(!root.innerHTML.includes('21:00-05:30 は「列移動の回数（参考）」'));
+  assert.ok(root.innerHTML.includes('trend-confidence is-normal'));
+  assert.ok(root.innerHTML.includes('trend-confidence is-reference'));
+  assert.ok(root.innerHTML.includes('trend-confidence is-mixed'));
 });
 
 test('initNoribaTrendsPage: 現在時刻の縦線とライブカメラを表示する', async () => {
