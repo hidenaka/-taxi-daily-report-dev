@@ -8,10 +8,10 @@ export const STALLS = [
 ];
 
 const DAYPARTS = [
-  { key: 'morning', label: '朝', start: 5 * 60, end: 11 * 60 },
-  { key: 'day', label: '昼', start: 11 * 60, end: 16 * 60 },
-  { key: 'evening', label: '夕方', start: 16 * 60, end: 21 * 60 },
-  { key: 'night', label: '夜', start: 21 * 60, end: 5 * 60 },
+  { key: 'morning', label: '朝', range: '5-11時', start: 5 * 60, end: 11 * 60 },
+  { key: 'day', label: '昼', range: '11-16時', start: 11 * 60, end: 16 * 60 },
+  { key: 'evening', label: '夕方', range: '16-21時', start: 16 * 60, end: 21 * 60 },
+  { key: 'night', label: '夜', range: '21-5時', start: 21 * 60, end: 5 * 60 },
 ];
 
 const UNIT_STORAGE_KEY = 'noribaTrendsUnit';
@@ -101,6 +101,7 @@ export function buildDaypartSummaries(bins) {
   const rows = DAYPARTS.map((part) => ({
     key: part.key,
     label: part.label,
+    range: part.range,
     stall1: 0,
     stall2: 0,
     stall3: 0,
@@ -126,11 +127,18 @@ export function buildDaypartSummaries(bins) {
 export function buildTimelineHourMarkers(bins) {
   const rows = Array.isArray(bins) ? bins : [];
   const count = rows.length || 96;
-  return [0, 6, 12, 18, 24].map((hour) => ({
+  return [0, 3, 6, 9, 12, 15, 18, 21, 24].map((hour) => ({
     hour,
     label: `${hour}時`,
-    position: Math.round((hour / 24) * 100),
+    position: Math.round((hour / 24) * 1000) / 10,
     gridColumn: Math.min(count + 1, Math.round((hour / 24) * count) + 1),
+  }));
+}
+
+export function buildTimelineHourDividers() {
+  return Array.from({ length: 25 }, (_, hour) => ({
+    hour,
+    position: Math.round((hour / 24) * 1000) / 10,
   }));
 }
 
@@ -189,15 +197,27 @@ function renderPoolCameras(now = new Date()) {
 function renderTimeline(bins, unitLabel, now = new Date()) {
   const max = Math.max(1, ...bins.map(row => Math.max(...STALLS.map(stall => row[stall.key] || 0))));
   const markers = buildTimelineHourMarkers(bins);
+  const dividers = buildTimelineHourDividers();
   const nowMarker = buildNowMarker(now);
+  const midLabel = fmt(max / 2);
+  const maxLabel = fmt(max);
   return `<section class="trend-section">
     <div class="trend-section-head">
       <h2>24時間の平均パターン</h2>
-      <span>${nowMarker.label} / 15分ごと / ${unitLabel}</span>
+      <span>${nowMarker.label} / 縦軸 ${unitLabel}</span>
     </div>
+    <div class="trend-axis-note">棒1本は15分平均。縦軸は各棒の${unitLabel}、薄い縦線は1時間ごと。</div>
     <div class="trend-lanes">${STALLS.map((stall) => `<div class="trend-lane tone-${stall.tone}">
       <div class="trend-lane-label">${stall.label}</div>
+      <div class="trend-y-axis" aria-label="縦軸">
+        <span>${maxLabel}</span>
+        <span>${midLabel}</span>
+        <span>0</span>
+      </div>
       <div class="trend-bars-wrap">
+        <div class="trend-hour-lines" aria-hidden="true">
+          ${dividers.map(divider => `<span class="trend-hour-line" style="left:${divider.position}%"></span>`).join('')}
+        </div>
         <div class="trend-bars">${bins.map((bin) => {
           const height = Math.max(3, Math.round(((bin[stall.key] || 0) / max) * 32));
           return `<span title="${bin.label} ${fmt(bin[stall.key] || 0)}${unitLabel}" style="height:${height}px"></span>`;
@@ -220,7 +240,7 @@ function renderDaypartTable(rows, unitLabel) {
     <table class="trend-table">
       <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
       <tbody>${rows.map(row => `<tr>
-        <td>${row.label}</td>
+        <td><span class="trend-daypart-name">${row.label}</span><span class="trend-daypart-range">${row.range}</span></td>
         <td>${fmt(row.stall1)}</td>
         <td>${fmt(row.stall2)}</td>
         <td>${fmt(row.stall3)}</td>
@@ -283,8 +303,8 @@ function renderPage(root, data, unit, now = new Date()) {
       <span>平均は画像計測由来の列移動履歴から算出</span>
     </div>
     ${renderStallCards(summaries, todaySummaries, unitLabel)}
-    ${renderPoolCameras(now)}
     ${renderTimeline(typicalBins, unitLabel, now)}
+    ${renderPoolCameras(now)}
     ${renderDaypartTable(dayparts, unitLabel)}
     ${renderDetailTable(typicalBins, unitLabel)}
   `;

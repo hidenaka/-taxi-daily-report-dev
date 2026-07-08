@@ -1,6 +1,7 @@
 import { test, assert } from './run.js';
 import {
   buildNowMarker,
+  buildTimelineHourDividers,
   buildTimelineHourMarkers,
   buildDaypartSummaries,
   initNoribaTrendsPage,
@@ -63,13 +64,14 @@ test('buildDaypartSummaries: 朝昼夕夜の乗り場別合計を作る', () => 
   const rows = buildDaypartSummaries(bins);
 
   assert.deepEqual(rows.map(r => r.label), ['朝', '昼', '夕方', '夜']);
+  assert.deepEqual(rows.map(r => r.range), ['5-11時', '11-16時', '16-21時', '21-5時']);
   assert.equal(rows[0].stall1, 1);
   assert.equal(rows[1].stall2, 2);
   assert.equal(rows[2].stall3, 3);
   assert.equal(rows[3].stall4, 4);
 });
 
-test('buildTimelineHourMarkers: 24時間グラフに6時間ごとの時刻目盛りを作る', () => {
+test('buildTimelineHourMarkers: 24時間グラフに3時間ごとの時刻ラベルを作る', () => {
   const bins = toTrendBins(Array.from({ length: 96 }, (_, i) => {
     const h = Math.floor(i / 4);
     const m = (i % 4) * 15;
@@ -81,8 +83,18 @@ test('buildTimelineHourMarkers: 24時間グラフに6時間ごとの時刻目盛
 
   const markers = buildTimelineHourMarkers(bins);
 
-  assert.deepEqual(markers.map(m => m.label), ['0時', '6時', '12時', '18時', '24時']);
-  assert.deepEqual(markers.map(m => m.position), [0, 25, 50, 75, 100]);
+  assert.deepEqual(markers.map(m => m.label), ['0時', '3時', '6時', '9時', '12時', '15時', '18時', '21時', '24時']);
+  assert.deepEqual(markers.map(m => m.position), [0, 12.5, 25, 37.5, 50, 62.5, 75, 87.5, 100]);
+});
+
+test('buildTimelineHourDividers: 1時間ごとの薄い区切り位置を作る', () => {
+  const dividers = buildTimelineHourDividers();
+
+  assert.equal(dividers.length, 25);
+  assert.equal(dividers[0].position, 0);
+  assert.equal(dividers[1].position, 4.2);
+  assert.equal(dividers[12].position, 50);
+  assert.equal(dividers[24].position, 100);
 });
 
 test('buildNowMarker: 現在時刻を24時間グラフ上の位置に変換する', () => {
@@ -140,4 +152,9 @@ test('initNoribaTrendsPage: 現在時刻の縦線とライブカメラを表示�
   assert.ok(root.innerHTML.includes('現在 06:00'));
   assert.ok(root.innerHTML.includes('data/pool-cam-real01.jpg'));
   assert.ok(root.innerHTML.includes('data/pool-cam-real02.jpg'));
+  assert.ok(root.innerHTML.indexOf('24時間の平均パターン') < root.innerHTML.indexOf('ライブカメラ'));
+  assert.ok(root.innerHTML.includes('trend-y-axis'));
+  assert.ok(root.innerHTML.includes('trend-hour-line'));
+  assert.ok(root.innerHTML.includes('5-11時'));
+  assert.ok(root.innerHTML.includes('21-5時'));
 });

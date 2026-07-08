@@ -56,16 +56,21 @@
     .trend-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:8px; margin-bottom:8px; }
     .trend-section h2, .trend-camera-section h2 { margin:0; font-size:15px; }
     .trend-section-head span { color:var(--sub); font-size:11px; }
+    .trend-axis-note { margin:-2px 0 8px; color:var(--sub); font-size:10.5px; line-height:1.4; }
     .trend-cameras { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:7px; }
     .trend-cameras img { width:100%; display:block; aspect-ratio:16/9; object-fit:cover; background:#11131a; border:1px solid #252936; border-radius:7px; }
     .trend-lanes { display:grid; gap:9px; padding:8px 0 2px; background:#111218; border:1px solid #222631; border-radius:8px; }
-    .trend-lane { display:grid; grid-template-columns:36px 1fr; gap:8px; align-items:end; border-left:3px solid #555; padding-left:7px; }
+    .trend-lane { display:grid; grid-template-columns:36px 28px 1fr; gap:7px; align-items:stretch; border-left:3px solid #555; padding-left:7px; }
     .trend-lane-label { color:var(--fg); font-weight:800; font-size:12px; }
-    .trend-bars-wrap { position:relative; padding-right:1px; }
-    .trend-bars { display:grid; grid-template-columns:repeat(96, minmax(2px, 1fr)); gap:1px; align-items:end; min-height:40px; border-bottom:1px solid #2d3340; }
-    .trend-bars span { display:block; background:var(--tone); border-radius:1px 1px 0 0; opacity:.88; min-height:3px; }
+    .trend-y-axis { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; height:42px; padding-right:2px; color:#7f8794; font-size:9px; font-variant-numeric:tabular-nums; line-height:1; }
+    .trend-bars-wrap { position:relative; min-height:42px; padding-right:1px; }
+    .trend-hour-lines { position:absolute; inset:0 0 1px 0; pointer-events:none; }
+    .trend-hour-line { position:absolute; top:0; bottom:0; width:1px; background:rgba(232,232,232,.075); }
+    .trend-hour-line:nth-child(6n+1) { background:rgba(232,232,232,.14); }
+    .trend-bars { position:relative; z-index:1; display:grid; grid-template-columns:repeat(96, minmax(2px, 1fr)); gap:1px; align-items:end; min-height:42px; border-bottom:1px solid #2d3340; }
+    .trend-bars span { display:block; background:var(--tone); border-radius:1px 1px 0 0; opacity:.92; min-height:3px; }
     .trend-now-line { position:absolute; top:-3px; bottom:-3px; width:2px; background:#f2f4f8; box-shadow:0 0 0 1px rgba(14,14,16,.7), 0 0 8px rgba(242,244,248,.38); pointer-events:none; }
-    .trend-time-axis { position:relative; height:18px; margin:6px 0 0 44px; color:var(--sub); font-size:10px; font-variant-numeric:tabular-nums; }
+    .trend-time-axis { position:relative; height:18px; margin:6px 0 0 79px; color:var(--sub); font-size:10px; font-variant-numeric:tabular-nums; }
     .trend-time-axis span { position:absolute; top:0; transform:translateX(-50%); white-space:nowrap; }
     .trend-time-axis span:first-child { transform:translateX(0); }
     .trend-time-axis span:last-child { transform:translateX(-100%); }
@@ -73,6 +78,8 @@
     .trend-table th, .trend-table td { padding:7px 8px; border-bottom:1px solid #222; text-align:right; font-variant-numeric:tabular-nums; }
     .trend-table th { background:#16161c; color:var(--sub); font-size:12px; font-weight:500; }
     .trend-table th:first-child, .trend-table td:first-child { text-align:left; }
+    .trend-daypart-name { display:block; color:var(--fg); font-weight:800; line-height:1.15; }
+    .trend-daypart-range { display:block; margin-top:2px; color:var(--sub); font-size:10.5px; font-variant-numeric:tabular-nums; line-height:1.2; white-space:nowrap; }
     .trend-total { color:var(--accent); font-weight:800; }
     .trend-detail { margin:0 12px 18px; color:var(--sub); font-size:12px; }
     .trend-detail summary { cursor:pointer; padding:9px 0; color:var(--accent); }
@@ -90,7 +97,9 @@
       .trend-card { padding:8px 7px; }
       .trend-kv { font-size:10.5px; }
       .trend-bars { gap:0; }
-      .trend-time-axis { margin-left:44px; font-size:9.5px; }
+      .trend-lane { grid-template-columns:32px 24px 1fr; gap:5px; padding-left:5px; }
+      .trend-time-axis { margin-left:66px; font-size:9px; }
+      .trend-y-axis { font-size:8.5px; }
     }
   </style>
   <style>body{visibility:hidden;pointer-events:none;}</style>
