@@ -1,6 +1,8 @@
 import { test, assert } from './run.js';
 import {
+  buildTimelineHourMarkers,
   buildDaypartSummaries,
+  initNoribaTrendsPage,
   summarizeStallTrends,
   toTrendBins,
   toVehicleTrendBins,
@@ -64,4 +66,41 @@ test('buildDaypartSummaries: 朝昼夕夜の乗り場別合計を作る', () => 
   assert.equal(rows[1].stall2, 2);
   assert.equal(rows[2].stall3, 3);
   assert.equal(rows[3].stall4, 4);
+});
+
+test('buildTimelineHourMarkers: 24時間グラフに6時間ごとの時刻目盛りを作る', () => {
+  const bins = toTrendBins(Array.from({ length: 96 }, (_, i) => {
+    const h = Math.floor(i / 4);
+    const m = (i % 4) * 15;
+    return {
+      time: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
+      stalls: { stall1: 0, stall2: 0, stall3: 0, stall4: 0 },
+    };
+  }));
+
+  const markers = buildTimelineHourMarkers(bins);
+
+  assert.deepEqual(markers.map(m => m.label), ['0時', '6時', '12時', '18時', '24時']);
+  assert.deepEqual(markers.map(m => m.position), [0, 25, 50, 75, 100]);
+});
+
+test('initNoribaTrendsPage: 回数が列移動の回数（参考）だと表示する', async () => {
+  global.localStorage = { getItem: () => 'count', setItem: () => {} };
+  const root = { innerHTML: '', querySelectorAll: () => [] };
+  const error = { hidden: true, textContent: '' };
+  const fetchFn = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      generatedAt: '2026-07-08T10:00:00+09:00',
+      trainedRows: 1,
+      rowWidth: { stall1: 8, stall2: 7, stall3: 8, stall4: 8 },
+      slots: [{ time: '00:00', stalls: { stall1: 1, stall2: 0, stall3: 0, stall4: 0 } }],
+      actualsToday: [],
+    }),
+  });
+
+  await initNoribaTrendsPage({ root, error, fetchFn });
+
+  assert.ok(root.innerHTML.includes('列移動の回数（参考）'));
 });

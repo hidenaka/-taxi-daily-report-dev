@@ -123,6 +123,17 @@ export function buildDaypartSummaries(bins) {
   return rows;
 }
 
+export function buildTimelineHourMarkers(bins) {
+  const rows = Array.isArray(bins) ? bins : [];
+  const count = rows.length || 96;
+  return [0, 6, 12, 18, 24].map((hour) => ({
+    hour,
+    label: `${hour}時`,
+    position: Math.round((hour / 24) * 100),
+    gridColumn: Math.min(count + 1, Math.round((hour / 24) * count) + 1),
+  }));
+}
+
 function renderUnitControls(unit) {
   return `<div class="trend-segment" role="group" aria-label="単位">
     <button type="button" class="trend-segment-btn ${unit === 'count' ? 'is-active' : ''}" data-unit="count">回数</button>
@@ -153,6 +164,7 @@ function renderStallCards(summaries, todaySummaries, unitLabel) {
 
 function renderTimeline(bins, unitLabel) {
   const max = Math.max(1, ...bins.map(row => Math.max(...STALLS.map(stall => row[stall.key] || 0))));
+  const markers = buildTimelineHourMarkers(bins);
   return `<section class="trend-section">
     <div class="trend-section-head">
       <h2>24時間の平均パターン</h2>
@@ -165,6 +177,9 @@ function renderTimeline(bins, unitLabel) {
         return `<span title="${bin.label} ${fmt(bin[stall.key] || 0)}${unitLabel}" style="height:${height}px"></span>`;
       }).join('')}</div>
     </div>`).join('')}</div>
+    <div class="trend-time-axis" aria-label="時刻目盛り">
+      ${markers.map(marker => `<span style="left:${marker.position}%">${marker.label}</span>`).join('')}
+    </div>
   </section>`;
 }
 
@@ -236,6 +251,7 @@ function renderPage(root, data, unit) {
     <div class="trend-meta">
       <span>更新 ${formatGeneratedAt(data.generatedAt)}</span>
       <span>学習 ${trainedRows} 行</span>
+      <span>回数は列移動の回数（参考）</span>
       <span>平均は画像計測由来の列移動履歴から算出</span>
     </div>
     ${renderStallCards(summaries, todaySummaries, unitLabel)}

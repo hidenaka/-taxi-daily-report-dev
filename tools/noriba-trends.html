@@ -61,6 +61,10 @@
     .trend-lane-label { color:var(--fg); font-weight:800; font-size:12px; }
     .trend-bars { display:grid; grid-template-columns:repeat(96, minmax(2px, 1fr)); gap:1px; align-items:end; min-height:34px; }
     .trend-bars span { display:block; background:var(--tone); border-radius:1px 1px 0 0; opacity:.88; min-height:3px; }
+    .trend-time-axis { position:relative; height:18px; margin:5px 0 0 44px; color:var(--sub); font-size:10px; font-variant-numeric:tabular-nums; }
+    .trend-time-axis span { position:absolute; top:0; transform:translateX(-50%); white-space:nowrap; }
+    .trend-time-axis span:first-child { transform:translateX(0); }
+    .trend-time-axis span:last-child { transform:translateX(-100%); }
     .trend-table { width:100%; border-collapse:collapse; }
     .trend-table th, .trend-table td { padding:7px 8px; border-bottom:1px solid #222; text-align:right; font-variant-numeric:tabular-nums; }
     .trend-table th { background:#16161c; color:var(--sub); font-size:12px; font-weight:500; }
@@ -81,6 +85,7 @@
       .trend-card { padding:8px 7px; }
       .trend-kv { font-size:10.5px; }
       .trend-bars { gap:0; }
+      .trend-time-axis { margin-left:44px; font-size:9.5px; }
     }
   </style>
   <style>body{visibility:hidden;pointer-events:none;}</style>
