@@ -377,6 +377,11 @@ async function maybeShowFirstRunCard(isCurrent, currentCount) {
 async function render() {
   const rawDrives = await getDrivesForMonth(viewPeriod);
   rawDrives.sort((a, b) => a.date.localeCompare(b.date));
+  const [previousRosterDrives, nextRosterDrives] = await Promise.all([
+    getDrivesForMonth(shiftBillingPeriod(viewPeriod, -1)).catch(() => []),
+    getDrivesForMonth(shiftBillingPeriod(viewPeriod, 1)).catch(() => []),
+  ]);
+  const rosterDriveDates = [...new Set([...previousRosterDrives, ...rawDrives, ...nextRosterDrives].map(d => d.date))];
   // ホームではフィルタなし。drives は raw と同一（calendar/sumTableは全件表示）
   const drives = rawDrives;
   const range = getBillingPeriodRange(viewPeriod);
@@ -828,7 +833,7 @@ async function render() {
   wireFolds();
 
   // カレンダー
-  renderCalendar(drives, range);
+  renderCalendar(drives, range, rosterDriveDates);
 
   // 月度日別サマリー表(各日の4時間枠売上含む)
   renderSummaryTable(drives);
@@ -1267,12 +1272,11 @@ function renderSummaryTable(drives) {
   `;
 }
 
-function renderCalendar(drives, range) {
+function renderCalendar(drives, range, rosterDriveDates) {
   const calCard = document.getElementById('calCard');
   calCard.style.display = '';
   const driveByDate = {};
   for (const d of drives) driveByDate[d.date] = d;
-  const driveDates = drives.map(d => d.date);
   const periodDates = eachDateInRange(range.start, range.end);
   const firstDate = new Date(range.start + 'T00:00:00+09:00');
   const startDow = firstDate.getDay();
@@ -1318,7 +1322,7 @@ function renderCalendar(drives, range) {
     const isToday = iso === today;
     const isPlanned = plannedSet.has(iso) && iso >= today;
     const isPaid = paidSet.has(iso);
-    const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff(iso, driveDates, plannedSet);
+    const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff(iso, rosterDriveDates, plannedSet);
     const cls = ['cal-cell'];
     let plannedVehicle = null;
     if (drive) {
