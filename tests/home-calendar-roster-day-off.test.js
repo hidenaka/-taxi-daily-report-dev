@@ -22,7 +22,13 @@ test('home calendar renders automatic roster days off without changing existing 
     /import\s*{[^}]*\bisRosterDayOff\b[^}]*}\s*from\s*'\.\/js\/planned-shifts\.js';/,
     'imports isRosterDayOff from planned-shifts.js',
   );
-  assert.match(calendar, /const driveDates = drives\.map\(d => d\.date\);/, 'derives driveDates once');
+  const driveDateDerivations = calendar.match(/const driveDates = drives\.map\(d => d\.date\);/g) || [];
+  assert.equal(driveDateDerivations.length, 1, 'derives driveDates exactly once');
+  assert.match(
+    calendar,
+    /const isPlanned = plannedSet\.has\(iso\) && iso >= today;/,
+    'uses a future-only planned predicate for calendar UI state',
+  );
   assert.match(
     calendar,
     /const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff\(iso, driveDates, plannedSet\);/,
@@ -34,6 +40,9 @@ test('home calendar renders automatic roster days off without changing existing 
   const plannedIndex = calendar.indexOf("cls.push('planned')");
   const dayOffIndex = calendar.indexOf("cls.push('roster-day-off')");
   assert.ok(actualIndex < paidIndex && paidIndex < plannedIndex && plannedIndex < dayOffIndex, 'keeps actual, paid, planned, then day-off precedence');
+  assert.match(calendar, /else if \(isPlanned\) \{\s*cls\.push\('planned'\);/, 'uses the planned UI predicate for classes');
+  assert.match(calendar, /else if \(isPlanned\) \{\s*inner = `<div class="day">\$\{day\}<\/div><div class="tag">予定<\/div>`;/, 'uses the planned UI predicate for labels');
+  assert.doesNotMatch(calendar, /isPlanned && iso >= today/, 'does not apply a redundant future check after defining isPlanned');
   assert.match(calendar, /else if \(isDayOff\) \{\s*cls\.push\('roster-day-off'\);/, 'applies roster-day-off class');
   assert.match(calendar, /else if \(isDayOff\) \{\s*inner = `<div class="day">\$\{day\}<\/div><div class="tag">公休<\/div>`;/, 'renders the 公休 label');
 

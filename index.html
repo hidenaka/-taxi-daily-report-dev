@@ -1316,7 +1316,7 @@ function renderCalendar(drives, range) {
     const day = parseInt(iso.split('-')[2]);
     const drive = driveByDate[iso];
     const isToday = iso === today;
-    const isPlanned = plannedSet.has(iso);
+    const isPlanned = plannedSet.has(iso) && iso >= today;
     const isPaid = paidSet.has(iso);
     const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff(iso, driveDates, plannedSet);
     const cls = ['cal-cell'];
@@ -1325,7 +1325,7 @@ function renderCalendar(drives, range) {
       cls.push('actual');
     } else if (isPaid) {
       cls.push('paid');
-    } else if (isPlanned && iso >= today) {
+    } else if (isPlanned) {
       cls.push('planned');
       plannedVehicle = getPlannedVehicle(iso, config);
       if (plannedVehicle) cls.push(plannedVehicle);
@@ -1346,7 +1346,7 @@ function renderCalendar(drives, range) {
       inner = `<div class="day">${day}</div><div class="ic">${wIcon}</div><div class="yen">${shortYen(sales.inclTax)}</div>`;
     } else if (isPaid) {
       inner = `<div class="day">${day}</div><div class="tag">有給</div>`;
-    } else if (isPlanned && iso >= today) {
+    } else if (isPlanned) {
       inner = `<div class="day">${day}</div><div class="tag">予定</div>`;
     } else if (isDayOff) {
       inner = `<div class="day">${day}</div><div class="tag">公休</div>`;
