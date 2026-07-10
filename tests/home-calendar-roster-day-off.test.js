@@ -32,11 +32,10 @@ test('home calendar renders automatic roster days off without changing existing 
     /import\s*{[^}]*\bisRosterDayOff\b[^}]*}\s*from\s*'\.\/js\/planned-shifts\.js';/,
     'imports isRosterDayOff from planned-shifts.js',
   );
-  assert.match(render, /const rawDrives = await getDrivesForMonth\(viewPeriod\);/, 'keeps the current-period load as the primary render input');
   assert.match(
     render,
-    /const \[previousRosterDrives, nextRosterDrives\] = await Promise\.all\(\[\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, -1\)\)\.catch\(\(\) => \[\]\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, 1\)\)\.catch\(\(\) => \[\]\),\s*\]\);/s,
-    'loads adjacent billing periods only as failure-tolerant roster evidence',
+    /const \[rawDrives, previousRosterDrives, nextRosterDrives\] = await Promise\.all\(\[\s*getDrivesForMonth\(viewPeriod\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, -1\)\)\.catch\(\(\) => \[\]\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, 1\)\)\.catch\(\(\) => \[\]\),\s*\]\);/s,
+    'loads current and adjacent billing periods concurrently while only adjacent failures degrade to empty arrays',
   );
   assert.match(
     render,

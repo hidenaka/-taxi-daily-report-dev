@@ -375,12 +375,12 @@ async function maybeShowFirstRunCard(isCurrent, currentCount) {
 }
 
 async function render() {
-  const rawDrives = await getDrivesForMonth(viewPeriod);
-  rawDrives.sort((a, b) => a.date.localeCompare(b.date));
-  const [previousRosterDrives, nextRosterDrives] = await Promise.all([
+  const [rawDrives, previousRosterDrives, nextRosterDrives] = await Promise.all([
+    getDrivesForMonth(viewPeriod),
     getDrivesForMonth(shiftBillingPeriod(viewPeriod, -1)).catch(() => []),
     getDrivesForMonth(shiftBillingPeriod(viewPeriod, 1)).catch(() => []),
   ]);
+  rawDrives.sort((a, b) => a.date.localeCompare(b.date));
   const rosterDriveDates = [...new Set([...previousRosterDrives, ...rawDrives, ...nextRosterDrives].map(d => d.date))];
   // ホームではフィルタなし。drives は raw と同一（calendar/sumTableは全件表示）
   const drives = rawDrives;
