@@ -43,6 +43,7 @@ export async function handleNotifySignup(request, env, helpers) {
 
   const text = buildSignupNotificationBody({
     userId, companyId, name: n, submittedAt: new Date().toISOString(),
+    appBaseUrl: env.APP_BASE_URL,
   });
   const r = await sendMail({
     apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM, to: env.MAIL_TO,

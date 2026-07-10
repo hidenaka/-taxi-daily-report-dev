@@ -141,7 +141,7 @@ test('initNoribaTrendsPage: 昼通常と夜雨夜早朝参考を分けて表示�
   await initNoribaTrendsPage({ root, error, fetchFn });
 
   assert.ok(root.innerHTML.includes('昼・雨昼は列移動の回数'));
-  assert.ok(root.innerHTML.includes('列移動の回数（参考）'));
+  assert.ok(root.innerHTML.includes('夜・雨夜・早朝・画像QC弱は列移動の回数（参考）'));
   assert.ok(root.innerHTML.includes('trend-confidence is-normal'));
   assert.ok(root.innerHTML.includes('trend-confidence is-reference'));
 });

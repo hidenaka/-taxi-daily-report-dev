@@ -382,7 +382,7 @@ function renderPage(root, data, unit, now = new Date()) {
       <span>更新 ${formatGeneratedAt(data.generatedAt)}</span>
       <span>学習 ${trainedRows} 行</span>
       <span>昼・雨昼は列移動の回数</span>
-      <span>夜・雨夜・早朝は列移動の回数（参考）</span>
+      <span>夜・雨夜・早朝・画像QC弱は列移動の回数（参考）</span>
       <span>平均は画像計測由来の列移動履歴から算出</span>
     </div>
     ${renderStallCards(summaries, todaySummaries, unitLabel)}

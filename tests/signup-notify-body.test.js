@@ -5,14 +5,27 @@ test('buildSignupNotificationBody: ログインID/氏名/会社スラッグが�
   const t = buildSignupNotificationBody({
     userId: 'driver_a', companyId: 'co-swyg3o',
     name: '山田太郎', submittedAt: '2026-05-30T12:00:00Z',
+    appBaseUrl: 'https://app.taxicabis.com',
   });
   assert.ok(t.includes('ログインID'));        // ラベルが明示されている
   assert.ok(t.includes('driver_a'));          // 登録したログインIDが正確に出る
   assert.ok(t.includes('co-swyg3o'));
   assert.ok(t.includes('山田太郎'));
+  assert.ok(t.includes('承認ページ'));
+  assert.ok(t.includes('https://app.taxicabis.com/admin.html'));
   assert.equal(t.includes('電話'), false);
   assert.ok(t.includes('Firestoreには保存していません'));
   assert.ok(t.includes('削除してください'));
+});
+
+test('buildSignupNotificationBody: APP_BASE_URLの末尾スラッシュ有無に関係なくadmin.htmlリンクを作る', () => {
+  const t = buildSignupNotificationBody({
+    userId: 'driver_c', companyId: 'co-swyg3o',
+    name: '鈴木', submittedAt: 'x',
+    appBaseUrl: 'https://hidenaka.github.io/-taxi-daily-report-dev/',
+  });
+  assert.ok(t.includes('https://hidenaka.github.io/-taxi-daily-report-dev/admin.html'));
+  assert.equal(t.includes('//admin.html'), false);
 });
 
 test('buildSignupNotificationBody: companyId 無しは代替表記', () => {
