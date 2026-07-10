@@ -26,10 +26,12 @@
 .cal-cell.planned.japantaxi .tag,
 .cal-cell.planned.premium .tag { color: #0d47a1; }
 .cal-cell.paid { background: #f3e5f5; border-color: #ce93d8; }
+.cal-cell.roster-day-off { background: #fff1f1; border-color: #e6a7a7; }
 .cal-cell.today { box-shadow: 0 0 0 2px #f57f17 inset; }
 .cal-cell.dim { background: transparent; border: none; }
 .cal-cell .tag { font-size: 9px; color: #2e7d32; font-weight: 600; line-height: 1; }
 .cal-cell.paid .tag { color: #6a1b9a; }
+.cal-cell.roster-day-off .tag { color: #8f3434; }
 .cal-cell .day { font-weight: 600; font-size: 13px; }
 .cal-cell .yen { font-size: 10px; color: var(--primary); font-weight: 600; line-height: 1.1; }
 .cal-cell .ic { font-size: 10px; color: var(--muted); }
@@ -173,7 +175,7 @@ import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus }
 import { isEmailAuth, waitForAuth } from './js/firebase-auth.js';
 import { auth } from './js/firebase-init.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts } from './js/planned-shifts.js';
+import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts, isRosterDayOff } from './js/planned-shifts.js';
 import { checkInviteAndWarn, fetchCompanyExists, loadInviteSlug, loadReferrer, shouldRedirectInviteToSignup, buildSignupRedirectUrl } from './js/invite-url.js';
 import { shouldShowFirstRunCard } from './js/first-run.js';
 import './js/help-video.js';
@@ -1270,6 +1272,7 @@ function renderCalendar(drives, range) {
   calCard.style.display = '';
   const driveByDate = {};
   for (const d of drives) driveByDate[d.date] = d;
+  const driveDates = drives.map(d => d.date);
   const periodDates = eachDateInRange(range.start, range.end);
   const firstDate = new Date(range.start + 'T00:00:00+09:00');
   const startDow = firstDate.getDay();
@@ -1315,6 +1318,7 @@ function renderCalendar(drives, range) {
     const isToday = iso === today;
     const isPlanned = plannedSet.has(iso);
     const isPaid = paidSet.has(iso);
+    const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff(iso, driveDates, plannedSet);
     const cls = ['cal-cell'];
     let plannedVehicle = null;
     if (drive) {
@@ -1325,6 +1329,8 @@ function renderCalendar(drives, range) {
       cls.push('planned');
       plannedVehicle = getPlannedVehicle(iso, config);
       if (plannedVehicle) cls.push(plannedVehicle);
+    } else if (isDayOff) {
+      cls.push('roster-day-off');
     }
     if (isToday) cls.push('today');
     let badge = '';
@@ -1342,6 +1348,8 @@ function renderCalendar(drives, range) {
       inner = `<div class="day">${day}</div><div class="tag">有給</div>`;
     } else if (isPlanned && iso >= today) {
       inner = `<div class="day">${day}</div><div class="tag">予定</div>`;
+    } else if (isDayOff) {
+      inner = `<div class="day">${day}</div><div class="tag">公休</div>`;
     } else {
       inner = `<div class="day">${day}</div>`;
     }
@@ -1357,6 +1365,7 @@ function renderCalendar(drives, range) {
       <span><span style="display:inline-block;width:10px;height:10px;background:#b2ebf2;border:1px dashed #00acc1;border-radius:2px;vertical-align:middle;"></span> ジャパンタクシー予定（<strong>J</strong>）</span>
       ${config.hidePremium ? '' : '<span><span style="display:inline-block;width:10px;height:10px;background:#bbdefb;border:1px dashed #1976d2;border-radius:2px;vertical-align:middle;"></span> プレ予定（<strong>P</strong>）</span>'}
       <span><span style="display:inline-block;width:10px;height:10px;background:#f3e5f5;border:1px solid #ce93d8;border-radius:2px;vertical-align:middle;"></span> 有給</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:#fff1f1;border:1px solid #e6a7a7;border-radius:2px;vertical-align:middle;"></span> 公休（自動判定）</span>
     </div>
   `;
   calCard.innerHTML = html;
