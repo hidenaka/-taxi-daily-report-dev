@@ -103,3 +103,52 @@ export function countMonthlyShifts(driveDates, expandedDates, start, end) {
   }
   return set.size;
 }
+
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+function parseIsoDate(date) {
+  if (typeof date !== 'string' || !ISO_DATE_PATTERN.test(date)) return null;
+  const [year, month, day] = date.split('-').map(Number);
+  const value = new Date(0);
+  value.setUTCFullYear(year, month - 1, day);
+  value.setUTCHours(0, 0, 0, 0);
+  if (value.getUTCFullYear() !== year || value.getUTCMonth() !== month - 1 || value.getUTCDate() !== day) {
+    return null;
+  }
+  return value;
+}
+
+function collectValidIsoDates(...collections) {
+  const dates = new Set();
+  for (const collection of collections) {
+    if (collection == null || typeof collection[Symbol.iterator] !== 'function') continue;
+    for (const date of collection) {
+      if (parseIsoDate(date)) dates.add(date);
+    }
+  }
+  return [...dates].sort();
+}
+
+export function isRosterDayOff(date, driveDates = [], plannedDates = []) {
+  const target = parseIsoDate(date);
+  if (!target) return false;
+
+  const shiftDates = collectValidIsoDates(driveDates, plannedDates);
+  if (shiftDates.includes(date)) return false;
+
+  const targetDay = target.getTime() / MS_PER_DAY;
+  let previousDay = null;
+  let nextDay = null;
+  for (const shiftDate of shiftDates) {
+    const shiftDay = parseIsoDate(shiftDate).getTime() / MS_PER_DAY;
+    if (shiftDay < targetDay) {
+      previousDay = shiftDay;
+    } else if (shiftDay > targetDay) {
+      nextDay = shiftDay;
+      break;
+    }
+  }
+
+  return previousDay !== null && nextDay !== null && targetDay - previousDay >= 2;
+}

@@ -7,6 +7,7 @@ import {
   applyShiftState,
   pruneOrphanVehicles,
   countMonthlyShifts,
+  isRosterDayOff,
 } from '../js/planned-shifts.js';
 
 // --- isValidVehicle ---
@@ -213,4 +214,37 @@ test('countMonthlyShifts: 予定12日＋実績2日(1日は予定と重複)で13�
   for (let d = 16; d <= 27; d++) expandedDates.push(`2026-05-${d}`); // 予定12日
   const driveDates = ['2026-05-16', '2026-05-28']; // 16は予定にも、28は予定外
   assert.equal(countMonthlyShifts(driveDates, expandedDates, '2026-05-16', '2026-06-15'), 13);
+});
+
+// --- isRosterDayOff ---
+test('isRosterDayOff: 明けを除き次の出番までを公休にする', () => {
+  const actual = ['2026-07-09'];
+  const planned = ['2026-07-14'];
+  assert.equal(isRosterDayOff('2026-07-09', actual, planned), false);
+  assert.equal(isRosterDayOff('2026-07-10', actual, planned), false);
+  assert.equal(isRosterDayOff('2026-07-11', actual, planned), true);
+  assert.equal(isRosterDayOff('2026-07-12', actual, planned), true);
+  assert.equal(isRosterDayOff('2026-07-13', actual, planned), true);
+  assert.equal(isRosterDayOff('2026-07-14', actual, planned), false);
+});
+
+test('isRosterDayOff: 前後どちらかの出番がなければ公休にしない', () => {
+  assert.equal(isRosterDayOff('2026-07-08', [], ['2026-07-14']), false);
+  assert.equal(isRosterDayOff('2026-07-11', ['2026-07-09'], []), false);
+});
+
+test('isRosterDayOff: 実績と予定を結合し重複を除いて判定する', () => {
+  const actual = ['2026-06-30', '2026-06-30'];
+  const planned = new Set(['2026-07-04']);
+  assert.equal(isRosterDayOff('2026-07-01', actual, planned), false);
+  assert.equal(isRosterDayOff('2026-07-02', actual, planned), true);
+  assert.equal(isRosterDayOff('2026-07-03', actual, planned), true);
+  assert.equal(isRosterDayOff('2026-07-04', actual, planned), false);
+});
+
+test('isRosterDayOff: 連続出番と不正日付を安全に扱う', () => {
+  assert.equal(isRosterDayOff('2026-07-10', ['2026-07-09'], ['2026-07-10']), false);
+  assert.equal(isRosterDayOff('2026-07-11', ['2026-07-09', '2026-07-10'], ['2026-07-12']), false);
+  assert.equal(isRosterDayOff('2026-02-30', ['2026-02-27'], ['2026-03-03']), false);
+  assert.equal(isRosterDayOff('not-a-date', ['2026-07-09'], ['2026-07-14']), false);
 });
