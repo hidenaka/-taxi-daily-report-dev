@@ -248,3 +248,23 @@ test('isRosterDayOff: 連続出番と不正日付を安全に扱う', () => {
   assert.equal(isRosterDayOff('2026-02-30', ['2026-02-27'], ['2026-03-03']), false);
   assert.equal(isRosterDayOff('not-a-date', ['2026-07-09'], ['2026-07-14']), false);
 });
+
+test('isRosterDayOff: 実績にならなかった過去予定は公休を分断しない', () => {
+  const actual = ['2026-06-17', '2026-06-22', '2026-06-26'];
+  const planned = [
+    '2026-06-18',
+    '2026-06-21',
+    '2026-06-25',
+    '2026-07-12',
+    '2026-07-14',
+  ];
+  const today = '2026-07-11';
+
+  assert.equal(isRosterDayOff('2026-06-18', actual, planned, today), false);
+  assert.equal(isRosterDayOff('2026-06-19', actual, planned, today), true);
+  assert.equal(isRosterDayOff('2026-06-20', actual, planned, today), true);
+  assert.equal(isRosterDayOff('2026-06-21', actual, planned, today), true);
+  assert.equal(isRosterDayOff('2026-06-23', actual, planned, today), false);
+  assert.equal(isRosterDayOff('2026-06-24', actual, planned, today), true);
+  assert.equal(isRosterDayOff('2026-06-25', actual, planned, today), true);
+});

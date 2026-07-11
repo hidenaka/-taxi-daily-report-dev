@@ -52,8 +52,8 @@ test('home calendar renders automatic roster days off without changing existing 
   );
   assert.match(
     calendar,
-    /const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff\(iso, rosterDriveDates, plannedSet\);/,
-    'checks public holiday eligibility only after actual, paid leave, and planned shifts are absent',
+    /const isDayOff = !drive && !isPaid && !isPlanned\s*&& isRosterDayOff\(iso, rosterDriveDates, plannedSet, today\);/,
+    'checks public holiday eligibility using today as the past-plan cutoff',
   );
 
   const actualIndex = calendar.indexOf("cls.push('actual')");

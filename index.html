@@ -1322,7 +1322,8 @@ function renderCalendar(drives, range, rosterDriveDates) {
     const isToday = iso === today;
     const isPlanned = plannedSet.has(iso) && iso >= today;
     const isPaid = paidSet.has(iso);
-    const isDayOff = !drive && !isPaid && !isPlanned && isRosterDayOff(iso, rosterDriveDates, plannedSet);
+    const isDayOff = !drive && !isPaid && !isPlanned
+      && isRosterDayOff(iso, rosterDriveDates, plannedSet, today);
     const cls = ['cal-cell'];
     let plannedVehicle = null;
     if (drive) {

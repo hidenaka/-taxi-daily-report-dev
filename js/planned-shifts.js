@@ -130,11 +130,15 @@ function collectValidIsoDates(...collections) {
   return [...dates].sort();
 }
 
-export function isRosterDayOff(date, driveDates = [], plannedDates = []) {
+export function isRosterDayOff(date, driveDates = [], plannedDates = [], today = null) {
   const target = parseIsoDate(date);
   if (!target) return false;
 
-  const shiftDates = collectValidIsoDates(driveDates, plannedDates);
+  const cutoff = parseIsoDate(today);
+  const activePlannedDates = cutoff
+    ? collectValidIsoDates(plannedDates).filter(plannedDate => plannedDate >= today)
+    : plannedDates;
+  const shiftDates = collectValidIsoDates(driveDates, activePlannedDates);
   if (shiftDates.includes(date)) return false;
 
   const targetDay = target.getTime() / MS_PER_DAY;
