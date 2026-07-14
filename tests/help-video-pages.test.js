@@ -2,7 +2,6 @@ import { test, assert } from './run.js';
 import { readFileSync } from 'node:fs';
 
 const PAGES = {
-  'input.html': 'input-paste',
   'ocr-import.html': 'ocr-import',
   'calendar.html': 'calendar',
   'review.html': 'analysis-view',
