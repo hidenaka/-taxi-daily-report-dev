@@ -503,33 +503,66 @@ document.getElementById('saveBtn').onclick = async () => {
   let totalSales = null;
   if (mode === 'summary') {
     const raw = document.getElementById('totalSalesInput').value;
-    totalSales = raw.trim() !== '' ? Number(raw) : NaN;
+    const rawNum = raw.trim() !== '' ? Number(raw) : NaN;
+    // 小数・指数表記(1e21等)の混入を防ぐため整数に丸める
+    totalSales = Number.isFinite(rawNum) ? Math.round(rawNum) : NaN;
     if (!Number.isFinite(totalSales) || totalSales <= 0) {
       return alert('売上合計（税込）を入力してください');
+    }
+    if (totalSales > 1000000) {
+      return alert('金額が大きすぎます。入力を確認してください');
     }
   } else {
     if (!parsed) return alert('先に「📷 写真から取り込む」で日報を読み取ってください');
   }
 
-  // モードが変わる上書きだけ確認する（明細を誤って消す事故を防ぐ）
-  try {
-    const existing = await getDrive(date);
-    if (existing) {
-      const wasSummary = Boolean(existing._summaryOnly);
-      const isSummary = mode === 'summary';
-      if (wasSummary !== isSummary) {
-        const msg = isSummary
-          ? 'この日は明細付きで登録済みです。合計のみで上書きすると明細が消えます。続けますか？'
-          : 'この日は合計のみで登録済みです。明細で上書きしますか？';
-        if (!window.confirm(msg)) return;
-      }
-    }
-  } catch (e) {
-    console.warn('既存日報の確認に失敗:', e);
-  }
-
+  // 通信中の二重クリックを防ぐため、バリデーション通過後・getDrive呼び出し前にdisableする。
+  // 以降、早期returnする全パスで必ずbtn.disabled = falseに戻すこと。
   const btn = document.getElementById('saveBtn');
   btn.disabled = true;
+  document.getElementById('saveStatus').textContent = '確認中…';
+
+  // モードが変わる上書きだけ確認する（明細を誤って消す事故を防ぐ）
+  let existing = null;
+  let existingCheckFailed = false;
+  try {
+    existing = await getDrive(date);
+  } catch (e) {
+    console.warn('既存日報の確認に失敗:', e);
+    existingCheckFailed = true;
+  }
+
+  if (existingCheckFailed) {
+    if (mode === 'summary') {
+      // fail-safe: 合計のみモードはsetDocで丸ごと置換されるため、既存レコードの確認が
+      // できないまま保存すると、明細付きの日報が無確認で消える恐れがある。
+      // 通信不調時こそガードが必要なため、確認できなければ必ず確認ダイアログを挟む。
+      if (!window.confirm('通信状態が悪く、この日の既存日報を確認できませんでした。既に明細付きの日報があると、それが消える可能性があります。合計のみで保存しますか？')) {
+        btn.disabled = false;
+        document.getElementById('saveStatus').textContent = '';
+        return;
+      }
+    } else {
+      // 明細ありでの保存は既存が「合計のみ」でも「明細あり」でも情報量が減らない
+      // （消えるのはせいぜい合計のみの簡易記録で、明細に置き換わるだけ）ため、
+      // 確認は必須にせず警告ログのみで続行する。
+      console.warn('既存日報が確認できないまま明細ありで保存します（情報量が増える方向のため確認は省略）。');
+    }
+  } else if (existing) {
+    const existingHasDetail = (existing.trips || []).length > 0;
+    const willHaveDetail = mode !== 'summary';
+    if (existingHasDetail !== willHaveDetail) {
+      const msg = existingHasDetail
+        ? 'この日は明細付きで登録済みです。合計のみで上書きすると明細が消えます。続けますか？'
+        : 'この日は合計のみで登録済みです。明細で上書きしますか？';
+      if (!window.confirm(msg)) {
+        btn.disabled = false;
+        document.getElementById('saveStatus').textContent = '';
+        return;
+      }
+    }
+  }
+
   document.getElementById('saveStatus').textContent = '天候取得中…';
 
   let weather = null;
@@ -549,7 +582,8 @@ document.getElementById('saveBtn').onclick = async () => {
     weather,
     violations: readViolations(),
     shareOptOut: document.getElementById('shareOptOutInput')?.checked || false,
-    createdAt: new Date().toISOString(),
+    // 既存レコードが読めた場合は元のcreatedAtを保持する（上書き保存で作成日時を失わないため）
+    createdAt: (existing && existing.createdAt) || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
 
