@@ -98,7 +98,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate } from './js/app.js';
 import { getDrive, listFiles, saveDriveSafe, deleteDrive } from './js/storage.js';
 import { calcDailySales } from './js/payroll.js';
-import { calcTimeBreakdown, hourlyActivity, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, formatMin, timeToMinutes } from './js/chart-helpers.js';
+import { calcTimeBreakdown, hourlyActivity, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, formatMin, timeToMinutes, isSummaryOnly } from './js/chart-helpers.js';
 import { weatherEmoji } from './js/weather.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
@@ -132,6 +132,12 @@ async function load() {
   const drive = await getDrive(date);
   if (!drive) { document.getElementById('title').textContent = '見つかりません'; return; }
   document.getElementById('title').textContent = `${formatDate(drive.date)} 詳細`;
+  if (isSummaryOnly(drive)) {
+    const b = document.createElement('div');
+    b.style.cssText = 'background:#fdf3e3;border:1px solid #f0d9a8;color:#7c4a03;border-radius:6px;padding:8px 10px;margin:8px 0;font-size:12px;line-height:1.6;';
+    b.innerHTML = '💴 <strong>合計のみの日報</strong>です。売上と給与には反映されますが、明細が無いため時間帯・エリア別のグラフは表示されません。';
+    document.getElementById('title').insertAdjacentElement('afterend', b);
+  }
   renderDateNav(date);
 
   const sales = calcDailySales(drive);
