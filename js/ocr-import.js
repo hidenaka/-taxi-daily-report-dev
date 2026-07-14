@@ -86,6 +86,15 @@ function hideProgress() {
 // OCR関数へ画像をPOSTする。ネットワークエラー（コールドスタートによる
 // 接続切れ等）の場合は1.5秒待って1回だけ自動リトライする（2回目は関数が
 // 温まっているので速い）。
+// 読み取り失敗時に「合計だけ入力する」逃げ道を出す。
+// 日報が1件も残らないより、売上合計だけでも残った方がいい（給与計算はそれで足りる）。
+const FALLBACK_LINK = '<div style="margin-top:10px;"><a href="input.html?mode=summary" style="display:inline-block;text-decoration:none;background:#555;color:#fff;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;">💴 合計金額だけ入力する</a></div>';
+
+function showOcrError(statusEl, msg) {
+  const esc = String(msg).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  statusEl.innerHTML = '<div>' + esc + '</div>' + FALLBACK_LINK;
+}
+
 async function postOcr(blob, token) {
   const doFetch = () => fetch(FUNCTION_URL, {
     method: "POST",
@@ -129,7 +138,7 @@ input.addEventListener("change", async (e) => {
     if (!res.ok) {
       let msg = `サーバーエラー (${res.status})`;
       try { msg = (await res.json()).error || msg; } catch (_) {}
-      statusEl.textContent = "エラー: " + msg;
+      showOcrError(statusEl, "エラー: " + msg);
       return;
     }
 
@@ -138,7 +147,7 @@ input.addEventListener("change", async (e) => {
     const rests = data.rests || [];
     const header = data.header || null;
     if (trips.length === 0 && rests.length === 0) {
-      statusEl.textContent = "明細を読み取れませんでした。明るい場所で、営業明細の全体が入るように撮り直してください。";
+      showOcrError(statusEl, "明細を読み取れませんでした。明るい場所で、営業明細の全体が入るように撮り直してください。");
       return;
     }
 
@@ -150,6 +159,6 @@ input.addEventListener("change", async (e) => {
     sessionStorage.setItem("ocrImport", JSON.stringify({ trips, rests, header, ts: Date.now() }));
     setTimeout(() => { location.href = "input.html"; }, 1500);
   } catch (err) {
-    statusEl.textContent = '読み取りに失敗しました。通信状況を確認して、もう一度お試しください。';
+    showOcrError(statusEl, '読み取りに失敗しました。通信状況を確認して、もう一度お試しください。');
   }
 });
