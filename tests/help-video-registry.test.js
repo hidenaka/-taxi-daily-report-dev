@@ -2,7 +2,7 @@ import { test, assert } from './run.js';
 import { HELP_VIDEOS } from '../js/help-video-registry.js';
 
 test('HELP_VIDEOS に MVP の2キーが存在する', () => {
-  assert.ok(HELP_VIDEOS['input-paste'], 'input-paste が必要');
+  assert.ok(HELP_VIDEOS['home'], 'home が必要');
   assert.ok(HELP_VIDEOS['ocr-import'], 'ocr-import が必要');
 });
 

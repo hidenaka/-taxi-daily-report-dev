@@ -6,11 +6,6 @@ export const HELP_VIDEOS = {
     poster: 'media/help/home.jpg',
     caption: 'ホーム画面の見方（手取り目標・出番・カレンダー）',
   },
-  'input-paste': {
-    src: 'media/help/input-paste.mp4',
-    poster: 'media/help/input-paste.jpg',
-    caption: '日報を貼って取り込む手順',
-  },
   'ocr-import': {
     src: 'media/help/ocr-import.mp4',
     poster: 'media/help/ocr-import.jpg',

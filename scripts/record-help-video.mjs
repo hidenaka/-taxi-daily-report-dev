@@ -5,7 +5,7 @@
 // playwright はアプリ本体の依存に入れない。グローバル/npx の playwright を NODE_PATH で解決する：
 //   1) ローカルサーバを起動:  (cd <worktree> && python3 -m http.server 8782 >/dev/null 2>&1 &)
 //   2) 録画:  NODE_PATH="$(npm root -g)" node scripts/record-help-video.mjs <scenario> <out.mp4> [baseUrl]
-//      例:    NODE_PATH="$(npm root -g)" node scripts/record-help-video.mjs input-paste media/help/input-paste.mp4
+//      例:    NODE_PATH="$(npm root -g)" node scripts/record-help-video.mjs ocr-import media/help/ocr-import.mp4
 //
 // UIが変わったらこのスクリプトを再実行するだけで動画を作り直せる（再現可能）。
 import { execSync } from 'node:child_process';
@@ -337,43 +337,6 @@ function buildArrivalsEnsemble() {
 
 // ---- シナリオ定義（fn は page と ui を受け取り、操作＋字幕＋波紋を行う）----
 const SCENARIOS = {
-  'input-paste': {
-    path: 'input.html',
-    async run(page, ui) {
-      // 正しい書式の日報（売上5,700円・2件）をコピペする見せ方
-      const SAMPLE = [
-        '日付: 2026-04-26',
-        '車種: premium',
-        '出庫: 07:00',
-        '帰庫: 01:16',
-        '---',
-        'No,乗車,降車,時間,迎,乗車地,降車地,営Km,男,女,合計',
-        '1,07:17,07:38,0:21,迎,大田区上池台4,港区港南2,6.7,1,,"3,600"',
-        '休,10:47,11:36,0:49,,江東区青海2,,,,,',
-        '2,11:40,11:55,0:15,迎,江東区青海2,中央区銀座8,4.2,2,1,"2,100"',
-      ].join('\n');
-      await page.locator('#rawTextInput').scrollIntoViewIfNeeded();
-      await ui.caption('① 日報のテキストをここに貼り付け');
-      await ui.ripple('#rawTextInput');
-      await page.locator('#rawTextInput').fill(SAMPLE); // コピペのように一括入力
-      await page.waitForTimeout(1300);
-      await ui.caption('②「テキストを読み込む」をタップ');
-      await ui.ripple('#parseBtn');
-      await page.locator('#parseBtn').click();
-      await page.waitForTimeout(1400);
-      // プレビューへスクロール（確認）
-      await page.evaluate(() => document.getElementById('previewSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
-      await page.waitForTimeout(1200);
-      await ui.caption('③ 取り込んだ内容を確認');
-      await page.waitForTimeout(1800);
-      // 下の「保存」ボタンまでスクロールして見せる
-      await page.evaluate(() => document.getElementById('saveBtn')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
-      await page.waitForTimeout(1300);
-      await ui.caption('④ 最後に「保存」をタップ');
-      await ui.ripple('#saveBtn');
-      await page.waitForTimeout(2200);
-    },
-  },
   'ocr-import': {
     // 日報入力ページから「写真から取り込む」をタップして遷移するところから見せる。
     path: 'input.html',
