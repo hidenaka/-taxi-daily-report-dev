@@ -55,6 +55,7 @@ function detailedDrive(userId, date) {
     _userId: userId,
     date,
     departureTime: '08:00',
+    returnTime: '18:00',
     trips: [{ boardTime: '09:00', alightTime: '09:30', boardPlace: '駅', alightPlace: '空港', km: 10, amount: 3000 }],
     rests: []
   };
@@ -69,6 +70,7 @@ test('buildGroupPool: summary-only 日を混ぜても heatmap セルが増えな
   ];
   const poolA = buildGroupPool(base, 2, { nowIso: NOW_ISO, months: 6 });
   const poolB = buildGroupPool(withSummary, 2, { nowIso: NOW_ISO, months: 6 });
+  assert.ok(poolA.heatmap.length > 0, 'フィクスチャが非空の heatmap を生んでいること');
   assert.equal(poolB.heatmap.length, poolA.heatmap.length);
   assert.deepEqual(poolB.heatmap, poolA.heatmap);
 });
