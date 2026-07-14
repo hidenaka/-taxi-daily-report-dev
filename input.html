@@ -503,11 +503,11 @@ document.getElementById('saveBtn').onclick = async () => {
   let totalSales = null;
   if (mode === 'summary') {
     const raw = document.getElementById('totalSalesInput').value;
-    const rawNum = raw.trim() !== '' ? Number(raw) : NaN;
-    // 小数・指数表記(1e21等)の混入を防ぐため整数に丸める
-    totalSales = Number.isFinite(rawNum) ? Math.round(rawNum) : NaN;
-    if (!Number.isFinite(totalSales) || totalSales <= 0) {
-      return alert('売上合計（税込）を入力してください');
+    totalSales = raw.trim() !== '' ? Number(raw) : NaN;
+    // 円単位なので整数のみ許可。小数(52300.5)を黙って丸めると金額が変わるため、
+    // 丸めずに拒否する。指数表記(1e3等)も Number.isInteger を通れば値としては整数なので許容。
+    if (!Number.isInteger(totalSales) || totalSales <= 0) {
+      return alert('売上合計（税込）を整数の円で入力してください');
     }
     if (totalSales > 1000000) {
       return alert('金額が大きすぎます。入力を確認してください');
@@ -549,7 +549,10 @@ document.getElementById('saveBtn').onclick = async () => {
       console.warn('既存日報が確認できないまま明細ありで保存します（情報量が増える方向のため確認は省略）。');
     }
   } else if (existing) {
-    const existingHasDetail = (existing.trips || []).length > 0;
+    // 明細の有無は trips だけでなく rests も見る。OCRは trips=[] でも rests があれば
+    // 「明細あり」として保存するため、trips だけで判定すると休憩のみのレコードを
+    // 合計のみで無確認に上書きして rests を消してしまう。
+    const existingHasDetail = (existing.trips || []).length > 0 || (existing.rests || []).length > 0;
     const willHaveDetail = mode !== 'summary';
     if (existingHasDetail !== willHaveDetail) {
       const msg = existingHasDetail
@@ -578,7 +581,10 @@ document.getElementById('saveBtn').onclick = async () => {
     returnTime: document.getElementById('returnTimeInput').value || null,
     totalDistanceKm: Number.isFinite(totalDistanceKm) ? totalDistanceKm : null,
     memo: document.getElementById('memoInput').value,
-    rawText: existingRawText,
+    // 保存直前に取得した existing の rawText を優先する（日付変更時に別日のrawTextを
+    // 書き込む事故や、通常入力からの上書きでrawTextを空で消す事故を防ぐ）。
+    // existing が読めなかった(通信失敗)場合のみ、編集開始時に退避した値にフォールバックする。
+    rawText: (existing && typeof existing.rawText === 'string') ? existing.rawText : existingRawText,
     weather,
     violations: readViolations(),
     shareOptOut: document.getElementById('shareOptOutInput')?.checked || false,
