@@ -496,12 +496,42 @@ function renderPreview() {
 }
 
 document.getElementById('saveBtn').onclick = async () => {
-  if (!parsed) return alert('先に「テキストを読み込む」を押してください');
+  const mode = getMode();
+  const date = document.getElementById('dateInput').value;
+  if (!date) return alert('乗務日を入力してください');
+
+  let totalSales = null;
+  if (mode === 'summary') {
+    const raw = document.getElementById('totalSalesInput').value;
+    totalSales = raw.trim() !== '' ? Number(raw) : NaN;
+    if (!Number.isFinite(totalSales) || totalSales <= 0) {
+      return alert('売上合計（税込）を入力してください');
+    }
+  } else {
+    if (!parsed) return alert('先に「📷 写真から取り込む」で日報を読み取ってください');
+  }
+
+  // モードが変わる上書きだけ確認する（明細を誤って消す事故を防ぐ）
+  try {
+    const existing = await getDrive(date);
+    if (existing) {
+      const wasSummary = Boolean(existing._summaryOnly);
+      const isSummary = mode === 'summary';
+      if (wasSummary !== isSummary) {
+        const msg = isSummary
+          ? 'この日は明細付きで登録済みです。合計のみで上書きすると明細が消えます。続けますか？'
+          : 'この日は合計のみで登録済みです。明細で上書きしますか？';
+        if (!window.confirm(msg)) return;
+      }
+    }
+  } catch (e) {
+    console.warn('既存日報の確認に失敗:', e);
+  }
+
   const btn = document.getElementById('saveBtn');
   btn.disabled = true;
   document.getElementById('saveStatus').textContent = '天候取得中…';
 
-  const date = document.getElementById('dateInput').value;
   let weather = null;
   try { weather = await fetchWeatherForDate(date, config.weatherLocation); }
   catch (e) { console.warn('天候取得失敗:', e); }
@@ -516,14 +546,22 @@ document.getElementById('saveBtn').onclick = async () => {
     totalDistanceKm: Number.isFinite(totalDistanceKm) ? totalDistanceKm : null,
     memo: document.getElementById('memoInput').value,
     rawText: existingRawText,
-    trips: parsed.trips.map(stripOcrMeta),
-    rests: (parsed.rests || []).map(stripOcrMeta),
     weather,
     violations: readViolations(),
     shareOptOut: document.getElementById('shareOptOutInput')?.checked || false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
+
+  if (mode === 'summary') {
+    drive._summaryOnly = true;
+    drive.totalSales = totalSales;
+    drive.trips = [];
+    drive.rests = [];
+  } else {
+    drive.trips = parsed.trips.map(stripOcrMeta);
+    drive.rests = (parsed.rests || []).map(stripOcrMeta);
+  }
 
   document.getElementById('saveStatus').textContent = '保存中…';
   try {
