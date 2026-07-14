@@ -1,9 +1,12 @@
 const TAX_RATE = 1.1;
 
 export function calcDailySales(drive) {
-  const inclTax = (drive.trips || [])
-    .filter(t => !t.isCancel)
-    .reduce((sum, t) => sum + (t.amount || 0), 0);
+  // 合計のみ日報（OCR失敗時のフォールバック入力）: 明細が無いので totalSales をそのまま売上とする。
+  const inclTax = drive._summaryOnly === true
+    ? (Number(drive.totalSales) || 0)
+    : (drive.trips || [])
+        .filter(t => !t.isCancel)
+        .reduce((sum, t) => sum + (t.amount || 0), 0);
   return {
     inclTax,
     exclTax: inclTax / TAX_RATE
