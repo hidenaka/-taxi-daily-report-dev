@@ -180,14 +180,22 @@ export async function getSubscription() {
 // 課金バックエンド(Cloudflare Worker)連携
 // ============================================================
 
-// dev/prod で Worker を切り替える(firebase-init.js と同じ環境判定)。
-export function billingApiBase() {
-  const isDev =
+// dev環境判定(firebase-init.js と同じロジック)。
+// GitHub Pages では https://hidenaka.github.io/-taxi-daily-report-dev/ のように
+// pathname にリポジトリ名(-dev)が入るため hostname と pathname の両方を見る。
+// 安全側の原則: この関数が true を返すときだけ dev 扱い。判定に迷えば prod(false)。
+export function isDevEnv() {
+  return (
     location.hostname.includes('-dev') ||
     location.pathname.includes('-dev') ||
     location.hostname === 'localhost' ||
-    location.hostname === '127.0.0.1';
-  return isDev
+    location.hostname === '127.0.0.1'
+  );
+}
+
+// dev/prod で Worker を切り替える。
+export function billingApiBase() {
+  return isDevEnv()
     ? 'https://cabis-billing-dev.haqei64384.workers.dev'
     : 'https://cabis-billing.haqei64384.workers.dev';
 }
