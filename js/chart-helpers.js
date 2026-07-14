@@ -107,6 +107,7 @@ export function hourlyActivity(drive, startHour = 7) {
 
 // summary-only な drive: 詳細trip単位のデータがなく合計のみ
 export function isSummaryOnly(drive) {
+  if (drive._summaryOnly === true) return true;
   if (drive._importedFrom === 'spreadsheet') return true;
   return (drive.trips || []).some(t => t._periodCount);
 }
