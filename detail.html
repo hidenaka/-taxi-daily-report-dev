@@ -155,7 +155,7 @@ async function load() {
     <div class="kpi-row">
       <div><div class="lbl">売上(税込)</div><div class="num">${formatYen(sales.inclTax)}</div></div>
       <div><div class="lbl">件数</div><div class="num">${validCount}</div></div>
-      <div><div class="lbl">平均単価</div><div class="num">${formatYen(avgPrice)}</div></div>
+      <div><div class="lbl">平均単価</div><div class="num">${validCount > 0 ? formatYen(avgPrice) : '—'}</div></div>
       <div><div class="lbl">時間単価(乗務)</div><div class="num">${formatYen(hourlyRate)}</div></div>
     </div>
     <div class="kpi-row" style="margin-top:8px;">
