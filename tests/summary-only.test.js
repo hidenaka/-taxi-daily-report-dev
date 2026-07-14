@@ -1,7 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isSummaryOnly } from '../js/chart-helpers.js';
+import { isSummaryOnly, avgTripSales } from '../js/chart-helpers.js';
 import { calcDailySales, calcMonthlySales } from '../js/payroll.js';
+import { buildGroupPool } from '../js/group-pool-core.js';
 
 test('isSummaryOnly: _summaryOnly フラグ付きの drive は true', () => {
   assert.equal(isSummaryOnly({ _summaryOnly: true, totalSales: 52300, trips: [], rests: [] }), true);
@@ -44,4 +45,55 @@ test('calcMonthlySales: summary-only と明細ありが混在しても合算さ�
     { trips: [{ amount: 1000 }, { amount: 2000 }] }
   ]);
   assert.equal(r.inclTax, 53000);
+});
+
+const NOW_ISO = '2026-07-15T00:00:00.000Z';
+
+// 明細あり drive を 1 本作る（09:00-09:30 に 3000円の乗車 1 件）
+function detailedDrive(userId, date) {
+  return {
+    _userId: userId,
+    date,
+    departureTime: '08:00',
+    trips: [{ boardTime: '09:00', alightTime: '09:30', boardPlace: '駅', alightPlace: '空港', km: 10, amount: 3000 }],
+    rests: []
+  };
+}
+
+test('buildGroupPool: summary-only 日を混ぜても heatmap セルが増えない', () => {
+  const base = [detailedDrive('u1', '2026-07-10'), detailedDrive('u2', '2026-07-10')];
+  const withSummary = [
+    ...base,
+    { _userId: 'u1', date: '2026-07-11', _summaryOnly: true, totalSales: 50000, trips: [], rests: [] },
+    { _userId: 'u2', date: '2026-07-11', _summaryOnly: true, totalSales: 90000, trips: [], rests: [] }
+  ];
+  const poolA = buildGroupPool(base, 2, { nowIso: NOW_ISO, months: 6 });
+  const poolB = buildGroupPool(withSummary, 2, { nowIso: NOW_ISO, months: 6 });
+  assert.equal(poolB.heatmap.length, poolA.heatmap.length);
+  assert.deepEqual(poolB.heatmap, poolA.heatmap);
+});
+
+test('buildGroupPool: 出力に totalSales / _summaryOnly が漏れない', () => {
+  const pool = buildGroupPool(
+    [detailedDrive('u1', '2026-07-10'), { _userId: 'u2', date: '2026-07-11', _summaryOnly: true, totalSales: 90000, trips: [], rests: [] }],
+    2, { nowIso: NOW_ISO, months: 6 }
+  );
+  const json = JSON.stringify(pool);
+  assert.equal(json.includes('totalSales'), false);
+  assert.equal(json.includes('_summaryOnly'), false);
+  assert.equal(json.includes('90000'), false);
+});
+
+test('avgTripSales: summary-only 日を分母に入れず NaN にならない', () => {
+  const v = avgTripSales([
+    { trips: [{ amount: 1000 }, { amount: 3000 }] },
+    { _summaryOnly: true, totalSales: 50000, trips: [] }
+  ]);
+  assert.equal(v, 2000);
+  assert.equal(Number.isNaN(v), false);
+});
+
+test('avgTripSales: summary-only 日しか無ければ 0（NaN でない）', () => {
+  const v = avgTripSales([{ _summaryOnly: true, totalSales: 50000, trips: [] }]);
+  assert.equal(v, 0);
 });
