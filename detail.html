@@ -136,7 +136,8 @@ async function load() {
     const b = document.createElement('div');
     b.style.cssText = 'background:#fdf3e3;border:1px solid #f0d9a8;color:#7c4a03;border-radius:6px;padding:8px 10px;margin:8px 0;font-size:12px;line-height:1.6;';
     b.innerHTML = '💴 <strong>合計のみの日報</strong>です。売上と給与には反映されますが、明細が無いため時間帯・エリア別のグラフは表示されません。';
-    document.getElementById('title').insertAdjacentElement('afterend', b);
+    const titleEl = document.getElementById('title');
+    (titleEl.parentElement || titleEl).insertAdjacentElement('afterend', b);
   }
   renderDateNav(date);
 
