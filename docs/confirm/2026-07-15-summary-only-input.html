@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>日報「合計だけ入力」モード — 設計レビュー</title>
+<style>
+  :root{
+    --bg:#fbfaf7; --ink:#1f2328; --muted:#6b7280; --line:#e5e2db;
+    --card:#fff; --accent:#e8760c; --ok:#1a7f47; --ng:#c0392b; --warn:#b45309;
+    --okbg:#e8f5ee; --ngbg:#fdeceb; --warnbg:#fdf3e3; --accbg:#fdf0e2;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;
+    line-height:1.75;-webkit-text-size-adjust:100%}
+  .wrap{max-width:840px;margin:0 auto;padding:28px 20px 80px}
+  .kicker{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:700;text-transform:uppercase}
+  h1{font-size:30px;line-height:1.35;margin:.3em 0 .2em;letter-spacing:-.01em}
+  .lede{color:var(--muted);font-size:15px;margin:0 0 22px}
+  .tldr{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--accent);
+    border-radius:10px;padding:16px 18px;margin:0 0 28px}
+  .tldr ol{margin:0;padding-left:1.2em}
+  .tldr li{margin:.35em 0;font-weight:600}
+  figure{margin:0 0 34px}
+  figcaption{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+  .diagram{display:flex;gap:12px;align-items:stretch}
+  .col{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .col-h{font-weight:700;font-size:13px;text-align:center;padding:6px;border-radius:8px;margin-bottom:10px}
+  .col-h.ng{background:var(--ngbg);color:var(--ng)}
+  .col-h.ok{background:var(--okbg);color:var(--ok)}
+  .arrow{display:flex;align-items:center;font-size:26px;color:var(--accent);font-weight:700}
+  .route{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;
+    padding:9px 10px;margin-bottom:8px;background:#fdfcfa}
+  .route .ic{font-size:18px;line-height:1.4}
+  .route b{display:block;font-size:13.5px}
+  .route small{display:block;font-size:11.5px;color:var(--muted);line-height:1.5}
+  .route.ok-r{border-color:#bfe3cf;background:var(--okbg)}
+  .route.dead,.route.ghost{opacity:.62;text-decoration-color:var(--muted)}
+  .route.dead b,.route.ghost b{text-decoration:line-through}
+  .route.wall{border-color:#f3c9c4;background:var(--ngbg)}
+  .route.new{border-color:var(--accent);background:var(--accbg);border-width:2px}
+  .star{font-size:10px;background:var(--accent);color:#fff;border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+  .speech{margin-top:10px;font-size:12px;text-align:center;border-radius:10px;padding:8px;line-height:1.5}
+  .speech.ng-s{background:var(--ngbg);color:var(--ng)}
+  .speech.ok-s{background:var(--okbg);color:var(--ok)}
+  .dstrip{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .ds{flex:1 1 160px;font-size:12px;border-radius:9px;padding:9px 11px;border:1px solid;line-height:1.5}
+  .ds b{display:block;font-size:12.5px;margin-bottom:2px}
+  .ds-ok{background:var(--okbg);border-color:#bfe3cf;color:#14532d}
+  .ds-wa{background:var(--warnbg);border-color:#f0d9a8;color:#7c4a03}
+  .ds-ng{background:var(--ngbg);border-color:#f3c9c4;color:#7f1d1d}
+  h2{font-size:20px;margin:38px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  h3{font-size:16px;margin:24px 0 8px}
+  p{margin:.7em 0}
+  code{background:#f1efe9;padding:1px 5px;border-radius:4px;font-size:.88em;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  pre{background:#282c34;color:#e6e6e6;padding:14px 16px;border-radius:10px;overflow-x:auto;font-size:13px;line-height:1.6}
+  pre code{background:none;color:inherit;padding:0}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card);min-width:520px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:#f5f2ec;font-weight:700;white-space:nowrap}
+  .callout{border-radius:10px;padding:14px 16px;margin:16px 0;font-size:14.5px;border:1px solid}
+  .c-ok{background:var(--okbg);border-color:#bfe3cf}
+  .c-ng{background:var(--ngbg);border-color:#f3c9c4}
+  .c-warn{background:var(--warnbg);border-color:#f0d9a8}
+  .c-acc{background:var(--accbg);border-color:#f2cfa6}
+  .callout b{display:block;margin-bottom:4px}
+  .decide{background:var(--card);border:2px solid var(--accent);border-radius:14px;padding:20px 22px;margin:34px 0}
+  .decide h2{border:0;margin:0 0 6px;font-size:20px;color:var(--accent)}
+  .opt{border:1px solid var(--line);border-radius:10px;padding:13px 15px;margin:12px 0;background:#fdfcfa}
+  .opt.rec{border-color:var(--ok);background:var(--okbg)}
+  .opt .t{font-weight:700;font-size:15px;margin-bottom:3px}
+  .opt .d{font-size:14px;color:#374151;margin:0}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .b-rec{background:var(--ok);color:#fff}
+  .conf{font-size:12px;color:var(--muted);margin-left:6px;font-weight:400}
+  .yes{color:var(--ok);font-weight:700}
+  .no{color:var(--ng);font-weight:700}
+  .wa{color:var(--warn);font-weight:700}
+  .concl{border-top:2px solid var(--line);margin-top:38px;padding-top:16px;color:#374151;font-size:15px}
+  @media (max-width:600px){
+    h1{font-size:24px}.wrap{padding:20px 14px 60px}
+    .diagram{flex-direction:column}
+    .arrow{justify-content:center;transform:rotate(90deg);padding:2px 0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">設計レビュー / 承認待ち</div>
+  <h1>日報「合計金額だけ入力」モードの新設</h1>
+  <p class="lede">OCR が失敗した日でも日報を残せるようにする。ついでに死んでいる Gemini 貼付経路を撤去する。<br>spec: <code>docs/superpowers/specs/2026-07-15-summary-only-input-design.md</code></p>
+
+  <div class="tldr">
+    <ol>
+      <li>入力を「明細あり / 合計のみ」の 2 タブにする。合計のみは<strong>売上（税込）1項目だけ</strong>。</li>
+      <li>Gemini テキスト貼付 UI を <code>input.html</code> から撤去し、その場所を合計入力に置き換える。</li>
+      <li>給与計算は合計のみの日も<strong>含める</strong>。時間帯グラフは自然に対象外。グループ共有は<strong>影響ゼロ</strong>（調査で確認済み）。</li>
+    </ol>
+  </div>
+
+  <figure>
+    <div class="diagram">
+      <div class="col">
+        <div class="col-h ng">BEFORE — 入力3経路</div>
+        <div class="route ok-r"><span class="ic">📷</span><div><b>画像OCR</b><small>動く。ただし失敗する日がある</small></div></div>
+        <div class="route dead"><span class="ic">🗑️</span><div><b>Geminiテキスト貼付</b><small>実質使われていない。外部AIに画像送信</small></div></div>
+        <div class="route wall"><span class="ic">🧱</span><div><b>手入力</b><small>導線が存在しない（行追加ボタンすら無い）</small></div></div>
+        <div class="speech ng-s">「OCR失敗した…<br>今日の日報、入れられない」</div>
+      </div>
+      <div class="arrow">➜</div>
+      <div class="col">
+        <div class="col-h ok">AFTER — 入力2経路</div>
+        <div class="route ok-r"><span class="ic">📷</span><div><b>明細あり（画像OCR）</b><small>現状どおり。デフォルトタブ</small></div></div>
+        <div class="route new"><span class="ic">💴</span><div><b>合計のみ<span class="star">★NEW</span></b><small>売上（税込）1項目だけ入力して保存</small></div></div>
+        <div class="route ghost"><span class="ic">✂️</span><div><b>Gemini貼付は撤去</b><small>parser.js は bulk/admin が使うので残す</small></div></div>
+        <div class="speech ok-s">「とりあえず売上だけ<br>入れとけば給料は合う」</div>
+      </div>
+    </div>
+    <div class="dstrip">
+      <div class="ds ds-ok"><b>💰 給与計算</b>含める（正しく出る）</div>
+      <div class="ds ds-wa"><b>📊 時間帯グラフ</b>対象外（明細ゼロ）</div>
+      <div class="ds ds-ok"><b>👥 グループ共有</b>影響ゼロ（改修不要）</div>
+      <div class="ds ds-ng"><b>⚠️ 上書き事故</b>確認ダイアログで防ぐ</div>
+    </div>
+    <figcaption>入力経路の整理と、下流への影響</figcaption>
+  </figure>
+
+  <h2>なぜ必要か</h2>
+  <p>日報は Firebase Functions の OCR（PP-OCRv5）で画像から取り込む。撮影条件やサーバーエラーで読めない日がある。ところが <code>input.html:565</code> に <code>if (!parsed) return alert(...)</code> のガードがあり、<strong>明細が無い日報を保存する手段が一切ない</strong>。結果、OCR が失敗した日は日報そのものが残らず、給与計算に穴が空く。</p>
+
+  <div class="callout c-ng">
+    <b>現状の 3 経路のうち、生きているのは 1 つだけ</b>
+    ① 画像OCR = 動く／② Gemini テキスト貼付 = 実質使われていない（外部AIに画像を送る自己責任フロー）／③ 手入力 = <strong>そもそも導線が無い</strong>（「行を追加」ボタンすら存在しない）
+  </div>
+
+  <h2>データモデル</h2>
+  <p>Firestore <code>drives/{userId}/daily/{日付}</code> に 2 フィールドを足すだけ。</p>
+  <div class="scroll">
+  <table>
+    <tr><th>フィールド</th><th>型</th><th>説明</th></tr>
+    <tr><td><code>_summaryOnly</code></td><td>boolean</td><td>true = 合計のみレコード。明細ありには付けない</td></tr>
+    <tr><td><code>totalSales</code></td><td>number</td><td>税込の売上合計。<code>_summaryOnly</code> のときだけ意味を持つ</td></tr>
+  </table>
+  </div>
+<pre><code>{
+  date: '2026-07-15',
+  _summaryOnly: true,
+  totalSales: 52300,   // 税込
+  trips: [], rests: [],
+  // 以下は既存どおり（乗務種別・出庫・帰庫・総走行距離・メモ・違反…）
+}</code></pre>
+
+  <div class="callout c-warn">
+    <b>不採用にした案：合計額を持つダミー trip を 1 行入れる</b>
+    乗車回数が 1 と数えられ、時刻も場所も無い trip が全グラフに混入する。<code>trips.length</code> を数えている箇所（<code>index.html:973</code>, <code>detail.html:136</code> ほか）を全部直す羽目になるので却下。
+  </div>
+
+  <h2>下流への影響</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>下流</th><th>扱い</th><th>改修</th></tr>
+    <tr><td>給与計算 <code>payroll.js</code></td><td><span class="yes">含める</span>（<code>totalSales</code> を読む分岐を追加）</td><td>要</td></tr>
+    <tr><td>月間売上・日別ヒートマップ</td><td><span class="yes">含める</span>（calcDailySales 経由で自動追従）</td><td>不要</td></tr>
+    <tr><td>時間帯 / エリア / km 系グラフ</td><td><span class="wa">対象外</span>（明細ゼロなので何も出ない）</td><td>不要</td></tr>
+    <tr><td>客単価・時給などの平均</td><td><span class="wa">分母から除外</span>（0除算で平均を壊さない）</td><td>要</td></tr>
+    <tr><td>AI コーチ <code>coach/*</code></td><td><span class="wa">分析対象外</span></td><td>要</td></tr>
+    <tr><td>グループ共有プール</td><td><span class="yes">影響なし</span></td><td><strong>不要</strong></td></tr>
+    <tr><td>detail / index 画面</td><td>「合計のみ」バッジ表示</td><td>要</td></tr>
+  </table>
+  </div>
+
+  <div class="callout c-ok">
+    <b>グループ共有が影響ゼロな理由（コードで確認済み・確度100%）</b>
+    <code>buildGroupPool</code>（<code>group-pool-core.js:56</code>）が出すのは heatmap（曜日×時刻の時給中央値）と areas（降車エリア）だけで、<strong>日合計売上は出力していない</strong>（コメント :55「合計は出力に残さない」）。さらに <code>peerMedianHourlyDow</code> は <code>workingMin &gt; 0</code> のセルしか積まないので、明細ゼロの日報はプールに 1 セルも足さない。他メンバーの中央値を汚さない。
+  </div>
+
+  <div class="callout c-acc">
+    <b>眠っていた受け皿が再稼働する</b>
+    <code>chart-helpers.js:96</code> に <code>isSummaryOnly(drive)</code> が既にあるが、判定に使う <code>_importedFrom</code> / <code>_periodCount</code> を<strong>書き込むコードは現存しない</strong>（過去のスプレッドシート移行の名残）。今回 <code>_summaryOnly</code> を足すことで、この関数と呼び出し側 5 箇所が正式に機能を取り戻す。
+  </div>
+
+  <h2>上書き保護</h2>
+  <p>保存時に同日付の既存レコードを見て、<strong>モードが変わる上書きのときだけ</strong>確認を出す。同種別の上書きは今までどおり無言。</p>
+  <div class="scroll">
+  <table>
+    <tr><th>既存</th><th>今から保存</th><th>挙動</th></tr>
+    <tr><td>なし</td><td>どちらでも</td><td>無言で保存</td></tr>
+    <tr><td>明細あり</td><td>明細あり</td><td>無言で上書き（現状どおり）</td></tr>
+    <tr><td>合計のみ</td><td>合計のみ</td><td>無言で上書き</td></tr>
+    <tr><td>合計のみ</td><td><strong>明細あり</strong></td><td>確認「合計のみで登録済みです。明細で上書きしますか？」</td></tr>
+    <tr><td>明細あり</td><td><strong>合計のみ</strong></td><td class="no">確認「明細が消えます。本当に上書きしますか？」← 本命のガード</td></tr>
+  </table>
+  </div>
+
+  <h2>Gemini 貼付の撤去（依存確認済み）</h2>
+  <ul>
+    <li>OCR 取り込み経路（<code>applyOcrImport</code>, <code>input.html:281</code>）は sessionStorage の構造化データを直接使う → <strong>parser.js に依存しない</strong></li>
+    <li>既存レコードの編集経路（<code>:255</code>）も同様に独立</li>
+    <li><code>js/parser.js</code> は <code>admin.html</code> / <code>bulk-input.html</code> がまだ使う → <strong>ファイルは残す</strong>。input.html の import を外すだけ</li>
+    <li><code>rawText</code> は「既存値を引き継ぐ、新規は空文字」に変更 → 過去レコードの rawText を消さない</li>
+  </ul>
+
+  <div class="decide">
+    <h2>判断してください</h2>
+    <p style="margin-top:4px;font-size:14px;color:var(--muted)">この spec で実装計画（writing-plans）に進んでいいですか？</p>
+
+    <div class="opt rec">
+      <div class="t">A. この spec で進める<span class="badge b-rec">推奨</span></div>
+      <p class="d">2タブ化 ＋ Gemini撤去 ＋ 下流対応 ＋ テスト。次は実装計画を書いて、そこから着手します。</p>
+    </div>
+    <div class="opt">
+      <div class="t">B. 合計のみモードは入れるが、Gemini 貼付は残す</div>
+      <p class="d">撤去は別PRに切り離す。今回の変更範囲が小さくなる代わりに、input.html に 3 経路が並ぶ状態が続きます。</p>
+    </div>
+    <div class="opt">
+      <div class="t">C. 入力項目を増やしたい</div>
+      <p class="d">売上だけでなく「乗車回数」「走行距離」も入れる。時給・客単価まで出せるようになるが、入力の手間が増えます。<span class="conf">※ 一度 A で決めた方針の変更</span></p>
+    </div>
+    <div class="opt">
+      <div class="t">D. spec に直したい箇所がある</div>
+      <p class="d">具体的に指摘してください。修正して再提示します。</p>
+    </div>
+  </div>
+
+  <div class="concl">
+    <p><strong>要点。</strong>OCR 失敗時に日報が「1件も残せない」のが今の最大の穴で、これを塞ぐのに必要なのは新フィールド 2 つと保存ガードの分岐だけです。グループ共有は調査の結果まったく触らずに済み、<code>isSummaryOnly</code> という受け皿も既に半分できていました。<br>
+    リスクは「明細ありの日を合計のみで上書きして明細を失う」事故だけで、これは確認ダイアログで塞ぎます。</p>
+  </div>
+
+</div>
+</body>
+</html>
