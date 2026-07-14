@@ -61,12 +61,31 @@ function detailedDrive(userId, date) {
   };
 }
 
+// 合計のみ日報 drive を 1 本作る。実アプリの入力画面はヘッダー欄（出庫/帰庫時刻）が
+// 明細あり/合計のみ両モード共通で、config のデフォルトにより departureTime/returnTime は
+// 必ず入る（trips/rests のみが空になる）。この構造を再現しないと、hourlyDowEfficiency 内の
+// isSummaryOnly ガードを経由せずとも d.departureTime/d.returnTime が無い分岐で自然に除外されて
+// しまい、ガードの実効性を検証できない。
+function summaryDrive(userId, date, totalSales) {
+  return {
+    _userId: userId,
+    date,
+    _summaryOnly: true,
+    totalSales,
+    departureTime: '08:00',
+    returnTime: '18:00',
+    vehicleType: 'japantaxi',
+    trips: [],
+    rests: []
+  };
+}
+
 test('buildGroupPool: summary-only 日を混ぜても heatmap セルが増えない', () => {
   const base = [detailedDrive('u1', '2026-07-10'), detailedDrive('u2', '2026-07-10')];
   const withSummary = [
     ...base,
-    { _userId: 'u1', date: '2026-07-11', _summaryOnly: true, totalSales: 50000, trips: [], rests: [] },
-    { _userId: 'u2', date: '2026-07-11', _summaryOnly: true, totalSales: 90000, trips: [], rests: [] }
+    summaryDrive('u1', '2026-07-11', 50000),
+    summaryDrive('u2', '2026-07-11', 90000)
   ];
   const poolA = buildGroupPool(base, 2, { nowIso: NOW_ISO, months: 6 });
   const poolB = buildGroupPool(withSummary, 2, { nowIso: NOW_ISO, months: 6 });
@@ -77,7 +96,7 @@ test('buildGroupPool: summary-only 日を混ぜても heatmap セルが増えな
 
 test('buildGroupPool: 出力に totalSales / _summaryOnly が漏れない', () => {
   const pool = buildGroupPool(
-    [detailedDrive('u1', '2026-07-10'), { _userId: 'u2', date: '2026-07-11', _summaryOnly: true, totalSales: 90000, trips: [], rests: [] }],
+    [detailedDrive('u1', '2026-07-10'), summaryDrive('u2', '2026-07-11', 90000)],
     2, { nowIso: NOW_ISO, months: 6 }
   );
   const json = JSON.stringify(pool);
