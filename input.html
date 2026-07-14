@@ -587,6 +587,10 @@ document.getElementById('saveBtn').onclick = async () => {
     updatedAt: new Date().toISOString()
   };
 
+  // 既存レコードのcompanyIdを保持する。付けないとsaveDriveが現在の会社で再スタンプし、
+  // 転職後に過去日報を上書きすると記録時点の所属が失われるため（createdAt保持と対称）。
+  if (existing && existing.companyId !== undefined) drive.companyId = existing.companyId;
+
   if (mode === 'summary') {
     drive._summaryOnly = true;
     drive.totalSales = totalSales;
