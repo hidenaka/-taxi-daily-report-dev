@@ -11,14 +11,15 @@
 <!-- Cloudflare Turnstile（Bot対策・ログインフォーム保護） -->
 <!-- dev環境では読み込まない: 本番サイトキーがdevドメイン以外(localhost等)で
      Error 110200(Domain not authorized)を無限リトライするのを防ぐ。また dev は
-     人間判定自体をスキップする（下の SKIP_TURNSTILE / subscription-state.js の
-     isDevEnv() と同じ判定。moduleより前に走るため bootstrap をinlineで持つ）。 -->
+     人間判定自体をスキップする（moduleより前に走る bootstrap で一度だけ判定し、
+     下の SKIP_TURNSTILE も同じ結果を使う）。 -->
 <script>
 (function () {
   var isDev = location.hostname.includes('-dev')
     || location.pathname.includes('-dev')
     || location.hostname === 'localhost'
     || location.hostname === '127.0.0.1';
+  window.__CABIS_IS_DEV__ = isDev;
   if (!isDev) {
     var s = document.createElement('script');
     s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
@@ -188,7 +189,7 @@ import { waitForAuth, isEmailAuth, loginWithUserId, signUp } from './js/firebase
 import { loadInviteSlug, validateInviteSlug, fetchCompanyExists, checkInviteAndWarn } from './js/invite-url.js';
 import { generateSlug } from './js/slug-gen.js';
 import { validateSignupFields, buildNotifyPayload, postSignupNotify } from './js/signup-notify.js';
-import { billingApiBase, isDevEnv } from './js/subscription-state.js';
+import { billingApiBase } from './js/subscription-state.js';
 renderLegalFooter();
 
 // 招待URL `?company=<slug>` を捕捉・検証（完全招待制・decisions 6）。
@@ -207,8 +208,8 @@ window.onTurnstileSignup = (t) => { turnstileSignupToken = t; };
 // dev環境ではBot対策(Turnstile人間判定)を行わない。
 // 理由: devは本番と別のFirebaseプロジェクト(taxi-dailydata-dev)・別データで、
 // 検証者(オーナー)しかログインしない閉じた確認環境。総当たり対策は不要。
-// 本番(isDevEnv()===false)では従来どおり必須＝安全側デフォルトは常に判定あり。
-const SKIP_TURNSTILE = isDevEnv();
+// 本番(window.__CABIS_IS_DEV__ !== true)では従来どおり必須＝安全側デフォルトは常に判定あり。
+const SKIP_TURNSTILE = window.__CABIS_IS_DEV__ === true;
 if (SKIP_TURNSTILE) {
   // 不要（かつ dev では検証が通らない）チェックボックスを隠す。module script は
   // DOM解析後に実行されるため、この時点で .turnstile-row は既に存在する。
