@@ -4,6 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Cabis（キャビス）｜ タクシー乗務員のための業務支援アプリ</title>
+<!-- コールドスタート高速化: Firebase SDK/バックエンドへの接続とダウンロードを HTML パース時点から先行させる。
+     従来はローカル JS を firebase-init.js まで5階層たどった後に初めて gstatic CDN の巨大な
+     firestore.js を取りに行くウォーターフォールになっており、ホーム初回表示が待たされていた。 -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js" crossorigin>
+<link rel="modulepreload" href="js/firebase-init.js">
+<link rel="modulepreload" href="js/firebase-auth.js">
+<link rel="modulepreload" href="js/firebase-storage.js">
+<link rel="modulepreload" href="js/storage.js">
 <link rel="stylesheet" href="css/style.css">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -321,6 +335,11 @@ let config = null;
 
 async function load() {
   await flushPendingQueue();
+  // config と drives は互いに独立。config はコールドスタート時に
+  // userConfigs→users→companies の直列往復(最大3回)がかかるため、その裏で
+  // drives の取得を先行させ、認証復元・往復を重ねて初回表示を短縮する。
+  // (ウォーム時は両者とも TTL キャッシュ即返しなので影響なし)
+  const drivesPromise = fetchRenderDrives();
   config = await getConfig();
   if (!config) {
     config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -329,7 +348,7 @@ async function load() {
   config.shifts.plannedVehicles = config.shifts.plannedVehicles || {};
   config.shifts.paidLeaveDates = config.shifts.paidLeaveDates || [];
   pruneOrphanVehicles(config);
-  await render();
+  await render(drivesPromise);
 }
 
 // 折りたたみセクション。中身が空なら何も出さない
@@ -374,12 +393,20 @@ async function maybeShowFirstRunCard(isCurrent, currentCount) {
   card.style.display = shouldShowFirstRunCard({ hasAnyDrive }) ? 'block' : 'none';
 }
 
-async function render() {
-  const [rawDrives, previousRosterDrives, nextRosterDrives] = await Promise.all([
+// 表示に必要な当月度±1ヶ月の drives を取得（当月度は必須、前後月はロースター日付用）。
+// load() から config 取得と並行起動できるよう関数化している。
+function fetchRenderDrives() {
+  return Promise.all([
     getDrivesForMonth(viewPeriod),
     getDrivesForMonth(shiftBillingPeriod(viewPeriod, -1)).catch(() => []),
     getDrivesForMonth(shiftBillingPeriod(viewPeriod, 1)).catch(() => []),
   ]);
+}
+
+async function render(drivesPromise) {
+  // load() が config 取得の裏で先行起動した promise があればそれを使う。
+  // 期間ナビ(prev/next)等からの呼び出しでは引数なし → その場で取得（viewPeriod は最新）。
+  const [rawDrives, previousRosterDrives, nextRosterDrives] = await (drivesPromise || fetchRenderDrives());
   rawDrives.sort((a, b) => a.date.localeCompare(b.date));
   const rosterDriveDates = [...new Set([...previousRosterDrives, ...rawDrives, ...nextRosterDrives].map(d => d.date))];
   // ホームではフィルタなし。drives は raw と同一（calendar/sumTableは全件表示）
