@@ -368,6 +368,7 @@ import { parseFormattedReport } from './js/parser.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { SUBSCRIPTION_STATUSES, SUBSCRIPTION_STATUS_LABELS, GRANDFATHERED_USERS, isGrandfathered, buildGrandfatheredSubscription, adminBuildSubscriptionPayload, formatStatus } from './js/subscription-state.js';
 import { buildAssignActions, formatAssignConfirm, adminSubStatusBadge } from './js/admin-assign-company.js?v=2';
+import { sortUsersByCreatedAtDesc } from './js/admin-user-list.js';
 
 const loginSection = document.getElementById('loginSection');
 const adminContent = document.getElementById('adminContent');
@@ -850,12 +851,16 @@ document.getElementById('loadUsersBtn').onclick = async () => {
   list.innerHTML = '';
 
   try {
-    const users = await listAllUsersWithStats();
-    const companies = await adminListCompanies(); // [{id, freeForInvited?, ...}]
+    // 3つの独立クエリを並列取得（直列だと待ち時間が合算されるため）
+    const [usersRaw, companies, subsList] = await Promise.all([
+      listAllUsersWithStats(),
+      adminListCompanies(), // [{id, freeForInvited?, ...}]
+      listAllSubscriptions(), // [{userId, status, grandfathered?, ...}]
+    ]);
+    const users = sortUsersByCreatedAtDesc(usersRaw); // 登録日の新しい順に表示
     const companyOptions = (selected) => companies.map(c =>
       `<option value="${c.id}"${c.id === selected ? ' selected' : ''}>${c.id}</option>`
     ).join('');
-    const subsList = await listAllSubscriptions(); // [{userId, status, grandfathered?, ...}]
     const subByUserId = Object.fromEntries(subsList.map(s => [s.userId, s]));
     if (users.length === 0) {
       result.textContent = 'ユーザーが見つかりません';

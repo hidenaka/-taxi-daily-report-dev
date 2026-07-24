@@ -8,7 +8,7 @@ import { filterParticipatingUserIds } from './user-doc.js';
 import {
   doc, getDoc, setDoc, updateDoc, deleteDoc, collection,
   query, where, getDocs, orderBy, limit, writeBatch,
-  Timestamp, serverTimestamp, deleteField
+  Timestamp, serverTimestamp, deleteField, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
   readFresh, writeCache, clearByPrefix, userScopedKey,
@@ -745,25 +745,22 @@ export async function listAllUsersWithStats() {
     }
     
     // Get config info (no displayName: per decisions 10, individual-identifying info not stored)
-    for (const userId of Object.keys(userMap)) {
-      try {
-        const configSnap = await getDoc(doc(db, 'userConfigs', userId));
-        if (configSnap.exists()) {
-          const config = configSnap.data();
-          userMap[userId].vehicleType = config.defaults?.vehicleType || '';
-          userMap[userId].lastUpdated = config.lastUpdated || null;
-        }
-      } catch (e) {}
-      
-      // Count drives
-      try {
-        const drivesSnap = await getDocs(collection(db, 'drives', userId, 'daily'));
-        userMap[userId].driveCount = drivesSnap.size;
-      } catch (e) {
-        userMap[userId].driveCount = 0;
+    // 高速化: ①ユーザー間・ユーザー内とも並列取得（従来は 2N 回の直列往復で数十秒かかっていた）
+    // ②日報件数は getCountFromServer のサーバー側集計で取得（従来は件数を数えるだけのために
+    //   全日報ドキュメントをダウンロードしており、これが読み込み時間の大半を占めていた）
+    await Promise.all(Object.keys(userMap).map(async (userId) => {
+      const [configSnap, countSnap] = await Promise.all([
+        getDoc(doc(db, 'userConfigs', userId)).catch(() => null),
+        getCountFromServer(collection(db, 'drives', userId, 'daily')).catch(() => null),
+      ]);
+      if (configSnap && configSnap.exists()) {
+        const config = configSnap.data();
+        userMap[userId].vehicleType = config.defaults?.vehicleType || '';
+        userMap[userId].lastUpdated = config.lastUpdated || null;
       }
-    }
-    
+      userMap[userId].driveCount = countSnap ? countSnap.data().count : 0;
+    }));
+
     return Object.values(userMap).sort((a, b) => a.userId.localeCompare(b.userId));
   } catch (e) {
     console.error('listAllUsersWithStats failed:', e);
