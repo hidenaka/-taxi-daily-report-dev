@@ -43,7 +43,8 @@ test('resolveAuthBadge: admin強制切替の閲覧(匿名+実userId)は「サン
   assert.equal(r.kind, 'viewing');
   assert.equal(r.text, 'kohkuma1976 のデータを表示中');
   assert.equal(r.showLoginForm, false); // 閲覧中はログイン誘導を出さない
-  assert.equal(r.showLogout, false);
+  // 匿名で実データ表示中でも「ログアウト」で抜けられる（出口が無いと別アカウントに切替できない）
+  assert.equal(r.showLogout, true);
 });
 
 test('resolveAuthBadge: 既定ゲストのみ「サンプルデータ（ログインしてください）」', () => {

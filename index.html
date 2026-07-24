@@ -186,12 +186,12 @@ import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZ
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
-import { isEmailAuth, waitForAuth } from './js/firebase-auth.js';
+import { isEmailAuth, waitForAuth, getUserId } from './js/firebase-auth.js';
 import { auth } from './js/firebase-init.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
 import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts, isRosterDayOff } from './js/planned-shifts.js';
 import { checkInviteAndWarn, fetchCompanyExists, loadInviteSlug, loadReferrer, shouldRedirectInviteToSignup, buildSignupRedirectUrl } from './js/invite-url.js';
-import { shouldShowFirstRunCard } from './js/first-run.js';
+import { shouldShowFirstRunCard, shouldMarkHasDrive, isExistingLocalRealUser } from './js/first-run.js';
 import './js/help-video.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
@@ -220,7 +220,9 @@ checkInviteAndWarn(urlParams, localStorage, fetchCompanyExists);
     if (!hasCompanyParam) return;
     const slug = loadInviteSlug(localStorage);
     if (!slug) return;
-    const isExistingLocalUser = localStorage.getItem('cabis_has_drive') === '1';
+    // 印(cabis_has_drive)だけでなく taxi_user_id が実ユーザーかも見る。サンプル閲覧で印が
+    // 誤保存された端末（招待リンク再訪で user_sample に着地する不具合）を自己修復するため。
+    const isExistingLocalUser = isExistingLocalRealUser(localStorage);
     await waitForAuth();
     if (!shouldRedirectInviteToSignup(hasCompanyParam, isEmailAuth(), isExistingLocalUser)) return;
     location.replace(buildSignupRedirectUrl(slug, loadReferrer(localStorage)));
@@ -370,8 +372,12 @@ async function maybeShowFirstRunCard(isCurrent, currentCount) {
   const card = document.getElementById('firstRunCard');
   if (!card) return;
   // 当期にデータあり → 既存ユーザー。marker をセットして隠す
+  // （サンプル user_sample 閲覧中は印を付けない。付けると招待リンク訪問者の端末が既存ユーザー
+  //   扱いになり signup リダイレクトが抑止される＝user_sample に着地する不具合の真因）
   if (currentCount > 0) {
-    try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+    if (shouldMarkHasDrive({ myUserId: getUserId(), driveCount: currentCount })) {
+      try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+    }
     card.style.display = 'none';
     return;
   }
@@ -386,7 +392,9 @@ async function maybeShowFirstRunCard(isCurrent, currentCount) {
       const prev = await getDrivesForMonth(shiftBillingPeriod(viewPeriod, -1));
       if (prev && prev.length > 0) {
         hasAnyDrive = true;
-        try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+        if (shouldMarkHasDrive({ myUserId: getUserId(), driveCount: prev.length })) {
+          try { localStorage.setItem('cabis_has_drive', '1'); } catch (e) {}
+        }
       }
     } catch (e) { card.style.display = 'none'; return; }
   }

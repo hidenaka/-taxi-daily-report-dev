@@ -27,8 +27,9 @@ export function resolveAuthBadge({ emailAuthed, myId, viewAs } = {}) {
     return { kind: 'login', text: 'ログイン中', showLoginForm: false, showLogout: true, showExitViewAs: false };
   }
   if (!isSampleGuestUserId(myId)) {
-    // 匿名だが実 userId のデータを表示中（旧来の挙動・保険）。ログイン誘導は出さない。
-    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: false, showLogout: false, showExitViewAs: false };
+    // 匿名だが実 userId のデータを表示中（旧来の挙動・保険）。ログイン誘導は出さないが、
+    // この状態から抜ける出口としてログアウトは出す（無いと別アカウントへ切り替えられない）。
+    return { kind: 'viewing', text: `${myId} のデータを表示中`, showLoginForm: false, showLogout: true, showExitViewAs: false };
   }
   return { kind: 'sample', text: 'サンプルデータ（ログインしてください）', showLoginForm: true, showLogout: false, showExitViewAs: false };
 }
