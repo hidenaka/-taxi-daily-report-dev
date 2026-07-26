@@ -72,6 +72,25 @@ test("2026/06/18 明細（パンチ穴で No.11/12 が潰れた写真）を正�
   assert.equal(trips[25].alightPlace, "中央区日本橋大伝馬町");
 });
 
+test("斜め・小さく写った明細（列が2列ぶんずれていた写真）を正しく読む", () => {
+  // ヘッダー「乗車地」を "乘車地" と誤読 → 別名の部分一致で列名「乗車」に化け、
+  // その1点が x 軸アフィンを壊して16列すべてが2列ぶんずれていた写真。
+  const { trips, rests } = driveOf("skewed-small-frame.json");
+
+  // 用紙の実測値: 営業 34 件・休憩 10 回（回送 2 行は営業に数えない）
+  assert.equal(trips.length, 34, "営業件数");
+  assert.equal(rests.length, 10, "休憩回数");
+  assert.deepEqual(trips.map((t) => t.no), Array.from({ length: 34 }, (_, i) => i + 1));
+
+  // 列が正しい位置に入っていること（ずれていた頃は No 欄に降車時刻が入っていた）
+  assert.equal(trips[0].boardTime, "8:21");
+  assert.equal(trips[0].alightTime, "8:41");
+  assert.equal(trips[0].alightPlace, "大田区池上6");
+  assert.equal(trips[0].amount, 2800);
+  assert.equal(trips[27].amount, 14490);   // 28件目 小金井市桜町5 27.7km
+  assert.equal(trips[33].alightPlace, "目黒区大岡山2"); // 最終 34 件目
+});
+
 test("貸切と休憩を含む明細（従来から読めていた写真）の結果を維持する", () => {
   const { trips, rests } = driveOf("charter-and-rests.json");
 

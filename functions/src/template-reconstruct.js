@@ -109,12 +109,17 @@ const toHalfDigits = (s) =>
 // =============================================================================
 
 // 列名 box のテキストを正規化列名へ。当たらなければ null。
-function matchHeaderLabel(text) {
+export function matchHeaderLabel(text) {
   const t = String(text || '').trim();
   if (HEADER_ALIASES[t]) return HEADER_ALIASES[t];
+  // 「地」で終わる語は 乗車地 / 降車地 のどちらか。異体字誤読（例: "乘車地"）が
+  // 部分一致で時刻列の 乗車 / 降車 に化けると、その1点が x 軸アフィンを壊して
+  // 16列すべてがずれる（IMG_1523 で実証）。どちらか確定できないなら当てない。
+  const endsWithChi = /地$/.test(t);
   // 前後ノイズ保険: エイリアスが先頭/末尾に来る場合のみ部分一致を許す。
   for (const [alias, name] of Object.entries(HEADER_ALIASES)) {
     if (alias.length < 2) continue;
+    if (endsWithChi && !/地$/.test(alias)) continue;
     if (t.length > alias.length + 4) continue; // 長すぎる連結は表外見出し
     if (t.startsWith(alias) || t.endsWith(alias)) {
       // "休憩時間"→"時間" のような「別漢字＋列名」複合語は表外見出しとして除外。
