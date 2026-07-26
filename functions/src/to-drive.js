@@ -66,6 +66,8 @@ export function isRevenueTrip(t) {
 export function rowsToDrive(rows) {
   const trips = [];
   const rests = [];
+  // trips と同じ並びの No 生テキスト。連番補完で「キ」行を除くのに使う。
+  const noTexts = [];
   if (!Array.isArray(rows)) return { trips, rests };
 
   for (const row of rows) {
@@ -108,13 +110,68 @@ export function rowsToDrive(rows) {
       waitTime: '',
       _ocrFlags: { ...flags },
     });
+    noTexts.push(noText);
   }
 
   // 非営業行（ETC明細・回送・空行）を営業回数から除外する。
-  const revenueTrips = trips.filter(isRevenueTrip);
+  const keep = trips.map(isRevenueTrip);
+  const revenueTrips = trips.filter((_, i) => keep[i]);
+  const revenueNoTexts = noTexts.filter((_, i) => keep[i]);
   // No の単発誤読を連番補正する（営業明細の No は 1..N の連番）。
   correctTripNumbers(revenueTrips);
+  // 読めなかった No（パンチ穴で潰れた等）を前後から補完する。
+  fillMissingTripNumbers(revenueTrips, revenueNoTexts);
   return { trips: revenueTrips, rests };
+}
+
+/**
+ * 読めなかった No を前後の連番から補完する（破壊的・配列を直接書き換える）。
+ *
+ * 明細用紙にパンチ穴が開いていると No セルが物理的に潰れて読めない
+ * （2026/06/18 の明細では穴が No.11/12 を消した）。営業明細の No は 1..N の連番
+ * なので、前後の番号と欠落行数が矛盾しないときだけ埋める。行そのものを取りこぼして
+ * いる場合（番号差と行数が合わない）は誤った番号を作らないよう触らない。
+ *
+ * キャンセル行（No 欄が「キ」）はそもそも番号を持たないため対象外。
+ *
+ * @param {Array<{no:number|null}>} trips 順序通りの営業トリップ配列
+ * @param {Array<string>} noTexts trips と同じ並びの No 生テキスト
+ * @returns {Array} 同じ配列（補完済み）
+ */
+export function fillMissingTripNumbers(trips, noTexts) {
+  if (!Array.isArray(trips)) return trips;
+  const texts = Array.isArray(noTexts) ? noTexts : [];
+  // 補完対象か（番号が無く、かつ「キ」行でない）
+  const fillable = (i) =>
+    !Number.isFinite(trips[i] && trips[i].no) && !/キ/.test(String(texts[i] || ''));
+
+  let i = 0;
+  while (i < trips.length) {
+    if (!fillable(i)) { i++; continue; }
+    // 欠落の連続区間 [i, j) を取る
+    let j = i;
+    while (j < trips.length && fillable(j)) j++;
+    const len = j - i;
+    const prev = i > 0 && Number.isFinite(trips[i - 1].no) ? trips[i - 1].no : null;
+    const next = j < trips.length && Number.isFinite(trips[j].no) ? trips[j].no : null;
+
+    if (prev != null && next != null) {
+      // 前後で挟めるとき: 番号差と欠落行数が一致するときだけ埋める
+      if (next - prev - 1 === len) {
+        for (let k = 0; k < len; k++) trips[i + k].no = prev + 1 + k;
+      }
+    } else if (prev != null) {
+      // 末尾の欠落: 直前からの連番
+      for (let k = 0; k < len; k++) trips[i + k].no = prev + 1 + k;
+    } else if (next != null) {
+      // 先頭の欠落: 直後から逆算（1 未満になるなら諦める）
+      if (next - len >= 1) {
+        for (let k = 0; k < len; k++) trips[i + k].no = next - len + k;
+      }
+    }
+    i = j;
+  }
+  return trips;
 }
 
 /**

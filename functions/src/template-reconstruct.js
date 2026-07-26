@@ -489,6 +489,111 @@ function clusterRows(items, slope, pitch) {
   return rows;
 }
 
+// =============================================================================
+// END 物理行 → エントリ（START 物理行）の対応づけ
+// =============================================================================
+//
+// 明細1行には エントリ K の START 列群（No〜乗車地）と END 列群（降車地〜備考）が
+// 印字されるが、END 列群は START 列群に対して縦にずれて出る（印字ヘッドの段ずれ）。
+// ずれ量は画像ごとに違い、実測で -1.2 ピッチ 〜 +0.2 ピッチ（1ピッチ以上ばらつく）。
+//
+// 旧実装は「No が数字で読めた START 行」と END 行を上から順に 1:1 対応させていた。
+// これは No が1つでも読めないと以降の全 END が1行ズレる。実際 2026/06/18 の明細は
+// 用紙のパンチ穴が No.11/12 を潰し、その2行が営業行から丸ごと落ちたうえ、13件目以降
+// の降車地・km・料金が2つ手前のエントリのものになった（IMG_1556 で再現・実証）。
+//
+// そこで No に依存せず y 幾何で対応づける:
+//   1. 系統オフセット Δ（= endY − startY）の候補を広く走査する。
+//      Δ が 1 ピッチずれた偽解（エイリアス）は、構造ペナルティで排除する:
+//        ・休 行に END が付く       … 休 行に END 列は無い（強いペナルティ）
+//        ・No の読めた行に END が付かない … トリップには必ず END がある
+//        ・END 行が余る             … END は必ずどれかのエントリのもの
+//   2. 各 Δ について順序保存の最適割当を DP で解き、総コスト最小の Δ を採る。
+// コストは全て「ピッチ単位」で表し、画像の解像度に依らないようにする。
+
+// 割当コストの重み（ピッチ単位）。
+const AS_TOL = 0.45;        // このズレを超える組み合わせは対応候補にしない
+const AS_REST_MATCH = 2.0;  // 休 行に END を付けたときの罰
+const AS_TRIP_MISS = 0.8;   // No の読めたトリップ行に END が付かないときの罰
+const AS_UNKNOWN_MISS = 0.25; // No が読めない行に END が付かないときの罰（弱）
+const AS_END_SKIP = 1.5;    // END 行を余らせたときの罰
+
+/**
+ * END 物理行を START 物理行（エントリ）へ順序保存で対応づける。
+ * @param {Array<{y:number, kind:'trip'|'rest'|'unknown'}>} starts y 昇順の START 物理行
+ * @param {Array<number>} endYs y 昇順の END 物理行の代表 y
+ * @param {number} pitch 行ピッチ（px）
+ * @returns {{map:Array<number>, delta:number, cost:number}}
+ *   map[j] = endYs[j] を割り当てた starts の index（-1 は未割当）
+ */
+export function assignEndRows(starts, endYs, pitch) {
+  const m = endYs.length;
+  const n = starts.length;
+  if (!m || !n || !(pitch > 0)) return { map: new Array(m).fill(-1), delta: 0, cost: 0 };
+
+  const skipStartCost = (i) => {
+    const k = starts[i].kind;
+    if (k === 'trip') return AS_TRIP_MISS;
+    if (k === 'unknown') return AS_UNKNOWN_MISS;
+    return 0; // rest: END が無いのが正常
+  };
+
+  // 与えられた Δ で順序保存の最適割当を DP で解く。
+  function solve(delta) {
+    const INF = Infinity;
+    // best[i][j] = starts[0..i) と endYs[0..j) まで処理したときの最小コスト
+    const best = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(INF));
+    const from = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+    best[0][0] = 0;
+    for (let i = 1; i <= n; i++) {
+      best[i][0] = best[i - 1][0] + skipStartCost(i - 1);
+      from[i][0] = 1; // START スキップ
+    }
+    for (let j = 1; j <= m; j++) {
+      best[0][j] = best[0][j - 1] + AS_END_SKIP;
+      from[0][j] = 2; // END スキップ
+    }
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= m; j++) {
+        let cur = best[i - 1][j] + skipStartCost(i - 1);
+        let mode = 1;
+        const skipEnd = best[i][j - 1] + AS_END_SKIP;
+        if (skipEnd < cur) { cur = skipEnd; mode = 2; }
+        const resid = Math.abs(endYs[j - 1] - starts[i - 1].y - delta) / pitch;
+        if (resid <= AS_TOL && best[i - 1][j - 1] < INF) {
+          const match =
+            best[i - 1][j - 1] + resid +
+            (starts[i - 1].kind === 'rest' ? AS_REST_MATCH : 0);
+          if (match < cur) { cur = match; mode = 3; }
+        }
+        best[i][j] = cur;
+        from[i][j] = mode;
+      }
+    }
+    // 逆追跡
+    const map = new Array(m).fill(-1);
+    let i = n, j = m;
+    while (i > 0 || j > 0) {
+      const mode = i === 0 ? 2 : j === 0 ? 1 : from[i][j];
+      if (mode === 3) { map[j - 1] = i - 1; i--; j--; }
+      else if (mode === 2) { j--; }
+      else { i--; }
+    }
+    return { map, cost: best[n][m] };
+  }
+
+  // Δ の探索範囲は実測ばらつき（-1.2〜+0.2 ピッチ）に余裕を持たせる。
+  // 1px 刻み（DP は n*m が数千なので全走査でも軽い）。
+  const lo = Math.round(-2.0 * pitch);
+  const hi = Math.round(1.0 * pitch);
+  let bestOverall = null;
+  for (let d = lo; d <= hi; d++) {
+    const r = solve(d);
+    if (!bestOverall || r.cost < bestOverall.cost) bestOverall = { ...r, delta: d };
+  }
+  return bestOverall;
+}
+
 // メイン: OCR boxes → {rows}
 //
 // 行の扱い:
@@ -688,50 +793,36 @@ export function reconstructRows(ocr) {
   }
   const startRawYc = startRows.map(rawYc);
 
-  // --- 各 START 行が numbered（通常トリップ）か 休（休憩）かを判定 ---
+  // --- 各 START 行の種別（トリップ / 休憩 / 不明）を判定 ---
   // 構造的事実: END 列（降車地・料金 等）は「トリップ」にのみ印字される。
-  // 休 行は START 列のみ。よって END 物理行は numbered 行と 1:1 で並ぶ。
-  // No セルを正規化して判定する。
+  // 休 行は START 列のみ。
+  // No が読めない行（パンチ穴で潰れる・誤読）は 'unknown'。トリップかもしれないので
+  // END を付ける候補として残す（旧実装はここで落としていた）。
   function noTextOf(row) {
     const bs = (row.items.filter((it) => it.ci === 0) || []).map((it) => it.b);
     if (!bs.length) return '';
     bs.sort((a, b) => cx(a) - cx(b));
     return bs.map(txt).join('');
   }
-  const isNumbered = startRows.map((row) => {
-    const t = toHalfDigits(noTextOf(row));
-    return /\d/.test(t) && !/[休保㈱]/.test(noTextOf(row));
+  const startKinds = startRows.map((row) => {
+    const noText = noTextOf(row);
+    if (/[休保㈱]/.test(noText)) return 'rest';
+    if (/\d/.test(toHalfDigits(noText)) || /貸/.test(noText)) return 'trip';
+    return 'unknown';
   });
 
-  // --- END 物理行 → エントリ対応 ---
-  // 構造的事実（A,B 両方で確認）:
-  //   (1) END 列は numbered トリップにのみ印字される（休 行に END 列は無い）。
-  //   (2) END 物理行クラスタは numbered エントリと「上から順に 1:1」で並ぶ。
-  // よって y 昇順の j 番目の END 物理行 → j 番目の numbered START 行（トリップ）。
-  // 休 行・先頭エントリの違いに依らず順序だけで決まる。
-  // ただし OCR が END 物理行を 1 つ落とすと以降が 1 ズレる。これを防ぐため、
-  // 割り当て後に「END 行 y と numbered START 行 y のズレ」を見て、ズレが
-  // 系統的に大きくなったら numbered 行側をスキップして整合を取り戻す。
-  const numberedIdx = [];
-  startRows.forEach((_, i) => { if (isNumbered[i]) numberedIdx.push(i); });
-
-  const endByEntry = startRows.map(() => []);
+  // --- END 物理行 → エントリ対応（y 幾何ベース）---
+  // assignEndRows を参照。No の読めた行の順序には依存しない。
   const endSorted = endRowsRaw
     .map((er) => ({ er, ey: rawYc(er) }))
     .sort((a, b) => a.ey - b.ey);
+  const starts = startRows.map((_, i) => ({ y: startRawYc[i], kind: startKinds[i] }));
+  const assign = assignEndRows(starts, endSorted.map((e) => e.ey), pitch);
 
-  let k = 0;
-  for (const { er, ey } of endSorted) {
-    if (k >= numberedIdx.length) break;
-    while (
-      k + 1 < numberedIdx.length &&
-      ey - startRawYc[numberedIdx[k]] > pitch * 1.4
-    ) {
-      k++;
-    }
-    endByEntry[numberedIdx[k]].push(...er.items);
-    k++;
-  }
+  const endByEntry = startRows.map(() => []);
+  assign.map.forEach((si, j) => {
+    if (si >= 0) endByEntry[si].push(...endSorted[j].er.items);
+  });
 
   // --- 行ごとに START/END バケットを作り finalizeRow ---
   const columnsForFinalize = colDef.map((c) => ({
@@ -759,10 +850,32 @@ export function reconstructRows(ocr) {
     rows.push(row);
   }
 
+  const _debug = {
+    pitch,
+    startRows: startRows.map((sr, i) => ({
+      y: startRawYc[i],
+      kind: startKinds[i],
+      no: noTextOf(sr),
+      end: assign.map.indexOf(i),
+      text: sr.items.slice().sort((a, b) => a.xc - b.xc).map((it) => txt(it.b)).join(' | '),
+    })),
+    endRows: endSorted.map(({ er, ey }) => ({
+      y: ey,
+      text: er.items.slice().sort((a, b) => a.xc - b.xc).map((it) => txt(it.b)).join(' | '),
+    })),
+    endRowsDropped: endRowsAll
+      .filter((er) => !endRowsRaw.includes(er))
+      .map((er) => ({
+        y: rawYc(er),
+        text: er.items.slice().sort((a, b) => a.xc - b.xc).map((it) => txt(it.b)).join(' | '),
+      })),
+  };
+
   return {
     rows,
     _grid: { pitch, startRows: startRows.length },
     _loc: { a: loc.xm.a, b: loc.xm.b, inliers: loc.xm.inliers },
+    _debug,
   };
 }
 
