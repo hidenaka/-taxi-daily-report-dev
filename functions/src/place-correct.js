@@ -34,17 +34,40 @@ function editDistance(a, b) {
 }
 
 // 辞書中の候補から raw に最も近いものを返す。
-//   { match, dist, ratio }  ratio = dist / max(len) （0=完全一致）
+//   { match, dist, ratio, ambiguous }
+//   ratio     = dist / max(len) （0=完全一致）
+//   ambiguous = 最小距離の候補が複数あり、下の規則でも1つに絞れなかった
+//
+// 編集距離が同点のときは「最も長い候補」を採る。同じ1文字差でも、長い候補ほど
+// 一致している字が多い（＝ratio が小さい）＝根拠が強いため。
+//   例「芝滴」… 候補は 芝(脱字扱い) と 芝浦(置換)。芝浦を採る。
+//   例「大山」… 候補は 大岡山 / 大橋 / 東山。大岡山を採る。
+//   例「松」  … 候補は 松濤 / 東。松濤を採る（「東」は1字も一致しない）。
+// 最長でも複数並ぶときは先頭を採りつつ ambiguous を立てる。呼び出し側は低信頼
+// としてレビュー対象にする（黙って確定させない）。
+//   例「坂町」… 正式名「四谷坂町」が辞書に無く、1文字差の 中町/榎町/… が多数並ぶ。
 function nearest(raw, candidates) {
-  let best = null, bd = Infinity;
+  const s = String(raw || '');
+  let bd = Infinity;
+  let tied = [];
   for (const c of candidates) {
-    const d = editDistance(raw, c);
-    if (d < bd) { bd = d; best = c; }
-    if (d === 0) break;
+    const d = editDistance(s, c);
+    if (d > bd) continue;
+    if (d < bd) { bd = d; tied = [c]; } else { tied.push(c); }
+    if (d === 0) { tied = [c]; break; }
   }
-  if (best == null) return null;
-  const ratio = bd / Math.max(raw.length, best.length, 1);
-  return { match: best, dist: bd, ratio };
+  if (!tied.length) return null;
+
+  let match = tied[0];
+  let ambiguous = false;
+  if (bd > 0 && tied.length > 1) {
+    const maxLen = Math.max(...tied.map((c) => c.length));
+    const longest = tied.filter((c) => c.length === maxLen);
+    match = longest[0];
+    ambiguous = longest.length > 1;
+  }
+  const ratio = bd / Math.max(s.length, match.length, 1);
+  return { match, dist: bd, ratio, ambiguous };
 }
 
 // 区名（市区町村名）の境界を見つけ、[区, 残り] に分解する。
@@ -116,12 +139,16 @@ function correctPlace(raw, gazetteer) {
     return { text: original, corrected: false, lowConfidence: true, raw: original };
   }
 
-  // 区名を辞書へ最近傍マッチ
+  // 区名を辞書へ最近傍マッチ。
+  // 同点候補が複数ある（例「日区」→ 北区/港区/西区…）ときは、どれか1つを選ぶと
+  // 誤った区へ確定してしまう。原文のまま低信頼で返してレビューに回す。
   const wHit = nearest(ward, gazetteer.wards);
   if (!wHit || wHit.ratio > WARD_RATIO_MAX) {
     return { text: original, corrected: false, lowConfidence: true, raw: original };
   }
   const fixedWard = wHit.match;
+  // 同点候補が複数（例「日区」→ 北区/港区/西区…）なら当てずっぽう。印を付ける。
+  const wardUncertain = !!wHit.ambiguous;
 
   // 町名＋丁目数字に分解
   const { town, num } = splitTownNumber(rest);
@@ -131,7 +158,7 @@ function correctPlace(raw, gazetteer) {
   if (!town) {
     const text = fixedWard + numOut;
     const corrected = fixedWard !== ward;
-    return { text, corrected, lowConfidence: false, raw: original };
+    return { text, corrected, lowConfidence: wardUncertain, raw: original };
   }
 
   const townList = (gazetteer.towns && gazetteer.towns[fixedWard]) || [];
@@ -139,15 +166,18 @@ function correctPlace(raw, gazetteer) {
 
   let fixedTown = town;
   let townOk = false;
+  let townUncertain = false;
   if (tHit && tHit.ratio <= TOWN_RATIO_MAX && tHit.dist <= TOWN_DIST_MAX) {
     fixedTown = tHit.match;
     townOk = true;
+    townUncertain = !!tHit.ambiguous;
   }
 
   const text = fixedWard + fixedTown + numOut;
   const corrected = text !== original && (fixedWard !== ward || fixedTown !== town);
-  // 町名が辞書に寄せられなかった場合は低信頼（レビュー対象）。
-  const lowConfidence = !townOk;
+  // 町名が辞書に寄せられなかった、または同点候補から当てずっぽうで選んだ場合は
+  // 低信頼（レビュー対象）にする。
+  const lowConfidence = !townOk || townUncertain || wardUncertain;
   return { text, corrected, lowConfidence, raw: original };
 }
 

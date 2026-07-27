@@ -70,6 +70,9 @@ test("2026/06/18 明細（パンチ穴で No.11/12 が潰れた写真）を正�
   assert.equal(trips[27].boardPlace, "中央区築地3");
   assert.equal(trips[27].alightPlace, "世田谷区深沢7");
   assert.equal(trips[25].alightPlace, "中央区日本橋大伝馬町");
+
+  // 都外（千葉県）の地名も辞書補正が効く。「欠真間」を「次真間」と誤読していた。
+  assert.equal(rests[1].place, "市川市欠真間1");
 });
 
 test("斜め・小さく写った明細（列が2列ぶんずれていた写真）を正しく読む", () => {
