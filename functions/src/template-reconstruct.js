@@ -379,10 +379,142 @@ function robustAffine(points) {
   return { a: m.a, b: m.b, inliers: pts.length };
 }
 
+// =============================================================================
+// 見出し行に頼らない表の特定（フォールバック）
+// =============================================================================
+//
+// 見出し行の文字（No/乗車/降車/…）は本文より小さく、写真がぼけると真っ先に潰れる。
+// 見出しが読めないと表の位置が決まらず、本文が読めていても丸ごと落ちていた
+// （LINE 経由で圧縮された写真＝約164万画素、で実証。本文は82%が高信頼なのに0件）。
+//
+// そこで見出しが取れないときは、本文の「どの列に何が入るか」で枠を当てる。
+// 明細表は列ごとに中身の種類が決まっている:
+//   時刻→乗車/降車/時間、地名→乗車地/降車地、小数→営Km、金額→合計〜立替、備考→決済種別。
+// 各 box を種類分けし、x 軸アフィン (a,b) を走査して「種類と列が合う box の割合」を
+// 最大化する。幾何（列の隙間・表の左右端）だけでは OCR の box が列境界をまたぐため
+// 決まらないが、中身の種類を使うと決まる（実測: 幅の誤差 0.8〜2.4%）。
+
+// 列 index: 0 No / 1 乗車 / 2 降車 / 3 時間 / 4 迎 / 5 乗車地 / 6 降車地 / 7 営Km
+//           8 男 / 9 女 / 10 合計 / 11 料金 / 12 現収 / 13 未収 / 14 立替 / 15 備考
+const BODY_KIND_COLUMNS = {
+  time: new Set([1, 2, 3]),
+  place: new Set([5, 6]),
+  decimal: new Set([7]),
+  money: new Set([10, 11, 12, 13, 14]),
+  flag: new Set([4]),
+  note: new Set([15]),
+};
+
+// box のテキストから中身の種類を判定する。判定できなければ null（採点に使わない）。
+function classifyBodyCell(text) {
+  const t = toHalfDigits(String(text || '').trim());
+  if (!t) return null;
+  if (/[区市]/.test(t) && t.length >= 4) return 'place';
+  if (/決済|決斉|チケット|ETC|Visa|QuickPay|AMEX|交通|遠割/i.test(t)) return 'note';
+  if (/^[迎連週迅]$/.test(t)) return 'flag';
+  if (/^\d{1,2}[:：.\-]\d{2}$/.test(t)) return 'time';
+  const digits = t.replace(/[^0-9]/g, '');
+  if (digits.length === 4 && /^[0-9:：.\-]+$/.test(t)) return 'time';
+  if (/^\d{1,2}[.]\d$/.test(t)) return 'decimal';
+  if (/^[0-9,.]+$/.test(t) && digits.length >= 3 && digits.length <= 6) return 'money';
+  return null;
+}
+
+// 本文 box から x 軸アフィンと表の y 帯を推定する。取れなければ null。
+export function fitGridFromBody(boxes) {
+  const isPlace = (b) => /[区市]/.test(txt(b)) && txt(b).length >= 4;
+  const pick = (arr, p) => arr[Math.max(0, Math.min(arr.length - 1, Math.floor(arr.length * p)))];
+  const placeYs = boxes.filter(isPlace).map(cy).sort((p, q) => p - q);
+  if (placeYs.length < 8) return null;               // 地名が少なすぎる＝明細表ではない
+
+  // 明細表の y 帯を取る。上部サマリーにも地名（乗務開始場所）が数個あるので、
+  // 「等間隔に密集している最大の塊」だけを表とみなす。塊から離れた地名は捨てる。
+  const gaps = [];
+  for (let i = 1; i < placeYs.length; i++) gaps.push(placeYs[i] - placeYs[i - 1]);
+  const medGap = [...gaps].sort((p, q) => p - q)[Math.floor(gaps.length / 2)] || 1;
+  const maxGap = Math.max(medGap * 4, 40);
+  let bestRun = { s: 0, e: 0 }, runStart = 0;
+  for (let i = 1; i <= placeYs.length; i++) {
+    if (i === placeYs.length || placeYs[i] - placeYs[i - 1] > maxGap) {
+      if (i - runStart > bestRun.e - bestRun.s) bestRun = { s: runStart, e: i };
+      runStart = i;
+    }
+  }
+  const band = placeYs.slice(bestRun.s, bestRun.e);
+  if (band.length < 8) return null;
+  const yLo = pick(band, 0.02), yHi = pick(band, 0.98);
+
+  const items = [];
+  for (const b of boxes) {
+    const yc = cy(b);
+    if (yc < yLo - 30 || yc > yHi + 30) continue;
+    const kind = classifyBodyCell(b.text);
+    if (kind) items.push({ xl: b.bbox[0], xr: b.bbox[2], kind });
+  }
+  if (items.length < 40) return null;
+
+  const xls = items.map((i) => i.xl).sort((p, q) => p - q);
+  const xrs = items.map((i) => i.xr).sort((p, q) => p - q);
+
+  // 探索範囲は本文の広がりから決める（画像サイズに依存させない）。
+  const span = pick(xrs, 0.98) - pick(xls, 0.02);
+  const bCenter = span / (TEMPLATE.colBoundFrac[16] - TEMPLATE.colBoundFrac[0]);
+  const aCenter = pick(xls, 0.02) - bCenter * TEMPLATE.colBoundFrac[0];
+
+  // 種類ごとに重みを均す。時刻3列・金額5列・地名2列は「1列ずらしても型が合う」ため、
+  // 数の多い種類に任せると1列ずれた解に落ちる。1列しかない 迎・営Km・備考 は
+  // ずれを一意に決められるので、数が少なくても同じだけ効かせる。
+  const perKind = {};
+  for (const it of items) perKind[it.kind] = (perKind[it.kind] || 0) + 1;
+  const kinds = Object.keys(perKind);
+  for (const it of items) it.w = 1 / perKind[it.kind];
+  const totalW = kinds.length;
+
+  const score = (a, b) => {
+    const bounds = TEMPLATE.colBoundFrac.map((f) => a + b * f);
+    let ok = 0;
+    for (const it of items) {
+      let best = -1, ov = 0;
+      for (let i = 0; i < 16; i++) {
+        const o = Math.min(it.xr, bounds[i + 1]) - Math.max(it.xl, bounds[i]);
+        if (o > ov) { ov = o; best = i; }
+      }
+      if (best >= 0 && BODY_KIND_COLUMNS[it.kind].has(best)) ok += it.w;
+    }
+    // 枠の左右端が本文の広がりと合っているか（1列ずれの解を弱める）
+    const edge =
+      (Math.abs(bounds[0] - pick(xls, 0.02)) + Math.abs(bounds[16] - pick(xrs, 0.98))) / b;
+    return ok / totalW - edge * 0.6;
+  };
+
+  // 粗探索 → 山登りで細部を詰める
+  let best = null;
+  const coarse = bCenter * 0.01;
+  for (let b = bCenter * 0.7; b <= bCenter * 1.4; b += coarse) {
+    for (let a = aCenter - bCenter * 0.2; a <= aCenter + bCenter * 0.2; a += coarse) {
+      const s = score(a, b);
+      if (!best || s > best.s) best = { a, b, s };
+    }
+  }
+  for (const st of [bCenter * 0.003, bCenter * 0.001, bCenter * 0.0003]) {
+    let improved = true;
+    while (improved) {
+      improved = false;
+      for (const [da, db] of [[st, 0], [-st, 0], [0, st], [0, -st], [st, st], [-st, -st], [st, -st], [-st, st]]) {
+        const s = score(best.a + da, best.b + db);
+        if (s > best.s + 1e-9) { best = { a: best.a + da, b: best.b + db, s }; improved = true; }
+      }
+    }
+  }
+  // 一致率が低いときは表と見なさない（誤検出で無意味な行を作らない）
+  if (best.s < 0.5) return null;
+  return { a: best.a, b: best.b, agreement: best.s, yTop: yLo, yBottom: yHi };
+}
+
 // ヘッダーラベル box 群を取得（最も明細表らしい y 帯を選ぶ）。
 function locateTable(boxes) {
   const header = findHeaderRow(boxes);
-  if (!header) return null;
+  if (!header) return locateTableFromBody(boxes);
 
   // テンプレ列順 index に対する検出済みヘッダー中心 x の対応点
   const order = TEMPLATE.columns;
@@ -394,14 +526,38 @@ function locateTable(boxes) {
     if (i == null) continue;
     points.push([TEMPLATE.colCenterFrac[i], hb.x]);
   }
-  if (points.length < 4) return null;
+  if (points.length < 4) return locateTableFromBody(boxes);
 
   // x 軸アフィン: pixelX = ax + bx * frac。
   // これがテーブル領域の特定: 16 列の x ピクセル位置が一意に決まる。
   const xm = robustAffine(points);
-  if (!xm) return null;
+  if (!xm) return locateTableFromBody(boxes);
 
   return { header, xm };
+}
+
+// 見出しが取れないときの表特定。fitGridFromBody で枠を求め、
+// 本文の先頭行の少し上に「疑似ヘッダー」を置いて以降の処理をそのまま使う。
+function locateTableFromBody(boxes) {
+  const fit = fitGridFromBody(boxes);
+  if (!fit) return null;
+  const pitch = fit.b * TEMPLATE.pitchFrac;
+  const y = fit.yTop - pitch;              // 見出し行があるはずの位置
+  return {
+    header: {
+      y,
+      top: y - pitch * 0.6,
+      bottom: fit.yTop - pitch * 0.45,     // 本文1行目の直上で切る
+      boxes: [],
+      labelBoxes: new Set(),
+    },
+    xm: { a: fit.a, b: fit.b, inliers: 0 },
+    fromBody: true,
+    agreement: fit.agreement,
+    // 明細表の下端。見出しが読めない写真では ETC明細 の見出し(預り金/会社負担)も
+    // 読めず etcY カットが効かないため、地名の密集帯の下で切る。
+    bodyBottom: fit.yBottom + pitch * 1.5,
+  };
 }
 
 // テーブル座標系を組み立てる。
@@ -636,6 +792,8 @@ export function reconstructRows(ocr) {
     }
   }
   const labelBoxes = loc.header.labelBoxes || new Set();
+  // 見出しを使わず特定した場合は、本文帯の下端でも切る（ETC明細の混入防止）。
+  if (loc.bodyBottom != null && loc.bodyBottom < etcY) etcY = loc.bodyBottom;
 
   const order = TEMPLATE.columns;
   const colDef = order.map((n) => KEIHO_COLUMNS.find((c) => c.name === n));
