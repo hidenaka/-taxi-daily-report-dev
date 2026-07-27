@@ -12,6 +12,10 @@
 // "休" 相当の No 表記。OCR は "休" を "保" / "㈱" と誤認することがある。
 const REST_NO = /[休保㈱]/;
 
+// 全角数字→半角（No 欄に数字があるかの判定用）
+const toHalfWidthDigits = (s) =>
+  String(s || '').replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
+
 // "1" → 1 / "貸1" → 1 / "" → null
 function parseNoInt(noStr) {
   if (noStr == null) return null;
@@ -75,7 +79,21 @@ export function rowsToDrive(rows) {
     const flags = row._flags || {};
     const noText = String(row['No'] || '').trim();
 
-    if (REST_NO.test(noText)) {
+    // 休憩行。「休」が読めていれば確実。
+    // 画質が悪いと「休」は 体 / 试 / 仕 などに化けて字では当てられない（実写真で確認）。
+    // ただし営業明細は固定様式なので、字を読まなくても行の形で分かる:
+    //   「No 欄に数字が無く、降車地・km・金額がどれも無く、時刻に滞在時間がある行」＝休憩。
+    // 番号が潰れた営業行は降車地や金額を持つので混ざらない。回送行も同じ形だが
+    // 乗車と降車が同時刻（滞在時間ゼロ）なので、そこで分ける。
+    const isRestByShape =
+      !/[0-9]/.test(toHalfWidthDigits(noText)) &&
+      !String(row['降車地'] || '').trim() &&
+      !parseAmount(row['合計']) &&
+      !parseKm(row['営Km']) &&
+      String(row['乗車地'] || '').trim() &&
+      hasElapsed(row['乗車'], row['降車']);
+
+    if (REST_NO.test(noText) || isRestByShape) {
       rests.push({
         startTime: row['乗車'] || '',
         endTime: row['降車'] || '',
@@ -121,7 +139,56 @@ export function rowsToDrive(rows) {
   correctTripNumbers(revenueTrips);
   // 読めなかった No（パンチ穴で潰れた等）を前後から補完する。
   fillMissingTripNumbers(revenueTrips, revenueNoTexts);
+  // 画質が悪く No 列がまとめて読めない写真向け。並び順どおりに振り直す。
+  renumberTripsByOrder(revenueTrips, revenueNoTexts);
   return { trips: revenueTrips, rests };
+}
+
+// "8:43" と "15:00" のように、経過時間があるか（同時刻・空なら false）。
+function hasElapsed(start, end) {
+  const m = (s) => {
+    const t = String(s || '').match(/(\d{1,2})[:：](\d{2})/);
+    return t ? parseInt(t[1], 10) * 60 + parseInt(t[2], 10) : null;
+  };
+  const a = m(start), b = m(end);
+  if (a == null || b == null) return false;
+  return a !== b;
+}
+
+/**
+ * 営業トリップの No を「並び順」で振り直す（破壊的）。
+ *
+ * 営業明細の No は必ず 1..N の連番で、行の並び順と一致する固定様式。よって
+ * 大半の行で「No＝並び順」が成り立っていれば、読めなかった行・誤読した行も
+ * 並び順から確定できる（画質が悪いと No 列は本文より先に潰れるため有効）。
+ *
+ * ただし行そのものを取りこぼしていると並び順と番号が系統的にずれる。その場合は
+ * 一致率が下がるので触らない（誤った番号を作らない）。
+ *
+ * @param {Array<{no:number|null}>} trips 順序通りの営業トリップ配列
+ * @returns {Array} 同じ配列
+ */
+export function renumberTripsByOrder(trips, noTexts) {
+  if (!Array.isArray(trips) || trips.length < 5) return trips;
+  const texts = Array.isArray(noTexts) ? noTexts : [];
+  // 貸切行(貸1)とキャンセル行(キ)は本表の 1..N 連番に参加しないので対象外。
+  const eligible = [];
+  for (let i = 0; i < trips.length; i++) {
+    if (trips[i] && trips[i].isCharter) continue;
+    if (/キ/.test(String(texts[i] || ''))) continue;
+    eligible.push(i);
+  }
+  if (eligible.length < 5) return trips;
+  let readable = 0, aligned = 0;
+  eligible.forEach((idx, k) => {
+    if (!Number.isFinite(trips[idx] && trips[idx].no)) return;
+    readable++;
+    if (trips[idx].no === k + 1) aligned++;
+  });
+  // 読めた番号が少なすぎる、または並び順と合っていない（＝行の欠落が疑われる）なら触らない。
+  if (readable < 4 || aligned / readable < 0.7) return trips;
+  eligible.forEach((idx, k) => { trips[idx].no = k + 1; });
+  return trips;
 }
 
 /**

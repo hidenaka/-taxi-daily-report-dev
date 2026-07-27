@@ -45,7 +45,8 @@ test("見出しが読めない写真でも明細を復元する", () => {
   // ETC明細（入口/出口/料金）を営業に数えていないこと。
   // この写真では「ETC明細」「預り金」の見出しも読めないため、本文の帯の下で切っている。
   assert.ok(trips.every((t) => /[区市]/.test(t.boardPlace)), "ETC明細の行が混ざっていない");
-  assert.ok(rests.length <= 4, "休憩が過剰に作られていない");
+  assert.equal(rests.length, 4, "休憩4回（用紙どおり。「休」の字は 体/试/仕 と誤読されるが行の形で拾う）");
+  assert.deepEqual(rests.map((r) => r.startTime), ["13:44", "20:45", "23:48", "2:07"]);
 });
 
 test("fitGridFromBody: 明細らしくない box 群では枠を作らない（誤検出しない）", () => {
