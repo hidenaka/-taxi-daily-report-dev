@@ -3,6 +3,7 @@
 // モデルは functions/models/ に同梱（コールドスタートで外部fetchしない）。
 // 設定は ocr-spike/run-paddle-v5.mjs（97-98%実証済）と同一。
 import { PaddleOcrService } from "ppu-paddle-ocr";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,6 +18,18 @@ const MODEL_FILES = {
 
 let service = null;
 let headerService = null;
+let rawDict = null;
+
+/**
+ * 復号辞書（ppocrv5_dict.txt の行配列）。英字禁止の再読み取りで使う。
+ * ライブラリの parseDictionary と同じ規則（\r?\n で分割）で読む。
+ */
+export function getRawDictionary() {
+  if (!rawDict) {
+    rawDict = readFileSync(MODEL_FILES.charactersDictionary, "utf8").split(/\r?\n/);
+  }
+  return rawDict;
+}
 
 /**
  * 表OCR用サービスを初期化。関数インスタンス内で1回だけ。以降は再利用。
