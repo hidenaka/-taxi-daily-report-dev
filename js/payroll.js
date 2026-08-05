@@ -1,8 +1,22 @@
 const TAX_RATE = 1.1;
 
+// その乗務の売上が「概算」か。
+// 日報の写真が読めなかったときの「合計のみ」入力は、明細が無く総額を手で入れる。
+// 金額そのものは実績だが明細に基づかないので、集計表示ではそれと分かるようにする。
+//
+// _summaryOnly が無くても「明細ゼロ＋総額あり」なら概算として扱う。過去に一度入って
+// revert された「合計のみ」モードの記録やフラグが落ちた記録を、売上0として取りこぼさない
+// ため（0扱いだと合計から消えるのに出番数だけ増え、1乗務平均が下がる）。
+export function isApproxSales(drive) {
+  if (!drive) return false;
+  if (drive._summaryOnly === true) return true;
+  const hasTrips = Array.isArray(drive.trips) && drive.trips.length > 0;
+  return !hasTrips && (Number(drive.totalSales) || 0) > 0;
+}
+
 export function calcDailySales(drive) {
   // 合計のみ日報（OCR失敗時のフォールバック入力）: 明細が無いので totalSales をそのまま売上とする。
-  const inclTax = drive._summaryOnly === true
+  const inclTax = isApproxSales(drive)
     ? (Number(drive.totalSales) || 0)
     : (drive.trips || [])
         .filter(t => !t.isCancel)

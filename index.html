@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<!-- 拡大禁止(maximum-scale=1)は外す: 文字が小さいときに指で拡大できるようにするため -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cabis（キャビス）｜ タクシー乗務員のための業務支援アプリ</title>
 <!-- コールドスタート高速化: Firebase SDK/バックエンドへの接続とダウンロードを HTML パース時点から先行させる。
      従来はローカル JS を firebase-init.js まで5階層たどった後に初めて gstatic CDN の巨大な
@@ -180,7 +181,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue, saveConfig } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
 import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
@@ -461,6 +462,13 @@ async function render(drivesPromise) {
   // 月度合計営収+1乗務平均(税込、実績ベース) — 給与関連は車種混在の合算
   const monthly = calcMonthlySales(rawDrives);
   const avgSalesIncl = actualResult.shiftCount > 0 ? monthly.inclTax / actualResult.shiftCount : 0;
+  // 「合計のみ（概算）」で入れた乗務が何件・いくら混ざっているか（月度全体）
+  const approxDrives = rawDrives.filter(isApproxSales);
+  const approxCount = approxDrives.length;
+  const approxIncl = approxDrives.reduce((s, d) => s + calcDailySales(d).inclTax, 0);
+  const approxBadge = approxCount > 0
+    ? ` <span class="badge" style="font-size:9px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">概算${approxCount}乗務・${formatYen(approxIncl)}を含む</span>`
+    : '';
   // 1〜11乗務目までの税抜平均営収(歩率判定用)。歩率は11乗務目までの平均で決まる(車種混在)
   const FIRST_N_FOR_RATE = 11;
   const sortedForRate = [...rawDrives].sort((a, b) => a.date.localeCompare(b.date)).slice(0, FIRST_N_FOR_RATE);
@@ -474,10 +482,11 @@ async function render(drivesPromise) {
   const shiftCountText = `${actualResult.shiftCount}${isCurrent || isFuture ? ` / ${respShifts}` : ''} 出番${paidBadge}`;
   // 折りたたみ「営収・1出番平均」の行（実績あり時のみ）
   const salesRows = actualResult.shiftCount > 0 ? `
-      <div class="kv"><div>月度合計 営収(税込)</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
+      <div class="kv"><div>月度合計 営収(税込)${approxBadge}</div><div><strong>${formatYen(monthly.inclTax)}</strong></div></div>
       <div class="kv"><div>月度合計 営収(税抜)</div><div><strong>${formatYen(monthly.exclTax)}</strong></div></div>
-      <div class="kv"><div>1乗務平均 営収(税込)</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
+      <div class="kv"><div>1乗務平均 営収(税込)${approxBadge}</div><div><strong>${formatYen(avgSalesIncl)}</strong></div></div>
       <div class="kv"><div>1乗務平均 営収(税抜・1〜${FIRST_N_FOR_RATE}乗務)<span class="badge" style="font-size:9px;background:#e3f2fd;color:#1565c0;">歩率判定</span></div><div><strong>${formatYen(avgFirstNExcl)}</strong>${firstNCount < FIRST_N_FOR_RATE ? ` <span class="muted" style="font-size:10px;">(${firstNCount}/${FIRST_N_FOR_RATE}乗務)</span>` : ''}</div></div>
+      ${approxCount > 0 ? `<p class="muted" style="font-size:11px;margin:6px 0 0;">概算＝日報の写真が読めず「合計のみ」で登録した乗務です。金額は合計・平均に含めています（明細ごとの分析には出ません）。</p>` : ''}
   ` : '';
 
   if (isPast || rawDrives.length >= respShifts) {
@@ -882,6 +891,16 @@ function selectedMetricIds() {
     : ((DEFAULT_CONFIG.homeMetrics && DEFAULT_CONFIG.homeMetrics.selected) || []);
 }
 
+// 「合計のみ（概算）」で入れた乗務が混ざっている数値に付ける注記。
+// 日報の写真が読めなかった日は明細が無く、売上は手入力の総額。金額は合計に
+// 入れたうえで、精緻な実績と見分けが付くようにここで明示する。
+function approxNote(v, opts = {}) {
+  const n = v && v.approxCount;
+  if (!(n > 0)) return '';
+  const amount = (opts.withAmount && v.approxIncl > 0) ? `・${formatYen(v.approxIncl)}` : '';
+  return ` <span class="badge" style="font-size:9px;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;">概算${n}乗務${amount}を含む</span>`;
+}
+
 // 「あなたの数値」カード: 選択された数値をグループ見出し付きで並べる。
 // values = resolveMetrics(...) の返り値。selectedIds = config.homeMetrics.selected。
 function renderMyMetricsCard(values, selectedIds) {
@@ -915,13 +934,13 @@ function renderMyMetricsCard(values, selectedIds) {
         if (inclV && exclV) num = `${formatYen(inclV.value)} <span style="color:#888;font-size:12px;">/ ${formatYen(exclV.value)}(税抜)</span>`;
         else if (inclV) num = formatYen(inclV.value);
         else if (exclV) num = `${formatYen(exclV.value)}(税抜)`;
-        rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}</div>
+        rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}${approxNote(inclV || exclV, { withAmount: true })}</div>
           <div style="font-size:18px;font-weight:800;">${num}</div></div>`;
         if (incl) rendered.add(incl.id);
         if (excl) rendered.add(excl.id);
         continue;
       }
-      rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}</div>
+      rows += `<div style="margin:6px 0;"><div style="font-size:11px;color:#666;">${m.label}${approxNote(v)}</div>
         <div style="font-size:18px;font-weight:800;">${m.id === 'month.rate' ? (v.value * 100).toFixed(1) + '%' : formatYen(v.value)}</div></div>`;
       rendered.add(m.id);
     }

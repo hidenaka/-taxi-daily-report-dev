@@ -1,7 +1,7 @@
 // js/home-metrics.js
 // ホーム「あなたの数値」カードの算出。責任出番(1〜11)と公出(12〜)を必ず分離する。
 // 算出は payroll.js の純関数を再利用し、表示用の値のみを返す（DOM非依存）。
-import { calcDailySales, requiredUniformSales, calcTotalPay, predictMonthly } from './payroll.js';
+import { calcDailySales, isApproxSales, requiredUniformSales, calcTotalPay, predictMonthly } from './payroll.js';
 
 // 責任出番の上限（法律上11。12以降は公出＝固定歩率）
 export const RESP_CAP = 11;
@@ -13,17 +13,22 @@ export function splitDrives(drives) {
 }
 
 // 売上集計: 合計(税込/税抜)・平均(税込/税抜)・出番数
+// approxCount / approxIncl は「合計のみ（概算）で入れた乗務」の件数と金額。
+// 金額は従来どおり合計に含めたうえで、どれだけ概算が混ざっているかを併せて返す。
 export function salesAggregate(subset) {
   const arr = Array.isArray(subset) ? subset : [];
   const totalIncl = arr.reduce((s, d) => s + calcDailySales(d).inclTax, 0);
   const totalExcl = totalIncl / 1.1;
   const count = arr.length;
+  const approx = arr.filter(isApproxSales);
   return {
     count,
     totalIncl,
     totalExcl,
     avgIncl: count ? totalIncl / count : 0,
     avgExcl: count ? totalExcl / count : 0,
+    approxCount: approx.length,
+    approxIncl: approx.reduce((s, d) => s + calcDailySales(d).inclTax, 0),
   };
 }
 
@@ -114,27 +119,32 @@ export function resolveMetrics(drives, config, periodStart, periodEnd, plannedSh
 
   const out = {};
   const set = (id, value, tax) => { out[id] = { value, tax: tax ?? null }; };
+  // 売上系の数値には「概算が何件・いくら混ざっているか」を添える。
+  // 表示側でそれと分かるようにするため（金額自体は従来どおり含めた値）。
+  const setSales = (id, value, tax, agg) => {
+    out[id] = { value, tax: tax ?? null, approxCount: agg.approxCount, approxIncl: agg.approxIncl };
+  };
 
-  set('resp.total.incl', ra.totalIncl, 'incl');
-  set('resp.total.excl', ra.totalExcl, 'excl');
-  set('resp.avg.incl', ra.avgIncl, 'incl');
-  set('resp.avg.excl', ra.avgExcl, 'excl');
+  setSales('resp.total.incl', ra.totalIncl, 'incl', ra);
+  setSales('resp.total.excl', ra.totalExcl, 'excl', ra);
+  setSales('resp.avg.incl', ra.avgIncl, 'incl', ra);
+  setSales('resp.avg.excl', ra.avgExcl, 'excl', ra);
   set('resp.needTotal.incl', need.totalIncl, 'incl');
   set('resp.needTotal.excl', need.totalExcl, 'excl');
   set('resp.needPer.incl', need.perShiftIncl, 'incl');
   set('resp.needPer.excl', need.perShiftExcl, 'excl');
   out['resp.takehome'] = { tax: null, ...L.resp.takehome };
 
-  set('kosyutsu.total.incl', ka.totalIncl, 'incl');
-  set('kosyutsu.total.excl', ka.totalExcl, 'excl');
-  set('kosyutsu.avg.incl', ka.avgIncl, 'incl');
-  set('kosyutsu.avg.excl', ka.avgExcl, 'excl');
+  setSales('kosyutsu.total.incl', ka.totalIncl, 'incl', ka);
+  setSales('kosyutsu.total.excl', ka.totalExcl, 'excl', ka);
+  setSales('kosyutsu.avg.incl', ka.avgIncl, 'incl', ka);
+  setSales('kosyutsu.avg.excl', ka.avgExcl, 'excl', ka);
   out['kosyutsu.takehome'] = { tax: null, reaches: L.kosyutsu.reaches, ...L.kosyutsu.takehome };
 
   out['month.gross'] = { tax: null, ...L.month.gross };
   out['month.takehome'] = { tax: null, ...L.month.takehome };
-  set('month.total.incl', ma.totalIncl, 'incl');
-  set('month.total.excl', ma.totalExcl, 'excl');
+  setSales('month.total.incl', ma.totalIncl, 'incl', ma);
+  setSales('month.total.excl', ma.totalExcl, 'excl', ma);
   out['month.rate'] = { tax: null, value: L.month.rate };
 
   return out;
