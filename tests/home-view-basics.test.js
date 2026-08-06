@@ -50,3 +50,18 @@ test('ホームに「概算を含む」表示のための実装がある', () =>
   assert.ok(/approxCount/.test(src), '概算件数を参照している');
   assert.ok(/概算/.test(src), '「概算」の文言がある');
 });
+
+test('日別表: 1乗務平均の金額は全乗務ぶん（概算を分母から外さない）', () => {
+  const src = html('index.html');
+  // 修正前は detIncl / detDays（＝明細ありの乗務だけ）で平均を出しており、
+  // 合計(全乗務)と平均(明細のみ)で母集団が食い違っていた。
+  assert.ok(!/formatYen\(detIncl \/ detDays\)/.test(src), '平均税込が明細のみになっていない');
+  assert.ok(!/formatYen\(detExcl \/ detDays\)/.test(src), '平均税抜が明細のみになっていない');
+  assert.ok(/formatYen\(totalIncl \/ allDays\)/.test(src), '平均税込は全乗務ぶん');
+  assert.ok(/formatYen\(totalExcl \/ allDays\)/.test(src), '平均税抜は全乗務ぶん');
+});
+
+test('日別表: 明細のみの集計であることを説明する凡例がある', () => {
+  const src = html('index.html');
+  assert.ok(/明細のある\$\{detDays\}乗務ぶん/.test(src), '件数や時間の分母を明示している');
+});

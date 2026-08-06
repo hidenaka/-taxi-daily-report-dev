@@ -1243,6 +1243,8 @@ function renderSummaryTable(drives) {
   }
 
   let totalIncl = 0, totalExcl = 0, totalKm = 0;
+  const allDays = dailyAgg.length;
+  const approxDays = dailyAgg.filter(a => a.summary).length;
   let detIncl = 0, detExcl = 0, detCount = 0, detDays = 0, detKm = 0, detTripMin = 0, detTotalMin = 0, detRestMin = 0;
   const periodTotals = {};
   for (const k of PKEYS) periodTotals[k] = 0;
@@ -1294,7 +1296,7 @@ function renderSummaryTable(drives) {
         <tbody>
           ${rows}
           <tr class="total">
-            <td class="date">合計</td>
+            <td class="date">合計${approxDays > 0 ? `<span class="badge" style="font-size:9px;padding:0 4px;background:#fff3e0;color:#e65100;margin-left:3px;">概算${approxDays}含</span>` : ''}</td>
             <td>${detCount}</td>
             <td>${formatYen(totalIncl)}</td>
             <td>${formatYen(totalExcl)}</td>
@@ -1310,8 +1312,8 @@ function renderSummaryTable(drives) {
           <tr class="total" style="background:#fff8e1;">
             <td class="date">1乗務平均</td>
             <td>${(detCount / detDays).toFixed(1)}</td>
-            <td>${formatYen(detIncl / detDays)}</td>
-            <td>${formatYen(detExcl / detDays)}</td>
+            <td>${formatYen(totalIncl / allDays)}</td>
+            <td>${formatYen(totalExcl / allDays)}</td>
             ${PKEYS.map(k => `<td>${periodTotals[k] > 0 ? formatYen(periodTotals[k] / detDays) : '—'}</td>`).join('')}
             <td>${(detKm / detDays).toFixed(1)}</td>
             <td>${formatMin(detTotalMin / detDays)}</td>
@@ -1323,6 +1325,7 @@ function renderSummaryTable(drives) {
         </tbody>
       </table>
     </div>
+    ${approxDays > 0 ? `<p class="muted" style="font-size:11px;margin:6px 0 0;">「概」＝日報の写真が読めず合計のみで登録した乗務（${approxDays}件）。金額（税込・税抜）は合計にも1乗務平均にも含めています。件数・時間帯別・実車km・時間・時間単価は明細のある${detDays}乗務ぶんだけの集計です。</p>` : ''}
   `;
 }
 
