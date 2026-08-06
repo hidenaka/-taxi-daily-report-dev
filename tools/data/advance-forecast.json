@@ -1,8 +1,8 @@
 {
   "schema_version": 4,
-  "generatedAt": "2026-08-07T03:12:00+09:00",
+  "generatedAt": "2026-08-07T04:21:00+09:00",
   "note": "15分あたりの列移動回数(相対指標)。計測の都合で実際より少なめに出る。出庫台数=列移動回数×横台数(rowWidth)。",
-  "trainedRows": 6038,
+  "trainedRows": 6043,
   "flightApplied": true,
   "learnedLag": {
     "stall1": {
@@ -37,7 +37,7 @@
     "stall4": 8
   },
   "current": {
-    "time": "03:12",
+    "time": "04:21",
     "stalls": {
       "stall1": {
         "actual": 0,
@@ -52,12 +52,12 @@
       "stall3": {
         "actual": 0,
         "departure": 0,
-        "forecast": 0.1
+        "forecast": 0
       },
       "stall4": {
         "actual": 0,
         "departure": 0,
-        "forecast": 0.1
+        "forecast": 0.6
       }
     }
   },
@@ -312,6 +312,111 @@
         "rainRate": 0.168,
         "nightRate": 1,
         "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "03:00",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2533,
+        "rainRate": 0.186,
+        "nightRate": 1,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "03:15",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2546,
+        "rainRate": 0.158,
+        "nightRate": 1,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "03:30",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2545,
+        "rainRate": 0.19,
+        "nightRate": 1,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "03:45",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2550,
+        "rainRate": 0.17,
+        "nightRate": 1,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "04:00",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2515,
+        "rainRate": 0.154,
+        "nightRate": 0.942,
+        "imageQcLowRate": 0.925
       }
     }
   ],
@@ -583,7 +688,7 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2528,
+        "sampleRows": 2533,
         "rainRate": 0.186,
         "nightRate": 1,
         "imageQcLowRate": 1
@@ -604,8 +709,8 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2515,
-        "rainRate": 0.159,
+        "sampleRows": 2546,
+        "rainRate": 0.158,
         "nightRate": 1,
         "imageQcLowRate": 1
       }
@@ -625,8 +730,8 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2513,
-        "rainRate": 0.192,
+        "sampleRows": 2545,
+        "rainRate": 0.19,
         "nightRate": 1,
         "imageQcLowRate": 1
       }
@@ -646,8 +751,8 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2518,
-        "rainRate": 0.171,
+        "sampleRows": 2550,
+        "rainRate": 0.17,
         "nightRate": 1,
         "imageQcLowRate": 1
       }
@@ -667,10 +772,10 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2483,
-        "rainRate": 0.156,
-        "nightRate": 0.941,
-        "imageQcLowRate": 0.924
+        "sampleRows": 2515,
+        "rainRate": 0.154,
+        "nightRate": 0.942,
+        "imageQcLowRate": 0.925
       }
     },
     {
@@ -688,10 +793,10 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2481,
-        "rainRate": 0.192,
-        "nightRate": 0.515,
-        "imageQcLowRate": 0.434
+        "sampleRows": 2495,
+        "rainRate": 0.191,
+        "nightRate": 0.518,
+        "imageQcLowRate": 0.437
       }
     },
     {

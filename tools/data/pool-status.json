@@ -1,31 +1,31 @@
 {
-  "generatedAt": "2026-08-07T03:12:03+09:00",
+  "generatedAt": "2026-08-07T04:20:29+09:00",
   "cameras": {
     "real01": {
-      "occ": 2,
+      "occ": 1,
       "fullRef": 45,
       "level": "empty"
     },
     "real02": {
-      "occ": 1,
+      "occ": 0,
       "fullRef": 8,
       "level": "empty"
     }
   },
   "total": {
-    "occ": 3,
+    "occ": 1,
     "level": "empty"
   },
   "activity": {
-    "recent1hDepartures": 5,
-    "typical1h": 5,
-    "ratio": 1,
-    "level": "normal",
-    "arrow": "flat",
+    "recent1hDepartures": 2,
+    "typical1h": 3,
+    "ratio": 0.67,
+    "level": "low",
+    "arrow": "down",
     "sameConditionCompare": {
       "peers_typical": 4,
-      "percent": 25,
-      "label": "いつもより活発",
+      "percent": -50,
+      "label": "いつもより少なめ",
       "dayLabel": "金曜平日"
     }
   },
@@ -70,9 +70,9 @@
       "waitMin": null,
       "trend": "flat",
       "sameConditionCompare": {
-        "peers_typical": 2,
-        "percent": -100,
-        "label": "いつもより少なめ",
+        "peers_typical": 0,
+        "percent": null,
+        "label": null,
         "dayLabel": "金曜平日"
       },
       "fillRate": 0,
@@ -81,17 +81,17 @@
     "stall4": {
       "label": "第4乗り場",
       "terminal": "T2",
-      "occ": 3,
-      "recent1hDep": 5,
-      "waitMin": 36,
-      "trend": "down",
+      "occ": 1,
+      "recent1hDep": 2,
+      "waitMin": 30,
+      "trend": "flat",
       "sameConditionCompare": {
-        "peers_typical": 4,
-        "percent": 25,
-        "label": "いつもより活発",
+        "peers_typical": 3,
+        "percent": -33,
+        "label": "いつもより少なめ",
         "dayLabel": "金曜平日"
       },
-      "fillRate": 0.4545,
+      "fillRate": 0.5455,
       "rankHint": "most-active"
     }
   },
@@ -101,20 +101,54 @@
       "next60": 0
     },
     "T2": {
-      "next30": 0,
-      "next60": 0
+      "next30": 5,
+      "next60": 9
     }
   },
   "terminalArrivalsList": {
     "T1": [],
-    "T2": []
+    "T2": [
+      {
+        "flightNumber": "NH159",
+        "airline": "ANA",
+        "fromName": "ニューヨーク",
+        "seatCount": 264,
+        "lobbyExitMinutes": 24,
+        "lobbyExitTime": "04:44"
+      },
+      {
+        "flightNumber": "NH105",
+        "airline": "ANA",
+        "fromName": "ロサンゼルス",
+        "seatCount": 215,
+        "lobbyExitMinutes": 40,
+        "lobbyExitTime": "05:00"
+      }
+    ]
   },
   "noribaArrivalsList": {
     "1": [],
     "2": [],
     "3": [],
-    "4": []
+    "4": [
+      {
+        "flightNumber": "NH159",
+        "airline": "ANA",
+        "fromName": "ニューヨーク",
+        "seatCount": 264,
+        "lobbyExitMinutes": 24,
+        "lobbyExitTime": "04:44"
+      },
+      {
+        "flightNumber": "NH105",
+        "airline": "ANA",
+        "fromName": "ロサンゼルス",
+        "seatCount": 215,
+        "lobbyExitMinutes": 40,
+        "lobbyExitTime": "05:00"
+      }
+    ]
   },
   "sourceStale": false,
-  "sourceStaleSince": "2026-08-07T03:11:47+09:00"
+  "sourceStaleSince": "2026-08-07T04:20:12+09:00"
 }
