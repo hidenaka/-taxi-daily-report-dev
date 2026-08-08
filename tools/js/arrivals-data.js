@@ -252,15 +252,36 @@ export function summarizeByNoriba(arrivals, nowDate, windowMin) {
 // 大幅遅延とみなす遅延分数の下限。
 export const BIG_DELAY_MIN = 30;
 
+// 到着予定がこの分数より過去の便は「大幅遅延」枠に出さない
+// (羽田APIが国際便のstatusを「到着」に更新しないまま何時間も残る実例があり、
+//  とっくに着いた便が到着予定として居座って下の便リストとズレる 2026-08-08報告)。
+export const TOPIC_PAST_GRACE_MIN = 30;
+
+// 日またぎ補正: HH:MM同士の引き算を [-720, 720) 分に正規化する。
+// 例) 定刻23:50→予定0:40 は -1390 ではなく +50分遅延。
+function wrapHalfDay(diffMin) {
+  if (diffMin < -720) return diffMin + 1440;
+  if (diffMin >= 720) return diffMin - 1440;
+  return diffMin;
+}
+
 // 大幅遅延便（予定より BIG_DELAY_MIN 分以上遅れている未到着便）を抽出する。
-export function detectTopics(flights) {
+// nowMinutes (0:00からの分) を渡すと、到着予定が TOPIC_PAST_GRACE_MIN 分より
+// 過去の便を除外し、並び順も「今から近い順」(日またぎ考慮) になる。
+export function detectTopics(flights, nowMinutes = null) {
   const topics = [];
   for (const f of flights) {
-    if (f.status === '到着') continue;
+    if (f.status === '到着' || f.status === '欠航') continue;
     const sched = timeToMinutes(f.scheduledTime);
     const est = timeToMinutes(f.estimatedTime ?? f.scheduledTime);
-    const delayMin = (sched !== null && est !== null) ? Math.max(0, est - sched) : 0;
+    const delayMin = (sched !== null && est !== null)
+      ? Math.max(0, wrapHalfDay(est - sched))
+      : 0;
     if (delayMin < BIG_DELAY_MIN) continue;
+    if (nowMinutes !== null && est !== null) {
+      const rel = wrapHalfDay(est - nowMinutes);
+      if (rel < -TOPIC_PAST_GRACE_MIN) continue; // 30分以上過去=表示しない
+    }
     topics.push({
       flightNumber: f.flightNumber,
       fromName: f.fromName,
@@ -272,7 +293,12 @@ export function detectTopics(flights) {
       estimatedPax: f.estimatedPax ?? null
     });
   }
-  topics.sort((a, b) => timeToMinutes(a.estimatedTime) - timeToMinutes(b.estimatedTime));
+  const sortKey = (t) => {
+    const m = timeToMinutes(t.estimatedTime);
+    if (m === null) return Infinity;
+    return nowMinutes !== null ? wrapHalfDay(m - nowMinutes) : m;
+  };
+  topics.sort((a, b) => sortKey(a) - sortKey(b));
   return topics;
 }
 

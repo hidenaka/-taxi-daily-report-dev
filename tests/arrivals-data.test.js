@@ -295,3 +295,61 @@ test('formatLaneDisplay: 確定=推定は確定号のみ', () => {
 test('formatLaneDisplay: 確定≠推定は 4→3', () => {
   assert.equal(formatLaneDisplay(4, 3), '4→3');
 });
+
+// --- detectTopics: 日またぎ + 現実性フィルタ (2026-08-09 追加) ---
+// 背景: (1) 定刻23:50→予定0:40 の日またぎ便が -1390分→0分扱いになり枠から漏れる
+// (2) 羽田APIが国際便のstatusを更新せず、着いたはずの便が何時間も「到着予定」で居座り
+//     下の便リスト(時間窓あり)とズレる (NH113 15:25→19:50 が21:30にも表示された実例)
+
+test('detectTopics: 日またぎ遅延(23:50→0:40)を50分遅延として拾う', () => {
+  const flights = [
+    { flightNumber: 'NH99', scheduledTime: '23:50', estimatedTime: '00:40' },
+  ];
+  const topics = detectTopics(flights);
+  assert.equal(topics.length, 1);
+  assert.equal(topics[0].delayMin, 50);
+});
+
+test('detectTopics: 到着予定が30分より過去の便は出さない(now指定時)', () => {
+  const now = 21 * 60 + 30; // 21:30
+  const flights = [
+    { flightNumber: 'STALE', scheduledTime: '15:25', estimatedTime: '19:50' }, // 100分過去
+    { flightNumber: 'RECENT', scheduledTime: '20:30', estimatedTime: '21:15' }, // 15分過去=猶予内
+    { flightNumber: 'FUTURE', scheduledTime: '21:20', estimatedTime: '22:20' },
+  ];
+  const topics = detectTopics(flights, now);
+  assert.deepEqual(topics.map(t => t.flightNumber), ['RECENT', 'FUTURE']);
+});
+
+test('detectTopics: now未指定なら従来どおり過去便も残る(後方互換)', () => {
+  const flights = [
+    { flightNumber: 'STALE', scheduledTime: '15:25', estimatedTime: '19:50' },
+  ];
+  assert.equal(detectTopics(flights).length, 1);
+});
+
+test('detectTopics: 深夜は日またぎ順に並ぶ(23:45 → 0:15)', () => {
+  const now = 23 * 60 + 30; // 23:30
+  const flights = [
+    { flightNumber: 'AFTER_MID', scheduledTime: '23:30', estimatedTime: '00:15' },
+    { flightNumber: 'BEFORE_MID', scheduledTime: '23:10', estimatedTime: '23:45' },
+  ];
+  const topics = detectTopics(flights, now);
+  assert.deepEqual(topics.map(t => t.flightNumber), ['BEFORE_MID', 'AFTER_MID']);
+});
+
+test('detectTopics: 日またぎ便は深夜0時台のnowでも未来扱いで残る', () => {
+  const now = 0 * 60 + 10; // 0:10
+  const flights = [
+    { flightNumber: 'NH99', scheduledTime: '23:50', estimatedTime: '00:40' },
+  ];
+  const topics = detectTopics(flights, now);
+  assert.equal(topics.length, 1);
+});
+
+test('detectTopics: 欠航便は出さない', () => {
+  const flights = [
+    { flightNumber: 'CXL', scheduledTime: '10:00', estimatedTime: '11:00', status: '欠航' },
+  ];
+  assert.equal(detectTopics(flights).length, 0);
+});

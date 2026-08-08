@@ -46,7 +46,8 @@ function render() {
     ? { windowHours: 19, windowLabel: '今日全体' }
     : { windowHours: 3.5, windowLabel: '直近3時間' };
   const summary = summarizeFlights(visible, summaryOpts);
-  const topics = detectTopics(all);
+  const nowT = new Date();
+  const topics = detectTopics(all, nowT.getHours() * 60 + nowT.getMinutes());
   // 出発地フィルタ select の options を visible から再構築し、選択中の出発地が
   // 現在の visible に無ければ state.originFilter を '' にリセットする。
   // フィルタ適用前に呼ぶ必要がある（reset を flightsToShow 計算に反映するため）。
