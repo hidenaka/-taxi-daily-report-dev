@@ -153,7 +153,7 @@ export function renderTopics(container, topics) {
   container.hidden = false;
   const items = topics.map(t => {
     const paxLabel = (t.estimatedPax !== null && t.estimatedPax !== undefined)
-      ? `約${t.estimatedPax}人`
+      ? (t.paxSource === 'notice' ? `約${t.estimatedPax}人(現地掲示)` : `約${t.estimatedPax}人`)
       : '推定不可';
     const detail = `${t.scheduledTime}→${t.estimatedTime} (${t.delayMin}分遅延) / ${paxLabel}`;
     // ターミナルの隣に号(poolLane 1-4)を併記。未確定は号を出さない。
@@ -282,7 +282,9 @@ function appendFlightRow(container, f) {
   const hasPax = f.estimatedPax !== null && f.estimatedPax !== undefined;
   const hasSeats = f.seatCount !== null && f.seatCount !== undefined;
   const paxLine = hasPax
-    ? `<span class="pax-est">推定搭乗 ${f.estimatedPax}人</span>`
+    ? (f.paxSource === 'notice'
+      ? `<span class="pax-est pax-notice">現地掲示 約${f.estimatedPax}人</span>`
+      : `<span class="pax-est">推定搭乗 ${f.estimatedPax}人</span>`)
       + (hasSeats ? `<span class="pax-max">（最大 ${f.seatCount}人）</span>` : '')
     : `<span class="pax-est">搭乗人数 推定不可</span>`;
   const statusIcon = isDelayed ? ' ⚠' : '';
@@ -356,7 +358,22 @@ export function renderPoolNotice(el, notice) {
     parts.push(`<div class="pn-tail">🚧 末尾規制：<b>${esc(notice.tailRegulation)}</b>（この末尾のみ入構可）</div>`);
   }
   if (notice.hasFlightNotice && notice.flightNoticeText) {
-    parts.push(`<div class="pn-flight"><div class="pn-h">🚖 タクシーセンター現地案内</div><pre class="pn-text">${esc(notice.flightNoticeText)}</pre></div>`);
+    // 構造化サマリ(lateFlights): 号別の未着人数・次便・客列をチップで先頭に出す
+    const sum = notice.lateFlights && notice.lateFlights.summary;
+    let chips = '';
+    if (sum) {
+      const items = [];
+      for (const lane of [1, 2, 3, 4]) {
+        const s = (sum.byStall || {})[lane];
+        const q = (sum.queue || {})[lane];
+        const bits = [];
+        if (s && s.pendingFlights > 0) bits.push(`未着${s.pendingFlights}便${s.pendingPax > 0 ? `・約${s.pendingPax}人` : ''}${s.nextEta ? `・次${esc(s.nextEta)}` : ''}`);
+        if (q != null) bits.push(`客列約${q}人`);
+        if (bits.length) items.push(`<span class="pn-chip pn-lane-${lane}">${lane}号 ${bits.join(' / ')}</span>`);
+      }
+      if (items.length) chips = `<div class="pn-chips">${items.join('')}</div>`;
+    }
+    parts.push(`<div class="pn-flight"><div class="pn-h">🚖 タクシーセンター現地案内</div>${chips}<pre class="pn-text">${esc(notice.flightNoticeText)}</pre></div>`);
   }
   el.innerHTML = parts.join('');
   el.hidden = false;
@@ -441,6 +458,11 @@ export function renderNoribaActivity(container, activity, opts = {}) {
           <div class="ns-chint">流れ＝列の進み具合。実線(今日)が薄い線(通常)より上＝通常より流れている。右へ行くほど先の時間。</div>
         </div>` : '';
     const nextF = a.demand && a.demand.nextFlight ? `次 ${_esc(a.demand.nextFlight.time)} ${_esc(a.demand.nextFlight.fromName)}` : '';
+    // 現地掲示(タクシーセンター)の深夜遅延便情報。号別の未着便・人数・客列を1行で。
+    const nt = a.notice;
+    const noticeRow = (nt && (nt.pendingFlights > 0 || nt.queue != null))
+      ? `<div class="ns-notice">🌙 現地掲示${nt.pendingFlights > 0 ? ` 未着${nt.pendingFlights}便${nt.pendingPax > 0 ? `・約${nt.pendingPax}人` : ''}${nt.nextEta ? `・次${_esc(nt.nextEta)}` : ''}` : ''}${nt.queue != null ? `・客列約${nt.queue}人` : ''}</div>`
+      : '';
     return `<div class="ns-card ${tcls}" data-noriba="${a.lane}">
       <div class="ns-top"><span class="no">${a.lane}</span><span class="term">${_esc(a.terminal)}</span><span class="last">${nextF}</span></div>
       <div class="ns-met">
@@ -448,6 +470,7 @@ export function renderNoribaActivity(container, activity, opts = {}) {
         ${occRow}
         ${flowRow}
       </div>
+      ${noticeRow}
       ${fwd}
       <div class="ns-detail" hidden>
         <h5>到着便（60分内）</h5>${flList}

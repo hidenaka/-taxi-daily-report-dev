@@ -1,4 +1,4 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap } from './arrivals-data.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
@@ -27,6 +27,8 @@ async function refresh() {
   try {
     state.arrivals = await loadArrivals();
     state.poolNotice = await loadPoolNotice();
+    // 現地掲示(lateFlights)の実数で深夜遅延便の人数・号を上書き(現地確定が正)
+    applyNoticeOverrides(state.arrivals?.flights ?? [], state.poolNotice?.lateFlights ?? null);
     state.forecast = (await loadAdvanceForecast()).data;
     state.poolStatus = (await loadPoolStatus()).data;
     // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。
@@ -61,9 +63,14 @@ function render() {
   renderPoolNotice(document.getElementById('pool-notice-banner'), state.poolNotice ?? null);
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
+  const noribaActs = buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date());
+  {
+    const laneNotice = buildLaneNoticeMap(state.poolNotice?.lateFlights ?? null);
+    for (const a of noribaActs) a.notice = laneNotice[a.lane] ?? null;
+  }
   renderNoribaActivity(
     document.getElementById('noriba-cards-section'),
-    buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date()),
+    noribaActs,
     { updatedLabel: (state.arrivals && state.arrivals.updatedAt) ? new Date(state.arrivals.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '' }
   );
   // 到着の谷間/手薄(遅延込みのロビー出が減る時間帯)。タブ非依存・全便で判定。

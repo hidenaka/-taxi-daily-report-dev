@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap } from '../tools/js/arrivals-data.js';
 
 // ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
 const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
@@ -352,4 +352,72 @@ test('detectTopics: 欠航便は出さない', () => {
     { flightNumber: 'CXL', scheduledTime: '10:00', estimatedTime: '11:00', status: '欠航' },
   ];
   assert.equal(detectTopics(flights).length, 0);
+});
+
+// --- 現地掲示(lateFlights)の上書き (2026-08-09 B実装) ---
+// 深夜遅延便は静的推定より現地掲示が正(実測35便でMAE97人・号も掲示が確定)。
+
+test('noticeNameToFlightNumber: 掲示の便名をIATA便名に変換', () => {
+  assert.equal(noticeNameToFlightNumber('ANA84 札幌便'), 'NH84');
+  assert.equal(noticeNameToFlightNumber('JAL920 沖縄便'), 'JL920');
+  assert.equal(noticeNameToFlightNumber('ソラシド26 沖縄便'), '6J26');
+  assert.equal(noticeNameToFlightNumber('エアドゥ38便'), 'HD38');
+  assert.equal(noticeNameToFlightNumber('SKY522　沖縄便'), 'BC522');
+  assert.equal(noticeNameToFlightNumber('全日空 深圳便'), null, '便番号なしはnull');
+  assert.equal(noticeNameToFlightNumber(null), null);
+});
+
+test('applyNoticeOverrides: 人数と号を上書きし元値を退避する', () => {
+  const flights = [
+    { flightNumber: 'NH084', status: '不明', estimatedPax: 304, poolLane: 3 },
+    { flightNumber: 'JL916', status: '不明', estimatedPax: 303, poolLane: 2 },
+  ];
+  const late = { flights: [
+    { name: 'ANA84 札幌便', pax: 71, stall: 4, arrived: false, eta: { text: '0:48' } },
+  ] };
+  const n = applyNoticeOverrides(flights, late);
+  assert.equal(n, 1);
+  const f = flights[0];
+  assert.equal(f.estimatedPax, 71);
+  assert.equal(f.estimatedPaxModel, 304);
+  assert.equal(f.paxSource, 'notice');
+  assert.equal(f.poolLane, 4);
+  assert.equal(f.poolLaneModel, 3);
+  assert.equal(f.noticeEta, '0:48');
+  assert.equal(flights[1].estimatedPax, 303, '非対象便は不変');
+});
+
+test('applyNoticeOverrides: 到着済み掲示・欠航便・掲示なしは無視', () => {
+  const flights = [
+    { flightNumber: 'NH84', status: '欠航', estimatedPax: 300 },
+    { flightNumber: 'JL920', status: '不明', estimatedPax: 300 },
+  ];
+  const late = { flights: [
+    { name: 'ANA84 札幌便', pax: 71, stall: 4, arrived: false },
+    { name: 'JAL920 沖縄便', pax: 356, stall: 1, arrived: true },
+  ] };
+  assert.equal(applyNoticeOverrides(flights, late), 0);
+  assert.equal(applyNoticeOverrides(flights, null), 0);
+  assert.equal(flights[1].estimatedPax, 300);
+});
+
+test('buildLaneNoticeMap: byStallとqueueを号別にまとめる', () => {
+  const late = { summary: {
+    byStall: { 3: { pendingPax: 500, pendingFlights: 2, nextEta: '0:40' } },
+    queue: { 3: 50, 2: 70 },
+  } };
+  const m = buildLaneNoticeMap(late);
+  assert.deepEqual(m[3], { pendingPax: 500, pendingFlights: 2, nextEta: '0:40', queue: 50 });
+  assert.deepEqual(m[2], { pendingPax: 0, pendingFlights: 0, nextEta: null, queue: 70 });
+  assert.equal(m[1], undefined);
+  assert.deepEqual(buildLaneNoticeMap(null), {});
+});
+
+test('detectTopics: 上書きされたpaxSourceがtopicに乗る', () => {
+  const flights = [
+    { flightNumber: 'NH84', scheduledTime: '23:05', estimatedTime: '00:48', estimatedPax: 71, paxSource: 'notice' },
+  ];
+  const topics = detectTopics(flights);
+  assert.equal(topics[0].paxSource, 'notice');
+  assert.equal(topics[0].delayMin, 103);
 });

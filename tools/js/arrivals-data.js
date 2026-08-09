@@ -290,7 +290,8 @@ export function detectTopics(flights, nowMinutes = null) {
       scheduledTime: f.scheduledTime,
       estimatedTime: f.estimatedTime ?? f.scheduledTime,
       delayMin,
-      estimatedPax: f.estimatedPax ?? null
+      estimatedPax: f.estimatedPax ?? null,
+      paxSource: f.paxSource ?? null
     });
   }
   const sortKey = (t) => {
@@ -481,3 +482,91 @@ export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Da
   });
 }
 
+
+// ── 現地掲示(lateFlights)による便情報の上書き ─────────────────────────
+// pool-notice.json の lateFlights (タクシーセンター掲示の自動構造化・2026-08-08〜) を
+// 到着便データに突き合わせる。深夜遅延便は静的推定より現地掲示が正:
+// 実測35便で推定搭乗人数のMAEは97人(振替集約/分散で±200人級のズレ)、号も掲示が確定情報。
+
+const NOTICE_CARRIER_TO_IATA = {
+  'JAL': 'JL', '日本航空': 'JL',
+  'ANA': 'NH', '全日空': 'NH',
+  'SKY': 'BC', 'スカイマーク': 'BC',
+  'ADO': 'HD', 'エアドゥ': 'HD',
+  'SFJ': '7G', 'スターフライヤー': '7G',
+  'ソラシド': '6J', 'SNA': '6J',
+};
+
+// 掲示の便名 ("ANA84 札幌便"/"JAL920 沖縄便"/"ソラシド26 沖縄便") → IATA便名 ("NH84")。
+// 便番号が無い名前 ("全日空 深圳便") は null。
+export function noticeNameToFlightNumber(name) {
+  const m = String(name ?? '').match(/(JAL|日本航空|ANA|全日空|SKY|スカイマーク|ADO|エアドゥ|SFJ|スターフライヤー|ソラシド|SNA)\s*(\d{1,4})/);
+  if (!m) return null;
+  const iata = NOTICE_CARRIER_TO_IATA[m[1]];
+  return iata ? iata + String(parseInt(m[2], 10)) : null;
+}
+
+const normalizeFlightNumber = (s) => {
+  const m = String(s ?? '').replace(/\s/g, '').match(/^([A-Z0-9]{2})0*(\d+)$/);
+  return m ? m[1] + m[2] : null;
+};
+
+// 掲示の未着便を便番号でマッチさせ、搭乗人数(f.estimatedPax)と号(f.poolLane)を上書きする。
+// 上書きした便には f.paxSource='notice' / f.noticeEta を付け、元の値は f.estimatedPaxModel /
+// f.poolLaneModel に退避する(表示側が「現地掲示」バッジと差分表示に使う)。到着済み掲示は無視。
+// 返り値: 上書きした便数。
+export function applyNoticeOverrides(flights, lateFlights) {
+  if (!Array.isArray(flights) || !lateFlights || !Array.isArray(lateFlights.flights)) return 0;
+  const byNumber = new Map();
+  for (const nf of lateFlights.flights) {
+    if (nf.arrived) continue;
+    const fno = noticeNameToFlightNumber(nf.name);
+    if (fno) byNumber.set(fno, nf);
+  }
+  if (byNumber.size === 0) return 0;
+  let count = 0;
+  for (const f of flights) {
+    if (f.status === '到着' || f.status === '欠航') continue;
+    const fno = normalizeFlightNumber(f.flightNumber);
+    const nf = fno ? byNumber.get(fno) : null;
+    if (!nf) continue;
+    if (typeof nf.pax === 'number' && nf.pax > 0) {
+      f.estimatedPaxModel = f.estimatedPax ?? null;
+      f.estimatedPax = nf.pax;
+      f.paxSource = 'notice';
+    }
+    if (Number.isInteger(nf.stall) && nf.stall >= 1 && nf.stall <= 4 && f.poolLane !== nf.stall) {
+      f.poolLaneModel = f.poolLane ?? null;
+      f.poolLane = nf.stall;
+      f.laneSource = 'notice';
+    }
+    if (nf.eta && nf.eta.text) f.noticeEta = nf.eta.text;
+    count += 1;
+  }
+  return count;
+}
+
+// 号別カードに出す現地掲示サマリ {1..4: {pendingPax, pendingFlights, nextEta, queue}}。
+// 掲示が無ければ {}。summary.byStall(未着集計) と queue(客列人数) を号別にまとめる。
+export function buildLaneNoticeMap(lateFlights) {
+  const out = {};
+  const summary = lateFlights && lateFlights.summary;
+  if (!summary) return out;
+  for (const [k, v] of Object.entries(summary.byStall || {})) {
+    const lane = parseInt(k, 10);
+    if (!Number.isInteger(lane) || lane < 1 || lane > 4) continue;
+    out[lane] = {
+      pendingPax: v.pendingPax || 0,
+      pendingFlights: v.pendingFlights || 0,
+      nextEta: v.nextEta || null,
+      queue: null,
+    };
+  }
+  for (const [k, q] of Object.entries(summary.queue || {})) {
+    const lane = parseInt(k, 10);
+    if (!Number.isInteger(lane) || lane < 1 || lane > 4) continue;
+    if (!out[lane]) out[lane] = { pendingPax: 0, pendingFlights: 0, nextEta: null, queue: null };
+    out[lane].queue = q;
+  }
+  return out;
+}
