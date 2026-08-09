@@ -209,6 +209,10 @@
     .ns-segs { display: flex; gap: 3px; }
     .ns-segs i { width: 14px; height: 8px; border-radius: 1.5px; background: #22242a; }
     .ns-segs i.on { background: #8a8f88; } .ns-segs i.hi { background: #b07a5e; }
+    /* 待機車両バーの「いつも」目盛り (2026-08-09) — 号ごとに普段の埋まり具合が違うため */
+    .ns-segs.has-tick { position: relative; padding-bottom: 11px; }
+    .ns-segs .tick { position: absolute; top: -2px; width: 2px; height: 12px; background: #e8c07a; transform: translateX(-1px); border-radius: 1px; }
+    .ns-segs .ticklab { position: absolute; top: 11px; font-size: 9px; color: #c8a86a; transform: translateX(-50%); white-space: nowrap; }
     .ns-trk { position: relative; height: 8px; border-radius: 2px; background: #1c1e23; }
     .ns-trk .fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: #6f736f; }
     .ns-trk .norm { position: absolute; top: -2px; width: 2px; height: 12px; background: #cfccc4; opacity: .65; }

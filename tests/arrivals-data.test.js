@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap, compareToTypical, buildNoribaActivity } from '../tools/js/arrivals-data.js';
 
 // ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
 const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
@@ -420,4 +420,33 @@ test('detectTopics: 上書きされたpaxSourceがtopicに乗る', () => {
   const topics = detectTopics(flights);
   assert.equal(topics[0].paxSource, 'notice');
   assert.equal(topics[0].delayMin, 103);
+});
+
+// --- 待機車両の「いつも」比較 (2026-08-09 表示基準の修正) ---
+// 同じ4段でも 2号(普段0.87)は少なめ・4号(普段0.50)は多め、と意味が真逆になる問題。
+
+test('compareToTypical: 普段との差(ポイント)で3段階に言い換える', () => {
+  assert.equal(compareToTypical(0.80, 0.50), 'いつもより多い');   // 4号の0.80
+  assert.equal(compareToTypical(0.80, 0.87), 'いつもどおり');     // 2号の0.80
+  assert.equal(compareToTypical(0.60, 0.87), 'いつもより少ない'); // 2号が空いている
+  assert.equal(compareToTypical(0.65, 0.57), 'いつもどおり');     // 差8pt=誤差内
+  assert.equal(compareToTypical(0.5, null), null);
+  assert.equal(compareToTypical(0.5, 0), null, '普段0は基準にしない');
+});
+
+test('buildNoribaActivity: typicalFillRate があれば目盛りと相対ラベルが付く', () => {
+  const arrivals = { flights: [] };
+  const poolStatus = { stalls: {
+    stall1: { fillRate: 0.80, typicalFillRate: 0.57, occ: 12 },
+    stall2: { fillRate: 0.80, typicalFillRate: 0.87, occ: 12 },
+    stall3: { fillRate: 0.50, occ: 8 },
+  } };
+  const acts = buildNoribaActivity(arrivals, null, poolStatus, new Date('2026-08-09T13:00:00+09:00'));
+  const l1 = acts.find(a => a.lane === 1), l2 = acts.find(a => a.lane === 2), l3 = acts.find(a => a.lane === 3);
+  assert.equal(l1.occupancy.typicalPct, 57);
+  assert.equal(l1.occupancy.vsTypical, 'いつもより多い', '4段でも1号は普段より多い');
+  assert.equal(l2.occupancy.typicalPct, 87);
+  assert.equal(l2.occupancy.vsTypical, 'いつもどおり', '同じ4段でも2号は普段どおり');
+  assert.equal(l3.occupancy.typicalPct, undefined, '基準が無い号は目盛りを出さない');
+  assert.equal(l3.occupancy.label, '並程度', '従来の量ラベルは残る');
 });

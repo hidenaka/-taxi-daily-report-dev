@@ -437,8 +437,11 @@ export function renderNoribaActivity(container, activity, opts = {}) {
     const flowRow = (mv.level != null)
       ? `<span class="ns-lab">流れ</span><div class="ns-trk"><div class="fill" style="width:${fill}%"></div>${mv.normalMarkerPct != null ? `<div class="norm" style="left:${mv.normalMarkerPct}%"></div><div class="normlab" style="left:${mv.normalMarkerPct}%">通常</div>` : ''}</div><span class="ns-val">${_esc(lvl)}</span>`
       : '';
-    const occRow = (a.occupancy && a.occupancy.label != null)
-      ? `<span class="ns-lab">待機車両</span><div class="ns-segs">${segs(a.occupancy.segments, a.occupancy.segments >= 4)}</div><span class="ns-val">${_esc(a.occupancy.label)}</span>`
+    // 待機車両: 量(段)＋「その号のいつも」の目盛り。号ごとに普段の埋まり具合が違うので
+    // 絶対量だけでは同じ4段が別の意味になる(2号は普段より少なめ/4号は多め)。
+    const oc = a.occupancy || {};
+    const occRow = (oc.label != null)
+      ? `<span class="ns-lab">待機車両</span><div class="ns-segs${oc.typicalPct != null ? ' has-tick' : ''}">${segs(oc.segments, oc.segments >= 4)}${oc.typicalPct != null ? `<div class="tick" style="left:${oc.typicalPct}%"></div><div class="ticklab" style="left:${oc.typicalPct}%">いつも</div>` : ''}</div><span class="ns-val">${_esc(oc.vsTypical || oc.label)}</span>`
       : '';
     const fwd = (mv.level != null && a.movement.curve)
       ? `<div class="ns-fwd">この先 <span class="ns-spark" data-spark="${(mv.sparkFuture || []).join(',')}" data-color="#8a8f88"></span> ${_esc(fwdText(mv.activeUntil))}<span class="ns-more">詳細 ›</span></div>`
@@ -468,11 +471,11 @@ export function renderNoribaActivity(container, activity, opts = {}) {
       <div class="ns-met">
         <span class="ns-lab">到着便</span><div class="ns-planes">${dots(a.demand.planeIcons)}</div><span class="ns-val">60分内 ${a.demand.flights60}便</span>
         ${occRow}
-        ${flowRow}
       </div>
       ${noticeRow}
       ${fwd}
       <div class="ns-detail" hidden>
+        ${flowRow ? `<h5>列の流れ（参考）</h5><div class="ns-met ns-met-detail">${flowRow}</div><div class="ns-chint">列移動は15分に0回のことが多く(実測85%)、短時間では差が出にくい指標です。下のグラフの形で傾向を見てください。</div>` : ''}
         <h5>到着便（60分内）</h5>${flList}
         ${curveBlock}
         ${last}

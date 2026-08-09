@@ -404,6 +404,16 @@ export function occupancyLabel(segments) {
   return segments <= 1 ? '少なめ' : (segments <= 3 ? '並程度' : '多め');
 }
 
+// 今の埋まり率と「その号・その時間帯の普段」を比べた言葉。
+// 差(パーセントポイント)で判定する — 比率だと普段が小さい号(4号)で過敏になるため。
+export function compareToTypical(fillRate, typical) {
+  if (typeof fillRate !== 'number' || typeof typical !== 'number' || typical <= 0) return null;
+  const diff = (fillRate - typical) * 100;
+  if (diff >= 15) return 'いつもより多い';
+  if (diff <= -15) return 'いつもより少ない';
+  return 'いつもどおり';
+}
+
 // 号別アクティビティ: 需要(summarizeByNoriba) ＋ 待機車両(pool-status) ＋ 動き(advance-forecast)。
 export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Date()) {
   const demand = summarizeByNoriba(arrivals, now, 60).lanes; // [lane1..4]
@@ -434,6 +444,12 @@ export function buildNoribaActivity(arrivals, forecast, poolStatus, now = new Da
     if (psStall && typeof psStall.fillRate === 'number') {
       const seg = fillRateSegments(psStall.fillRate);
       out.occupancy = { segments: seg, label: occupancyLabel(seg), vehicles: psStall.occ, fillPct: Math.round(psStall.fillRate * 100) };
+      // 「その号・その時間帯の普段」の目盛りと相対ラベル。号ごとに普段の埋まり具合が
+      // 大きく違う(昼 2号0.87 vs 4号0.50)ため、絶対量だけでは同じ見た目の意味が逆になる。
+      if (typeof psStall.typicalFillRate === 'number' && psStall.typicalFillRate > 0) {
+        out.occupancy.typicalPct = Math.round(psStall.typicalFillRate * 100);
+        out.occupancy.vsTypical = compareToTypical(psStall.fillRate, psStall.typicalFillRate);
+      }
     } else if (psStall && typeof psStall.occ === 'number') {
       const cap = STALL_CAPACITY[lane] || 16;
       const seg = occupancySegments(psStall.occ, cap);
