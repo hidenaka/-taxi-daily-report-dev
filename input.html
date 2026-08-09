@@ -6,6 +6,9 @@
 <title>入力 — タクシー日報分析</title>
 <link rel="stylesheet" href="css/style.css">
 <style>
+/* キャンセルだが補填あり(金額入り)の行 — 売上に入るので取り消し表現を弱める */
+tr.cancel-paid { opacity: 1 !important; }
+tr.cancel-paid td:first-child { color: #b8860b; font-weight: 700; }
 /* プレビュー表: 内容幅にして横スクロール、各セルを編集可能な入力欄にする */
 .preview-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .preview-table { width: auto; font-size: 12px; border-collapse: collapse; margin-top: 8px; }
@@ -401,9 +404,11 @@ function refreshPreviewSummary() {
   const rests = parsed.rests || [];
   const cancelCount = trips.filter(t => t.isCancel).length;
   const validCount = trips.length - cancelCount;
-  const totalSales = trips.filter(t => !t.isCancel).reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  // キャンセルでも金額が入っていれば売上に含める(タクシーチケット等の補填分)。
+  const totalSales = trips.reduce((s, t) => s + (Number(t.amount) || 0), 0);
+  const compCount = trips.filter(t => t.isCancel && (Number(t.amount) || 0) > 0).length;
   document.getElementById('previewSummary').innerHTML =
-    `<strong>${validCount}件</strong> ・ キャンセル ${cancelCount}件 ・ 休憩 ${rests.length}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
+    `<strong>${validCount}件</strong> ・ キャンセル ${cancelCount}件${compCount > 0 ? `(うち補填${compCount}件)` : ''} ・ 休憩 ${rests.length}回 ・ 売上 ¥${totalSales.toLocaleString()}（税込）`;
 }
 
 // 編集可能セル（td）を作る。編集は parsed の実体オブジェクトに即反映。
@@ -482,6 +487,12 @@ function renderPreview() {
       if (flags['No']) noTd.classList.add('low-confidence');
       noTd.textContent = t.isCharter && t.no != null ? '貸' + t.no
         : (t.no == null ? (t.isCancel ? 'キ' : '') : t.no);
+      // キャンセルでも金額があれば「補填あり=売上に入る」と分かるようにする
+      if (t.isCancel && (Number(t.amount) || 0) > 0) {
+        tr.classList.add('cancel-paid');
+        noTd.textContent = 'キ＋';
+        noTd.title = 'キャンセルだが金額あり(補填)。売上に計上されます';
+      }
       tr.appendChild(noTd);
       tr.appendChild(previewCell(t, 'boardTime', { flagKey: '乗車' }));
       tr.appendChild(previewCell(t, 'alightTime', { flagKey: '降車' }));

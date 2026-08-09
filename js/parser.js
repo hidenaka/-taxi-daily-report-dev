@@ -45,7 +45,10 @@ function parseClaudeRow(cells) {
     boardPlace: bp,
     alightPlace: ap,
     km: parseKm(km),
-    amount: isCancel ? 0 : parseAmount(amt),
+    // キャンセル料(400/500/1000)を根拠に判定した行は、その金額自体がキャンセル料なので0。
+    // 「キ」マーカー由来のキャンセルは明細に印字された金額をそのまま残す
+    // (タクシーチケット等の補填が印字されるケースで情報を捨てない 2026-08-10)。
+    amount: (isCancel && !isCancelMarker) ? 0 : parseAmount(amt),
     isPickup: pickup === '迎',
     isCharter,
     isCancel,
@@ -90,7 +93,10 @@ function parseGeminiRow(cells) {
     boardPlace: bp,
     alightPlace: ap,
     km: parseKm(km),
-    amount: isCancel ? 0 : parseAmount(amt),
+    // キャンセル料(400/500/1000)を根拠に判定した行は、その金額自体がキャンセル料なので0。
+    // 「キ」マーカー由来のキャンセルは明細に印字された金額をそのまま残す
+    // (タクシーチケット等の補填が印字されるケースで情報を捨てない 2026-08-10)。
+    amount: (isCancel && !isCancelMarker) ? 0 : parseAmount(amt),
     isPickup: pickup === '迎',
     isCharter,
     isCancel,

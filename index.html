@@ -1481,8 +1481,8 @@ async function renderTodayHint() {
       if (isSummaryOnly(d)) continue;
       if (d.date === today) continue;
       if (dowOf(d.date) === todayDow) {
-        const valid = (d.trips || []).filter(t => !t.isCancel);
-        const sales = valid.reduce((s,t) => s + (t.amount || 0), 0);
+        // 売上はキャンセルの補填分も含める(回数・kmとは別集計)
+        const sales = (d.trips || []).reduce((s,t) => s + (Number(t.amount) || 0), 0);
         if (sales > 0) samples.push(sales);
       }
     }

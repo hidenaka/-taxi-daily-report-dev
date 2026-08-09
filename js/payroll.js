@@ -14,13 +14,30 @@ export function isApproxSales(drive) {
   return !hasTrips && (Number(drive.totalSales) || 0) > 0;
 }
 
+// 1件の乗車が売上に計上する金額。
+// キャンセルは原則0だが、タクシーチケット等で営業収益が補填される場合があり、
+// その分は明細の金額欄に手入力される。入っていれば実収入なので計上する
+// (2026-08-10 本人要望。金額0のキャンセル=従来どおり売上ゼロで挙動不変)。
+// 営業回数・実車距離は「実際に走った」量なのでキャンセルを数えない — 呼び出し側は
+// 従来どおり isCancel で除外してよい。ここで扱うのは金額だけ。
+export function tripAmount(trip) {
+  if (!trip) return 0;
+  const amt = Number(trip.amount) || 0;
+  if (amt <= 0) return 0;
+  return amt; // キャンセルでも金額が入っていれば計上(補填分)
+}
+
+// キャンセルなのに金額が入っている=補填ありの乗車か。表示側のバッジ判定に使う。
+export function isCompensatedCancel(trip) {
+  return Boolean(trip && trip.isCancel && (Number(trip.amount) || 0) > 0);
+}
+
 export function calcDailySales(drive) {
   // 合計のみ日報（OCR失敗時のフォールバック入力）: 明細が無いので totalSales をそのまま売上とする。
   const inclTax = isApproxSales(drive)
     ? (Number(drive.totalSales) || 0)
     : (drive.trips || [])
-        .filter(t => !t.isCancel)
-        .reduce((sum, t) => sum + (t.amount || 0), 0);
+        .reduce((sum, t) => sum + tripAmount(t), 0);
   return {
     inclTax,
     exclTax: inclTax / TAX_RATE

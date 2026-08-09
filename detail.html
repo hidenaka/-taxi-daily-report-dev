@@ -417,9 +417,9 @@ function renderTripsTable(drive) {
       <td class="r">${dur}分</td>
       <td>${t.isPickup ? '迎車' : ''}${t.isCharter ? '貸' : ''}</td>
       <td class="place" title="${t.boardPlace}">${t.boardPlace}</td>
-      <td class="place" title="${t.alightPlace}">${t.alightPlace}${t.isCancel ? ' [×]' : ''}</td>
+      <td class="place" title="${t.alightPlace}">${t.alightPlace}${t.isCancel ? (Number(t.amount) > 0 ? ' [キャンセル・補填]' : ' [×]') : ''}</td>
       <td class="r">${(t.km || 0).toFixed(1)}</td>
-      <td class="r">${t.isCancel ? '—' : formatYen(t.amount)}</td>
+      <td class="r">${(t.isCancel && !(Number(t.amount) > 0)) ? '—' : formatYen(t.amount)}</td>
       <td class="r">${gapStr}</td>
     </tr>`;
   }).join('');

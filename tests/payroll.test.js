@@ -18,7 +18,8 @@ test('calcDailySales: trips のキャンセル除いた合計（税込）', () =
 test('calcMonthlySales: drives全体の合計', () => {
   const drives = [
     { trips: [{ amount: 50000, isCancel: false }] },
-    { trips: [{ amount: 60000, isCancel: false }, { amount: 500, isCancel: true }] }
+    // 金額0のキャンセルは売上ゼロ(補填ありは cancel-with-amount.test.js で担保)
+    { trips: [{ amount: 60000, isCancel: false }, { amount: 0, isCancel: true }] }
   ];
   const result = calcMonthlySales(drives);
   assert.equal(result.inclTax, 110000);

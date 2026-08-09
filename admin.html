@@ -701,7 +701,7 @@ document.getElementById('bulkParseBtn').onclick = () => {
   
   const okCount = parsedBulkReports.length;
   preview.innerHTML = `<strong>${okCount}日分</strong> 解析完了（${sections.length}日中）`;
-  preview.innerHTML += parsedBulkReports.map(r => `<div style="margin-top:4px;">• ${r.date}: ${r.trips.length}件 ¥${r.trips.filter(t=>!t.isCancel).reduce((s,t)=>s+(t.amount||0),0).toLocaleString()}</div>`).join('');
+  preview.innerHTML += parsedBulkReports.map(r => `<div style="margin-top:4px;">• ${r.date}: ${r.trips.length}件 ¥${r.trips.reduce((s,t)=>s+(Number(t.amount)||0),0).toLocaleString()}</div>`).join('');
   status.textContent = okCount > 0 ? '✓ 解析完了。保存ボタンを押してください' : '✗ 解析できたデータがありません';
   status.style.color = okCount > 0 ? 'green' : '#d32f2f';
   document.getElementById('bulkSaveBtn').disabled = okCount === 0;

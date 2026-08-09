@@ -32,11 +32,20 @@ test('calcDailySales: summary-only で totalSales が無ければ 0', () => {
   assert.equal(r.exclTax, 0);
 });
 
-test('calcDailySales: 明細ありは従来どおり trips 合計（回帰）', () => {
+test('calcDailySales: 明細ありは trips 合計（回帰）', () => {
+  const r = calcDailySales({
+    trips: [{ amount: 1000 }, { amount: 2000 }, { amount: 0, isCancel: true }]
+  });
+  assert.equal(r.inclTax, 3000, '金額0のキャンセルは売上ゼロ');
+});
+
+// 2026-08-10 仕様変更: キャンセルでも金額が入っていれば売上に計上する
+// (タクシーチケット等で営業収益が補填されるケース。詳細は cancel-with-amount.test.js)
+test('calcDailySales: 補填ありキャンセル(金額入り)は売上に含める', () => {
   const r = calcDailySales({
     trips: [{ amount: 1000 }, { amount: 2000 }, { amount: 500, isCancel: true }]
   });
-  assert.equal(r.inclTax, 3000);
+  assert.equal(r.inclTax, 3500);
 });
 
 test('calcMonthlySales: summary-only と明細ありが混在しても合算される', () => {
