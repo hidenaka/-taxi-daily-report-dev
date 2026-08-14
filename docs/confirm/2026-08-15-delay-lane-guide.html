@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>遅れた便はどこに並ぶか — 到着便ページの新表示</title>
+<style>
+  :root {
+    --ink: #1f2933; --sub: #52606d; --line: #e4e7eb;
+    --accent: #d97706; --accent-bg: #fef3c7;
+    --ok: #059669; --ok-bg: #ecfdf5;
+    --warn: #dc2626; --warn-bg: #fef2f2;
+    --info: #2563eb; --info-bg: #eff6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+    color: var(--ink); background: #faf9f7; line-height: 1.75; font-size: 15.5px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 32px 20px 80px; }
+  .kicker { color: var(--accent); font-weight: 700; letter-spacing: .12em; font-size: 12.5px; }
+  h1 { font-size: 26px; line-height: 1.4; margin: 6px 0 10px; }
+  .lede { color: var(--sub); font-size: 15px; margin-bottom: 14px; }
+  .tldr { background: var(--accent-bg); border-left: 4px solid var(--accent); padding: 14px 18px; border-radius: 8px; margin: 18px 0 26px; font-size: 15px; }
+  .tldr b { display: block; margin-bottom: 4px; }
+  figure { margin: 26px 0; }
+  figure img { width: 100%; max-width: 420px; display: block; margin: 0 auto; border-radius: 12px; border: 1px solid var(--line); }
+  figcaption { color: var(--sub); font-size: 12.5px; margin-top: 8px; text-align: center; }
+  h2 { font-size: 20px; margin: 40px 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  h3 { font-size: 16px; margin: 22px 0 6px; }
+  p { margin: 10px 0; }
+  ul { margin: 8px 0 8px 22px; }
+  li { margin: 4px 0; }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; background: #fff; }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: #f5f7fa; font-size: 13px; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .bad { color: var(--warn); font-weight: 700; }
+  .good { color: var(--ok); font-weight: 700; }
+  .callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; font-size: 14.5px; }
+  .callout.ok { background: var(--ok-bg); border-left: 4px solid var(--ok); }
+  .callout.info { background: var(--info-bg); border-left: 4px solid var(--info); }
+  .callout.warn { background: var(--warn-bg); border-left: 4px solid var(--warn); }
+  .decision { background: #fff; border: 2px solid var(--accent); border-radius: 14px; padding: 22px 24px; margin: 30px 0; }
+  .decision h2 { border: none; margin-top: 0; padding: 0; }
+  .opt { display: flex; gap: 12px; margin: 14px 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fafbfc; }
+  .opt.rec { border-color: var(--ok); background: var(--ok-bg); }
+  .opt .tag { font-weight: 800; font-size: 18px; color: var(--accent); min-width: 28px; }
+  .opt.rec .tag { color: var(--ok); }
+  .opt p { margin: 2px 0; font-size: 14px; }
+  .opt .head { font-weight: 700; font-size: 15px; }
+  .conclusion { background: #f5f7fa; border-radius: 10px; padding: 16px 20px; margin-top: 36px; font-size: 14.5px; }
+  .src { color: var(--sub); font-size: 12px; }
+  code { background: #eef1f5; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+  .badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+  .b-notice { background: #f5b942; color: #2a2410; }
+  .b-actual { background: #fff; color: #b8860b; border: 1px dashed #b8860b; }
+  .b-est { background: #fff; color: var(--sub); border: 1px solid #c9ced6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">タクシー日報アプリ / 到着便ページ</div>
+  <h1>遅れた便は「どこに並べばいいか」で出すようにしました</h1>
+  <p class="lede">ご依頼の件です。これまでの「大幅遅延便情報」は便を時刻順に並べるだけで、深夜に乗り場を選ぶときに知りたい<b>どの号に行けばいいか</b>が読み取れませんでした。<b>号を見出しにしてまとめ直し</b>、号の根拠（現地掲示／実績／推定）を1便ずつ明記しました。</p>
+
+  <div class="tldr">
+    <b>TL;DR（3行）</b>
+    ① 遅延便を<b>1号〜4号でグループ分け</b>し、号ごとに「何便・約何人・今の待機車両」を出す。<br>
+    ② 号の根拠を <span class="badge b-notice">現地掲示</span>＞<span class="badge b-actual">実績</span>＞<span class="badge b-est">推定</span> の順で決め、推定と違う号に着く便には<b>「ふだんは◯号」</b>を添える。<br>
+    ③ 実データで再生したら<b>重い欠陥が2つ見つかって直しました</b>（詳細は §3）。dev反映のコマンドと本番出荷の可否をご判断ください。
+  </div>
+
+  <figure>
+    <img src="images/overview-01.png" alt="号別にまとまった遅延便ガイドの実画面">
+    <figcaption>2026-06-26 の実データ（現地掲示14便が出ていた夜）を、実際のコードに通して描画したもの</figcaption>
+  </figure>
+
+  <h2>1. なぜ必要か — 5便に1便は「ふだんと違う号」に着く</h2>
+  <p>現地掲示で乗り場が確定した便と、アプリの静的推定（到着口から割り出す号）を突き合わせました。</p>
+  <div class="scroll">
+  <table>
+    <tr><th>突合できた便</th><th>推定と一致</th><th class="bad">推定と食い違い</th></tr>
+    <tr><td class="num">27便</td><td class="num good">21便（78%）</td><td class="num bad">6便（22%）</td></tr>
+  </table>
+  </div>
+  <p class="src">出典: 現地掲示の履歴（2026-06-26〜08-07）× 当時アプリが配信していた arrivals.json をgit履歴から復元して突合。</p>
+
+  <p>しかも食い違いは<b>必ず同じターミナルの隣の号どうし</b>でした。</p>
+  <div class="scroll">
+  <table>
+    <tr><th>食い違いの向き</th><th>件数</th><th>意味</th></tr>
+    <tr><td class="num">1号 ⇄ 2号</td><td class="num">3件</td><td>T1の中で入れ替わる</td></tr>
+    <tr><td class="num">3号 ⇄ 4号</td><td class="num">3件</td><td>T2の中で入れ替わる</td></tr>
+  </table>
+  </div>
+  <div class="callout info">
+    💡 <b>つまり「ターミナルだけ見て並ぶ」と2割は外す。</b>号まで当てる情報が要る、というのが数字で裏付けられました。
+  </div>
+
+  <h2>2. 何を出すか — 判断はあくまで乗務員</h2>
+  <p>号ごとに材料を並べるだけで、「◯号がおすすめ」とは言いません（乗り場カードと同じ方針）。</p>
+  <ul>
+    <li><b>号の見出し</b>：1号〜4号（順番は常に固定。乗り場は動かないので、見るたび同じ位置に）</li>
+    <li><b>その号に来る量</b>：◯便・約◯人（掲示があれば掲示の実数）</li>
+    <li><b>今の待機車両</b>：その号の「いつも」と比べた言葉（少なめ／いつもどおり／いつもより多い）</li>
+    <li><b>便ごとの根拠</b>：<span class="badge b-notice">現地掲示</span>＝タクシーセンターの掲示で確定／<span class="badge b-actual">実績</span>＝同じ便・同じ時間帯で実際に着いた号／<span class="badge b-est">推定</span>＝到着口からの目安</li>
+    <li><b>「ふだんは◯号」</b>：確定した号が推定と違うときだけ出る（＝上の22%のケース）</li>
+  </ul>
+  <div class="callout ok">
+    ✅ <b>根拠が弱いものは強く出しません。</b>実績は「同じ便・同じ時間帯で7割以上一致」した組合せだけ。割れている実績は表示に使いません（先日の是正と同じ基準）。
+  </div>
+
+  <h2>3. 実データで再生して見つけた欠陥（出荷前に修正済み）</h2>
+  <p>テストが緑になった後、掲示が14便出ていた夜（2026-06-26）を丸ごと再生しました。そこで初めて分かったことです。</p>
+
+  <h3>欠陥A：確定情報が消えて、推定だけが残っていた</h3>
+  <p>掲示に載っている便の多くは<b>「遅れ30分未満」</b>でした。旧来の「大幅遅延＝30分以上」で切ると、<b>確定した掲示の便が全部落ち、推定の便だけが残る</b>という逆転が起きていました。再生すると<b>8便中1便しか出ない</b>状態でした。</p>
+  <p>→ 掲示に載っている便は遅れ幅に関係なく必ず拾うよう修正。<b>1便 → 14便</b>に。</p>
+
+  <h3>欠陥B：掲示と推定が一致した便に「掲示で確定」の印が付いていなかった</h3>
+  <p>掲示の号を反映する処理が、<b>推定と違うときだけ</b>「掲示由来」の印を立てていました。一致しているときは印が無いので、後段から「掲示に載っている便」を見分けられませんでした。これが欠陥Aの直接の原因です。</p>
+
+  <h3>ついでに直したもの</h3>
+  <ul>
+    <li>到着予定が古いまま：APIが定刻のまま更新されない便がある（JL920 定刻22:00のまま／掲示は23:37）。掲示があれば<b>到着予定も遅れ分も掲示から数え直す</b>ように。</li>
+    <li>時刻表記の混在：API は <code>24:07</code>、掲示は <code>0:01</code>。同じ一覧に混ざると読めないので<b>時計表記に統一</b>。</li>
+    <li>3時間より先の遅延便は載せない（昼のうちから深夜便が出ていた）。ただし<b>件数は必ず表示</b>して黙って落とさない。</li>
+  </ul>
+
+  <div class="callout warn">
+    ⚠️ <b>教訓の再確認。</b>先日の実績タグ誤表示と同じで、<b>テストが緑でも実データを通すまで分からない欠陥</b>でした。今回は出荷前に実データ再生を必ず通す手順で見つけています。
+  </div>
+
+  <h2>4. 影響範囲と検証</h2>
+  <div class="scroll">
+  <table>
+    <tr><th>項目</th><th>内容</th></tr>
+    <tr><td>変わる画面</td><td>到着便ページの「大幅遅延便情報」ブロックのみ（号別ガイドに置き換え）</td></tr>
+    <tr><td>変わらないもの</td><td>乗り場の状況カード、便一覧、ヒートマップ、集計、日報側は一切変更なし</td></tr>
+    <tr><td>ターミナルタブ</td><td>ガイドはタブに依存しない（号1〜4はT1/T2をまたぐため。上の乗り場カードと同じ扱い）</td></tr>
+    <tr><td>テスト</td><td>到着便まわり <b>87緑</b>（+23本追加）／全体 <b>1026緑</b></td></tr>
+    <tr><td class="bad">既存の落ち</td><td>1件 <code>home-calendar-roster-day-off</code> は<b>この変更と無関係</b>（手を付けていない main でも同じく落ちることを確認済み）</td></tr>
+    <tr><td>実データ検証</td><td>掲示ありの夜（14便）と掲示なしの現在データ、両方で描画まで通して確認</td></tr>
+  </table>
+  </div>
+
+  <div class="decision">
+    <h2>🙋 ご判断ください</h2>
+    <p class="src">まずdevで実物を見てから決めていただくのが安全です。コマンドはそのまま貼れます。</p>
+
+    <div class="opt rec">
+      <div class="tag">A</div>
+      <div>
+        <p class="head">dev に上げて実機で見る（推奨）</p>
+        <p>下のコマンドを実行 → dev の到着便ページで見た目を確認。良ければ本番出荷を指示してください。</p>
+        <p><code>!~/work/taxi-dev/dpush.sh ~/work/taxi-delay-lane</code></p>
+      </div>
+    </div>
+    <div class="opt">
+      <div class="tag">B</div>
+      <div>
+        <p class="head">dev を飛ばして本番へ</p>
+        <p>深夜の掲示が出ている時間に間に合わせたい場合。実データ再生は済んでいますが、実機での見た目確認は本番が初になります。</p>
+      </div>
+    </div>
+    <div class="opt">
+      <div class="tag">C</div>
+      <div>
+        <p class="head">表示を直してから上げる</p>
+        <p>気になる点（言葉づかい・出す順番・情報量）を教えてください。直してから上げます。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="conclusion">
+    <b>まとめ（3行）</b><br>
+    遅延便を号別にまとめ直し、号の根拠（掲示／実績／推定）と「ふだんは◯号」を出すようにしました。<br>
+    実データ再生で「確定情報が落ちて推定だけ残る」重い欠陥を2つ見つけて修正済み（1便→14便）。<br>
+    到着便まわり87緑・全体1026緑。<b>A（devで確認）</b>をおすすめします。
+  </div>
+
+</div>
+</body>
+</html>
