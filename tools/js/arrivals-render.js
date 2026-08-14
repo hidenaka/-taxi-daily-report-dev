@@ -143,37 +143,73 @@ export function renderArrivalGap(container, gap) {
   }
 }
 
-export function renderTopics(container, topics) {
+// 遅延便を「並ぶ号」ごとにまとめて出す。時刻順に並べただけの一覧では
+// 「どこに並べばいいか」が読み取れないため、号を見出しにする(2026-08-15 本人要望)。
+// 号の根拠(現地掲示/実績/推定)は便ごとに明記する — 推定は外れることがあり、
+// 何を信じて並ぶかは乗務員が決める材料として出す。
+const BASIS_LABEL = { notice: '現地掲示', actual: '実績', estimate: '推定' };
+
+export function renderDelayLaneGuide(container, guide) {
   if (!container) return;
-  if (topics.length === 0) {
+  if (!guide || (guide.total === 0 && !guide.laterCount)) {
     container.innerHTML = '';
     container.hidden = true;
     return;
   }
   container.hidden = false;
-  const items = topics.map(t => {
-    const paxLabel = (t.estimatedPax !== null && t.estimatedPax !== undefined)
-      ? (t.paxSource === 'notice' ? `約${t.estimatedPax}人(現地掲示)` : `約${t.estimatedPax}人`)
-      : '推定不可';
-    const detail = `${t.scheduledTime}→${t.estimatedTime} (${t.delayMin}分遅延) / ${paxLabel}`;
-    // ターミナルの隣に号(poolLane 1-4)を併記。未確定は号を出さない。
-    const laneSuffix = (Number.isInteger(t.poolLane) && t.poolLane >= 1 && t.poolLane <= 4)
-      ? ` <span class="topic-lane lane-${t.poolLane}">${t.poolLane}号</span>` : '';
-    // 実績が推定と違う遅延便は、その旨を強めに出す(深夜の号選びを間違えると痛い)
-    const tla = t.laneActual;
-    const topicActual = (t.laneActualDiffers && tla)
-      ? ` <span class="topic-actual lane-${tla.stall}" title="過去の現地掲示の実績(${tla.n}回中)">実績${tla.stall}号</span>`
-      : '';
-    return `<div class="topic-item">
-      <span class="topic-flight">${t.flightNumber}</span>
-      <span class="topic-from">${t.fromName}</span>
-      <span class="topic-detail">${detail}</span>
-      <span class="topic-terminal">${t.terminal}${laneSuffix}${topicActual}</span>
+  const paxText = (t) => (typeof t.estimatedPax === 'number') ? `約${t.estimatedPax}人` : '人数不明';
+  // 到着便APIは深夜を "24:07"、現地掲示は "0:01" と書く。1つの一覧に混ざると読めないので
+  // ここでは時計どおりの表記(0:07)に揃える。
+  const clock = (s) => {
+    const m = String(s ?? '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return String(s ?? '');
+    const h = parseInt(m[1], 10);
+    return (h >= 24) ? `${h - 24}:${m[2]}` : `${h}:${m[2]}`;
+  };
+  const timeText = (t) => clock(t.displayTime ?? t.estimatedTime);
+  // 掲示に出ている便は遅れ幅が小さいこともある(0分を「0分遅れ」と書かない)
+  const delayText = (t) => (t.delayMin > 0) ? ` ・ ${t.delayMin}分遅れ` : '';
+  const flightRow = (t) => {
+    const basis = BASIS_LABEL[t.basis] || '';
+    const basisTitle = t.basis === 'actual' && t.basisN ? ` title="過去${t.basisN}回とも${t.lane}号"` : '';
+    const normal = (t.normalLane != null)
+      ? ` <span class="dg-normal">ふだんは${t.normalLane}号</span>` : '';
+    return `<div class="dg-fl">
+      <div class="dg-fl1">
+        <span class="t">${_esc(timeText(t))}</span>
+        <span class="f">${_esc(t.flightNumber)}</span>
+        <span class="o">${_esc(t.fromName)}</span>
+        <span class="b b-${t.basis}"${basisTitle}>${basis}</span>
+      </div>
+      <div class="dg-fl2">定刻${_esc(clock(t.scheduledTime))}${delayText(t)} ・ ${paxText(t)}${normal}</div>
+    </div>`;
+  };
+  const laneBlocks = guide.lanes.map((L) => {
+    const oc = L.occupancy || {};
+    const occText = oc.label ? `<span class="dg-occ">待機 ${_esc(oc.vsTypical || oc.label)}</span>` : '';
+    return `<div class="dg-lane dl-${L.lane}">
+      <div class="dg-top">
+        <span class="dg-no lane-${L.lane}">${L.lane}号</span>
+        <span class="dg-term">${_esc(L.terminal)}</span>
+        <span class="dg-sum">${L.count}便・約${L.pax}人</span>
+        ${occText}
+      </div>
+      ${L.flights.map(flightRow).join('')}
     </div>`;
   }).join('');
+  const unresolved = guide.unresolved.length
+    ? `<div class="dg-unknown">乗り場が分からない便: ${guide.unresolved
+        .map((t) => `${_esc(timeText(t))} ${_esc(t.flightNumber)}(${_esc(t.terminal || '?')})`).join(' / ')}</div>`
+    : '';
+  // 3時間より先の遅延便は載せないが、件数は必ず出す(黙って落とすと「これで全部」に見える)
+  const later = guide.laterCount
+    ? `<div class="dg-unknown">3時間より先の遅延便: あと${guide.laterCount}便</div>` : '';
   container.innerHTML = `
-    <div class="topic-header">⏰ 大幅遅延便情報 (${topics.length}件)</div>
-    ${items}
+    <div class="dg-hd">⏰ 遅れている便はどこに着くか (${guide.total}件)</div>
+    ${laneBlocks}
+    ${unresolved}
+    ${later}
+    <div class="dg-legend">現地掲示＝タクシーセンターの掲示で確定 ／ 実績＝同じ便・同じ時間帯で実際に着いた号 ／ 推定＝到着口からの目安</div>
   `;
 }
 

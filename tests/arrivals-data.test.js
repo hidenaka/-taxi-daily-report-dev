@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap, compareToTypical, buildNoribaActivity, laneTimeBand, lookupLaneActual, applyLaneActuals } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap, compareToTypical, buildNoribaActivity, laneTimeBand, lookupLaneActual, applyLaneActuals, resolveTopicLane, buildDelayLaneGuide, laneOccupancy } from '../tools/js/arrivals-data.js';
 
 // ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
 const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
@@ -582,4 +582,173 @@ test('lookupLaneActual: 便×時間帯で一貫した実績だけを表示する
   assert.equal(r.stall, 4);
   assert.equal(r.n, 2);
   assert.equal(r.basis, 'flight-band');
+});
+
+// --- 遅延便の「並ぶ乗り場」ガイド (2026-08-15) -----------------------------
+// 実測: 掲示で号が確定した27便のうち6便(22%)が静的推定と違う号だった。
+// 号の根拠(掲示>実績>推定)を取り違えると、乗務員が違う乗り場に並んでしまう。
+
+const topic = (o) => ({
+  flightNumber: 'NH84', fromName: '札幌', terminal: 'T2', poolLane: null,
+  scheduledTime: '23:05', estimatedTime: '0:48', delayMin: 103,
+  estimatedPax: 164, paxSource: null, laneSource: null, poolLaneModel: null,
+  laneActual: null, laneActualDiffers: false, ...o,
+});
+
+test('resolveTopicLane: 現地掲示があれば最優先(実績より強い)', () => {
+  const r = resolveTopicLane(topic({
+    laneSource: 'notice', poolLane: 4, poolLaneModel: 3,
+    laneActual: { stall: 2, n: 5, share: 1 },
+  }));
+  assert.equal(r.lane, 4);
+  assert.equal(r.basis, 'notice');
+  assert.equal(r.normalLane, 3, 'ふだんの号(推定)を残して差分を見せる');
+});
+
+test('resolveTopicLane: 実績は推定より優先し、推定を「ふだんの号」に残す', () => {
+  const r = resolveTopicLane(topic({ poolLane: 3, laneActual: { stall: 4, n: 2, share: 1 } }));
+  assert.equal(r.lane, 4);
+  assert.equal(r.basis, 'actual');
+  assert.equal(r.basisN, 2);
+  assert.equal(r.normalLane, 3);
+});
+
+test('resolveTopicLane: 実績と推定が同じなら「ふだんは」を出さない', () => {
+  const r = resolveTopicLane(topic({ poolLane: 4, laneActual: { stall: 4, n: 2, share: 1 } }));
+  assert.equal(r.lane, 4);
+  assert.equal(r.normalLane, null);
+});
+
+test('resolveTopicLane: 推定しか無ければ basis=estimate', () => {
+  const r = resolveTopicLane(topic({ poolLane: 1 }));
+  assert.deepEqual(r, { lane: 1, basis: 'estimate', basisN: null, normalLane: null });
+});
+
+test('resolveTopicLane: 号がどこからも決まらなければ null(当てずっぽうで出さない)', () => {
+  assert.equal(resolveTopicLane(topic({})), null);
+  assert.equal(resolveTopicLane(topic({ poolLane: 9 })), null, '1-4以外は号として扱わない');
+});
+
+test('buildDelayLaneGuide: 号でまとめ、号は常に1→4の順(乗り場は動かないので位置を固定する)', () => {
+  const g = buildDelayLaneGuide([
+    topic({ flightNumber: 'NH84', poolLane: 4, estimatedTime: '0:10', estimatedPax: 164 }),
+    topic({ flightNumber: 'JL920', poolLane: 1, estimatedTime: '0:20', estimatedPax: 100 }),
+    topic({ flightNumber: 'NH2426', poolLane: 4, estimatedTime: '0:30', estimatedPax: 90 }),
+  ]);
+  assert.deepEqual(g.lanes.map((l) => l.lane), [1, 4]);
+  assert.equal(g.lanes[1].count, 2);
+  assert.equal(g.lanes[1].pax, 254, '号ごとの人数を合計する');
+  assert.equal(g.lanes[1].terminal, 'T2');
+  assert.equal(g.lanes[0].terminal, 'T1');
+  assert.deepEqual(g.lanes[1].flights.map((f) => f.flightNumber), ['NH84', 'NH2426'], '号の中は到着が近い順');
+  assert.equal(g.total, 3);
+});
+
+test('buildDelayLaneGuide: 号が決まらない便は unresolved に分ける', () => {
+  const g = buildDelayLaneGuide([topic({ poolLane: 2 }), topic({ flightNumber: 'JL999' })]);
+  assert.equal(g.lanes.length, 1);
+  assert.equal(g.unresolved.length, 1);
+  assert.equal(g.unresolved[0].flightNumber, 'JL999');
+  assert.equal(g.total, 2, '総数は unresolved も含む');
+});
+
+test('buildDelayLaneGuide: 号の確度は「その号で一番強い根拠」を採る', () => {
+  const g = buildDelayLaneGuide([
+    topic({ poolLane: 4 }),
+    topic({ flightNumber: 'NH2426', laneSource: 'notice', poolLane: 4 }),
+  ]);
+  assert.equal(g.lanes[0].strongest, 'notice');
+});
+
+test('buildDelayLaneGuide: 便が無ければ total 0(表示しない)', () => {
+  assert.equal(buildDelayLaneGuide([]).total, 0);
+  assert.equal(buildDelayLaneGuide(null).total, 0);
+});
+
+test('buildDelayLaneGuide: pool-status があれば号ごとの待機車両を添える', () => {
+  const ps = { stalls: { stall4: { fillRate: 0.9, typicalFillRate: 0.5, occ: 11 } } };
+  const g = buildDelayLaneGuide([topic({ poolLane: 4 })], ps);
+  assert.equal(g.lanes[0].occupancy.label, '多め');
+  assert.equal(g.lanes[0].occupancy.vsTypical, 'いつもより多い');
+});
+
+test('buildDelayLaneGuide: pool-status が無くても落ちない', () => {
+  const g = buildDelayLaneGuide([topic({ poolLane: 4 })], null);
+  assert.equal(g.lanes[0].occupancy.label, null);
+});
+
+test('laneOccupancy: fillRate が無ければ従来の占有(occ/容量)にフォールバック', () => {
+  const r = laneOccupancy({ stalls: { stall1: { occ: 16 } } }, 1);
+  assert.equal(r.segments, 5);
+  assert.equal(r.label, '多め');
+});
+
+test('detectTopics: 号の根拠(laneSource/ふだんの号)をガイドへ引き渡す', () => {
+  const [t] = detectTopics([{
+    flightNumber: 'NH84', fromName: '札幌', terminal: 'T2', status: '遅延',
+    scheduledTime: '23:05', estimatedTime: '0:48', poolLane: 4, poolLaneModel: 3,
+    laneSource: 'notice', estimatedPax: 164,
+  }], 23 * 60 + 30);
+  assert.equal(t.laneSource, 'notice');
+  assert.equal(t.poolLaneModel, 3);
+  assert.equal(t.delayMin, 103);
+});
+
+test('buildDelayLaneGuide: 3時間より先の遅延便は載せず、件数だけ残す', () => {
+  const topics = [
+    topic({ flightNumber: 'NH1', poolLane: 4, estimatedTime: '23:30' }),   // 今23:00 → 30分後
+    topic({ flightNumber: 'NH2', poolLane: 1, estimatedTime: '24:43' }),   // 1時間43分後
+    topic({ flightNumber: 'NH3', poolLane: 2, estimatedTime: '4:00' }),    // 5時間後 = 対象外
+  ];
+  const g = buildDelayLaneGuide(topics, null, { nowMinutes: 23 * 60 });
+  assert.equal(g.total, 2);
+  assert.equal(g.laterCount, 1);
+  assert.deepEqual(g.lanes.map((l) => l.lane), [1, 4]);
+});
+
+test('buildDelayLaneGuide: 日をまたいでも「今から先」を正しく数える', () => {
+  // 今 0:30、24:43(=0:43)着は13分後 → 載せる
+  const g = buildDelayLaneGuide([topic({ poolLane: 4, estimatedTime: '24:43' })], null, { nowMinutes: 30 });
+  assert.equal(g.total, 1);
+  assert.equal(g.laterCount, 0);
+});
+
+test('buildDelayLaneGuide: nowMinutes を渡さなければ従来どおり全件', () => {
+  const g = buildDelayLaneGuide([topic({ poolLane: 4, estimatedTime: '4:00' })]);
+  assert.equal(g.total, 1);
+  assert.equal(g.laterCount, 0);
+});
+
+test('detectTopics: 現地掲示に出ている便は遅れ幅に関わらず拾う(確定情報を落とさない)', () => {
+  const flights = [
+    // 掲示に載っているがAPIは定刻のまま(実データ: 2026-06-26 JL920)
+    { flightNumber: 'JL920', fromName: '那覇', terminal: 'T1', status: '飛行中',
+      scheduledTime: '22:00', estimatedTime: '22:00', poolLane: 1, poolLaneModel: 2,
+      laneSource: 'notice', noticeEta: '23:37', estimatedPax: 349 },
+    // 掲示に無く遅れも小さい便は従来どおり出さない
+    { flightNumber: 'JL111', fromName: '伊丹', terminal: 'T1', status: '飛行中',
+      scheduledTime: '23:00', estimatedTime: '23:10', poolLane: 1 },
+  ];
+  const off = detectTopics(flights, 23 * 60);
+  assert.equal(off.length, 0, 'includeNotice なしなら従来どおり(30分未満は出ない)');
+  const on = detectTopics(flights, 23 * 60, { includeNotice: true });
+  assert.equal(on.length, 1);
+  assert.equal(on[0].flightNumber, 'JL920');
+  assert.equal(on[0].displayTime, '23:37', '掲示の到着予定を正とする');
+  assert.equal(on[0].delayMin, 97, '遅れ幅も掲示の時刻から数え直す');
+});
+
+test('detectTopics: 掲示の便も「30分以上過去」なら消える', () => {
+  const flights = [{ flightNumber: 'JL920', fromName: '那覇', terminal: 'T1', status: '飛行中',
+    scheduledTime: '22:00', estimatedTime: '22:00', poolLane: 1, laneSource: 'notice', noticeEta: '23:37' }];
+  assert.equal(detectTopics(flights, 0 * 60 + 30, { includeNotice: true }).length, 0);
+});
+
+test('applyNoticeOverrides: 掲示と推定が一致していても laneSource=notice を立てる', () => {
+  const flights = [{ flightNumber: 'JL0920', status: '飛行中', poolLane: 1, estimatedPax: 100 }];
+  applyNoticeOverrides(flights, { flights: [{ name: 'JAL920 沖縄便', stall: 1, pax: 349, eta: { text: '23:37' } }] });
+  assert.equal(flights[0].laneSource, 'notice');
+  assert.equal(flights[0].poolLane, 1);
+  assert.equal(flights[0].poolLaneModel, undefined, '一致時は「ふだんの号」を作らない');
+  assert.equal(flights[0].noticeEta, '23:37');
 });

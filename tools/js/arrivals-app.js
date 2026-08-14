@@ -1,5 +1,5 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals } from './arrivals-data.js';
+import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
 
@@ -52,7 +52,8 @@ function render() {
     : { windowHours: 3.5, windowLabel: '直近3時間' };
   const summary = summarizeFlights(visible, summaryOpts);
   const nowT = new Date();
-  const topics = detectTopics(all, nowT.getHours() * 60 + nowT.getMinutes());
+  // 遅延便の号ガイドはタブに依存させない(号1〜4はT1/T2をまたぐ。上の「乗り場の状況」と同じ扱い)
+  const topics = detectTopics(state.arrivals.flights, nowT.getHours() * 60 + nowT.getMinutes(), { includeNotice: true });
   // 出発地フィルタ select の options を visible から再構築し、選択中の出発地が
   // 現在の visible に無ければ state.originFilter を '' にリセットする。
   // フィルタ適用前に呼ぶ必要がある（reset を flightsToShow 計算に反映するため）。
@@ -82,7 +83,7 @@ function render() {
     document.getElementById('arrival-gap'),
     detectArrivalGap(state.arrivals.flights, nowD.getHours() * 60 + nowD.getMinutes())
   );
-  renderTopics(document.getElementById('topics'), topics);
+  renderDelayLaneGuide(document.getElementById('topics'), buildDelayLaneGuide(topics, state.poolStatus ?? null, { nowMinutes: nowT.getHours() * 60 + nowT.getMinutes() }));
   renderSummary(document.getElementById('summary'), summary);
   renderHeatmap(document.getElementById('heatmap'), bins);
   renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(flightsToShow));
