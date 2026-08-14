@@ -370,7 +370,9 @@ export function laneTimeBand(text) {
   const h = parseInt(m[1], 10);
   const mm = parseInt(m[2], 10);
   if (h > 29 || mm > 59) return 'unknown';
-  const min = (h < 12 ? h + 24 : h) * 60 + mm;
+  // 翌日側に送るのは 0:00-4:59 だけ。h<12 にしていたため朝6時の便が
+  // 「深夜1時以降」に分類され、深夜便の実績が朝の便に当たっていた(2026-08-14 本人指摘)。
+  const min = (h < 5 ? h + 24 : h) * 60 + mm;
   if (min < 22 * 60) return 'day';
   if (min < 23 * 60) return 'late22';
   if (min < 24 * 60) return 'late23';
@@ -384,29 +386,29 @@ const laneNormFn = (s) => {
 };
 
 function lanePick(entry, basis) {
-  const decisive = entry.share >= LANE_DECISIVE_SHARE;
-  return {
-    stall: decisive ? entry.stall : (entry.recentStall ?? entry.stall),
-    share: entry.share,
-    n: entry.n,
-    basis,
-    recent: !decisive,
-  };
+  return { stall: entry.stall, share: entry.share, n: entry.n, basis };
 }
 
-/** 1便に実績パターンを当てる。無ければ null。 */
+/**
+ * 1便に実績パターンを当てる。無ければ null。
+ *
+ * 表示に使う根拠は「便×時間帯」だけに絞る (2026-08-14 本人指摘で厳格化):
+ *  - 便別(byFlight)は時間帯を無視するため、同じ便が時刻で号を変える実態と矛盾する
+ *    (NH84: 23:59着→3号 / 0:48着→4号)。22時台の便に0時台の実績を当ててしまう。
+ *  - 時間帯×航空会社(byPattern)は粗すぎる。実データで late23|NH は 3号2回/4号2回の
+ *    share=0.5(まったく傾向なし)なのに、23時台のANA便すべてに「4号」と出ていた。
+ * どちらも学習の材料としては残すが、断定表示の根拠にはしない。
+ * 拮抗(share<0.7)する組合せも表示しない — 迷っている情報を断定で見せない。
+ */
 export function lookupLaneActual(flight, patterns) {
   if (!flight || !patterns) return null;
   const fno = laneNormFn(flight.flightNumber);
   if (!fno) return null;
   const band = laneTimeBand(flight.estimatedTime ?? flight.scheduledTime ?? null);
+  if (band === 'unknown' || band === 'day') return null; // 実績はすべて深夜帯の掲示由来
   const fb = patterns.byFlightBand?.[`${fno}|${band}`];
-  if (fb) return lanePick(fb, 'flight-band');
-  const f = patterns.byFlight?.[fno];
-  if (f) return lanePick(f, 'flight');
-  const p = patterns.byPattern?.[`${band}|${fno.slice(0, 2)}`];
-  if (p) return lanePick(p, 'pattern');
-  return null;
+  if (!fb || fb.n < 2 || fb.share < LANE_DECISIVE_SHARE) return null;
+  return lanePick(fb, 'flight-band');
 }
 
 /**

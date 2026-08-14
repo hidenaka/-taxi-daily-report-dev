@@ -482,12 +482,13 @@ test('lookupLaneActual: 便×時間帯を最優先(同じ便でも時刻で号�
   assert.equal(lookupLaneActual({ flightNumber: 'NH084', estimatedTime: '23:59' }, PATTERNS).basis, 'flight-band');
 });
 
-test('lookupLaneActual: 拮抗する便は直近を採る / 実績なしは null', () => {
-  const r = lookupLaneActual({ flightNumber: 'JL528', estimatedTime: '23:55' }, PATTERNS);
-  assert.equal(r.stall, 2, '直近3回が2号');
-  assert.equal(r.recent, true);
+// 2026-08-14 厳格化: 拮抗する実績・便別のみ・パターンのみ は表示しない
+test('lookupLaneActual: 根拠が弱いものは何も返さない', () => {
+  // JL528 は byFlight に share=0.4 でしか無い → 表示しない
+  assert.equal(lookupLaneActual({ flightNumber: 'JL528', estimatedTime: '23:55' }, PATTERNS), null);
   assert.equal(lookupLaneActual({ flightNumber: 'JL999', estimatedTime: '15:00' }, PATTERNS), null);
-  assert.equal(lookupLaneActual({ flightNumber: 'NH999', estimatedTime: '1:30' }, PATTERNS).basis, 'pattern');
+  // 時間帯×航空会社しか無い便も表示しない(粗すぎる)
+  assert.equal(lookupLaneActual({ flightNumber: 'NH999', estimatedTime: '1:30' }, PATTERNS), null);
 });
 
 test('applyLaneActuals: 推定と違う便にだけ差分フラグを立てる', () => {
@@ -530,4 +531,55 @@ test('detectTopics: 実績の差分が topic に乗る(大幅遅延枠で出せ�
   const t = detectTopics(flights)[0];
   assert.equal(t.laneActualDiffers, true);
   assert.equal(t.laneActual.stall, 4);
+});
+
+// --- 実績表示の根拠を厳格化 (2026-08-14 本人指摘「全部4号になっている」) ---
+// 3つの欠陥があった:
+//  1. laneTimeBand が h<12 を翌日扱いにしており、朝6時の便が mid01+(深夜1時以降)に落ちて
+//     深夜便の実績が適用されていた
+//  2. share=0.5(3号2回/4号2回=傾向なし)の byPattern を直近優先で「4号」と断定表示していた
+//  3. byFlight は時間帯を無視するため、22時台の便に0時台の実績を当てていた
+// → 表示根拠は「便×時間帯・2回以上・share>=0.7」だけに絞る。
+
+test('laneTimeBand: 朝の便を深夜バンドに入れない(欠陥1の回帰)', () => {
+  assert.equal(laneTimeBand('06:00'), 'day', '朝6時は深夜ではない');
+  assert.equal(laneTimeBand('07:47'), 'day');
+  assert.equal(laneTimeBand('11:30'), 'day');
+  assert.equal(laneTimeBand('21:59'), 'day');
+  // 翌日側に送るのは 0:00-4:59 のみ
+  assert.equal(laneTimeBand('00:48'), 'mid00');
+  assert.equal(laneTimeBand('03:56'), 'mid01+');
+  assert.equal(laneTimeBand('04:55'), 'mid01+');
+  assert.equal(laneTimeBand('05:00'), 'day', '5時台は通常運行の時間帯');
+});
+
+test('lookupLaneActual: 傾向のない(share<0.7)実績は表示しない(欠陥2)', () => {
+  const patterns = {
+    byFlightBand: { 'NH82|late23': { n: 4, stall: 4, share: 0.5, dist: { 3: 2, 4: 2 }, recentStall: 4 } },
+  };
+  assert.equal(lookupLaneActual({ flightNumber: 'NH82', estimatedTime: '23:05' }, patterns), null);
+});
+
+test('lookupLaneActual: 便別(時間帯を無視した実績)は根拠にしない(欠陥3)', () => {
+  const patterns = {
+    byFlight: { JL526: { n: 2, stall: 1, share: 1, dist: { 1: 2 } } },
+    byPattern: { 'late22|JL': { n: 10, stall: 1, share: 1, dist: { 1: 10 } } },
+  };
+  // 便別・パターン別しか無ければ何も出さない(時間帯まで一致した実績だけを使う)
+  assert.equal(lookupLaneActual({ flightNumber: 'JL526', estimatedTime: '22:16' }, patterns), null);
+});
+
+test('lookupLaneActual: 昼の便には実績を当てない(実績は深夜帯の掲示由来)', () => {
+  const patterns = { byFlightBand: { 'NH84|day': { n: 3, stall: 4, share: 1, dist: { 4: 3 } } } };
+  assert.equal(lookupLaneActual({ flightNumber: 'NH84', estimatedTime: '14:00' }, patterns), null);
+});
+
+test('lookupLaneActual: 便×時間帯で一貫した実績だけを表示する(残すべきケース)', () => {
+  const patterns = {
+    byFlightBand: { 'NH2426|late23': { n: 2, stall: 4, share: 1, dist: { 4: 2 } } },
+  };
+  const r = lookupLaneActual({ flightNumber: 'NH2426', estimatedTime: '23:13' }, patterns);
+  assert.equal(r.stall, 4);
+  assert.equal(r.n, 2);
+  assert.equal(r.basis, 'flight-band');
 });
