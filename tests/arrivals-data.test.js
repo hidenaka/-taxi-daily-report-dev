@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap, compareToTypical, buildNoribaActivity } from '../tools/js/arrivals-data.js';
+import { normalizeArrivals, detectTopics, BIG_DELAY_MIN, listOriginOptions, filterByLane, detectArrivalGap, formatLaneDisplay, noticeNameToFlightNumber, applyNoticeOverrides, buildLaneNoticeMap, compareToTypical, buildNoribaActivity, laneTimeBand, lookupLaneActual, applyLaneActuals } from '../tools/js/arrivals-data.js';
 
 // ロビー出(遅延込み)を15分ビンで見て、便がぐっと減る区間=到着の谷間/手薄 を検出。
 const gf = (lobby, pax) => ({ lobbyExitTime: lobby, estimatedPax: pax, status: '到着予定' });
@@ -449,4 +449,85 @@ test('buildNoribaActivity: typicalFillRate があれば目盛りと相対ラベ�
   assert.equal(l2.occupancy.vsTypical, 'いつもどおり', '同じ4段でも2号は普段どおり');
   assert.equal(l3.occupancy.typicalPct, undefined, '基準が無い号は目盛りを出さない');
   assert.equal(l3.occupancy.label, '並程度', '従来の量ラベルは残る');
+});
+
+// --- 到着号の実績パターン表示 (2026-08-14) ---
+// 遅延便は通常と違う号に着くことがある。過去の現地掲示から学習した実績を、
+// 推定と食い違うときだけ便リスト/大幅遅延枠に併記する。
+
+const PATTERNS = {
+  byFlightBand: {
+    'NH84|late23': { n: 2, stall: 3, share: 1, dist: { 3: 2 }, recentStall: 3 },
+    'NH84|mid00': { n: 2, stall: 4, share: 1, dist: { 4: 2 }, recentStall: 4 },
+  },
+  byFlight: {
+    JL528: { n: 5, stall: 1, share: 0.4, dist: { 1: 2, 2: 3 }, recentStall: 2 },
+  },
+  byPattern: {
+    'mid01+|NH': { n: 5, stall: 3, share: 1, dist: { 3: 5 }, recentStall: 3 },
+  },
+};
+
+test('laneTimeBand: 深夜は翌日側に送って時間帯を分ける', () => {
+  assert.equal(laneTimeBand('21:00'), 'day');
+  assert.equal(laneTimeBand('23:59'), 'late23');
+  assert.equal(laneTimeBand('0:48'), 'mid00');
+  assert.equal(laneTimeBand('1:20'), 'mid01+');
+  assert.equal(laneTimeBand(null), 'unknown');
+});
+
+test('lookupLaneActual: 便×時間帯を最優先(同じ便でも時刻で号が変わる)', () => {
+  assert.equal(lookupLaneActual({ flightNumber: 'NH084', estimatedTime: '23:59' }, PATTERNS).stall, 3);
+  assert.equal(lookupLaneActual({ flightNumber: 'NH084', estimatedTime: '0:48' }, PATTERNS).stall, 4);
+  assert.equal(lookupLaneActual({ flightNumber: 'NH084', estimatedTime: '23:59' }, PATTERNS).basis, 'flight-band');
+});
+
+test('lookupLaneActual: 拮抗する便は直近を採る / 実績なしは null', () => {
+  const r = lookupLaneActual({ flightNumber: 'JL528', estimatedTime: '23:55' }, PATTERNS);
+  assert.equal(r.stall, 2, '直近3回が2号');
+  assert.equal(r.recent, true);
+  assert.equal(lookupLaneActual({ flightNumber: 'JL999', estimatedTime: '15:00' }, PATTERNS), null);
+  assert.equal(lookupLaneActual({ flightNumber: 'NH999', estimatedTime: '1:30' }, PATTERNS).basis, 'pattern');
+});
+
+test('applyLaneActuals: 推定と違う便にだけ差分フラグを立てる', () => {
+  const flights = [
+    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 3, status: '不明' },  // 推定3号≠実績4号
+    { flightNumber: 'NH84', estimatedTime: '23:59', poolLane: 3, status: '不明' }, // 推定3号=実績3号
+    { flightNumber: 'JL999', estimatedTime: '15:00', poolLane: 1, status: '不明' },// 実績なし
+  ];
+  const n = applyLaneActuals(flights, PATTERNS);
+  assert.equal(n, 1);
+  assert.equal(flights[0].laneActualDiffers, true);
+  assert.equal(flights[0].laneActual.stall, 4);
+  assert.equal(flights[1].laneActualDiffers, undefined, '一致なら差分フラグは立てない');
+  assert.equal(flights[1].laneActual.stall, 3, '実績自体は付く');
+  assert.equal(flights[2].laneActual, undefined);
+});
+
+test('applyLaneActuals: 今夜の掲示で確定済みの便は上書きしない', () => {
+  const flights = [
+    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 3, status: '不明', laneSource: 'notice' },
+  ];
+  assert.equal(applyLaneActuals(flights, PATTERNS), 0);
+  assert.equal(flights[0].laneActual, undefined, '現地掲示が最優先');
+});
+
+test('applyLaneActuals: 到着済み・欠航は対象外 / パターン無しでも壊れない', () => {
+  const flights = [
+    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 3, status: '到着' },
+    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 3, status: '欠航' },
+  ];
+  assert.equal(applyLaneActuals(flights, PATTERNS), 0);
+  assert.equal(applyLaneActuals(flights, null), 0);
+});
+
+test('detectTopics: 実績の差分が topic に乗る(大幅遅延枠で出せる)', () => {
+  const flights = [
+    { flightNumber: 'NH84', scheduledTime: '23:05', estimatedTime: '00:48', poolLane: 3, status: '不明' },
+  ];
+  applyLaneActuals(flights, PATTERNS);
+  const t = detectTopics(flights)[0];
+  assert.equal(t.laneActualDiffers, true);
+  assert.equal(t.laneActual.stall, 4);
 });

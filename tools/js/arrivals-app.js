@@ -1,4 +1,4 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap } from './arrivals-data.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderTopics, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
@@ -29,6 +29,9 @@ async function refresh() {
     state.poolNotice = await loadPoolNotice();
     // 現地掲示(lateFlights)の実数で深夜遅延便の人数・号を上書き(現地確定が正)
     applyNoticeOverrides(state.arrivals?.flights ?? [], state.poolNotice?.lateFlights ?? null);
+    // 過去の掲示から学習した「実際に着いた号」を付ける(今夜の掲示がある便は上書きしない)
+    state.lanePatterns = await loadLanePatterns();
+    applyLaneActuals(state.arrivals?.flights ?? [], state.lanePatterns);
     state.forecast = (await loadAdvanceForecast()).data;
     state.poolStatus = (await loadPoolStatus()).data;
     // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。

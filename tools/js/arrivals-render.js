@@ -159,11 +159,16 @@ export function renderTopics(container, topics) {
     // ターミナルの隣に号(poolLane 1-4)を併記。未確定は号を出さない。
     const laneSuffix = (Number.isInteger(t.poolLane) && t.poolLane >= 1 && t.poolLane <= 4)
       ? ` <span class="topic-lane lane-${t.poolLane}">${t.poolLane}号</span>` : '';
+    // 実績が推定と違う遅延便は、その旨を強めに出す(深夜の号選びを間違えると痛い)
+    const tla = t.laneActual;
+    const topicActual = (t.laneActualDiffers && tla)
+      ? ` <span class="topic-actual lane-${tla.stall}" title="過去の現地掲示の実績(${tla.n}回中)">実績${tla.stall}号</span>`
+      : '';
     return `<div class="topic-item">
       <span class="topic-flight">${t.flightNumber}</span>
       <span class="topic-from">${t.fromName}</span>
       <span class="topic-detail">${detail}</span>
-      <span class="topic-terminal">${t.terminal}${laneSuffix}</span>
+      <span class="topic-terminal">${t.terminal}${laneSuffix}${topicActual}</span>
     </div>`;
   }).join('');
   container.innerHTML = `
@@ -301,13 +306,18 @@ function appendFlightRow(container, f) {
     ? `<span class="terminal-tag ${f.terminal.toLowerCase()}">${f.terminal}</span>` : '';
   const laneTag = (Number.isInteger(f.poolLane) && f.poolLane >= 1 && f.poolLane <= 4)
     ? `<span class="lane-tag lane-${f.poolLane}">${f.poolLane}号</span>` : '';
+  // 過去の現地掲示から学習した実績。推定と食い違うときだけ出す(判断材料になるのはそこだけ)。
+  const la = f.laneActual;
+  const laneActualTag = (f.laneActualDiffers && la)
+    ? `<span class="lane-actual lane-${la.stall}" title="過去の現地掲示の実績(${la.n}回中)">実績${la.stall}号</span>`
+    : '';
   row.innerHTML = `
     <div class="flight-line1">
       <span class="time">${time}</span>
       <span class="flight-no">${f.flightNumber}</span>
       <span class="from">${f.fromName}</span>
       <span class="reach">${reachIcon}</span>
-      ${terminalTag}${laneTag}
+      ${terminalTag}${laneTag}${laneActualTag}
     </div>
     <div class="flight-line2">${paxLine}</div>
     <div class="flight-line3">機材 ${aircraft} ・ ${isCancelled

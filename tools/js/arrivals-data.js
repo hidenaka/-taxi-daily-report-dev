@@ -291,7 +291,9 @@ export function detectTopics(flights, nowMinutes = null) {
       estimatedTime: f.estimatedTime ?? f.scheduledTime,
       delayMin,
       estimatedPax: f.estimatedPax ?? null,
-      paxSource: f.paxSource ?? null
+      paxSource: f.paxSource ?? null,
+      laneActual: f.laneActual ?? null,
+      laneActualDiffers: f.laneActualDiffers ?? false
     });
   }
   const sortKey = (t) => {
@@ -341,6 +343,92 @@ export function classifyStaleness(updatedAtIso, now) {
   if (ageMinutes < STALENESS_WARN_MIN) return { level: 'fresh', ageMinutes };
   if (ageMinutes <= STALENESS_CRITICAL_MIN) return { level: 'warn', ageMinutes };
   return { level: 'critical', ageMinutes };
+}
+
+// 乗り場(号)の実績パターン(lane-patterns.json)を取得。失敗時は null(実績表示なしで安全劣化)。
+export async function loadLanePatterns() {
+  try {
+    const res = await fetch(`./data/lane-patterns.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// --- 実績パターンの適用 (2026-08-14) ---------------------------------------
+// 遅延便は通常と違う号に着くことがある。現地掲示で確定した過去の実績から
+// 「この便・この時間帯なら実際はこの号」を出す。推定と食い違うときだけ意味を持つ。
+// 判定順: 便×時間帯 → 便 → 時間帯×航空会社。実績が無ければ何も言わない。
+
+const LANE_DECISIVE_SHARE = 0.7;
+
+/** "0:48"/"23:59" → 時間帯バンド。深夜は翌日側に送る(計測側 lane-actuals.mjs と同じ規則)。 */
+export function laneTimeBand(text) {
+  const m = String(text ?? '').match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return 'unknown';
+  const h = parseInt(m[1], 10);
+  const mm = parseInt(m[2], 10);
+  if (h > 29 || mm > 59) return 'unknown';
+  const min = (h < 12 ? h + 24 : h) * 60 + mm;
+  if (min < 22 * 60) return 'day';
+  if (min < 23 * 60) return 'late22';
+  if (min < 24 * 60) return 'late23';
+  if (min < 25 * 60) return 'mid00';
+  return 'mid01+';
+}
+
+const laneNormFn = (s) => {
+  const m = String(s ?? '').replace(/\s/g, '').toUpperCase().match(/^([A-Z0-9]{2})0*(\d+)$/);
+  return m ? m[1] + m[2] : null;
+};
+
+function lanePick(entry, basis) {
+  const decisive = entry.share >= LANE_DECISIVE_SHARE;
+  return {
+    stall: decisive ? entry.stall : (entry.recentStall ?? entry.stall),
+    share: entry.share,
+    n: entry.n,
+    basis,
+    recent: !decisive,
+  };
+}
+
+/** 1便に実績パターンを当てる。無ければ null。 */
+export function lookupLaneActual(flight, patterns) {
+  if (!flight || !patterns) return null;
+  const fno = laneNormFn(flight.flightNumber);
+  if (!fno) return null;
+  const band = laneTimeBand(flight.estimatedTime ?? flight.scheduledTime ?? null);
+  const fb = patterns.byFlightBand?.[`${fno}|${band}`];
+  if (fb) return lanePick(fb, 'flight-band');
+  const f = patterns.byFlight?.[fno];
+  if (f) return lanePick(f, 'flight');
+  const p = patterns.byPattern?.[`${band}|${fno.slice(0, 2)}`];
+  if (p) return lanePick(p, 'pattern');
+  return null;
+}
+
+/**
+ * 便配列に実績を付ける。推定号(poolLane)と実績が違う便には laneActual を持たせる。
+ * 現地掲示で既に確定済み(laneSource==='notice')の便は上書きしない(掲示が最優先)。
+ * @returns 付与した件数
+ */
+export function applyLaneActuals(flights, patterns) {
+  if (!Array.isArray(flights) || !patterns) return 0;
+  let n = 0;
+  for (const f of flights) {
+    if (f.laneSource === 'notice') continue;   // 今夜の掲示が出ていればそちらが正
+    if (f.status === '到着' || f.status === '欠航') continue;
+    const hit = lookupLaneActual(f, patterns);
+    if (!hit) continue;
+    f.laneActual = hit;
+    if (f.poolLane != null && hit.stall !== f.poolLane) {
+      f.laneActualDiffers = true;   // 推定と食い違う=乗務員に伝える価値がある
+      n += 1;
+    }
+  }
+  return n;
 }
 
 // 羽田プール現地案内(pool-notice.json)を取得。失敗時は null(バナー非表示で安全劣化)。
