@@ -441,8 +441,19 @@ async function render(drivesPromise) {
 
   // 現在月度かつ責任出番未達の段階では、予定責任出番ベース(rateTable["11"]等)で歩率計算
   // 過去月度・確定月度は実shiftCountベース(従来通り)
-  const useResponsibilityTier = isCurrent && rawDrives.length > 0 && rawDrives.length < respShifts;
-  const actualResult = calcTotalPay(rawDrives, config, range.start, range.end, { useResponsibilityTier });
+  // 歩率テーブルの段選び用の責任出番。有給日は乗務しないので出番に数えない
+  // (11乗務で1日有給 → 10出番のテーブル)。予定表(expandedDates)は有給と排他なので
+  // plannedShifts には有給日が入らない。予定未設定で設定値に頼るときだけ有給を引く。
+  const paidLeaveInPeriod = (config.shifts?.paidLeaveDates || [])
+    .filter(d => d >= range.start && d <= range.end).length;
+  const respShiftsForTier = plannedShifts > 0
+    ? plannedShifts
+    : Math.max(1, (config.responsibilityShifts || 11) - paidLeaveInPeriod);
+  const useResponsibilityTier = isCurrent && rawDrives.length > 0 && rawDrives.length < respShiftsForTier;
+  const actualResult = calcTotalPay(rawDrives, config, range.start, range.end, {
+    useResponsibilityTier,
+    respShifts: respShiftsForTier,
+  });
   const actualTakeHome = actualResult.total * takeHomeRate;
 
   let predicted = null;

@@ -35,9 +35,11 @@ export function salesAggregate(subset) {
 // 責任出番(11)まで残りで、目標到達に必要な「1出番あたり均等(税込/税抜)」と総額。
 // 目標は takeHomeAt11Target があればそれ、無ければ takeHomeTarget(手取り月度)。
 // 残出番の車種は現状のプレミアム比率を踏襲(予測と前提統一)。
-export function requiredToRespCap(drives, config, periodStart, periodEnd) {
+export function requiredToRespCap(drives, config, periodStart, periodEnd, respShifts = RESP_CAP) {
   const arr = Array.isArray(drives) ? drives : [];
-  const remaining = Math.max(0, RESP_CAP - arr.length);
+  // 有給を取った月は責任出番そのものが減る(11乗務→有給1日→残り10)。
+  const cap = (Number.isFinite(respShifts) && respShifts > 0) ? Math.min(respShifts, RESP_CAP) : RESP_CAP;
+  const remaining = Math.max(0, cap - arr.length);
   const target = (config.takeHomeAt11Target > 0)
     ? config.takeHomeAt11Target
     : (config.takeHomeTarget || 0);
@@ -80,7 +82,11 @@ function withTarget(landing, current, targetVal) {
 // 月度/責任/公出の着地値＋目標連動データ
 export function computeLandings(drives, config, periodStart, periodEnd, plannedShifts) {
   const takeHomeRate = config.takeHomeRate || 0.75;
-  const actual = calcTotalPay(drives, config, periodStart, periodEnd, { useResponsibilityTier: true });
+  // plannedShifts は呼び出し側が算出した実効責任出番(有給日は予定表と排他なので含まれない)。
+  // これを歩率テーブルの段選びに渡す — 渡さないと config.responsibilityShifts(例:11)が
+  // 使われ、10出番+有給1日でも11出番のテーブルになってしまう(2026-08-14 本人指摘)。
+  const respOpt = (Number.isFinite(plannedShifts) && plannedShifts > 0) ? { respShifts: plannedShifts } : {};
+  const actual = calcTotalPay(drives, config, periodStart, periodEnd, { useResponsibilityTier: true, ...respOpt });
   const predicted = (drives.length > 0 && drives.length < plannedShifts)
     ? predictMonthly(drives, config, periodStart, periodEnd, plannedShifts)
     : actual;
@@ -114,7 +120,7 @@ export function resolveMetrics(drives, config, periodStart, periodEnd, plannedSh
   const ra = salesAggregate(resp);
   const ka = salesAggregate(kosyutsu);
   const ma = salesAggregate(drives);
-  const need = requiredToRespCap(drives, config, periodStart, periodEnd);
+  const need = requiredToRespCap(drives, config, periodStart, periodEnd, plannedShifts);
   const L = computeLandings(drives, config, periodStart, periodEnd, plannedShifts);
 
   const out = {};

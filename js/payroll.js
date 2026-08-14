@@ -107,7 +107,17 @@ function getRateTable(config) {
 
 export function calcBasePay(drives, config, options = {}) {
   const shiftCount = drives.length;
-  const respShifts = config.responsibilityShifts || 11;
+  // 有給を取った日は乗務しないので、その分だけ責任出番(＝歩率テーブルの段)が下がる。
+  // 例: 責任11出番で1日有給 → 10出番のテーブルで計算する
+  // (2026-08-14 本人指摘。従来は config.responsibilityShifts をそのまま使い、
+  //  10出番+有給1日でも11出番のテーブルが選ばれていた)。
+  // options.paidLeaveDays は calcTotalPay が期間内の有給日数を渡す。
+  // options.respShifts があればそれが実効責任出番(呼び出し側が予定表から算出済み)。
+  // 無ければ設定値から期間内の有給日数を引く。
+  const paidLeaveDays = Math.max(0, Number(options.paidLeaveDays) || 0);
+  const respShifts = (Number.isFinite(options.respShifts) && options.respShifts > 0)
+    ? Math.max(1, Math.floor(options.respShifts))
+    : Math.max(1, (config.responsibilityShifts || 11) - paidLeaveDays);
 
   // 固定歩率モード
   if (config.payrollMode === 'fixed_rate') {
@@ -151,8 +161,9 @@ export function calcBasePay(drives, config, options = {}) {
     // useResponsibilityTier: 予定責任出番(respShifts)ベースでティア表を選ぶ
     // 例: shiftCount=10, respShifts=11 → rateTable["11"]を使う(途中段階の暫定計算用)
     // デフォルト false → 実shiftCountベース(過去月の実績計算用、互換性維持)
+    // 予定ベースで選ぶ場合も、既に実出番が予定を超えていればそちらを採る(過小評価を防ぐ)。
     const tierKey = options.useResponsibilityTier
-      ? String(Math.min(respShifts, 11))
+      ? String(Math.min(Math.max(respShifts, shiftCount), 11))
       : String(shiftCount);
     const tiers = rateTable[tierKey] || rateTable["11"];
     const rate = findRate(tiers, monthly.exclTax);
@@ -235,11 +246,15 @@ export function calcPaidLeavePay(config, periodStart, periodEnd) {
 }
 
 export function calcTotalPay(drives, config, periodStart, periodEnd, options = {}) {
-  const base = calcBasePay(drives, config, options);
-  const incentive = calcIncentive(drives, config);
   const paidLeave = (periodStart && periodEnd)
     ? calcPaidLeavePay(config, periodStart, periodEnd)
     : { days: 0, amount: 0, dates: [] };
+  // 有給日数を歩率テーブルの段選びへ伝える(呼び出し側の明示指定があればそちらを優先)。
+  const base = calcBasePay(drives, config, {
+    ...options,
+    paidLeaveDays: options.paidLeaveDays ?? paidLeave.days,
+  });
+  const incentive = calcIncentive(drives, config);
   return {
     ...base,
     incentive,
