@@ -50,7 +50,7 @@ test('renderDelayLaneGuide: 便が無ければ隠す', () => {
   assert.equal(c.innerHTML, '');
 });
 
-test('renderDelayLaneGuide: 号を見出しに、根拠と「ふだんの号」を出す', () => {
+test('renderDelayLaneGuide: 号を見出しに、通常時・遅れた日・今夜の確定を並べる', () => {
   const c = stub();
   renderDelayLaneGuide(c, {
     total: 1,
@@ -60,27 +60,31 @@ test('renderDelayLaneGuide: 号を見出しに、根拠と「ふだんの号」�
       occupancy: { segments: 5, label: '多め', vsTypical: 'いつもより多い' },
       flights: [{
         flightNumber: 'NH84', fromName: '札幌', scheduledTime: '23:05', estimatedTime: '0:48',
-        delayMin: 103, estimatedPax: 164, lane: 4, basis: 'notice', basisN: null, normalLane: 3,
+        delayMin: 103, estimatedPax: 164, lane: 4, basis: 'notice', basisN: null,
+        normalLane: 3, trend: { lane: 4, n: 2, share: 1 }, confirmedLane: 4,
       }],
     }],
   });
   assert.equal(c.hidden, false);
   assert.match(c.innerHTML, /dg-no lane-4">4号/);
   assert.match(c.innerHTML, /b-notice">現地掲示/);
-  assert.match(c.innerHTML, /ふだんは3号/);
+  assert.match(c.innerHTML, /通常<\/span>3号/);
+  assert.match(c.innerHTML, /遅れた日<\/span><span class="v is-diff">4号<\/span><span class="n">\(過去2回とも\)/);
+  assert.match(c.innerHTML, /今夜<\/span><span class="v is-diff">4号に確定/);
   assert.match(c.innerHTML, /103分遅れ/);
   assert.match(c.innerHTML, /待機 いつもより多い/);
 });
 
 test('renderDelayLaneGuide: 実績は回数を添え、推定は推定と明示する', () => {
   const c = stub();
-  const fl = (o) => ({ flightNumber: 'X1', fromName: '福岡', scheduledTime: '22:00', estimatedTime: '23:30', delayMin: 90, estimatedPax: 90, lane: 3, normalLane: null, ...o });
+  const fl = (o) => ({ flightNumber: 'X1', fromName: '福岡', scheduledTime: '22:00', estimatedTime: '23:30', delayMin: 90, estimatedPax: 90, lane: 3, normalLane: 3, trend: null, confirmedLane: null, ...o });
   renderDelayLaneGuide(c, {
     total: 2, unresolved: [],
     lanes: [{ lane: 3, terminal: 'T2', count: 2, pax: 180, strongest: 'actual', occupancy: {},
-      flights: [fl({ basis: 'actual', basisN: 2 }), fl({ basis: 'estimate', basisN: null })] }],
+      flights: [fl({ basis: 'actual', basisN: 2, trend: { lane: 3, n: 2, share: 1 } }), fl({ basis: 'estimate', basisN: null })] }],
   });
   assert.match(c.innerHTML, /title="過去2回とも3号"/);
+  assert.match(c.innerHTML, /遅れた日<\/span><span class="n">実績なし/, '傾向が無いことも明示する');
   assert.match(c.innerHTML, /b-actual"[^>]*>実績/);
   assert.match(c.innerHTML, /b-estimate">推定/);
 });

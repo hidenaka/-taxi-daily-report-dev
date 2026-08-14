@@ -331,19 +331,29 @@ const isLaneNo = (n) => Number.isInteger(n) && n >= 1 && n <= 4;
 
 // 1便の「並ぶ号」を根拠の強い順に決める。決まらなければ null(当てずっぽうで出さない)。
 //   notice   … 今夜の現地掲示で確定
-//   actual   … 同じ便・同じ時間帯で実際に着いた実績
-//   estimate … 到着口からの静的推定
+//   actual   … 同じ便・同じ時間帯で実際に着いた実績(＝遅れた日の過去の傾向)
+//   estimate … 到着口からの静的推定(＝通常時の号)
+//
+// 3つの見方(通常時 / 遅れた日の傾向 / 今夜の確定)を潰さずに全部返す。乗務員が
+// 「ふだんはここだが遅れると向こう、今夜は掲示で確定」を自分で読めるようにするため
+// (2026-08-15 本人要望)。決定に使った1つだけ返すと比較ができない。
 export function resolveTopicLane(t) {
   if (!t) return null;
-  if (t.laneSource === 'notice' && isLaneNo(t.poolLane)) {
-    const normal = isLaneNo(t.poolLaneModel) && t.poolLaneModel !== t.poolLane ? t.poolLaneModel : null;
-    return { lane: t.poolLane, basis: 'notice', basisN: null, normalLane: normal };
-  }
-  if (t.laneActual && isLaneNo(t.laneActual.stall)) {
-    const normal = isLaneNo(t.poolLane) && t.poolLane !== t.laneActual.stall ? t.poolLane : null;
-    return { lane: t.laneActual.stall, basis: 'actual', basisN: t.laneActual.n ?? null, normalLane: normal };
-  }
-  if (isLaneNo(t.poolLane)) return { lane: t.poolLane, basis: 'estimate', basisN: null, normalLane: null };
+  // 通常時の号 = 静的推定。掲示が上書きしていれば退避した poolLaneModel が元の値。
+  const normalLane = isLaneNo(t.poolLaneModel) ? t.poolLaneModel
+    : (t.laneSource === 'notice' ? (isLaneNo(t.poolLane) ? t.poolLane : null)
+      : (isLaneNo(t.poolLane) ? t.poolLane : null));
+  // 遅れた日の過去の傾向(実績は現地掲示の履歴＝遅延便のみから学習している)
+  const trend = (t.laneActual && isLaneNo(t.laneActual.stall))
+    ? { lane: t.laneActual.stall, n: t.laneActual.n ?? null, share: t.laneActual.share ?? null }
+    : null;
+  // 今夜の確定
+  const confirmedLane = (t.laneSource === 'notice' && isLaneNo(t.poolLane)) ? t.poolLane : null;
+
+  const base = { normalLane, trend, confirmedLane };
+  if (confirmedLane != null) return { ...base, lane: confirmedLane, basis: 'notice', basisN: null };
+  if (trend) return { ...base, lane: trend.lane, basis: 'actual', basisN: trend.n };
+  if (isLaneNo(t.poolLane)) return { ...base, lane: t.poolLane, basis: 'estimate', basisN: null };
   return null;
 }
 
@@ -400,7 +410,7 @@ export function buildDelayLaneGuide(topics, poolStatus = null, opts = {}) {
     const r = resolveTopicLane(t);
     if (!r) { unresolved.push(t); continue; }
     if (!byLane.has(r.lane)) byLane.set(r.lane, []);
-    byLane.get(r.lane).push({ ...t, lane: r.lane, basis: r.basis, basisN: r.basisN, normalLane: r.normalLane });
+    byLane.get(r.lane).push({ ...t, ...r });
   }
   // 号は常に 1→4 の順に並べる。乗り場は動かないので、見るたび同じ位置にある方が探しやすく、
   // 上の「乗り場の状況」カード(1〜4号)とも突き合わせやすい。便は号の中で到着が近い順。
@@ -517,7 +527,8 @@ export function lookupLaneActual(flight, patterns) {
   if (!flight || !patterns) return null;
   const fno = laneNormFn(flight.flightNumber);
   if (!fno) return null;
-  const band = laneTimeBand(flight.estimatedTime ?? flight.scheduledTime ?? null);
+  // 掲示があればその到着予定で時間帯を判定する(APIが定刻のまま更新されない便があるため)
+  const band = laneTimeBand(flight.noticeEta ?? flight.estimatedTime ?? flight.scheduledTime ?? null);
   if (band === 'unknown' || band === 'day') return null; // 実績はすべて深夜帯の掲示由来
   const fb = patterns.byFlightBand?.[`${fno}|${band}`];
   if (!fb || fb.n < 2 || fb.share < LANE_DECISIVE_SHARE) return null;
@@ -525,20 +536,25 @@ export function lookupLaneActual(flight, patterns) {
 }
 
 /**
- * 便配列に実績を付ける。推定号(poolLane)と実績が違う便には laneActual を持たせる。
- * 現地掲示で既に確定済み(laneSource==='notice')の便は上書きしない(掲示が最優先)。
- * @returns 付与した件数
+ * 便配列に「遅れた日の過去の傾向」(laneActual)を付ける。
+ *
+ * 今夜の掲示で確定済み(laneSource==='notice')の便にも付ける。号を決めるのは掲示だが、
+ * 「通常はどこ・遅れた日はどこ・今夜の確定はどこ」を並べて見せるための材料になる
+ * (2026-08-15 本人要望)。掲示便では laneActualDiffers を立てない — 便一覧の
+ * 「実績◯号」タグは掲示が決着済みの便に出す意味がないため。
+ * @returns 推定と食い違った件数(掲示便は数えない)
  */
 export function applyLaneActuals(flights, patterns) {
   if (!Array.isArray(flights) || !patterns) return 0;
   let n = 0;
   for (const f of flights) {
-    if (f.laneSource === 'notice') continue;   // 今夜の掲示が出ていればそちらが正
     if (f.status === '到着' || f.status === '欠航') continue;
     const hit = lookupLaneActual(f, patterns);
     if (!hit) continue;
     f.laneActual = hit;
-    if (f.poolLane != null && hit.stall !== f.poolLane) {
+    const decided = f.laneSource === 'notice';
+    const est = decided ? f.poolLaneModel ?? f.poolLane : f.poolLane;
+    if (!decided && est != null && hit.stall !== est) {
       f.laneActualDiffers = true;   // 推定と食い違う=乗務員に伝える価値がある
       n += 1;
     }

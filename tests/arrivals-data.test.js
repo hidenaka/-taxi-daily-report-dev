@@ -506,12 +506,14 @@ test('applyLaneActuals: 推定と違う便にだけ差分フラグを立てる',
   assert.equal(flights[2].laneActual, undefined);
 });
 
-test('applyLaneActuals: 今夜の掲示で確定済みの便は上書きしない', () => {
+test('applyLaneActuals: 掲示で確定済みの便にも傾向は付ける(比較材料)が差分フラグは立てない', () => {
+  // 号を決めるのは掲示。ただし「通常時/遅れた日/今夜の確定」を並べるための材料として実績は要る。
   const flights = [
-    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 3, status: '不明', laneSource: 'notice' },
+    { flightNumber: 'NH84', estimatedTime: '0:48', poolLane: 4, poolLaneModel: 3, status: '不明', laneSource: 'notice' },
   ];
-  assert.equal(applyLaneActuals(flights, PATTERNS), 0);
-  assert.equal(flights[0].laneActual, undefined, '現地掲示が最優先');
+  assert.equal(applyLaneActuals(flights, PATTERNS), 0, '掲示便は食い違い件数に数えない');
+  assert.equal(flights[0].laneActual.stall, 4, '遅れた日の傾向は付く');
+  assert.equal(flights[0].laneActualDiffers, undefined, '便一覧の実績タグは出さない(掲示で決着済み)');
 });
 
 test('applyLaneActuals: 到着済み・欠航は対象外 / パターン無しでも壊れない', () => {
@@ -610,18 +612,31 @@ test('resolveTopicLane: 実績は推定より優先し、推定を「ふだん�
   assert.equal(r.lane, 4);
   assert.equal(r.basis, 'actual');
   assert.equal(r.basisN, 2);
-  assert.equal(r.normalLane, 3);
+  assert.equal(r.normalLane, 3, '通常時は推定の3号のまま残す');
 });
 
-test('resolveTopicLane: 実績と推定が同じなら「ふだんは」を出さない', () => {
+test('resolveTopicLane: 通常時・遅れた日・今夜の確定を3つとも返す(1つに潰さない)', () => {
+  const r = resolveTopicLane(topic({
+    laneSource: 'notice', poolLane: 4, poolLaneModel: 3,
+    laneActual: { stall: 4, n: 2, share: 1 },
+  }));
+  assert.equal(r.normalLane, 3, '通常時=静的推定');
+  assert.deepEqual(r.trend, { lane: 4, n: 2, share: 1 }, '遅れた日の傾向');
+  assert.equal(r.confirmedLane, 4, '今夜の確定');
+  assert.equal(r.lane, 4);
+});
+
+test('resolveTopicLane: 実績と推定が同じでも通常時の号は返す(同じだと分かることに意味がある)', () => {
   const r = resolveTopicLane(topic({ poolLane: 4, laneActual: { stall: 4, n: 2, share: 1 } }));
   assert.equal(r.lane, 4);
-  assert.equal(r.normalLane, null);
+  assert.equal(r.normalLane, 4);
+  assert.equal(r.trend.lane, 4);
+  assert.equal(r.confirmedLane, null, '掲示が無ければ確定なし');
 });
 
 test('resolveTopicLane: 推定しか無ければ basis=estimate', () => {
   const r = resolveTopicLane(topic({ poolLane: 1 }));
-  assert.deepEqual(r, { lane: 1, basis: 'estimate', basisN: null, normalLane: null });
+  assert.deepEqual(r, { lane: 1, basis: 'estimate', basisN: null, normalLane: 1, trend: null, confirmedLane: null });
 });
 
 test('resolveTopicLane: 号がどこからも決まらなければ null(当てずっぽうで出さない)', () => {

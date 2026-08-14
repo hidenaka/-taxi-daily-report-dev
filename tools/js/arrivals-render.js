@@ -169,11 +169,32 @@ export function renderDelayLaneGuide(container, guide) {
   const timeText = (t) => clock(t.displayTime ?? t.estimatedTime);
   // 掲示に出ている便は遅れ幅が小さいこともある(0分を「0分遅れ」と書かない)
   const delayText = (t) => (t.delayMin > 0) ? ` ・ ${t.delayMin}分遅れ` : '';
+  // 過去の傾向は「◯回中◯回」で出す。全部同じなら「過去◯回とも」。
+  const trendCount = (tr) => {
+    if (!tr || !tr.n) return '';
+    const hit = (typeof tr.share === 'number') ? Math.round(tr.share * tr.n) : tr.n;
+    return (hit >= tr.n) ? `過去${tr.n}回とも` : `過去${tr.n}回中${hit}回`;
+  };
+  // 「通常時 / 遅れた日の傾向 / 今夜の確定」を並べて出す。どれか1つだけ見せると
+  // 「ふだんと違うのか」「今夜はどうなのか」が読めなくなる(2026-08-15 本人要望)。
+  const basisLine = (t) => {
+    const parts = [];
+    if (t.normalLane != null) parts.push(`<span class="k">通常</span>${t.normalLane}号`);
+    if (t.trend) {
+      const diff = (t.normalLane != null && t.trend.lane !== t.normalLane) ? ' is-diff' : '';
+      parts.push(`<span class="k">遅れた日</span><span class="v${diff}">${t.trend.lane}号</span><span class="n">(${trendCount(t.trend)})</span>`);
+    } else if (t.normalLane != null) {
+      parts.push(`<span class="k">遅れた日</span><span class="n">実績なし</span>`);
+    }
+    if (t.confirmedLane != null) {
+      const diff = (t.normalLane != null && t.confirmedLane !== t.normalLane) ? ' is-diff' : '';
+      parts.push(`<span class="k">今夜</span><span class="v${diff}">${t.confirmedLane}号に確定</span>`);
+    }
+    return parts.length ? `<div class="dg-fl3">${parts.join('<span class="sep">／</span>')}</div>` : '';
+  };
   const flightRow = (t) => {
     const basis = BASIS_LABEL[t.basis] || '';
-    const basisTitle = t.basis === 'actual' && t.basisN ? ` title="過去${t.basisN}回とも${t.lane}号"` : '';
-    const normal = (t.normalLane != null)
-      ? ` <span class="dg-normal">ふだんは${t.normalLane}号</span>` : '';
+    const basisTitle = t.basis === 'actual' && t.basisN ? ` title="${trendCount(t.trend)}${t.lane}号"` : '';
     return `<div class="dg-fl">
       <div class="dg-fl1">
         <span class="t">${_esc(timeText(t))}</span>
@@ -181,7 +202,8 @@ export function renderDelayLaneGuide(container, guide) {
         <span class="o">${_esc(t.fromName)}</span>
         <span class="b b-${t.basis}"${basisTitle}>${basis}</span>
       </div>
-      <div class="dg-fl2">定刻${_esc(clock(t.scheduledTime))}${delayText(t)} ・ ${paxText(t)}${normal}</div>
+      <div class="dg-fl2">定刻${_esc(clock(t.scheduledTime))}${delayText(t)} ・ ${paxText(t)}</div>
+      ${basisLine(t)}
     </div>`;
   };
   const laneBlocks = guide.lanes.map((L) => {
@@ -209,7 +231,7 @@ export function renderDelayLaneGuide(container, guide) {
     ${laneBlocks}
     ${unresolved}
     ${later}
-    <div class="dg-legend">現地掲示＝タクシーセンターの掲示で確定 ／ 実績＝同じ便・同じ時間帯で実際に着いた号 ／ 推定＝到着口からの目安</div>
+    <div class="dg-legend">通常＝到着口からの目安 ／ 遅れた日＝過去に遅れたとき、同じ便・同じ時間帯で実際に着いた号 ／ 今夜＝タクシーセンターの掲示で確定<br>右のしるしは、その便の号を何で決めたか（<b>現地掲示</b>＞<b>実績</b>＞<b>推定</b> の順に確かです）</div>
   `;
 }
 
