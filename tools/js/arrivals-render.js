@@ -227,7 +227,7 @@ export function renderDelayLaneGuide(container, guide) {
   const later = guide.laterCount
     ? `<div class="dg-unknown">3時間より先の遅延便: あと${guide.laterCount}便</div>` : '';
   container.innerHTML = `
-    <div class="dg-hd">⏰ 遅れている便はどこに着くか (${guide.total}件)</div>
+    <div class="dg-hd">⏰ 遅延便到着予定 (${guide.total}件)</div>
     ${laneBlocks}
     ${unresolved}
     ${later}
