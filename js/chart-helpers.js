@@ -478,6 +478,15 @@ function minsFromDep(timeStr, depHour) {
   return mins - depHour * 60;
 }
 
+// とび抜けた日の上限 = Q3 + K × IQR。K を大きくするほど「好調だっただけの日」は残る。
+export const PACE_OUTLIER_K = 3;
+// 早退の定義: 出庫から帰庫までがこの時間より短い日 (2026-08-17 本人指示)
+export const PACE_EARLY_LEAVE_MIN = 13 * 60;
+// 早退の日を外した結果これを下回るなら、外さずに全部使う。
+// 実データでは隔日勤務ばかりで早退は290日中3日だが、短い勤務が常態の人で
+// 全日が消えるのを防ぐ保険。
+const MIN_PACE_SAMPLES = 3;
+
 // 出庫時刻別+任意の経過分単位での平均/最大/最小累積
 // depHour: 数値 or 数値配列(複数許容、例: [7,8,9])
 // dowFilter: null=全曜日, 0-6=その曜日のみ
@@ -523,22 +532,34 @@ export function calcPaceAtElapsed(drives, depHour, elapsedMin, dowFilter = null)
       }
       active = true;
     }
-    if (active) samples.push({ date: d.date, sales: s, count: cnt, tripMin: tm, restMin: rm });
+    const worked = minsFromDep(d.returnTime, dh);   // 出庫→帰庫の分数(早退判定に使う)
+    if (active) samples.push({ date: d.date, sales: s, count: cnt, tripMin: tm, restMin: rm, workedMin: worked });
   }
   if (samples.length === 0) return { days: 0, totalDays: matched.length, samples };
 
-  // 外れ値除外: IQR方式で異常に高い単価の日を除外
-  const salesValues = samples.map(v => v.sales).sort((a, b) => a - b);
+  // ① 早退の日を外す: 勤務が13時間に満たない日は最後まで走っていないので、
+  //    比べる相手として持ってくると平均を押し下げるだけになる(2026-08-17 本人指示)。
+  //    帰庫時刻が無い日は判定できないので残す。
+  const fullShifts = samples.filter(v => v.workedMin == null || v.workedMin >= PACE_EARLY_LEAVE_MIN);
+  const afterEarly = fullShifts.length >= MIN_PACE_SAMPLES ? fullShifts : samples;
+  const excludedEarly = samples.length - afterEarly.length;
+
+  // ② とび抜けて高い日だけ外す: Q3 + PACE_OUTLIER_K × IQR より上。
+  //    低い側は切らない(悪かった日も自分の実績)。
+  //    K=1.5 では日々のばらつきが小さい人ほど上限が中央値のすぐ上に来てしまい、
+  //    ただの好調日まで落ちていた(実測: 48日中6日・平均が7.8%低く出ていた)。
+  const salesValues = afterEarly.map(v => v.sales).sort((a, b) => a - b);
   const q1Index = Math.floor(salesValues.length * 0.25);
   const q3Index = Math.floor(salesValues.length * 0.75);
   const q1 = salesValues[q1Index];
   const q3 = salesValues[q3Index];
   const iqr = q3 - q1;
-  const upperBound = q3 + 1.5 * iqr;
-  const filteredSamples = samples.filter(v => v.sales <= upperBound);
+  const upperBound = q3 + PACE_OUTLIER_K * iqr;
+  const filteredSamples = afterEarly.filter(v => v.sales <= upperBound);
 
   // 除外された日数が多すぎる場合は元のデータを使用（全てが外れ値の場合の保険）
-  const finalSamples = filteredSamples.length >= samples.length * 0.5 ? filteredSamples : samples;
+  const finalSamples = filteredSamples.length >= afterEarly.length * 0.5 ? filteredSamples : afterEarly;
+  const excludedOutlier = afterEarly.length - finalSamples.length;
 
   const sumSales = finalSamples.reduce((s,v) => s + v.sales, 0);
   const sumRest = finalSamples.reduce((s,v) => s + v.restMin, 0);
@@ -552,6 +573,9 @@ export function calcPaceAtElapsed(drives, depHour, elapsedMin, dowFilter = null)
     days: finalSamples.length,
     totalDays: matched.length,
     excludedDays: samples.length - finalSamples.length,
+    excludedEarly,      // 早退で外した日数
+    excludedOutlier,    // とび抜けて高くて外した日数
+    upperBound,
     avgSales: sumSales / finalSamples.length,
     avgRest: sumRest / finalSamples.length,
     avgTrip: sumTrip / finalSamples.length,
