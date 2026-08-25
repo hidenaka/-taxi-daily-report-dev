@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プレミアム基準額 8万→8.5万</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1a1a1a;--sub:#5c5c5c;--line:#e2e2dd;--accent:#0b6b52;--warn:#b3261e;--ok:#1b7a3e;--soft:#eef4f1}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;line-height:1.75;-webkit-text-size-adjust:100%}
+.wrap{max-width:820px;margin:0 auto;padding:28px 20px 80px}
+.kicker{font-size:12px;letter-spacing:.14em;color:var(--accent);font-weight:700}
+h1{font-size:26px;margin:6px 0 10px;line-height:1.35}
+.lede{color:var(--sub);font-size:15px;margin:0 0 22px}
+.tldr{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:26px}
+.tldr ol{margin:0;padding-left:1.3em}
+.tldr li{margin:5px 0;font-size:15px}
+h2{font-size:18px;margin:32px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+.scroll{overflow-x:auto}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{background:#fafaf8;font-weight:700;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bad{color:var(--warn);font-weight:700}
+.good{color:var(--ok);font-weight:700}
+.mut{color:var(--sub)}
+.choice{background:var(--card);border:2px solid var(--accent);border-radius:12px;padding:18px;margin:16px 0}
+.choice h3{margin:0 0 8px;font-size:16px}
+.choice.alt{border-color:var(--line)}
+.pill{display:inline-block;background:var(--accent);color:#fff;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-right:8px}
+.pill.gray{background:#8a8a8a}
+code{background:#f0f0ec;padding:1px 6px;border-radius:5px;font-size:13px}
+.note{font-size:13px;color:var(--sub);margin-top:6px}
+@media (prefers-color-scheme:dark){
+:root{--bg:#16171a;--card:#1e2024;--ink:#eceff1;--sub:#a8adb4;--line:#31343a;--accent:#4fbf9a;--warn:#ff8a80;--ok:#7ee2a8;--soft:#20262a}
+th{background:#22252a}code{background:#2a2d33}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="kicker">給与計算 / 承認のお願い</div>
+<h1>プレミアムのインセンティブ基準額<br>税抜8万円 → 8.5万円</h1>
+<p class="lede">dev環境に反映して動作確認済みです。本番反映の承認をお願いします。</p>
+
+<div class="tldr">
+<ol>
+<li><strong>変わるのは今月度(2026-09月度)だけ</strong> — 8,000円 → 6,000円</li>
+<li><strong>過去30月度の給与は1円も変わりません</strong>(当時の基準8万円のまま計算)</li>
+<li>単純に数字だけ書き換えると、<span class="bad">過去22月度・計106,000円</span>が遡って消えていました</li>
+</ol>
+</div>
+
+<h2>なぜ「単純な書き換え」にしなかったか</h2>
+<div class="card">
+<p style="margin-top:0">基準額は1か所の設定値で、過去の給与画面も同じ値で再計算されます。8.5万円にそのまま差し替えると、<strong>過去に8万〜8.5万で着地した日のインセンティブが後から消えます</strong>。本番の実データで数えたところ、該当は53日ありました。</p>
+<div class="scroll">
+<table>
+<tr><th>やり方</th><th>今月度</th><th>過去の月度</th><th>合計差</th></tr>
+<tr><td>数字だけ書き換え</td><td class="num">-2,000円</td><td class="num bad">-104,000円<br><span class="mut" style="font-weight:400">(22月度で減額)</span></td><td class="num bad">-106,000円</td></tr>
+<tr><td><strong>今回の実装</strong>(日付で切替)</td><td class="num">-2,000円</td><td class="num good">±0円</td><td class="num good">-2,000円</td></tr>
+</table>
+</div>
+<p class="note">設定に「いつまではいくらだったか」の履歴を持たせ、日報の日付でその日の基準額を選ぶようにしました。次に基準額が変わったときも同じやり方で積めます。</p>
+</div>
+
+<h2>今月度で何が変わるか</h2>
+<div class="card">
+<p style="margin-top:0">今月度(2026-08-16 〜 2026-09-15)のプレミアム乗務は現時点で5日。うち1日だけ判定が変わります。</p>
+<div class="scroll">
+<table>
+<tr><th>日付</th><th>税抜売上</th><th>旧(8万超)</th><th>新(8.5万超)</th></tr>
+<tr><td>8/16</td><td class="num">100,391</td><td class="good">+2,000</td><td class="good">+2,000</td></tr>
+<tr><td><strong>8/18</strong></td><td class="num">82,845</td><td class="good">+2,000</td><td class="bad">なし</td></tr>
+<tr><td>8/20</td><td class="num">92,564</td><td class="good">+2,000</td><td class="good">+2,000</td></tr>
+<tr><td>8/23</td><td class="num">74,927</td><td class="mut">なし</td><td class="mut">なし</td></tr>
+<tr><td>8/25</td><td class="num">114,209</td><td class="good">+2,000</td><td class="good">+2,000</td></tr>
+<tr><th>合計</th><th></th><th class="num">8,000円</th><th class="num">6,000円</th></tr>
+</table>
+</div>
+<p class="note">インセンティブ額は1乗務2,000円のまま変更ありません。</p>
+</div>
+
+<h2>いつから切り替わるか</h2>
+<div class="card">
+<p style="margin-top:0"><strong>2026-08-16(今月度=9月度の初日)から</strong>新しい8.5万円を使います。8月15日までは旧8万円のままです。</p>
+<p class="note">仮に「8月度から」の意味だったとしても、7/16〜8/15のプレミアム日はすべて税抜8.5万円を超えているため、<strong>結果の金額は同じ</strong>です(該当日ゼロ)。どちらの解釈でも今月度の6,000円は変わりません。</p>
+</div>
+
+<h2>確認済みのこと</h2>
+<div class="card">
+<ul style="margin:0;padding-left:1.2em">
+<li>テスト1,047本すべて成功(基準日をまたぐ境界8/15・8/16のテストを追加)</li>
+<li>dev環境の実ページで、8/15は加算・8/16以降は8.5万超のみ加算を確認</li>
+<li>本番の実日報345件を実コードに通し、変わるのは今月度のみと確認</li>
+<li>管理画面から会社設定を保存しても履歴が消えないよう対処済み</li>
+</ul>
+</div>
+
+<h2>判断をお願いします</h2>
+<div class="choice">
+<h3><span class="pill">推奨</span>A. このまま本番へ反映する</h3>
+<p style="margin:0">今月度のインセンティブが8,000円→6,000円になります。過去の月度は変わりません。反映後は本番アプリの再起動(PWAを閉じて開き直す)をお願いします。</p>
+</div>
+<div class="choice alt">
+<h3><span class="pill gray">B</span>切替日を変えたい</h3>
+<p style="margin:0">「8月度から」「9月1日から」など別の起点にしたい場合はお知らせください。設定1行の変更で済みます(金額の結果は上記のとおり変わらない見込みです)。</p>
+</div>
+<div class="choice alt">
+<h3><span class="pill gray">C</span>まだ本番に出さない</h3>
+<p style="margin:0">dev環境で自分でも確認してから決めたい場合。dev環境にはすでに反映済みです。</p>
+</div>
+
+</div>
+</body>
+</html>
