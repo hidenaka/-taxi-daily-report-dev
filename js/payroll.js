@@ -224,11 +224,24 @@ export function calcBasePay(drives, config, options = {}) {
   };
 }
 
+// その日に適用されるインセンティブ基準を返す。history に until 以前のものがあれば
+// 当時の基準を使う(基準額が変わっても過去の給与が変わらないようにするため)。
+export function resolvePremiumIncentive(premiumIncentive, date) {
+  const cur = premiumIncentive || {};
+  const past = Array.isArray(cur.history) ? [...cur.history].sort((a, b) => String(a.until).localeCompare(String(b.until))) : [];
+  if (date) {
+    for (const h of past) {
+      if (h && h.until && date <= h.until) return h;
+    }
+  }
+  return cur;
+}
+
 export function calcIncentive(drives, config) {
-  const { thresholdSalesExclTax, amountPerShift } = config.premiumIncentive;
   let total = 0;
   for (const drive of drives) {
     if (drive.vehicleType !== 'premium') continue;
+    const { thresholdSalesExclTax, amountPerShift } = resolvePremiumIncentive(config.premiumIncentive, drive.date);
     const daily = calcDailySales(drive);
     if (daily.exclTax > thresholdSalesExclTax) total += amountPerShift;
   }

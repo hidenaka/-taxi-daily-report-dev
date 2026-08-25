@@ -1437,7 +1437,8 @@ document.getElementById('saveCompanyBtn').onclick = async () => {
     defaultRecArea: document.getElementById('companyDefaultRecArea').value,
     rateTable: collectRateTable('companyRateTableEditor', 'companyRate1213'),
   };
-  const { doc: companyDoc, error } = buildCompanyDoc(form);
+  const existingCompany = companyCache.find(c => c.id === form.slug) || null;
+  const { doc: companyDoc, error } = buildCompanyDoc(form, existingCompany);
   if (error) {
     status.textContent = '✗ ' + error;
     status.style.color = '#d32f2f';

@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay, requiredUniformSales, predictMonthly } from '../js/payroll.js';
+import { calcDailySales, calcMonthlySales, findRate, calcBasePay, calcIncentive, calcTotalPay, requiredUniformSales, predictMonthly, resolvePremiumIncentive } from '../js/payroll.js';
 import { DEFAULT_CONFIG } from '../js/default-config.js';
 
 test('calcDailySales: trips のキャンセル除いた合計（税込）', () => {
@@ -99,6 +99,34 @@ test('calcIncentive: プレミアム車両で税抜80,000円超の日 → 1乗�
   assert.equal(calcIncentive(drives, config), 2000);
 });
 
+test('calcIncentive: 基準額の変更は日付で切り替わる — 過去の日は当時の基準で計算', () => {
+  // 2026-08-16(9月度)から税抜85,000超へ。それ以前は80,000超のまま。
+  const config = {
+    premiumIncentive: {
+      thresholdSalesExclTax: 85000,
+      amountPerShift: 2000,
+      history: [{ until: '2026-08-15', thresholdSalesExclTax: 80000, amountPerShift: 2000 }]
+    }
+  };
+  // 税抜 約82,845 = 旧基準なら加算・新基準なら加算なし
+  const trips = [{ amount: 91130, isCancel: false }];
+  assert.equal(calcIncentive([{ vehicleType: 'premium', date: '2026-08-13', trips }], config), 2000);
+  assert.equal(calcIncentive([{ vehicleType: 'premium', date: '2026-08-15', trips }], config), 2000);
+  assert.equal(calcIncentive([{ vehicleType: 'premium', date: '2026-08-16', trips }], config), 0);
+  assert.equal(calcIncentive([{ vehicleType: 'premium', date: '2026-08-18', trips }], config), 0);
+  // 85,000超は新旧どちらでも加算
+  const big = [{ amount: 110000, isCancel: false }];
+  assert.equal(calcIncentive([{ vehicleType: 'premium', date: '2026-08-18', trips: big }], config), 2000);
+});
+
+test('resolvePremiumIncentive: history 無し/日付無しは現行値を返す', () => {
+  const cur = { thresholdSalesExclTax: 85000, amountPerShift: 2000 };
+  assert.equal(resolvePremiumIncentive(cur, '2020-01-01').thresholdSalesExclTax, 85000);
+  const withHist = { ...cur, history: [{ until: '2026-08-15', thresholdSalesExclTax: 80000, amountPerShift: 2000 }] };
+  assert.equal(resolvePremiumIncentive(withHist, undefined).thresholdSalesExclTax, 85000);
+  assert.equal(resolvePremiumIncentive(withHist, '2026-08-15').thresholdSalesExclTax, 80000);
+});
+
 test('calcTotalPay: basePay + incentive', () => {
   const drives = Array(11).fill({ vehicleType: 'japantaxi', trips: [{ amount: 110000, isCancel: false }] });
   const config = {
@@ -151,7 +179,9 @@ test('requiredUniformSales: 段階歩率を反映し、逆算結果で目標手�
 });
 
 test('requiredUniformSales: プレミアム車のインセンティブを考慮する(必要売上が下がる)', () => {
-  const target = 500000, takeHomeRate = 0.75;
+  // target は「1出番の税抜売上が基準額(85,000)を超える」水準にする。
+  // 基準額未満で並ぶ水準ではインセンティブが付かず両者が一致するため、比較が成立しない。
+  const target = 550000, takeHomeRate = 0.75;
   const allJt = Array.from({ length: 12 }, () => ({ vehicleType: 'japantaxi' }));
   const allPremium = Array.from({ length: 12 }, () => ({ vehicleType: 'premium' }));
   const xJt = requiredUniformSales([], allJt, DEFAULT_CONFIG, '2026-05-01', '2026-05-31', target, takeHomeRate);

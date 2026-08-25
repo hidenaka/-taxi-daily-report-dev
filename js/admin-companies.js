@@ -25,7 +25,7 @@ function num(v) {
 // フォーム値オブジェクト → companies ドキュメント。
 // 成功時は { doc }、検証エラー時は { error } を返す。
 // 会社レベル項目のうち rateTable / fixedRate は payrollMode に応じて取捨選択する。
-export function buildCompanyDoc(form) {
+export function buildCompanyDoc(form, existing = null) {
   const slug = String(form.slug || '').trim();
   if (!SLUG_RE.test(slug) || slug.length < 2 || slug.length > 40) {
     return { error: '会社ID(slug)は半角英小文字で始まり、英小文字・数字・_・- のみ・2〜40文字です' };
@@ -61,6 +61,10 @@ export function buildCompanyDoc(form) {
     },
     payrollMode,
   };
+
+  // 基準額の変更履歴はフォームに無いので既存 doc から引き継ぐ(保存は全上書きのため)
+  const history = existing?.premiumIncentive?.history;
+  if (Array.isArray(history) && history.length) doc.premiumIncentive.history = history;
 
   // defaultRecArea は任意項目。空文字なら省略、設定された文字列は doc に含める。
   const defaultRecArea = String(form.defaultRecArea || '').trim();

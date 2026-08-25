@@ -19,8 +19,13 @@ export const DEFAULT_CONFIG = {
     name: "千代田区"
   },
   premiumIncentive: {
-    thresholdSalesExclTax: 80000,
-    amountPerShift: 2000
+    thresholdSalesExclTax: 85000,
+    amountPerShift: 2000,
+    // 過去の基準額。日報の日付が until 以前ならその値で計算する(過去の給与を当時の基準で保つ)。
+    // 基準額が変わったら「変更前の値」をここに積み、上の現行値を書き換える。
+    history: [
+      { until: '2026-08-15', thresholdSalesExclTax: 80000, amountPerShift: 2000 }
+    ]
   },
   responsibilityShifts: 11,
   takeHomeRate: 0.75,
