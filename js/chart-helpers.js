@@ -946,6 +946,59 @@ export function nextBoardBreakdown(drives, dropoffArea, hourCenter = null, hourW
   return { rows, includedAreas: Array.from(targetAreas), totalDropoffs, totalNextWithin30 };
 }
 
+// 推奨検索が「これは参考になる」と認める最低件数
+export const REC_MIN_SAMPLES = 3;
+
+// 条件を広げる順番。上から試して、最初に足りた段を採用する。
+// 時刻を先に広げ、それでも足りなければ期間を広げる(近い時間帯の実績を優先したいため)。
+// hourWindow: null = 時間帯を問わない
+const REC_SEARCH_STEPS = [
+  { scope: 'recent', hourWindow: 1,    label: '' },
+  { scope: 'recent', hourWindow: 2,    label: '前後2時間まで広げて表示' },
+  { scope: 'all',    hourWindow: 1,    label: '過去すべての実績まで広げて表示' },
+  { scope: 'all',    hourWindow: 2,    label: '過去すべて・前後2時間まで広げて表示' },
+  { scope: 'all',    hourWindow: null, label: '過去すべて・時間帯をまとめて表示' },
+];
+
+// 次の営業先 推奨検索: 表示期間・降車時刻ぴったりで足りなければ自動で条件を広げる
+//
+// なぜ必要か: 表示期間(既定=直近6月度)×時刻±1h だけを見ると、自分1人分のデータでは
+// 3件以上たまっているエリアがほとんど無く、結果テーブルが出ないまま履歴だけになる。
+// 本番実データ345乗務で計測すると、上位20エリア×7〜23時のうち出るのは19%。
+// 段階的に広げると75%まで出る。
+//
+// recentDrives: 表示期間の乗務 / allDrives: 全期間の乗務(未ロードなら null)
+// neighbors: 近隣マップ(「近隣エリアも含める」OFF なら null)
+// 戻り値: { result, evaluated, drives, scope, hourWindow, hourCenter,
+//           stepIndex, widened, widenedLabel, exhausted }
+//   evaluated: 採用件数を満たし、30分以内取得率の高い順に並べた rows
+//   drives:    採用した段の母集団(履歴フォールバックも同じ母集団で引くため)
+//   exhausted: 全部の段を試しても足りなかった
+export function searchNextBoardStepwise({
+  recentDrives, allDrives, neighbors, area, hour, minCount = REC_MIN_SAMPLES,
+}) {
+  const pools = { recent: recentDrives || [], all: allDrives };
+  const steps = REC_SEARCH_STEPS.filter(s => pools[s.scope] != null);
+  let last = null;
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    const drives = pools[step.scope];
+    const hourCenter = step.hourWindow == null ? null : hour;
+    const result = nextBoardBreakdown(drives, area, hourCenter, step.hourWindow ?? 1, neighbors);
+    const evaluated = result.rows
+      .filter(r => r.count >= minCount)
+      .sort((a, b) => b.ratio30 - a.ratio30);
+    last = {
+      result, evaluated, drives,
+      scope: step.scope, hourWindow: step.hourWindow, hourCenter,
+      stepIndex: i, widened: i > 0, widenedLabel: step.label,
+      exhausted: false,
+    };
+    if (evaluated.length > 0) return last;
+  }
+  return { ...last, exhausted: true };
+}
+
 // 全trip の平均単価 (全期間・キャンセル除外)
 export function avgTripSales(drives) {
   let sum = 0, count = 0;

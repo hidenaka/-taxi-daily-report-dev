@@ -34,6 +34,7 @@ export const getConfig = provider.getConfig;
 export const getDrive = provider.getDrive;
 export const getDrivesForMonth = provider.getDrivesForMonth;
 export const getDrivesForMonthCached = provider.getDrivesForMonthCached;
+export const getAllDrives = provider.getAllDrives;
 export const putFile = provider.putFile;
 export const saveDrive = provider.saveDrive;
 export const deleteDrive = provider.deleteDrive;
