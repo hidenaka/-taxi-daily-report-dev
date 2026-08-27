@@ -55,6 +55,8 @@ export function lookupCoord(area, coords) {
 // 起点エリアの近くにあるのに、いまの近隣(実績ベース)に入っていない町を返す。
 //
 // area:        起点エリア（降ろした場所）
+// originPoint: 起点の座標 [lat, lng]。GPSでいまいる場所が分かっているときはこちらを使う
+//              （町名が過去データに無くても効く）。省略時は area から座標を引く。
 // neighbors:   いまの近隣 Set（実績ベース）
 // coords:      { エリア名: [lat, lng] }
 // boardStats:  { エリア名: { count, avgSales } } — その町で「乗せた」実績
@@ -67,10 +69,10 @@ export function lookupCoord(area, coords) {
 //
 // 戻り値: [{ area, km, count, avgSales }] を単価の高い順に
 export function nearbyUnexploredAreas({
-  area, neighbors, coords, boardStats,
+  area, originPoint, neighbors, coords, boardStats,
   radiusKm = 2, minBoardCount = 3, limit = 8,
 }) {
-  const origin = lookupCoord(area, coords);
+  const origin = originPoint || lookupCoord(area, coords);
   if (!origin || !boardStats) return [];
   const known = neighbors || new Set();
   const out = [];
@@ -84,5 +86,31 @@ export function nearbyUnexploredAreas({
     out.push({ area: name, km: d, count: stat.count, avgSales: stat.avgSales });
   }
   out.sort((a, b) => b.avgSales - a.avgSales);
+  return out.slice(0, limit);
+}
+
+// いまいる座標から半径内にある「実績のある場所」を近い順に返す。
+//
+// GPS の緯度経度をそのまま起点にする。これまでは座標を町名の文字に変えてから
+// 過去データの町名と文字くらべしており、町名が過去データに無いと
+// 「同じ区で名前が似ている町」を起点にしていた。実測ではその選び方は
+// あてずっぽう(同じ区からランダムに選ぶ)と同じ15%しか当たっていなかった。
+//
+// point:     [lat, lng]（いまいる場所。記録はせず、この場で使うだけ）
+// coords:    { エリア名: [lat, lng] }
+// areaStats: { エリア名: { count } } — そのエリアの実績件数
+// 戻り値: [{ area, km, count }] を近い順に
+export function areasNearPoint(point, coords, areaStats, { radiusKm = 2, minCount = 3, limit = 30 } = {}) {
+  if (!point || !coords || !areaStats) return [];
+  const out = [];
+  for (const [name, stat] of Object.entries(areaStats)) {
+    if (!stat || (stat.count || 0) < minCount) continue;
+    const p = lookupCoord(name, coords);
+    if (!p) continue;
+    const d = distanceKm(point, p);
+    if (d == null || d > radiusKm) continue;
+    out.push({ area: name, km: d, count: stat.count });
+  }
+  out.sort((a, b) => a.km - b.km);
   return out.slice(0, limit);
 }

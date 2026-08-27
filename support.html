@@ -213,7 +213,7 @@ import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, searchNe
 import { auth, db } from './js/firebase-init.js';
 import { resolveWorkerBase, refreshPool, listMyGroups } from './js/group-client.js';
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
-import { nearbyUnexploredAreas } from './js/area-geo.js';
+import { nearbyUnexploredAreas, areasNearPoint } from './js/area-geo.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 import './js/help-toggle.js';
@@ -839,12 +839,6 @@ function normalizePlace(s) {
   r = r.replace(/\d+$/, '');
   return r.trim();
 }
-function commonPrefixLen(a, b) {
-  let i = 0;
-  while (i < a.length && i < b.length && a[i] === b[i]) i++;
-  return i;
-}
-
 // GPS取得 → 国土地理院reverse geocoding → エリア推定 → recArea セット
 // silent=true: 自動実行モード（UIを触らず、エラー黙殺、完全一致のみ値上書き）
 async function runGpsLookup({ silent = false } = {}) {
@@ -860,6 +854,9 @@ async function runGpsLookup({ silent = false } = {}) {
       navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, enableHighAccuracy: true })
     );
     const { latitude: lat, longitude: lon } = pos.coords;
+    // この画面を開いている間だけ手元に置く。保存も送信もしない
+    // (画面を離れれば消える。Firestore にも localStorage にも書かない)。
+    gpsPos = [lat, lon];
     if (!silent) info.textContent = `緯度${lat.toFixed(5)}, 経度${lon.toFixed(5)} → 町名取得中…`;
     const res = await fetch(`https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?lat=${lat}&lon=${lon}`);
     const data = await res.json();
@@ -892,48 +889,26 @@ async function runGpsLookup({ silent = false } = {}) {
       showRecGpsBadge(true, '確定');
       if (!silent) info.innerHTML = `📍 今いる場所: <strong>${matched}</strong>${detailToggle(gpsDetailBase)}`;
       if (!silent) document.getElementById('recSearch').click();
-    } else if (detected && !silent) {
-      // 完全一致なし → 同区内の「文字列が近いエリア」を起点に、neighborMapで実移動可能範囲に絞る
-      let wardMatch = detected.match(/^([^区市]+(?:区|市[^区]+?区|市))/);
-      let ward = wardMatch ? wardMatch[1] : '';
-      let wardNote = '';
-      // detectedが町名だけ(区が取れなかった)の場合、過去データから町名一致するエリアを探して区を推定
-      if (!ward) {
-        const townHit = options.find(v => v.endsWith(detected) || v.includes(detected));
-        if (townHit) {
-          const wm = townHit.match(/^([^区市]+(?:区|市[^区]+?区|市))/);
-          if (wm) ward = wm[1];
-          wardNote = `<br>区不明 → 町名「${detected}」から区を推定: ${ward || '(推定不可)'}`;
-        }
-      }
-      const wardAreas = ward ? options.filter(v => v.startsWith(ward)) : [];
-      if (wardAreas.length === 0) {
-        info.innerHTML = `📍 今いる場所: <strong>${detected}</strong> — この近くの過去データがまだ無いため検索できません`;
+    } else if (!silent) {
+      // 町名がそのまま過去データに無い場合。
+      // 以前はここで「同じ区で名前が似ている町」を起点にしていたが、それは地理を
+      // 一切見ていない選び方で、実測ではあてずっぽう(同じ区からランダムに3つ選ぶ)と
+      // 同じ15%しか当たっていなかった。緯度経度を持っているのだから、そのまま
+      // 距離で探す。
+      const near = await areasNearGps(GPS_RADIUS_KM);
+      if (!near.length) {
+        info.innerHTML = `📍 今いる場所: <strong>${detected || 'この辺り'}</strong> — ここから${GPS_RADIUS_KM}km以内に、まだ営業の記録がありません`;
         return;
       }
-      // 起点候補: 共通プレフィックス長が「区名+1文字以上」 → 同町名相当
-      const minMatch = ward.length + 1;
-      let seeds = wardAreas.filter(v => commonPrefixLen(v, detected) >= minMatch);
-      if (seeds.length === 0) {
-        // ない場合は共通プレフィックス長最大のもの上位3
-        const sorted = wardAreas.slice().sort((a, b) => commonPrefixLen(b, detected) - commonPrefixLen(a, detected));
-        seeds = sorted.slice(0, 3);
-      }
-      // 起点 + neighborMapで1ホップ到達可能なエリアに絞る(=過去25分以内移動実績がある関係)
-      const reachable = new Set(seeds);
-      for (const s of seeds) {
-        if (neighborMap[s]) for (const n of neighborMap[s]) reachable.add(n);
-      }
-      gpsWideAreas = Array.from(reachable);
-      recWideLabel = `${detected} 周辺`;
-      recWideDetailHtml = `${gpsDetailBase}<br>ピッタリの履歴がないため、起点 ${seeds.join(', ')} から実移動実績のある ${gpsWideAreas.length} エリアにまとめて検索${wardNote}`;
+      gpsWideAreas = near.map(n => n.area);
+      recWideLabel = `${detected || 'この辺り'} 周辺`;
+      recWideDetailHtml = `${gpsDetailBase}<br>この町名の記録が無いため、いまいる場所から半径${GPS_RADIUS_KM}km以内で記録のある ${near.length} か所をまとめて検索`
+        + `<br>近い順: ${near.slice(0, 5).map(n => `${n.area}(${n.km.toFixed(1)}km)`).join(', ')}`;
       setRecWideOption(`📍${recWideLabel}(GPS)`); // プルダウン表示を「今いる場所」に同期
-      document.getElementById('recExpand').checked = false; // 既に近隣含めて拡張済み
+      document.getElementById('recExpand').checked = false; // 既に周辺をまとめているので二重に広げない
       showRecGpsBadge(true, '範囲');
-      info.innerHTML = `📍 今いる場所: <strong>${recWideLabel}</strong>(近場の実績エリアでまとめて検索)${detailToggle(recWideDetailHtml)}`;
+      info.innerHTML = `📍 今いる場所: <strong>${recWideLabel}</strong>(ここから${GPS_RADIUS_KM}km以内の記録${near.length}か所をまとめて検索)${detailToggle(recWideDetailHtml)}`;
       document.getElementById('recSearch').click();
-    } else if (!silent) {
-      info.innerHTML = `📍 今いる場所: <strong>${detected || '(取得できず)'}</strong> — 該当エリアなし`;
     }
   } catch (err) {
     if (!silent) info.textContent = '位置情報取得エラー: ' + (err.message || err.code);
@@ -965,7 +940,14 @@ function userBadge(userId) {
   return `<span style="display:inline-block;padding:1px 4px;background:${bg};color:${color};border-radius:3px;font-size:9px;font-weight:700;margin-right:3px;vertical-align:middle;">${label}</span>`;
 }
 
-// 町の代表座標。推奨検索を押したときに1回だけ読む(142KB)。
+// GPSで取れた いまいる場所 [lat, lng]。この画面を開いている間だけメモリに置き、
+// 保存も送信もしない。町名に変換したあとも捨てずに持つのは、町名が過去データに
+// 無いときに「文字が似ている町」を探す代わりに、距離で探すため。
+let gpsPos = null;
+// GPSで拾う半径。実績で「近所」とされたペアの79%が2km以内に収まる。
+const GPS_RADIUS_KM = 2;
+
+// 町の代表座標。推奨検索を押したときに1回だけ読む(203KB)。
 let areaCoords = null;
 let areaCoordsPromise = null;
 async function ensureAreaCoords() {
@@ -979,32 +961,57 @@ async function ensureAreaCoords() {
   return areaCoordsPromise;
 }
 
+// いまいる場所（緯度経度）から半径内で、実際に営業した記録のある場所を近い順に。
+// 町名の文字くらべを介さないので、過去データに無い町にいても効く。
+async function areasNearGps(radiusKm = GPS_RADIUS_KM) {
+  if (!gpsPos) return [];
+  const coords = await ensureAreaCoords();
+  if (!coords) return [];
+  await ensureFullDrives();
+  const pool = fullDrives || allDrives;
+  // 降車でも乗車でも、その場所に居た記録があれば起点候補にする
+  const stats = {};
+  for (const a of dropoffAreaAnalysis(pool)) stats[a.area] = { count: a.dropoffs };
+  for (const [area, s] of Object.entries(boardAreaStats(pool, null))) {
+    stats[area] = { count: (stats[area]?.count || 0) + s.count };
+  }
+  return areasNearPoint(gpsPos, coords, stats, { radiusKm });
+}
+
 // 「近いのに、この流れでは行っていない町」
 //
 // 本表(次に乗れたエリア)の母集団には混ぜない。混ぜると降車件数=分母が膨らんで
 // 取得率の数字が薄まってしまうため(実測: 半径3kmまで広げると1位の30分以内取得率が
 // 15.4%→9.6%に見かけ上さがる)。根拠が違うものは別枠にして、判断は本人に委ねる。
-async function renderNearbyUnexplored(area, hour) {
-  if (!area || area === GPS_WIDE_VALUE) return '';
+// useGps: GPSでいまいる場所が分かっているなら、その緯度経度を起点にする。
+// エリア名から代表座標を引き直すと町の真ん中に丸められるので、実際に立っている
+// 位置から測るほうが正しい。GPS範囲モード(町名が過去データに無い)でもこれで出せる。
+async function renderNearbyUnexplored(area, hour, useGps) {
+  const originPoint = useGps ? gpsPos : null;
+  if (!originPoint && (!area || area === GPS_WIDE_VALUE)) return '';
   const coords = await ensureAreaCoords();
   if (!coords) return '';
   // 母集団は常に全期間。「その場所の実力」を見るのに表示期間で切る理由がないうえ、
   // 直近だけだとほとんど3件に届かず何も出せなかった(実測 出る率40% → 83%)。
   const pool = fullDrives || allDrives;
-  const neighbors = neighborMap[area] || new Set();
+  const neighbors = (area && neighborMap[area]) || new Set();
+  const originLabel = originPoint ? 'いまいる場所' : area;
   // まず降ろした時刻の前後3時間で見て、足りなければ時間帯を外す
   let stats = boardAreaStats(pool, hour, 3);
-  let rows = nearbyUnexploredAreas({ area, neighbors, coords, boardStats: stats });
+  let rows = nearbyUnexploredAreas({ area, originPoint, neighbors, coords, boardStats: stats });
   let scopeText = `${String(hour).padStart(2, '0')}時ごろ`;
   if (rows.length < 3) {
     stats = boardAreaStats(pool, null);
-    rows = nearbyUnexploredAreas({ area, neighbors, coords, boardStats: stats });
+    rows = nearbyUnexploredAreas({ area, originPoint, neighbors, coords, boardStats: stats });
     scopeText = '時間帯を問わず';
   }
   if (!rows.length) return '';
+  const tailNote = originPoint
+    ? `いまいる場所からの直線距離です（この位置は保存していません）。`
+    : `${area}で降ろした後かどうかは問いません。`;
   let h = `<div style="margin-top:14px;padding:10px 12px;background:#f4f8fb;border:1px solid #cfe0ec;border-radius:8px;">`
     + `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">🧭 近くにあるが、この流れでは行っていない場所</div>`
-    + `<div class="muted" style="font-size:10px;margin-bottom:6px;">${area}から2km以内で、${scopeText}にお客様を乗せた実績がある場所。上の表とは数え方が違います（${area}で降ろした後かどうかは問いません）。</div>`
+    + `<div class="muted" style="font-size:10px;margin-bottom:6px;">${originLabel}から2km以内で、${scopeText}にお客様を乗せた実績がある場所。上の表とは数え方が違います（${tailNote}）。</div>`
     + '<div style="overflow-x:auto;"><table class="area-table"><thead><tr>'
     + '<th class="l">場所</th><th>距離</th><th>乗せた回数</th><th>その乗車の運賃(平均/中央)</th>'
     + '</tr></thead><tbody>';
@@ -1110,7 +1117,9 @@ document.getElementById('recSearch').onclick = async () => {
   // サンプル件数などの内訳は控えめなサブ行へ(見出しはすっきり)
   const countLine = `<div class="muted" style="font-size:10px;margin-bottom:6px;">${isWide ? `${result.includedAreas.length}エリア・` : ''}降車${result.totalDropoffs}件中、30分以内に次が取れた ${result.totalNextWithin30}件</div>`;
   // 「近いのに、この流れでは行っていない町」も併せて出す(母集団には混ぜない)
-  const nearbyHtml = await renderNearbyUnexplored(isWide ? null : sel, hour);
+  // GPSバッジが出ている＝いまいる場所が分かっている。そのときは座標を起点にする
+  const gpsActive = !!gpsPos && document.getElementById('recGpsBadge').style.display !== 'none';
+  const nearbyHtml = await renderNearbyUnexplored(isWide ? null : sel, hour, gpsActive);
   if (evaluated.length === 0) {
     body.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">📍 ${headLabel}${neighborSuffix} で <strong>${winLabel}</strong>${winSuffix} に降ろした後</div>`
       + `<p class="muted" style="font-size:11px;margin-bottom:6px;">まとめて出せるだけの実績がまだありません。下に過去の動き履歴を表示します。</p>`
