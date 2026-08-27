@@ -209,10 +209,11 @@ import {
   filterDrivesByVehicle,
   renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
-import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, searchNextBoardStepwise, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, heatmapFromCells } from './js/chart-helpers.js';
+import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, searchNextBoardStepwise, boardAreaStats, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, heatmapFromCells } from './js/chart-helpers.js';
 import { auth, db } from './js/firebase-init.js';
 import { resolveWorkerBase, refreshPool, listMyGroups } from './js/group-client.js';
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
+import { nearbyUnexploredAreas } from './js/area-geo.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 import './js/help-toggle.js';
@@ -964,6 +965,59 @@ function userBadge(userId) {
   return `<span style="display:inline-block;padding:1px 4px;background:${bg};color:${color};border-radius:3px;font-size:9px;font-weight:700;margin-right:3px;vertical-align:middle;">${label}</span>`;
 }
 
+// 町の代表座標。推奨検索を押したときに1回だけ読む(142KB)。
+let areaCoords = null;
+let areaCoordsPromise = null;
+async function ensureAreaCoords() {
+  if (areaCoords) return areaCoords;
+  if (!areaCoordsPromise) {
+    areaCoordsPromise = fetch('./js/data/area-coords.json')
+      .then(r => r.ok ? r.json() : null)
+      .then(j => { areaCoords = j; return j; })
+      .catch(() => { areaCoordsPromise = null; return null; });
+  }
+  return areaCoordsPromise;
+}
+
+// 「近いのに、この流れでは行っていない町」
+//
+// 本表(次に乗れたエリア)の母集団には混ぜない。混ぜると降車件数=分母が膨らんで
+// 取得率の数字が薄まってしまうため(実測: 半径3kmまで広げると1位の30分以内取得率が
+// 15.4%→9.6%に見かけ上さがる)。根拠が違うものは別枠にして、判断は本人に委ねる。
+async function renderNearbyUnexplored(area, hour) {
+  if (!area || area === GPS_WIDE_VALUE) return '';
+  const coords = await ensureAreaCoords();
+  if (!coords) return '';
+  // 母集団は常に全期間。「その場所の実力」を見るのに表示期間で切る理由がないうえ、
+  // 直近だけだとほとんど3件に届かず何も出せなかった(実測 出る率40% → 83%)。
+  const pool = fullDrives || allDrives;
+  const neighbors = neighborMap[area] || new Set();
+  // まず降ろした時刻の前後3時間で見て、足りなければ時間帯を外す
+  let stats = boardAreaStats(pool, hour, 3);
+  let rows = nearbyUnexploredAreas({ area, neighbors, coords, boardStats: stats });
+  let scopeText = `${String(hour).padStart(2, '0')}時ごろ`;
+  if (rows.length < 3) {
+    stats = boardAreaStats(pool, null);
+    rows = nearbyUnexploredAreas({ area, neighbors, coords, boardStats: stats });
+    scopeText = '時間帯を問わず';
+  }
+  if (!rows.length) return '';
+  let h = `<div style="margin-top:14px;padding:10px 12px;background:#f4f8fb;border:1px solid #cfe0ec;border-radius:8px;">`
+    + `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">🧭 近くにあるが、この流れでは行っていない場所</div>`
+    + `<div class="muted" style="font-size:10px;margin-bottom:6px;">${area}から2km以内で、${scopeText}にお客様を乗せた実績がある場所。上の表とは数え方が違います（${area}で降ろした後かどうかは問いません）。</div>`
+    + '<div style="overflow-x:auto;"><table class="area-table"><thead><tr>'
+    + '<th class="l">場所</th><th>距離</th><th>乗せた回数</th><th>その乗車の運賃(平均/中央)</th>'
+    + '</tr></thead><tbody>';
+  for (const r of rows) {
+    h += `<tr><td class="l">${r.area}</td><td>${r.km.toFixed(1)}km</td><td>${r.count}</td>`
+      + `<td>${formatYen(r.avgSales)}<span class="muted" style="font-size:9px;margin-left:4px;">中${formatYen(stats[r.area].medianSales)}</span></td></tr>`;
+  }
+  h += '</tbody></table></div>'
+    + `<p class="muted" style="font-size:10px;margin-top:4px;margin-bottom:0;">上の表に入っていないのは「そこへ流れた実績が少ない」だけで、悪い場所とは限りません。逆にここの回数が多い＝良い、でもありません。まだ試していない近場として並べています。</p>`
+    + '</div>';
+  return h;
+}
+
 // drives/hourWindow は推奨検索が条件を広げたとき、同じ母集団で履歴を出すために受け取る
 function renderHistoryFallback(area, hour, expand, drives = allDrives, hourWindow = 1) {
   const result = dropoffHistoryAtArea(drives, area, hour, hourWindow, expand ? neighborMap : null, 30);
@@ -1055,9 +1109,12 @@ document.getElementById('recSearch').onclick = async () => {
     : '';
   // サンプル件数などの内訳は控えめなサブ行へ(見出しはすっきり)
   const countLine = `<div class="muted" style="font-size:10px;margin-bottom:6px;">${isWide ? `${result.includedAreas.length}エリア・` : ''}降車${result.totalDropoffs}件中、30分以内に次が取れた ${result.totalNextWithin30}件</div>`;
+  // 「近いのに、この流れでは行っていない町」も併せて出す(母集団には混ぜない)
+  const nearbyHtml = await renderNearbyUnexplored(isWide ? null : sel, hour);
   if (evaluated.length === 0) {
     body.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">📍 ${headLabel}${neighborSuffix} で <strong>${winLabel}</strong>${winSuffix} に降ろした後</div>`
       + `<p class="muted" style="font-size:11px;margin-bottom:6px;">まとめて出せるだけの実績がまだありません。下に過去の動き履歴を表示します。</p>`
+      + nearbyHtml
       + renderHistoryFallback(dropoffArg, hourCenter, expand, usedDrives, w);
     return;
   }
@@ -1085,6 +1142,7 @@ document.getElementById('recSearch').onclick = async () => {
   }
   html += '</tbody></table></div>';
   html += '<p class="muted" style="font-size:10px;margin-top:4px;">「15分内」=次乗車が速いエリア、「30分内」=仕事の見込みがあるエリア。「次運賃」=次の乗車営収の平均/中央値(¥0除外)。30分内取得率の高い順。タップで根拠データ表示</p>';
+  html += nearbyHtml;
   // 全履歴フォールバック (折りたたみ)
   html += `<details style="margin-top:10px;"><summary style="cursor:pointer;font-size:11px;color:var(--primary);">▶ このエリアでの全履歴を見る(待ちの目安)</summary><div style="margin-top:8px;">${renderHistoryFallback(dropoffArg, hourCenter, expand, usedDrives, w)}</div></details>`;
   body.innerHTML = html;

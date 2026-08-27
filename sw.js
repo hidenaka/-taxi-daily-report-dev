@@ -56,6 +56,8 @@ const STATIC_FILES = [
   './js/weather.js',
   './js/chart-helpers.js',
   './js/rec-area.js',
+  './js/area-geo.js',
+  './js/data/area-coords.json',
   './js/gps-privacy-banner.js',
   './js/user-doc.js',
   './js/invite-url.js',
@@ -160,8 +162,10 @@ self.addEventListener('fetch', e => {
   // 使い方動画のサムネ(media/help/*.jpg)もキャッシュに溜めない（差し替え時の陳腐化防止）。
   if (url.pathname.includes('/media/help/')) return;
 
-  // データJSON（arrivals 等、デプロイ外で随時更新される）はネットワーク優先で即反映
-  if (/\.json$/i.test(url.pathname)) {
+  // データJSON（arrivals 等、デプロイ外で随時更新される）はネットワーク優先で即反映。
+  // ただし js/data/ はアプリに同梱した静的データ（町の代表座標など）で、デプロイでしか
+  // 変わらない。下のアプリ本体と同じキャッシュ優先に任せる（毎回200KB取りに行かせない）。
+  if (/\.json$/i.test(url.pathname) && !url.pathname.includes('/js/data/')) {
     e.respondWith(
       fetch(e.request).then(async res => {
         if (res && res.ok) {

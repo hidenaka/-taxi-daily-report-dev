@@ -691,9 +691,13 @@ export function hourlyDowEfficiency(drives) {
 
 // 場所文字列から区+町名 (丁目番号を除いた地名) を抽出
 // 例: "大田区羽田空港3" → "大田区羽田空港", "新宿区霞ヶ丘町" → "新宿区霞ヶ丘町"
+//
+// 全角数字も落とす: OCRが丁目を全角で読むことがあり、\d だけ見ていた頃は
+// 「千代田区丸の内２」が「千代田区丸の内」と別エリアに分裂していた
+// (本番実データ18,909件中609件・325種類が該当)。
 export function extractArea(place) {
   if (!place) return '';
-  return place.replace(/\d+$/, '').trim();
+  return place.replace(/[0-9０-９]+$/, '').trim();
 }
 
 // 過去データから近隣エリアを自動推定
@@ -944,6 +948,36 @@ export function nextBoardBreakdown(drives, dropoffArea, hourCenter = null, hourW
     return { area, count: g.count, count15: g.count15, avgWait, avgSales, medianSales, ratio15, ratio30, samples };
   });
   return { rows, includedAreas: Array.from(targetAreas), totalDropoffs, totalNextWithin30 };
+}
+
+// その町で「乗せた」実績を町ごとにまとめる。
+// 「近いのに候補に入っていない町」を出すとき、その町の実力を数字で添えるために使う。
+// hourCenter を渡すとその時間帯だけを数える(null=終日)。
+// 戻り値: { エリア名: { count, avgSales, medianSales } }
+export function boardAreaStats(drives, hourCenter = null, hourWindow = 1) {
+  const g = {};
+  for (const d of (drives || [])) {
+    if (isSummaryOnly(d)) continue;
+    for (const t of (d.trips || [])) {
+      if (t.isCancel) continue;
+      if (!(t.amount > 0)) continue;
+      const area = extractArea(t.boardPlace);
+      if (!area) continue;
+      if (hourCenter !== null) {
+        const bh = parseInt(String(t.boardTime).split(':')[0]);
+        if (Number.isNaN(bh) || !hourInWindow(bh, hourCenter, hourWindow)) continue;
+      }
+      (g[area] ||= { count: 0, sum: 0, list: [] });
+      g[area].count++;
+      g[area].sum += t.amount;
+      g[area].list.push(t.amount);
+    }
+  }
+  const out = {};
+  for (const [area, v] of Object.entries(g)) {
+    out[area] = { count: v.count, avgSales: v.sum / v.count, medianSales: median(v.list) };
+  }
+  return out;
 }
 
 // 推奨検索が「これは参考になる」と認める最低件数

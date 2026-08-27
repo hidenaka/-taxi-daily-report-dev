@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>近くの営業先は「文字くらべ」で決まっている</title>
+<style>
+  :root {
+    --ink: #1a1a1a; --ink-2: #4a4a4a; --bg: #f7f5ee; --paper: #fbf9f1;
+    --line: #d8d2bf; --accent: #10a37f; --accent-soft: #d8efe5;
+    --warn: #c83a2c; --warn-soft: #f6dcd6; --yellow: #f4d35e;
+    --shadow: 0 1px 0 rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+            "Hiragino Sans", "Noto Sans JP", "Yu Gothic", "Meiryo", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 56px 28px 96px; }
+
+  .hero { margin-bottom: 48px; }
+  .hero .kicker { display:inline-block; background: var(--accent); color:#fff; font-size:12px; font-weight:700; letter-spacing:.12em; padding:6px 12px; border-radius:999px; margin-bottom:18px; }
+  .hero h1 { font-size: 40px; line-height: 1.3; margin: 0 0 14px; letter-spacing:-.01em; }
+  .hero h1 b { color: var(--accent); }
+  .hero p.lede { font-size: 18px; color: var(--ink-2); margin: 0; max-width: 820px; }
+  .tldr { margin-top: 28px; padding: 22px 24px; background: var(--paper); border:1px solid var(--line); border-radius:12px; box-shadow: var(--shadow); }
+  .tldr h2 { font-size:13px; letter-spacing:.15em; color: var(--accent); margin:0 0 10px; }
+  .tldr ol { margin:0; padding-left:20px; }
+  .tldr li { margin:6px 0; }
+
+  section { margin: 64px 0 0; }
+  section > h2 { font-size: 28px; line-height:1.4; margin:0 0 6px; border-left:6px solid var(--accent); padding-left:12px; }
+  section > h2 .num { color: var(--accent); font-variant-numeric: tabular-nums; margin-right:10px; }
+  section > p.sub { color: var(--ink-2); margin:0 0 22px; }
+
+  figure { margin:0 0 24px; padding:20px; background: var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow: var(--shadow); }
+  figcaption { font-size:13px; color: var(--ink-2); margin-top:14px; text-align:center; }
+
+  .table { width:100%; border-collapse:collapse; margin:12px 0 6px; background: var(--paper); border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow: var(--shadow); }
+  .table th, .table td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14.5px; }
+  .table th { background:#efeadb; font-weight:700; }
+  .table tr:last-child td { border-bottom:0; }
+  .table .pick { background: var(--accent-soft); }
+  .table .pick td:first-child { font-weight:700; color: var(--accent); }
+  .num-big { font-variant-numeric: tabular-nums; font-weight:700; }
+
+  .callout { margin:18px 0; padding:16px 18px; border-left:4px solid var(--accent); background: var(--accent-soft); border-radius:0 10px 10px 0; }
+  .callout.warn { border-color: var(--warn); background: var(--warn-soft); }
+  .callout p { margin:0; }
+  .callout strong { color: var(--accent); }
+  .callout.warn strong { color: var(--warn); }
+
+  code.inline { font-family: var(--mono); font-size:.92em; background:#efeadb; padding:1px 6px; border-radius:4px; }
+
+  /* 判断セクション */
+  .choices { display:grid; gap:16px; margin-top:18px; }
+  .choice { padding:20px 22px; background: var(--paper); border:2px solid var(--line); border-radius:14px; box-shadow: var(--shadow); }
+  .choice.rec { border-color: var(--accent); background: var(--accent-soft); }
+  .choice h3 { margin:0 0 6px; font-size:19px; }
+  .choice .tag { display:inline-block; font-size:12px; font-weight:700; padding:2px 10px; border-radius:999px; background: var(--accent); color:#fff; margin-left:8px; vertical-align:2px; }
+  .choice .tag.no { background:#9a9a9a; }
+  .choice .tag.warn { background: var(--warn); }
+  .choice p { margin:8px 0 0; font-size:14.5px; color: var(--ink-2); }
+  .choice ul { margin:8px 0 0; padding-left:20px; font-size:14.5px; }
+
+  .conclusion { margin-top:56px; padding:28px 28px 24px; background: var(--ink); color:#f6f3e8; border-radius:16px; }
+  .conclusion h2 { color: var(--yellow); border:0; padding:0; margin:0 0 12px; }
+  .conclusion ol { margin:0; padding-left:20px; }
+  .conclusion li { margin:8px 0; }
+  footer { margin-top:36px; color: var(--ink-2); font-size:13px; }
+
+  @media (max-width: 720px) {
+    .wrap { padding:32px 18px 64px; }
+    .hero h1 { font-size:28px; }
+    section > h2 { font-size:21px; }
+    .table th, .table td { font-size:13px; padding:9px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">判断のお願い ・ 2026-08-27</span>
+    <h1>近くの営業先は、地図ではなく<b>「住所の文字くらべ」</b>で決まっている</h1>
+    <p class="lede">
+      「GPSの座標は考慮されているのか」というご質問の答えです。結論から言うと、
+      <strong>座標は町名を1回引くためだけに使われ、その後は一切使われていません。</strong>
+      調べる途中で住所のバグも1つ見つけたので、そちらは直しました。
+    </p>
+    <div class="tldr">
+      <h2>3行でいうと</h2>
+      <ol>
+        <li>GPSの緯度・経度は「いま何町にいるか」を知るためだけに1回使い、その場で捨てている。地図の距離は一切見ていない。</li>
+        <li>「近所かどうか」は<strong>実際に走った実績</strong>（降ろしてから25分以内に次を乗せた町の組み合わせ）で決めている。これは理にかなっているが、<strong>実績のない町では手も足も出ない</strong>。</li>
+        <li>そのとき使う「似た名前の町を探す」処理を測ったら、<strong>あてずっぽうと同じ精度（15%）</strong>だった。ここに座標を足すかどうかを決めてほしい。</li>
+      </ol>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">1</span>いま何が起きているか（1枚図）</h2>
+    <p class="sub">左が今のやり方、右が座標を足した場合。</p>
+    <figure>
+      <svg viewBox="0 0 1000 520" width="100%" height="auto" role="img" aria-label="今のやり方と座標を足した場合の比較図">
+        <defs>
+          <marker id="ar" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#4a4a4a"/>
+          </marker>
+        </defs>
+        <rect x="0" y="0" width="1000" height="520" fill="#fbf9f1"/>
+
+        <!-- 左: いまのやり方 -->
+        <rect x="20" y="20" width="465" height="480" rx="14" fill="#fff" stroke="#d8d2bf" stroke-width="2"/>
+        <text x="252" y="55" text-anchor="middle" font-size="21" font-weight="700" fill="#c83a2c">いまのやり方</text>
+
+        <!-- スマホ -->
+        <rect x="55" y="80" width="62" height="100" rx="9" fill="#eef4f8" stroke="#7aa6c2" stroke-width="2"/>
+        <circle cx="86" cy="118" r="13" fill="#4a90d9"/>
+        <text x="86" y="124" text-anchor="middle" font-size="14" fill="#fff">📍</text>
+        <text x="86" y="160" text-anchor="middle" font-size="11" fill="#4a4a4a">スマホ</text>
+        <text x="86" y="197" text-anchor="middle" font-size="11.5" fill="#4a4a4a">緯度 35.6289</text>
+        <text x="86" y="212" text-anchor="middle" font-size="11.5" fill="#4a4a4a">経度 139.7390</text>
+
+        <path d="M125,130 L185,130" stroke="#4a4a4a" stroke-width="2" marker-end="url(#ar)"/>
+
+        <!-- 町名の吹き出し -->
+        <rect x="195" y="100" width="130" height="60" rx="10" fill="#fff9e0" stroke="#e0c860" stroke-width="2"/>
+        <text x="260" y="126" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">「港区三田」</text>
+        <text x="260" y="146" text-anchor="middle" font-size="11" fill="#7a6a20">← 文字だけ取り出す</text>
+
+        <!-- ゴミ箱 -->
+        <path d="M195,190 L145,215" stroke="#c83a2c" stroke-width="2" stroke-dasharray="5,4" marker-end="url(#ar)"/>
+        <rect x="98" y="222" width="42" height="40" rx="5" fill="#f0e8e6" stroke="#c83a2c" stroke-width="2"/>
+        <path d="M105,232 L133,232 M112,222 L112,215 L126,215 L126,222" stroke="#c83a2c" stroke-width="2" fill="none"/>
+        <text x="119" y="278" text-anchor="middle" font-size="11.5" font-weight="700" fill="#c83a2c">座標は捨てる</text>
+        <text x="119" y="293" text-anchor="middle" font-size="10" fill="#4a4a4a">(記録しない方針)</text>
+
+        <!-- 文字くらべ -->
+        <rect x="195" y="185" width="265" height="120" rx="10" fill="#f6f2e6" stroke="#d8d2bf" stroke-width="2"/>
+        <text x="327" y="208" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">過去データに「港区三田」が無い…</text>
+        <text x="210" y="232" font-size="12" fill="#4a4a4a">→ 頭から文字を見比べて似た町を探す</text>
+        <text x="216" y="256" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1a1a1a">港区<tspan fill="#c83a2c">三</tspan>田</text>
+        <text x="216" y="276" font-size="13" font-family="ui-monospace, Menlo, monospace" fill="#1a1a1a">港区<tspan fill="#c83a2c">三</tspan>光町 ← 名前が似てるから採用</text>
+        <text x="216" y="296" font-size="12" fill="#c83a2c">※ 地図では見ていない</text>
+
+        <!-- 赤付箋: 15% -->
+        <rect x="55" y="330" width="190" height="86" rx="6" fill="#fbe3de" stroke="#c83a2c" stroke-width="2" transform="rotate(-2 150 373)"/>
+        <text x="150" y="360" text-anchor="middle" font-size="13" font-weight="700" fill="#c83a2c" transform="rotate(-2 150 373)">当たる確率</text>
+        <text x="150" y="392" text-anchor="middle" font-size="30" font-weight="700" fill="#c83a2c" transform="rotate(-2 150 373)">15%</text>
+        <text x="150" y="409" text-anchor="middle" font-size="10.5" fill="#7a3028" transform="rotate(-2 150 373)">＝あてずっぽうと同じ</text>
+
+        <!-- 緑付箋: 良い点 -->
+        <rect x="262" y="330" width="200" height="86" rx="6" fill="#dff0e6" stroke="#10a37f" stroke-width="2" transform="rotate(1.5 362 373)"/>
+        <text x="362" y="354" text-anchor="middle" font-size="12.5" font-weight="700" fill="#0a7a5f" transform="rotate(1.5 362 373)">✅ ただし良い点もある</text>
+        <text x="362" y="374" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(1.5 362 373)">「近所」＝実際に25分で</text>
+        <text x="362" y="390" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(1.5 362 373)">行き来した実績のある町</text>
+        <text x="362" y="406" text-anchor="middle" font-size="10.5" fill="#0a7a5f" transform="rotate(1.5 362 373)">川や高速で行けない所は入らない</text>
+
+        <text x="252" y="452" text-anchor="middle" font-size="12" fill="#4a4a4a">実績がある町では、この方式はよく効いている。</text>
+        <text x="252" y="472" text-anchor="middle" font-size="12" fill="#c83a2c">困るのは「初めての町」「実績が薄い町」だけ。</text>
+
+        <!-- 右: 座標を足したら -->
+        <rect x="515" y="20" width="465" height="480" rx="14" fill="#fff" stroke="#10a37f" stroke-width="2"/>
+        <text x="747" y="55" text-anchor="middle" font-size="21" font-weight="700" fill="#10a37f">座標を足したら</text>
+
+        <!-- 地図 -->
+        <rect x="555" y="80" width="380" height="230" rx="10" fill="#eef6f2" stroke="#a9cfc0" stroke-width="2"/>
+        <path d="M555,180 Q650,160 760,190 T935,175" stroke="#9fc4e8" stroke-width="7" fill="none" opacity=".7"/>
+        <text x="590" y="176" font-size="10" fill="#5a86ad">川</text>
+        <circle cx="700" cy="230" r="9" fill="#c83a2c"/>
+        <text x="700" y="256" text-anchor="middle" font-size="12" font-weight="700" fill="#c83a2c">いまここ</text>
+        <circle cx="700" cy="230" r="72" fill="none" stroke="#10a37f" stroke-width="2.5" stroke-dasharray="7,5"/>
+        <text x="700" y="318" text-anchor="middle" font-size="11.5" fill="#0a7a5f">この輪の中の町だけを候補にする</text>
+        <circle cx="650" cy="200" r="6" fill="#10a37f"/><text x="650" y="192" text-anchor="middle" font-size="10" fill="#1a1a1a">芝</text>
+        <circle cx="752" cy="262" r="6" fill="#10a37f"/><text x="752" y="282" text-anchor="middle" font-size="10" fill="#1a1a1a">高輪</text>
+        <circle cx="742" cy="196" r="6" fill="#10a37f"/><text x="742" y="188" text-anchor="middle" font-size="10" fill="#1a1a1a">虎ノ門</text>
+        <circle cx="880" cy="120" r="6" fill="#b0b0b0"/><text x="880" y="112" text-anchor="middle" font-size="10" fill="#8a8a8a">遠いので除外</text>
+
+        <!-- 青付箋 -->
+        <rect x="555" y="330" width="180" height="86" rx="6" fill="#e3eff8" stroke="#4a90d9" stroke-width="2" transform="rotate(-1.5 645 373)"/>
+        <text x="645" y="356" text-anchor="middle" font-size="12.5" font-weight="700" fill="#2b6ca8" transform="rotate(-1.5 645 373)">💡 何ができるか</text>
+        <text x="645" y="378" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-1.5 645 373)">初めて行く町でも</text>
+        <text x="645" y="394" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(-1.5 645 373)">近所を出せる</text>
+
+        <!-- 黄付箋: コスト -->
+        <rect x="752" y="330" width="183" height="86" rx="6" fill="#fdf3d8" stroke="#d6a72a" stroke-width="2" transform="rotate(1.5 843 373)"/>
+        <text x="843" y="356" text-anchor="middle" font-size="12.5" font-weight="700" fill="#8a6a10" transform="rotate(1.5 843 373)">⚙️ 必要なもの</text>
+        <text x="843" y="378" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(1.5 843 373)">町名→座標の表</text>
+        <text x="843" y="394" text-anchor="middle" font-size="11" fill="#1a1a1a" transform="rotate(1.5 843 373)">(公開データで作れる)</text>
+
+        <text x="747" y="452" text-anchor="middle" font-size="12" fill="#4a4a4a">お客さんの居場所を記録するわけではない。</text>
+        <text x="747" y="472" text-anchor="middle" font-size="12" fill="#0a7a5f">町の代表地点を一覧で持っておくだけ。</text>
+      </svg>
+      <figcaption>左＝いまのやり方（住所の文字くらべ）／右＝座標を足した場合（地図の距離で選ぶ）</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>ご質問への答え：座標は使われていない</h2>
+    <p class="sub">どこで座標が使われ、どこで消えるかを一覧にしました。</p>
+    <table class="table">
+      <thead><tr><th style="width:26%">場面</th><th>いま何をしているか</th><th style="width:15%">座標を使う？</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>現在地ボタン</strong></td>
+          <td>スマホから緯度・経度を1回受け取り、国土地理院に問い合わせて「港区三田」のような<strong>町名の文字</strong>に変える。座標はその場で捨てる（記録しない方針どおり）。</td>
+          <td>1回だけ使う</td>
+        </tr>
+        <tr>
+          <td><strong>降ろした場所の一覧</strong></td>
+          <td>日報から読み取った住所の<strong>文字</strong>。末尾の丁目を落として「区＋町名」にしている。座標は元々ついていない。</td>
+          <td>使わない</td>
+        </tr>
+        <tr>
+          <td><strong>近隣エリアの判定</strong></td>
+          <td>過去に「A町で降ろして、25分以内にB町で乗せた」が2回以上あればAとBは近所、という決め方。<strong>実際に走った実績</strong>だけを見ている。</td>
+          <td>使わない</td>
+        </tr>
+        <tr>
+          <td><strong>町名が過去データに無いとき</strong></td>
+          <td>同じ区の町を<strong>頭から一文字ずつ見比べて</strong>、似た名前のものを起点にする。</td>
+          <td>使わない</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong>「近隣＝実際に走った実績」という決め方自体は理にかなっています。</strong>
+      地図の直線距離だと、川の向こう・高速の反対側・一方通行の先など「近いのに行けない町」が近所に入ってしまいます。実績ベースならそれが自動的に外れます。実データで港区赤坂の近所を出すと、六本木・南青山・虎ノ門・麻布十番…と、実感どおりの並びになりました。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>測ってわかった弱点：文字くらべは地図を知らない</h2>
+    <p class="sub">「町名が過去データに無いとき」の起点えらびを、実データで採点しました。</p>
+
+    <p>採点のしかた：あなたの全期間345乗務から「実際に行き来している町の組み合わせ」を正解とし、
+    文字くらべで選んだ起点がその正解に入っているかを数えました（対象107エリア・259回）。</p>
+
+    <table class="table">
+      <thead><tr><th style="width:56%">起点の選び方</th><th>正解に入っていた率</th></tr></thead>
+      <tbody>
+        <tr><td>いまのやり方（頭から文字を見比べる）</td><td class="num-big">15%</td></tr>
+        <tr><td>同じ区からサイコロで3つ選ぶ</td><td class="num-big">15%</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <p><strong>まったく同じでした。</strong>つまり文字くらべは、地理の情報を1ミリも持っていません。
+      実際の出力を見ると「目黒区三田 → 起点[中目黒・祐天寺・上目黒]」のように、
+      名前が似ているだけで実際には行き来していない町が選ばれています。</p>
+    </div>
+
+    <p>ただし注意点として、これが効くのは<strong>「GPSで取れた町名が過去データに無かったとき」だけ</strong>です。
+    ふだんよく降ろす町なら名前がそのまま一致するので、この処理は動きません。頻度は高くありません。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>ついでに見つけて直したバグ</h2>
+    <p class="sub">住所の書かれ方のばらつきが、集計を静かに壊していました。</p>
+
+    <table class="table">
+      <thead><tr><th style="width:30%">内容</th><th>規模（全期間18,909件の住所で計測）</th><th style="width:16%">状態</th></tr></thead>
+      <tbody>
+        <tr class="pick">
+          <td>全角の丁目が落ちていない</td>
+          <td>写真から読んだ住所が全角のとき、丁目が残ったまま<strong>別の町</strong>として集計されていた。<br>
+            609件・325種類が該当（3.2%）。例：<code class="inline">千代田区丸の内２</code>の4件が、<code class="inline">千代田区丸の内</code>の354件と別集計。
+            エリアの選択肢にも「港区六本木２」のような重複が並んでいた。</td>
+          <td>✅ 修正済み</td>
+        </tr>
+        <tr>
+          <td>漢数字の丁目が落ちていない</td>
+          <td>46件・41種類。すべて横浜市（例：<code class="inline">横浜市港北区綱島東三</code>）。
+            落とすと既存の町に合流するのは7件だけで、残りは単独の遠方降車地。</td>
+          <td>未対応</td>
+        </tr>
+        <tr>
+          <td>区が読み落とされている</td>
+          <td>9種類。例：<code class="inline">渋谷六本木7</code>（正しくは港区六本木）、<code class="inline">港新橋2</code>。写真の読み取りミス。</td>
+          <td>未対応</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>下2つは件数が少ないうえ、機械的に直すと正しい町名まで壊すおそれがあります（例：漢数字で終わる本物の町名）。
+    今回は手を付けていません。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">5</span>決めてほしいこと</h2>
+    <p class="sub">座標を入れるかどうか。A / B / C から選んでください。</p>
+
+    <div class="choices">
+      <div class="choice">
+        <h3>A：今のまま（実績だけで判断）<span class="tag no">追加作業なし</span></h3>
+        <p>座標は入れない。今日直した全角バグと、先に直した「条件を自動で広げる」修正だけを出す。</p>
+        <ul>
+          <li>👍 実際に走れる町だけが近所として残る良さは、そのまま保たれる</li>
+          <li>👎 初めての町・実績の薄い町では、これまでどおり的外れな起点が選ばれる（15%）</li>
+        </ul>
+      </div>
+
+      <div class="choice rec">
+        <h3>B：迷子のときだけ座標で助ける<span class="tag">★ おすすめ</span></h3>
+        <p>ふだんの近所判定は今までどおり実績ベース。<strong>「GPSの町名が過去データに無かったとき」だけ</strong>、
+        町の代表地点の座標を使って、本当に近い町を起点にする。</p>
+        <ul>
+          <li>👍 実績ベースの良さを一切壊さず、いちばん外している所だけを直せる</li>
+          <li>👍 町名→座標の表は公開データ（すでに住所辞書で使っている出どころ）から作れる。東京23区＋周辺で数百KB程度</li>
+          <li>👍 お客さんの居場所を記録するわけではない。町の代表地点の一覧をアプリに同梱するだけ</li>
+          <li>⚙️ 作業量は中くらい（辞書づくり＋起点えらびの差し替え＋テスト）</li>
+        </ul>
+      </div>
+
+      <div class="choice">
+        <h3>C：近所の判定を全部、距離に置き換える<span class="tag warn">非推奨</span></h3>
+        <p>「25分以内に行き来した実績」をやめて、「半径◯km以内」で近所を決める。</p>
+        <ul>
+          <li>👍 実績ゼロの町でも必ず近所が出る</li>
+          <li>👎 川の向こう・高速の反対側など<strong>「近いのに行けない町」が近所に混ざる</strong></li>
+          <li>👎 いま実感どおりに出ている赤坂→六本木・虎ノ門といった並びが崩れる</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>おすすめはBです。</strong>理由は、今の実績ベースが「実際に走れる関係だけを残す」という点で
+      距離より優れており、壊すべきではないから。座標は、その実績が無くて困っている一点だけに足すのが一番効きます。</p>
+    </div>
+  </section>
+
+  <div class="conclusion">
+    <h2>結論</h2>
+    <ol>
+      <li>ご質問の答え：<strong>座標は使われていません。</strong>GPSは町名を1回引くためだけに使い、捨てています。近所の判定は「実際に25分以内で行き来した実績」で決めています。</li>
+      <li>その決め方自体は理にかなっていますが、<strong>実績が無い町では文字くらべに頼っており、その精度はあてずっぽうと同じ15%</strong>でした。</li>
+      <li>調べる途中で見つけた<strong>全角の丁目バグ（住所の3.2%が別の町に分裂）は直しました。</strong></li>
+      <li>座標を足すかどうか、<strong>A / B / C</strong> のどれかを選んでください。おすすめは<strong>B（迷子のときだけ座標で助ける）</strong>です。</li>
+    </ol>
+  </div>
+
+  <footer>
+    数字の出どころ：本番アカウント（user_self）の全期間345乗務・住所18,909件を、実際のアプリのコードに通して計測（2026-08-27）。
+    「15%」は、実際に行き来した実績のある町の組み合わせを正解とみなした場合の一致率で、対象107エリア・259回。
+  </footer>
+
+</div>
+</body>
+</html>

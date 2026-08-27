@@ -5,7 +5,7 @@
 //       → 足りないときは 時間帯 → 期間 の順に自動で広げる。
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { searchNextBoardStepwise, REC_MIN_SAMPLES } from '../js/chart-helpers.js';
+import { searchNextBoardStepwise, boardAreaStats, REC_MIN_SAMPLES } from '../js/chart-helpers.js';
 
 // 「A区a町 で降ろす → wait分後に B区b町 で乗る」1往復だけの乗務を作る
 function drive(date, hour, { from = '港区赤坂', to = '千代田区大手町', amount = 3000, min = 0 } = {}) {
@@ -131,4 +131,43 @@ test('複数エリア(GPS範囲モード)でも配列のまま扱える', () => 
 
 test('採用の下限件数は従来どおり3件', () => {
   assert.strictEqual(REC_MIN_SAMPLES, 3);
+});
+
+// --- その町で「乗せた」実績の集計 ---
+// 「近いのに候補に入っていない町」を出すとき、その町の実力を数字で添えるために使う。
+// 実績がある＝良い、ではないので、件数と単価をそのまま見せて判断は本人に委ねる。
+
+function boardDrive(date, rows) {
+  return { date, trips: rows.map(([place, time, amount]) => ({
+    boardPlace: place, boardTime: time, alightTime: time, alightPlace: '新宿区西新宿1', amount,
+  })) };
+}
+
+test('乗せた場所ごとに件数と平均・中央単価を出す', () => {
+  const drives = [
+    boardDrive('2026-08-01', [['港区赤坂1', '10:00', 3000], ['港区赤坂2', '10:30', 5000]]),
+    boardDrive('2026-08-02', [['港区赤坂3', '10:10', 4000]]),
+  ];
+  const s = boardAreaStats(drives);
+  assert.strictEqual(s['港区赤坂'].count, 3);
+  assert.strictEqual(s['港区赤坂'].avgSales, 4000);
+  assert.strictEqual(s['港区赤坂'].medianSales, 4000);
+});
+
+test('時間帯で絞れる', () => {
+  const drives = [boardDrive('2026-08-01', [['港区赤坂1', '10:00', 3000], ['港区赤坂2', '20:00', 9000]])];
+  const all = boardAreaStats(drives);
+  const morning = boardAreaStats(drives, 10, 1);
+  assert.strictEqual(all['港区赤坂'].count, 2);
+  assert.strictEqual(morning['港区赤坂'].count, 1);
+  assert.strictEqual(morning['港区赤坂'].avgSales, 3000);
+});
+
+test('キャンセルと¥0は数えない', () => {
+  const drives = [{ date: '2026-08-01', trips: [
+    { boardPlace: '港区赤坂1', boardTime: '10:00', alightTime: '10:20', alightPlace: 'x', amount: 3000 },
+    { boardPlace: '港区赤坂2', boardTime: '10:05', alightTime: '10:25', alightPlace: 'x', amount: 5000, isCancel: true },
+    { boardPlace: '港区赤坂3', boardTime: '10:10', alightTime: '10:30', alightPlace: 'x', amount: 0 },
+  ] }];
+  assert.strictEqual(boardAreaStats(drives)['港区赤坂'].count, 1);
 });
