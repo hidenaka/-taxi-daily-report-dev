@@ -114,3 +114,43 @@ export function areasNearPoint(point, coords, areaStats, { radiusKm = 2, minCoun
   out.sort((a, b) => a.km - b.km);
   return out.slice(0, limit);
 }
+
+// いまいる場所の近くで、実際に客を乗せた実績のある場所を返す。
+//
+// 「今いた場所から近くで乗せられる／乗せた実績が見れればいい」(2026-08-27 本人指示)に
+// 対する答え。起点そのものも含める(その場で拾えるならそれが一番近い)。
+//
+// area:        起点のエリア名（originPoint を渡すならなくてよい）
+// originPoint: 起点の座標 [lat, lng]。GPSで分かっているならこちらが正確
+// stats:       pickupAreaStats() の結果
+// sort:        'distance'(既定) | 'sales' | 'wait' | 'count'
+// 戻り値: [{ area, km, isHere, count, avgSales, medianSales, medianWait, waitCount }]
+export function pickupSpotsNear({
+  area, originPoint, coords, stats,
+  radiusKm = 2, minCount = 3, sort = 'distance', limit = 30,
+}) {
+  const origin = originPoint || lookupCoord(area, coords);
+  if (!origin || !stats) return [];
+  const out = [];
+  for (const [name, s] of Object.entries(stats)) {
+    if (!s || (s.count || 0) < minCount) continue;
+    const p = lookupCoord(name, coords);
+    if (!p) continue;
+    const km = distanceKm(origin, p);
+    if (km == null || km > radiusKm) continue;
+    out.push({
+      area: name, km, isHere: km < 0.05,
+      count: s.count, avgSales: s.avgSales, medianSales: s.medianSales,
+      medianWait: s.medianWait, waitCount: s.waitCount,
+    });
+  }
+  const cmp = {
+    distance: (a, b) => a.km - b.km,
+    sales: (a, b) => b.medianSales - a.medianSales,
+    // 待ちが分からない場所は後ろへ
+    wait: (a, b) => (a.medianWait ?? 1e9) - (b.medianWait ?? 1e9),
+    count: (a, b) => b.count - a.count,
+  }[sort] || ((a, b) => a.km - b.km);
+  out.sort(cmp);
+  return out.slice(0, limit);
+}

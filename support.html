@@ -88,16 +88,18 @@ if (location.hostname.includes('-dev')) {
 
   <section class="card" id="recommendCard">
     <div class="section-h">
-      <strong>次の営業先 推奨検索<button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
+      <strong>この近くで客を乗せた場所<button class="help-btn" data-help-for="rec-search" aria-label="ヘルプ">?</button></strong>
     </div>
     <div class="help-content" id="help-rec-search">
-      💡 <strong>「どこで降ろした後、次にどこで乗車が取れたか」を集計して表示</strong>します。
+      💡 <strong>いまいる場所の周り2kmで、実際にお客様を乗せた場所</strong>を近い順に出します。
       <ul>
-        <li>降ろした場所と時刻を選ぶと、過去に同じ条件で取れた次の乗車履歴が出ます</li>
-        <li>「30分以内に次の乗車が取れた率」が高い順に並びます</li>
-        <li>その条件の実績が少ないときは、前後の時間帯 → 過去すべての実績、の順に自動で広げて表示します（広げたときは結果の上にお知らせが出ます）</li>
-        <li>表記は<strong>「乗った場所→降ろした場所」</strong>。降ろした位置から見た「次にお客様を乗せた場所」と「その人を降ろした場所」</li>
-        <li>「📍 現在地から自動入力」で GPS から降ろし場所を自動セット</li>
+        <li><strong>乗せた</strong>＝そこで実際にお客様を乗せた回数</li>
+        <li><strong>待ち</strong>＝そこで拾うまで空車で流していた時間（真ん中の値）。短いほど早く拾えている</li>
+        <li><strong>単価</strong>＝そこで乗せた1回の運賃（真ん中の値／平均）</li>
+        <li>「近い順」「単価順」「待ちが短い順」「回数順」で並べ替えられます</li>
+        <li>指定した時刻の前後3時間の記録で見ます。少なければ時間帯を外して全部見ます</li>
+        <li>行をタップすると、その場所で実際にいつ・どこへ・いくらで乗せたかが出ます</li>
+        <li>「📍 現在地から自動入力」で GPS からいまいる場所をセット</li>
       </ul>
       <div style="background:#f0f9ff;border:1px solid #7dd3fc;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;line-height:1.5;color:#075985;">
         🛡️ <strong>「📍 現在地から自動入力」ボタンの動き</strong><br>
@@ -110,30 +112,24 @@ if (location.hostname.includes('-dev')) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
       <div>
-        <label style="font-size:10px;color:var(--muted);">降ろした場所 <span id="recGpsBadge" style="display:none;font-size:9px;background:#e3f2fd;color:#1565c0;padding:1px 5px;border-radius:3px;font-weight:600;">📍GPS</span></label>
+        <label style="font-size:10px;color:var(--muted);">いまいる場所 <span id="recGpsBadge" style="display:none;font-size:9px;background:#e3f2fd;color:#1565c0;padding:1px 5px;border-radius:3px;font-weight:600;">📍GPS</span></label>
         <select id="recArea" style="width:100%;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;"></select>
       </div>
       <div>
-        <label style="font-size:10px;color:var(--muted);">降ろした時刻</label>
+        <label style="font-size:10px;color:var(--muted);">いまの時刻</label>
         <div style="display:flex;gap:4px;">
           <input type="time" id="recTime" style="flex:1;padding:6px;border:1px solid #ccc;border-radius:4px;font-size:12px;">
           <button id="recTimeNow" style="background:#f0f0f0;color:#333;border:1px solid #ccc;border-radius:4px;font-size:11px;padding:0 8px;cursor:pointer;white-space:nowrap;">今</button>
         </div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-      <label style="font-size:11px;display:flex;align-items:center;gap:4px;cursor:pointer;">
-        <input type="checkbox" id="recExpand" checked> 近隣エリアも含める
-      </label>
-      <span class="muted" style="font-size:10px;" id="recNeighborInfo"></span>
-    </div>
     <div style="display:flex;gap:6px;margin-bottom:8px;">
       <button id="recGps" style="flex:1;background:#fff;color:var(--primary);border:1px solid var(--primary);padding:8px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;">📍 現在地から自動入力</button>
-      <button id="recSearch" style="flex:2;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">推奨を表示</button>
+      <button id="recSearch" style="flex:2;background:var(--primary);color:#fff;border:none;padding:8px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;">この近くを見る</button>
     </div>
     <div id="recGpsInfo" class="muted" style="font-size:10px;margin-bottom:6px;"></div>
     <div id="recBody" style="margin-top:10px;"></div>
-    <p class="muted" style="font-size:10px;margin-top:6px;">過去同条件で実際に取れた次の乗車を集計、30分内取得率順に表示。<strong>営業所(大田区北馬込)</strong>を選ぶと出庫直後の最初の乗車も含めて検索。<br>履歴の<strong style="color:var(--primary);">青字日付</strong>=今日と同曜日 / 黒字=同カテゴリ(平日/土日が一致)別曜日 / <span style="color:#999;">グレー</span>=別カテゴリ。</p>
+    <p class="muted" style="font-size:10px;margin-top:6px;">周り2km以内で、実際にお客様を乗せた記録がある場所だけを出します（3回以上）。行をタップすると出る履歴の<strong style="color:var(--primary);">青字日付</strong>=今日と同曜日 / 黒字=同カテゴリ(平日/土日が一致)別曜日 / <span style="color:#999;">グレー</span>=別カテゴリ。</p>
   </section>
 
   <section class="card" id="hourEffCard">
@@ -209,11 +205,11 @@ import {
   filterDrivesByVehicle,
   renderTodayVehicleToggle,
 } from './js/vehicle-filter.js';
-import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, searchNextBoardStepwise, boardAreaStats, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, heatmapFromCells } from './js/chart-helpers.js';
+import { hourlyDowEfficiency, peerMedianHourlyDow, dropoffAreaAnalysis, boardAreaStats, pickupAreaStats, dropoffHistoryAtArea, boardHistoryAtArea, buildNeighborMap, highValueAreas, highValueAreasByZone, boardHistoryAtAreaByZone, calcPaceAtElapsed, getPeriodKey, PERIOD_LABELS, DOW_LABELS, formatMin, dowOf, ZONE_PRESETS, getZoneAt, getZoneForElapsed, OFFICE_AREA, hourlyDowDailyValues, classifyEarning, stabilityTier, heatmapLegendHtml, heatmapFromCells } from './js/chart-helpers.js';
 import { auth, db } from './js/firebase-init.js';
 import { resolveWorkerBase, refreshPool, listMyGroups } from './js/group-client.js';
 import { chooseInitialRecArea, filterRecAreaCandidates } from './js/rec-area.js';
-import { nearbyUnexploredAreas, areasNearPoint } from './js/area-geo.js';
+import { areasNearPoint, pickupSpotsNear } from './js/area-geo.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 import './js/help-toggle.js';
@@ -553,7 +549,6 @@ async function ensureFullDrives() {
         rawFullDrives = list || [];
         fullDrives = filterDrivesByVehicle(rawFullDrives, getActiveVehicleType());
         neighborMap = buildNeighborMap(fullDrives);
-        updateNeighborInfo();
         return fullDrives;
       })
       .catch(() => { fullDrivesPromise = null; return null; });
@@ -576,7 +571,6 @@ function applyVehicleFilterAndRender(label) {
   neighborMap = buildNeighborMap(fullDrives || allDrives);
   updateDataSourceInfo();
   populateRecommendArea();
-  updateNeighborInfo();
   // GPSが既に許可されているユーザーには静かに自動取得して初期エリアを上書き
   maybeAutoRunGpsLookup();
   renderHourEff();
@@ -692,23 +686,12 @@ function populateRecommendArea() {
   }
 }
 
-function updateNeighborInfo() {
-  const area = document.getElementById('recArea').value;
-  const info = document.getElementById('recNeighborInfo');
-  const expand = document.getElementById('recExpand').checked;
-  if (!area || !expand) { info.textContent = ''; return; }
-  const ns = neighborMap[area];
-  if (!ns || ns.size === 0) { info.textContent = '(近隣なし)'; return; }
-  const list = Array.from(ns).slice(0, 5).join(', ');
-  info.textContent = `近隣${ns.size}: ${list}${ns.size > 5 ? '…' : ''}`;
-}
 document.getElementById('recArea').addEventListener('change', () => {
   // 手動でエリアを選び直したら GPS範囲モードを解除し、古い結果を消す
   // (= プルダウン・GPS情報・結果が食い違う状態を作らない)
   clearRecWideMode();
   document.getElementById('recGpsInfo').innerHTML = '';
   document.getElementById('recBody').innerHTML = '';
-  updateNeighborInfo();
   try {
     const v = document.getElementById('recArea').value;
     if (v && v !== GPS_WIDE_VALUE) localStorage.setItem(REC_AREA_LS_KEY, v);
@@ -718,7 +701,6 @@ document.getElementById('recTimeNow').onclick = () => {
   const now = new Date();
   document.getElementById('recTime').value = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 };
-document.getElementById('recExpand').addEventListener('change', updateNeighborInfo);
 
 function showRecGpsBadge(show, mode = '確定') {
   const badge = document.getElementById('recGpsBadge');
@@ -885,7 +867,6 @@ async function runGpsLookup({ silent = false } = {}) {
     if (matched) {
       sel.value = matched;
       try { localStorage.setItem(REC_AREA_LS_KEY, matched); } catch (e) {}
-      updateNeighborInfo();
       showRecGpsBadge(true, '確定');
       if (!silent) info.innerHTML = `📍 今いる場所: <strong>${matched}</strong>${detailToggle(gpsDetailBase)}`;
       if (!silent) document.getElementById('recSearch').click();
@@ -905,7 +886,6 @@ async function runGpsLookup({ silent = false } = {}) {
       recWideDetailHtml = `${gpsDetailBase}<br>この町名の記録が無いため、いまいる場所から半径${GPS_RADIUS_KM}km以内で記録のある ${near.length} か所をまとめて検索`
         + `<br>近い順: ${near.slice(0, 5).map(n => `${n.area}(${n.km.toFixed(1)}km)`).join(', ')}`;
       setRecWideOption(`📍${recWideLabel}(GPS)`); // プルダウン表示を「今いる場所」に同期
-      document.getElementById('recExpand').checked = false; // 既に周辺をまとめているので二重に広げない
       showRecGpsBadge(true, '範囲');
       info.innerHTML = `📍 今いる場所: <strong>${recWideLabel}</strong>(ここから${GPS_RADIUS_KM}km以内の記録${near.length}か所をまとめて検索)${detailToggle(recWideDetailHtml)}`;
       document.getElementById('recSearch').click();
@@ -978,53 +958,6 @@ async function areasNearGps(radiusKm = GPS_RADIUS_KM) {
   return areasNearPoint(gpsPos, coords, stats, { radiusKm });
 }
 
-// 「近いのに、この流れでは行っていない町」
-//
-// 本表(次に乗れたエリア)の母集団には混ぜない。混ぜると降車件数=分母が膨らんで
-// 取得率の数字が薄まってしまうため(実測: 半径3kmまで広げると1位の30分以内取得率が
-// 15.4%→9.6%に見かけ上さがる)。根拠が違うものは別枠にして、判断は本人に委ねる。
-// useGps: GPSでいまいる場所が分かっているなら、その緯度経度を起点にする。
-// エリア名から代表座標を引き直すと町の真ん中に丸められるので、実際に立っている
-// 位置から測るほうが正しい。GPS範囲モード(町名が過去データに無い)でもこれで出せる。
-async function renderNearbyUnexplored(area, hour, useGps) {
-  const originPoint = useGps ? gpsPos : null;
-  if (!originPoint && (!area || area === GPS_WIDE_VALUE)) return '';
-  const coords = await ensureAreaCoords();
-  if (!coords) return '';
-  // 母集団は常に全期間。「その場所の実力」を見るのに表示期間で切る理由がないうえ、
-  // 直近だけだとほとんど3件に届かず何も出せなかった(実測 出る率40% → 83%)。
-  const pool = fullDrives || allDrives;
-  const neighbors = (area && neighborMap[area]) || new Set();
-  const originLabel = originPoint ? 'いまいる場所' : area;
-  // まず降ろした時刻の前後3時間で見て、足りなければ時間帯を外す
-  let stats = boardAreaStats(pool, hour, 3);
-  let rows = nearbyUnexploredAreas({ area, originPoint, neighbors, coords, boardStats: stats });
-  let scopeText = `${String(hour).padStart(2, '0')}時ごろ`;
-  if (rows.length < 3) {
-    stats = boardAreaStats(pool, null);
-    rows = nearbyUnexploredAreas({ area, originPoint, neighbors, coords, boardStats: stats });
-    scopeText = '時間帯を問わず';
-  }
-  if (!rows.length) return '';
-  const tailNote = originPoint
-    ? `いまいる場所からの直線距離です（この位置は保存していません）。`
-    : `${area}で降ろした後かどうかは問いません。`;
-  let h = `<div style="margin-top:14px;padding:10px 12px;background:#f4f8fb;border:1px solid #cfe0ec;border-radius:8px;">`
-    + `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">🧭 近くにあるが、この流れでは行っていない場所</div>`
-    + `<div class="muted" style="font-size:10px;margin-bottom:6px;">${originLabel}から2km以内で、${scopeText}にお客様を乗せた実績がある場所。上の表とは数え方が違います（${tailNote}）。</div>`
-    + '<div style="overflow-x:auto;"><table class="area-table"><thead><tr>'
-    + '<th class="l">場所</th><th>距離</th><th>乗せた回数</th><th>その乗車の運賃(平均/中央)</th>'
-    + '</tr></thead><tbody>';
-  for (const r of rows) {
-    h += `<tr><td class="l">${r.area}</td><td>${r.km.toFixed(1)}km</td><td>${r.count}</td>`
-      + `<td>${formatYen(r.avgSales)}<span class="muted" style="font-size:9px;margin-left:4px;">中${formatYen(stats[r.area].medianSales)}</span></td></tr>`;
-  }
-  h += '</tbody></table></div>'
-    + `<p class="muted" style="font-size:10px;margin-top:4px;margin-bottom:0;">上の表に入っていないのは「そこへ流れた実績が少ない」だけで、悪い場所とは限りません。逆にここの回数が多い＝良い、でもありません。まだ試していない近場として並べています。</p>`
-    + '</div>';
-  return h;
-}
-
 // drives/hourWindow は推奨検索が条件を広げたとき、同じ母集団で履歴を出すために受け取る
 function renderHistoryFallback(area, hour, expand, drives = allDrives, hourWindow = 1) {
   const result = dropoffHistoryAtArea(drives, area, hour, hourWindow, expand ? neighborMap : null, 30);
@@ -1081,111 +1014,133 @@ function renderHistoryFallback(area, hour, expand, drives = allDrives, hourWindo
   return html;
 }
 
-document.getElementById('recSearch').onclick = async () => {
+// 「いまいる場所の近くで、客を乗せた実績のある場所」を近い順に1枚で出す。
+//
+// 以前は「Xで降ろした後 → Yで乗せた」という流れを数え、さらに近隣・履歴で表が3つに
+// 分かれていた。流れを条件にすると材料がほとんど落ち(本番実データで港区赤坂20時は2行)、
+// 割合の分母も「近隣を含む全降車」で説明が要る状態だった。
+// 乗せた記録だけを見れば同じ条件で22か所・のべ131回が残り、距離と待ち時間まで出せる。
+// (2026-08-27 本人指示「今いた場所から近くで乗せられる、乗せた実績が見れればいい」)
+let recSort = 'distance';
+let recLastArgs = null;
+
+async function runRecSearch() {
   const sel = document.getElementById('recArea').value;
   const time = document.getElementById('recTime').value;
-  const expand = document.getElementById('recExpand').checked;
-  if (!sel || !time) return;
+  if (!time) return;
   const hour = parseInt(time.split(':')[0]);
-  const isWide = !!gpsWideAreas;
-  // GPS範囲モードなら配列で、それ以外は単一エリアで検索・履歴を引く
-  const dropoffArg = isWide ? gpsWideAreas : sel;
-  // 見出しの「降ろした場所」: 範囲モードはGPSラベル、通常はプルダウンの実エリア
-  const headLabel = isWide ? recWideLabel : sel;
   const body = document.getElementById('recBody');
-  // 表示期間だけでは1人分のデータが足りずほぼ何も出ないため、
-  // 足りなければ時間帯→期間の順に自動で広げる。全期間はここで初めて要る。
   body.innerHTML = '<p class="muted" style="font-size:11px;">探しています…</p>';
+
+  const coords = await ensureAreaCoords();
   await ensureFullDrives();
-  const search = searchNextBoardStepwise({
-    recentDrives: allDrives,
-    allDrives: fullDrives,
-    neighbors: expand ? neighborMap : null,
-    area: dropoffArg,
-    hour,
-  });
-  const { result, evaluated, drives: usedDrives, hourWindow, hourCenter, widened, widenedLabel } = search;
-  const w = hourWindow ?? 1;
-  const winLabel = hourCenter == null
-    ? '終日'
-    : `${String((hour-w+24)%24).padStart(2,'0')}:00-${String((hour+w)%24).padStart(2,'0')}:59`;
-  const winSuffix = hourCenter == null ? '' : `(±${w}h)`;
-  const neighborSuffix = !isWide && expand && result.includedAreas.length > 1 ? '+近隣' : '';
-  const widenNote = widened
-    ? `<div style="font-size:10px;color:#e65100;margin-bottom:4px;">この条件だけでは実績が少ないため、${widenedLabel}</div>`
-    : '';
-  // サンプル件数などの内訳は控えめなサブ行へ(見出しはすっきり)
-  const countLine = `<div class="muted" style="font-size:10px;margin-bottom:6px;">${isWide ? `${result.includedAreas.length}エリア・` : ''}降車${result.totalDropoffs}件中、30分以内に次が取れた ${result.totalNextWithin30}件</div>`;
-  // 「近いのに、この流れでは行っていない町」も併せて出す(母集団には混ぜない)
-  // GPSバッジが出ている＝いまいる場所が分かっている。そのときは座標を起点にする
+  const pool = fullDrives || allDrives;
+  if (!coords) { body.innerHTML = '<p class="muted" style="font-size:11px;">場所のデータを読めませんでした。通信を確認してください。</p>'; return; }
+
+  // GPSバッジが出ている＝いまいる場所が分かっている。町の代表点より実際の位置が正確。
   const gpsActive = !!gpsPos && document.getElementById('recGpsBadge').style.display !== 'none';
-  const nearbyHtml = await renderNearbyUnexplored(isWide ? null : sel, hour, gpsActive);
-  if (evaluated.length === 0) {
-    body.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">📍 ${headLabel}${neighborSuffix} で <strong>${winLabel}</strong>${winSuffix} に降ろした後</div>`
-      + `<p class="muted" style="font-size:11px;margin-bottom:6px;">まとめて出せるだけの実績がまだありません。下に過去の動き履歴を表示します。</p>`
-      + nearbyHtml
-      + renderHistoryFallback(dropoffArg, hourCenter, expand, usedDrives, w);
+  const originPoint = gpsActive ? gpsPos : null;
+  const originArea = (sel && sel !== GPS_WIDE_VALUE) ? sel : null;
+  if (!originPoint && !originArea) { body.innerHTML = '<p class="muted" style="font-size:11px;">降ろした場所を選んでください。</p>'; return; }
+  const originLabel = gpsActive ? (recWideLabel || sel || 'いまいる場所') : sel;
+
+  // まず前後3時間で見て、足りなければ時間帯を外す
+  let stats = pickupAreaStats(pool, hour, 3);
+  let rows = pickupSpotsNear({ area: originArea, originPoint, coords, stats, sort: recSort });
+  let scopeText = `${String(hour).padStart(2, '0')}時ごろ`;
+  if (rows.length < 5) {
+    stats = pickupAreaStats(pool, null);
+    rows = pickupSpotsNear({ area: originArea, originPoint, coords, stats, sort: recSort });
+    scopeText = '時間帯を問わず';
+  }
+  recLastArgs = { pool, stats, hour };
+
+  if (rows.length === 0) {
+    body.innerHTML = `<div style="font-size:12px;font-weight:600;margin-bottom:4px;">📍 ${originLabel} の周り2km</div>`
+      + '<p class="muted" style="font-size:11px;">この近くで客を乗せた記録がまだありません。日報がたまると出てきます。</p>';
     return;
   }
-  const top = evaluated.slice(0, 10);
-  const maxSales = Math.max(...top.map(r => r.avgSales || 0), 1);
-  let html = `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">📍 ${headLabel}${neighborSuffix} で <strong>${winLabel}</strong>${winSuffix} に降ろした後 → 次に乗れたエリア TOP${top.length}</div>`;
-  html += widenNote;
-  html += countLine;
+
+  const sortLabels = { distance: '近い順', sales: '単価順', wait: '待ちが短い順', count: '回数順' };
+  let html = `<div style="font-size:12px;font-weight:600;margin-bottom:2px;">📍 ${originLabel} の周り2km で客を乗せた場所 ・ ${sortLabels[recSort]}</div>`
+    + `<div class="muted" style="font-size:10px;margin-bottom:8px;">${scopeText}に乗せた記録。${rows.length}か所。「待ち」はその場所で拾うまで空車で流していた時間。</div>`
+    + '<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">'
+    + Object.entries(sortLabels).map(([k, v]) =>
+        `<button type="button" data-sort="${k}" style="font-size:10px;padding:3px 9px;border-radius:12px;cursor:pointer;border:1px solid ${k === recSort ? 'var(--primary)' : '#ccc'};background:${k === recSort ? 'var(--primary)' : '#fff'};color:${k === recSort ? '#fff' : '#555'};">${v}</button>`).join('')
+    + '</div>';
+
+  const maxSales = Math.max(...rows.map(r => r.medianSales || 0), 1);
   html += '<div style="overflow-x:auto;"><table class="area-table"><thead><tr>'
-    + '<th class="l">次乗車エリア</th><th>件数</th><th>15分内</th><th>30分内</th><th>次運賃(平均/中央)</th>'
+    + '<th class="l">場所</th><th>距離</th><th>乗せた</th><th>待ち</th><th>単価(中央/平均)</th>'
     + '</tr></thead><tbody>';
-  for (let idx = 0; idx < top.length; idx++) {
-    const r = top[idx];
-    const salesPct = r.avgSales ? (r.avgSales / maxSales * 100) : 0;
-    const r15 = Math.round(r.ratio15 * 100);
-    const r30 = Math.round(r.ratio30 * 100);
-    html += `<tr data-idx="${idx}" style="cursor:pointer;" title="タップで根拠データ">
+  for (let idx = 0; idx < rows.length; idx++) {
+    const r = rows[idx];
+    const pct = (r.medianSales || 0) / maxSales * 100;
+    const kmText = r.isHere ? '<strong style="color:var(--primary);">ここ</strong>' : `${r.km.toFixed(1)}km`;
+    const waitText = r.medianWait != null ? `${Math.round(r.medianWait)}分` : '—';
+    html += `<tr data-idx="${idx}" style="cursor:pointer;" title="タップで実際の乗車履歴">
       <td class="l">${r.area}</td>
-      <td>${r.count}</td>
-      <td>${r15}%</td>
-      <td>${r30}%</td>
-      <td><div class="bar"><div class="fill" style="width:${salesPct}%;"></div><div class="v">${formatYen(r.avgSales)}<span style="color:rgba(255,255,255,0.85);font-size:9px;margin-left:4px;">中${formatYen(r.medianSales)}</span></div></div></td>
+      <td>${kmText}</td>
+      <td>${r.count}回</td>
+      <td>${waitText}</td>
+      <td><div class="bar"><div class="fill" style="width:${pct}%;"></div><div class="v">${formatYen(r.medianSales)}<span style="color:rgba(255,255,255,0.85);font-size:9px;margin-left:4px;">平${formatYen(r.avgSales)}</span></div></div></td>
     </tr>
     <tr id="recDetail-${idx}" style="display:none;background:#fafafa;"><td colspan="5" style="padding:8px;"></td></tr>`;
   }
   html += '</tbody></table></div>';
-  html += '<p class="muted" style="font-size:10px;margin-top:4px;">「15分内」=次乗車が速いエリア、「30分内」=仕事の見込みがあるエリア。「次運賃」=次の乗車営収の平均/中央値(¥0除外)。30分内取得率の高い順。タップで根拠データ表示</p>';
-  html += nearbyHtml;
-  // 全履歴フォールバック (折りたたみ)
-  html += `<details style="margin-top:10px;"><summary style="cursor:pointer;font-size:11px;color:var(--primary);">▶ このエリアでの全履歴を見る(待ちの目安)</summary><div style="margin-top:8px;">${renderHistoryFallback(dropoffArg, hourCenter, expand, usedDrives, w)}</div></details>`;
+  html += '<p class="muted" style="font-size:10px;margin-top:4px;">回数が多い＝良い、とは限りません。よく通る場所ほど回数は増えます。単価と待ちを合わせて見てください。タップでその場所の実際の乗車履歴。</p>';
   body.innerHTML = html;
-  body.querySelectorAll('tr[data-idx]').forEach(tr => {
-    tr.onclick = () => {
-      const idx = parseInt(tr.dataset.idx);
-      const detail = document.getElementById(`recDetail-${idx}`);
-      if (detail.style.display === 'none') {
-        const r = top[idx];
-        const todayDate = todayIso();
-        const todayDow = dowOf(todayDate);
-        const centerMin = hour * 60;
-        const samples = sortByDowAndTime(r.samples || [], todayDate, centerMin);
-        const maxSampleAmount = Math.max(...samples.map(s => s.amount || 0), 1);
-        let dh = `<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">過去${r.count}件中 直近${samples.length}件 (今日${DOW_LABELS[todayDow]}${isHoliday(todayDate)?'祝':''}基準で並び替え):</div>`;
-        dh += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;font-size:9px;border-collapse:collapse;min-width:480px;">'
-          + '<thead><tr style="color:var(--muted);"><th style="text-align:left;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">日付</th><th style="text-align:left;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">乗った場所→降ろした場所</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;"><strong style="color:#1b5e20;">乗</strong>/降</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">待</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">実車</th><th style="text-align:right;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">運賃</th></tr></thead><tbody>';
-        for (const s of samples) {
-          const grp = dateCategoryKey(s.date, todayDate);
-          const rowStyle = grp === 2 ? 'opacity:0.45;background:#fafafa;' : '';
-          const dateStyle = grp === 0 ? 'color:var(--primary);font-weight:700;' : grp === 2 ? 'color:#999;' : '';
-          const amtStyle = amountHeatStyle(s.amount, maxSampleAmount);
-          const holBadge = isHoliday(s.date) ? '<span style="font-size:8px;background:#ffebee;color:#c62828;padding:0 3px;border-radius:2px;margin-right:2px;">祝</span>' : '';
-          dh += `<tr style="${rowStyle}"><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;white-space:nowrap;${dateStyle}">${holBadge}${formatDateY(s.date)}</td><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;line-height:1.4;white-space:nowrap;">${s.nextBoardPlace} <span style="color:var(--muted);">→</span> ${s.nextAlightPlace}</td><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;color:var(--muted);white-space:nowrap;"><strong style="color:#1b5e20;font-weight:700;">${s.nextBoardTime}</strong>/${s.nextAlightTime}</td><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;">${s.wait}分</td><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;">${formatMin(s.dur)}</td><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:right;font-weight:700;border-radius:3px;white-space:nowrap;${amtStyle}">${formatYen(s.amount)}</td></tr>`;
-        }
-        dh += '</tbody></table></div>';
-        detail.querySelector('td').innerHTML = dh;
-        detail.style.display = '';
-      } else {
-        detail.style.display = 'none';
-      }
-    };
+
+  body.querySelectorAll('button[data-sort]').forEach(b => {
+    b.onclick = () => { recSort = b.dataset.sort; runRecSearch(); };
   });
-};
+  body.querySelectorAll('tr[data-idx]').forEach(tr => {
+    tr.onclick = () => toggleRecDetail(parseInt(tr.dataset.idx), rows);
+  });
+}
+
+// 行をタップ → その場所で実際にいつ・どこへ・いくらで乗せたかを出す
+function toggleRecDetail(idx, rows) {
+  const detail = document.getElementById(`recDetail-${idx}`);
+  if (!detail) return;
+  if (detail.style.display !== 'none') { detail.style.display = 'none'; return; }
+  const r = rows[idx];
+  const { pool, hour } = recLastArgs || {};
+  const h = boardHistoryAtArea(pool || allDrives, r.area, null, 200);
+  const todayDate = todayIso();
+  const todayDow = dowOf(todayDate);
+  // 指定時刻に近い記録を優先して見せる
+  const near = h.entries.filter(e => {
+    const bh = parseInt(String(e.boardTime).split(':')[0]);
+    if (Number.isNaN(bh) || hour == null) return true;
+    for (let o = -3; o <= 3; o++) if (((hour + o + 24) % 24) === bh) return true;
+    return false;
+  });
+  const list = (near.length >= 5 ? near : h.entries).slice(0, 20);
+  const maxAmount = Math.max(...list.map(e => e.amount || 0), 1);
+  let dh = `<div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${r.area} で乗せた ${h.totalCount}件のうち ${list.length}件${near.length >= 5 ? `（${String(hour).padStart(2,'0')}時前後）` : ''}:</div>`;
+  dh += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;font-size:9px;border-collapse:collapse;min-width:440px;">'
+    + '<thead><tr style="color:var(--muted);"><th style="text-align:left;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">日付</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">待ち</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">乗せた</th><th style="text-align:left;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">降ろした場所</th><th style="padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">実車</th><th style="text-align:right;padding:8px 6px;border-bottom:1px solid #eee;white-space:nowrap;">運賃</th></tr></thead><tbody>';
+  for (const e of list) {
+    const grp = dateCategoryKey(e.date, todayDate);
+    const rowStyle = grp === 2 ? 'opacity:0.45;background:#fafafa;' : '';
+    const dateStyle = grp === 0 ? 'color:var(--primary);font-weight:700;' : grp === 2 ? 'color:#999;' : '';
+    const amtStyle = amountHeatStyle(e.amount, maxAmount);
+    const holBadge = isHoliday(e.date) ? '<span style="font-size:8px;background:#ffebee;color:#c62828;padding:0 3px;border-radius:2px;margin-right:2px;">祝</span>' : '';
+    const waitText = e.waitBefore != null && e.waitBefore <= 120 ? `${e.waitBefore}分` : '—';
+    dh += `<tr style="${rowStyle}"><td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;white-space:nowrap;${dateStyle}">${holBadge}${formatDateY(e.date)}</td>`
+      + `<td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;">${waitText}</td>`
+      + `<td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;"><strong style="color:#1b5e20;">${e.boardTime}</strong></td>`
+      + `<td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;white-space:nowrap;">${e.alightPlace || '—'}</td>`
+      + `<td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:center;white-space:nowrap;">${formatMin(e.dur)}</td>`
+      + `<td style="padding:8px 6px;border-bottom:1px solid #f5f5f5;text-align:right;font-weight:700;border-radius:3px;white-space:nowrap;${amtStyle}">${formatYen(e.amount)}</td></tr>`;
+  }
+  dh += '</tbody></table></div>';
+  detail.querySelector('td').innerHTML = dh;
+  detail.style.display = '';
+}
+
+document.getElementById('recSearch').onclick = () => { recSort = 'distance'; runRecSearch(); };
 
 function renderHighValue() {
   const rows = highValueAreasByZone(allDrives, ZONE_PRESETS.human.zones, { minSamples: 5 }).slice(0, 15);

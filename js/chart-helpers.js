@@ -1541,3 +1541,53 @@ export function stageHeatmap(stageDrives) {
   );
   return { matrix, dowDayCount };
 }
+
+// その場所で「乗せた」実績を、場所ごとにまとめる。
+//
+// 元の推奨検索は「Xで降ろした後 → Yで乗せた」という流れを数えていたが、流れを条件に
+// すると材料がほぼ全部落ちる(本番実データ: 港区赤坂20時で2行しか出ない)。
+// 乗せた記録だけを見れば同じ条件で22か所・のべ131回といった厚みが残り、
+// 「回数はそのまま回数」なので分母の説明も要らない。
+//
+// hourCenter を渡すとその時間帯だけを数える(null=終日)。
+// medianWait: その場所で拾うまでに空車で待った時間の中央値。
+//   直前の降車からの経過分。2時間を超えるものは休憩や帰庫をまたいでいるので数えない。
+// 戻り値: { エリア名: { count, avgSales, medianSales, medianWait, waitCount } }
+export function pickupAreaStats(drives, hourCenter = null, hourWindow = 1) {
+  const WAIT_CAP_MIN = 120;
+  const g = {};
+  for (const d of (drives || [])) {
+    if (isSummaryOnly(d)) continue;
+    const trips = (d.trips || []).filter((t) => !t.isCancel);
+    for (let i = 0; i < trips.length; i++) {
+      const t = trips[i];
+      if (!(t.amount > 0)) continue;
+      const area = extractArea(t.boardPlace);
+      if (!area) continue;
+      if (hourCenter !== null) {
+        const bh = parseInt(String(t.boardTime).split(':')[0]);
+        if (Number.isNaN(bh) || !hourInWindow(bh, hourCenter, hourWindow)) continue;
+      }
+      (g[area] ||= { count: 0, sum: 0, sales: [], waits: [] });
+      g[area].count++;
+      g[area].sum += t.amount;
+      g[area].sales.push(t.amount);
+      if (i > 0) {
+        let w = timeToMinutes(t.boardTime) - timeToMinutes(trips[i - 1].alightTime);
+        if (w < 0) w += 24 * 60;
+        if (w <= WAIT_CAP_MIN) g[area].waits.push(w);
+      }
+    }
+  }
+  const out = {};
+  for (const [area, v] of Object.entries(g)) {
+    out[area] = {
+      count: v.count,
+      avgSales: v.sum / v.count,
+      medianSales: median(v.sales),
+      medianWait: v.waits.length ? median(v.waits) : null,
+      waitCount: v.waits.length,
+    };
+  }
+  return out;
+}

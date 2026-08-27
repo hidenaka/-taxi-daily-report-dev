@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>推奨検索の画面の読み方</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --a:#12a37f; --b:#3f7fc1; --c:#c9772a; --ng:#d4483b; --yel:#f5c542;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:940px;margin:0 auto;padding:48px 22px 90px}
+
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 34px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+
+  .tag{display:inline-block;color:#fff;font-size:13px;font-weight:700;padding:3px 12px;border-radius:999px;margin-bottom:10px}
+  .t1{background:var(--a)} .t2{background:var(--b)} .t3{background:var(--c)} .t0{background:#1a1a1a} .tw{background:var(--ng)}
+
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+
+  .q{margin:0 0 14px;padding:14px 16px;background:#f3f7f5;border-left:5px solid var(--a);border-radius:0 10px 10px 0;font-size:17px;font-weight:700}
+  .q.b{background:#eff4f9;border-color:var(--b)}
+  .q.c{background:#faf3ea;border-color:var(--c)}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0 6px;font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-weight:700;font-size:13.5px}
+  tr:last-child td{border-bottom:0}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  .hi{background:#e6f6f1}
+
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .bad{background:#fdeeec;border-color:var(--ng)}
+  .note b{color:#8a6a08}
+  .bad b{color:var(--ng)}
+
+  .end{margin-top:10px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 14px;font-size:23px}
+  .end ol{margin:0;padding-left:20px}
+  .end li{margin:9px 0;font-size:16px}
+
+  code{font-family:var(--mono);font-size:.92em;background:#f0ece0;padding:1px 6px;border-radius:4px}
+
+  @media(max-width:640px){
+    h1{font-size:26px}
+    .card h2{font-size:20px}
+    .card{padding:18px 15px 20px}
+    table{font-size:12.5px}
+    th,td{padding:7px 7px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>推奨検索の画面は<br>「3つの別々の質問」に答えています</h1>
+  <p class="sub">同じ画面に縦に並んでいますが、数え方も答えている質問も全部ちがいます。港区赤坂・20時の実データで説明します。</p>
+
+  <!-- 全体図 -->
+  <div class="card">
+    <span class="tag t0">まず全体</span>
+    <h2>上から順に、質問が3つ</h2>
+    <figure>
+      <svg viewBox="0 0 900 480" role="img" aria-label="画面の3ブロックの図">
+        <rect width="900" height="480" fill="#fff"/>
+
+        <!-- 入力 -->
+        <rect x="30" y="20" width="840" height="62" rx="10" fill="#f2eee1" stroke="#c9bfa0" stroke-width="2"/>
+        <text x="48" y="45" font-size="14" font-weight="700">あなたが入れるもの</text>
+        <text x="48" y="68" font-size="14.5">降ろした場所【港区赤坂】　降ろした時刻【20:00】　☑ 近隣エリアも含める</text>
+
+        <path d="M450,84 L450,104" stroke="#5a5a5a" stroke-width="2.5" marker-end="url(#a1)"/>
+        <defs><marker id="a1" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#5a5a5a"/></marker></defs>
+
+        <!-- 1 -->
+        <rect x="30" y="110" width="840" height="104" rx="12" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+        <circle cx="62" cy="140" r="15" fill="#12a37f"/><text x="62" y="146" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">1</text>
+        <text x="88" y="146" font-size="17" font-weight="700" fill="#0a7a5f">次に乗れたエリア（メインの表）</text>
+        <text x="88" y="172" font-size="15">「このあと、どこへ動けば次の客が取れた？」</text>
+        <text x="88" y="196" font-size="13.5" fill="#5a5a5a">材料 = 実際にそこへ動いて客を乗せた記録。行ったことのある場所だけ。</text>
+
+        <!-- 2 -->
+        <rect x="30" y="228" width="840" height="104" rx="12" fill="#eff4f9" stroke="#3f7fc1" stroke-width="2.5"/>
+        <circle cx="62" cy="258" r="15" fill="#3f7fc1"/><text x="62" y="264" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">2</text>
+        <text x="88" y="264" font-size="17" font-weight="700" fill="#2b6ca8">🧭 近くにあるが行っていない場所</text>
+        <text x="88" y="290" font-size="15">「まだ試していない近場は？」</text>
+        <text x="88" y="314" font-size="13.5" fill="#5a5a5a">材料 = 地図で2km以内。赤坂で降ろした後かどうかは関係ない。</text>
+
+        <!-- 3 -->
+        <rect x="30" y="346" width="840" height="104" rx="12" fill="#faf3ea" stroke="#c9772a" stroke-width="2.5"/>
+        <circle cx="62" cy="376" r="15" fill="#c9772a"/><text x="62" y="382" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">3</text>
+        <text x="88" y="382" font-size="17" font-weight="700" fill="#9a5a18">▶ 全履歴（折りたたみ）</text>
+        <text x="88" y="408" font-size="15">「そこで降ろしたら、どのくらい待つ？」</text>
+        <text x="88" y="432" font-size="13.5" fill="#5a5a5a">材料 = 待ち時間だけ。次にどこへ行ったかは見ていない。</text>
+      </svg>
+      <figcaption>1は「どこへ動くか」、2は「まだ試していない場所」、3は「どのくらい待つか」</figcaption>
+    </figure>
+  </div>
+
+  <!-- 1 -->
+  <div class="card">
+    <span class="tag t1">1つめ</span>
+    <div class="q">「このあと、どこへ動けば次の客が取れた？」</div>
+    <p class="lede">港区赤坂・20時で実際に出るのはこれです。</p>
+
+    <table>
+      <thead><tr><th>次乗車エリア</th><th class="n">件数</th><th class="n">15分内</th><th class="n">30分内</th><th class="n">次運賃</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>港区南青山</td><td class="n">5</td><td class="n">14%</td><td class="n">14%</td><td class="n">¥2,320</td></tr>
+        <tr><td>港区六本木</td><td class="n">5</td><td class="n">14%</td><td class="n">14%</td><td class="n">¥3,280</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin:16px 0 0;font-size:15.5px"><b>数字の意味はこうです。</b></p>
+    <table>
+      <tbody>
+        <tr><th style="width:22%">件数 5</th><td>実際にそこで次の客を乗せたのが5回あった</td></tr>
+        <tr><th>15分内 14%</th><td>この条件で降ろした<b>全部（35回）</b>のうち、14%（5回）が南青山で15分以内に次を取れた</td></tr>
+        <tr><th>30分内 14%</th><td>同じく35回のうち14%。<b>15分内と同じ数字＝5回とも15分以内で取れていた</b>ということ</td></tr>
+        <tr><th>次運賃 ¥2,320</th><td>そこで乗せた<b>その1回</b>の運賃の平均（¥2,000が真ん中）</td></tr>
+      </tbody>
+    </table>
+
+    <p style="margin:18px 0 0;font-size:15.5px">行をタップすると、その5回が実際にどう動いたかが出ます。</p>
+    <table>
+      <tbody>
+        <tr><td style="font-size:13.5px">2026-08-06　六本木で21:19に降ろす　→　<b>13分後</b>　南青山で乗せて西原へ　<b>¥2,800</b></td></tr>
+        <tr><td style="font-size:13.5px">2026-08-01　神宮前で20:04に降ろす　→　<b>6分後</b>　南青山で乗せて有楽町へ　<b>¥3,900</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <span class="tag t2">2つめ</span>
+    <div class="q b">「まだ試していない近場は？」</div>
+    <p class="lede">1つめの表に入ってこない場所です。<b>数え方がまったく違います。</b></p>
+
+    <table>
+      <thead><tr><th>場所</th><th class="n">距離</th><th class="n">乗せた回数</th><th class="n">運賃</th></tr></thead>
+      <tbody>
+        <tr class="hi"><td>千代田区内幸町</td><td class="n">1.9km</td><td class="n">10</td><td class="n">¥4,915</td></tr>
+        <tr><td>千代田区麹町</td><td class="n">1.5km</td><td class="n">11</td><td class="n">¥3,945</td></tr>
+        <tr><td>港区西新橋</td><td class="n">1.7km</td><td class="n">14</td><td class="n">¥2,514</td></tr>
+      </tbody>
+    </table>
+
+    <figure style="margin-top:18px">
+      <svg viewBox="0 0 900 260" role="img" aria-label="1つめと2つめの数え方のちがい">
+        <rect width="900" height="260" fill="#fff"/>
+
+        <text x="230" y="32" text-anchor="middle" font-size="16" font-weight="700" fill="#0a7a5f">1つめの数え方</text>
+        <rect x="60" y="48" width="340" height="180" rx="12" fill="#e6f6f1" stroke="#12a37f" stroke-width="2"/>
+        <text x="230" y="84" text-anchor="middle" font-size="14.5">赤坂で降ろした</text>
+        <text x="230" y="112" text-anchor="middle" font-size="22" fill="#0a7a5f">↓</text>
+        <text x="230" y="140" text-anchor="middle" font-size="14.5">そのあと南青山へ動いた</text>
+        <text x="230" y="168" text-anchor="middle" font-size="22" fill="#0a7a5f">↓</text>
+        <text x="230" y="196" text-anchor="middle" font-size="14.5" font-weight="700">そこで客を乗せた</text>
+        <text x="230" y="218" text-anchor="middle" font-size="12.5" fill="#0a7a5f">この一連の流れが5回あった</text>
+
+        <text x="670" y="32" text-anchor="middle" font-size="16" font-weight="700" fill="#2b6ca8">2つめの数え方</text>
+        <rect x="500" y="48" width="340" height="180" rx="12" fill="#eff4f9" stroke="#3f7fc1" stroke-width="2"/>
+        <text x="670" y="90" text-anchor="middle" font-size="14.5" fill="#999">赤坂は関係なし</text>
+        <text x="670" y="126" text-anchor="middle" font-size="14.5">内幸町で客を乗せた</text>
+        <text x="670" y="150" text-anchor="middle" font-size="12.5" fill="#5a5a5a">（どこから来たかは問わない）</text>
+        <text x="670" y="184" text-anchor="middle" font-size="14.5" font-weight="700">それが10回あった</text>
+        <text x="670" y="212" text-anchor="middle" font-size="12.5" fill="#2b6ca8">赤坂から1.9kmなので出している</text>
+      </svg>
+      <figcaption>1つめは「赤坂→そこへ動いた流れ」、2つめは「そこ単体の実力」</figcaption>
+    </figure>
+
+    <div class="note"><b>だから直接くらべられません。</b>2つめの「¥4,915」は「赤坂から内幸町へ動けば¥4,915もらえる」という意味ではありません。「内幸町で乗せると平均¥4,915だった。赤坂から1.9kmだから、行ってみる手はあるかもしれない」という材料です。次が取れるかどうかまでは分かりません。</div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <span class="tag t3">3つめ</span>
+    <div class="q c">「そこで降ろしたら、どのくらい待つ？」</div>
+    <p class="lede">「▶ このエリアでの全履歴を見る」を開くと出ます。次にどこへ行ったかは見ていません。<b>待ち時間だけ</b>の話です。</p>
+
+    <figure>
+      <svg viewBox="0 0 900 150" role="img" aria-label="待ち時間の分布">
+        <rect width="900" height="150" fill="#fff"/>
+        <text x="30" y="30" font-size="15.5">過去<tspan font-weight="700">37回</tspan>の降車　待ち時間は平均<tspan font-weight="700">14分</tspan>、真ん中が<tspan font-weight="700">10分</tspan></text>
+        <rect x="30" y="48" width="657" height="34" fill="#2e7d32"/>
+        <rect x="687" y="48" width="122" height="34" fill="#66bb6a"/>
+        <rect x="809" y="48" width="49" height="34" fill="#fb8c00"/>
+        <rect x="858" y="48" width="12" height="34" fill="#c62828"/>
+        <text x="358" y="71" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">15分以内 27回</text>
+        <text x="748" y="71" text-anchor="middle" font-size="13" fill="#fff">5回</text>
+        <text x="30" y="106" font-size="13.5" fill="#2e7d32">■ 15分以内 27</text>
+        <text x="180" y="106" font-size="13.5" fill="#66bb6a">■ 15〜30分 5</text>
+        <text x="330" y="106" font-size="13.5" fill="#fb8c00">■ 30〜60分 2</text>
+        <text x="480" y="106" font-size="13.5" fill="#c62828">■ 60分超 1</text>
+        <text x="30" y="136" font-size="14.5" fill="#5a5a5a">読み方: この辺で降ろしたら、だいたい10分ちょっとで次が拾えている。</text>
+      </svg>
+    </figure>
+  </div>
+
+  <!-- 分かりにくい3箇所 -->
+  <div class="card" style="border:2px solid var(--ng)">
+    <span class="tag tw">正直なところ</span>
+    <h2>分かりにくい箇所が3つあります</h2>
+    <p class="lede">実データで画面を再現して、私が見ても引っかかった場所です。直す価値があると思います。</p>
+
+    <div class="note bad">
+      <b>① 見出しは「港区赤坂」なのに、実は21か所を混ぜている</b><br>
+      「近隣エリアも含める」にチェックが入っていると、赤坂だけでなく<b>六本木・南青山・虎ノ門など20か所</b>の降車も一緒に数えています。見出しには小さく「+近隣」と付くだけです。<br>
+      <span style="color:#5a5a5a;font-size:14px">→ 直すなら: 何か所を混ぜているかを見出しに出す。チェックを外せば赤坂だけになります。</span>
+    </div>
+
+    <div class="note bad" style="margin-top:14px">
+      <b>② 「32件取れた」と書いてあるのに、表には10件分しか出ていない</b><br>
+      赤坂20時では「降車35件中、30分以内に次が取れた32件」と出ますが、表は南青山5＋六本木5＝<b>10件分だけ</b>。残り22件は、1〜2回しか行っていない場所にバラけたので<b>「3回未満は出さない」ルールで消えています</b>。<br>
+      <span style="color:#5a5a5a;font-size:14px">→ 直すなら: 「残り22件は1〜2回だけの場所に分散」と1行足す。消えたことが分かるようにする。</span>
+    </div>
+
+    <div class="note bad" style="margin-top:14px">
+      <b>③ %が小さく見えるが、実は悪くない</b><br>
+      「30分内 14%」は低く見えますが、分母は<b>21か所ぜんぶの降車35回</b>です。行き先は何十か所にも散らばるので、1か所が14%を取っていればむしろ多いほうです。全部足しても29%にしかなりません。<br>
+      <span style="color:#5a5a5a;font-size:14px">→ 直すなら: 「この場所が選ばれた割合」という言い方に変える。または%をやめて件数で見せる。</span>
+    </div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ol>
+      <li><b>1つめの表</b>＝「次どこへ動く？」　赤坂で降ろした<b>あと</b>の流れを数えている。行ったことのある場所だけ。</li>
+      <li><b>2つめ（🧭）</b>＝「まだ試していない近場は？」　その場所<b>単体</b>の実力。赤坂は関係ない。1つめと直接くらべられない。</li>
+      <li><b>3つめ（▶全履歴）</b>＝「どのくらい待つ？」　待ち時間だけ。行き先は見ていない。</li>
+      <li>%の分母は<b>「その条件で降ろした全部」</b>。1か所で14%あればむしろ多いほう。</li>
+      <li>上の<b>①②③</b>は直したほうがいいと思います。やるかどうか決めてください。</li>
+    </ol>
+  </div>
+
+</div>
+</body>
+</html>
