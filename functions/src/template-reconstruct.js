@@ -284,6 +284,9 @@ export function normalizeCell(rawText, type, confidence) {
       text = String(parseInt(digits, 10));
     } else if (/[休保㈱]/.test(raw)) {
       text = '休';
+    } else if (/回/.test(raw)) {
+      // 回送マーカー。下流 to-drive が休憩・営業と分けるために字を残す。
+      text = '回';
     } else {
       text = raw || '';
     }

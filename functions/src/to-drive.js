@@ -12,6 +12,13 @@
 // "休" 相当の No 表記。OCR は "休" を "保" / "㈱" と誤認することがある。
 const REST_NO = /[休保㈱]/;
 
+// "回"(回送) の No 表記。回送は営業でも休憩でもない独立した行。
+// 「回」が読めているときは、行の形(滞在時間や降車地の有無)より字を優先する。
+// これが無いと回送が次のように化ける(2026-09-01 に実データで再現):
+//   ・経過時間が少しでもあると休憩に数えられる(実際の回送は数分かかることがある)
+//   ・降車地を持つ回送が営業に数えられる(営業回数の水増し)
+const KAISO_NO = /回/;
+
 // 全角数字→半角（No 欄に数字があるかの判定用）
 const toHalfWidthDigits = (s) =>
   String(s || '').replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0));
@@ -43,7 +50,8 @@ function parseKm(s) {
  *  - 番号付き(No)の行は本表の営業行。END列ズレ等で金額/降車地が空でも残す。
  *  - 金額/km/降車地のいずれかがあれば営業行として残す。
  *  - キャンセルは営業試行として残す（アプリ側で別途キャンセル件数に集計）。
- *  - 番号も内容も無い行（乗降同時刻・0円0km・降車地なしの回送や空行）だけ除外。
+ *  - No 欄が「回」の行（回送）は内容によらず除外。
+ *  - 番号も内容も無い行（0円0km・降車地なしの空行）だけ除外。
  *
  * 注: 時刻の有無では判定しない。斜め撮影で列がずれ降車時刻が空になっても本物の
  *     トリップを落とさないため。ETC明細表の行は reconstructRows の etcY カット
@@ -53,6 +61,8 @@ function parseKm(s) {
  */
 export function isRevenueTrip(t) {
   if (!t) return false;
+  // 回送は売上対象ではない。降車地や km を持っていても営業に数えない。
+  if (t.isKaiso) return false;
   if (t.isCancel) return true;
   const hasNo = Number.isFinite(t.no) && t.no > 0;
   const hasContent =
@@ -85,7 +95,10 @@ export function rowsToDrive(rows) {
     //   「No 欄に数字が無く、降車地・km・金額がどれも無く、時刻に滞在時間がある行」＝休憩。
     // 番号が潰れた営業行は降車地や金額を持つので混ざらない。回送行も同じ形だが
     // 乗車と降車が同時刻（滞在時間ゼロ）なので、そこで分ける。
+    // 「回」と読めている行は、形がどうであれ休憩ではない。
+    const isKaiso = KAISO_NO.test(noText);
     const isRestByShape =
+      !isKaiso &&
       !/[0-9]/.test(toHalfWidthDigits(noText)) &&
       !String(row['降車地'] || '').trim() &&
       !parseAmount(row['合計']) &&
@@ -93,7 +106,7 @@ export function rowsToDrive(rows) {
       String(row['乗車地'] || '').trim() &&
       hasElapsed(row['乗車'], row['降車']);
 
-    if (REST_NO.test(noText) || isRestByShape) {
+    if (!isKaiso && (REST_NO.test(noText) || isRestByShape)) {
       rests.push({
         startTime: row['乗車'] || '',
         endTime: row['降車'] || '',
@@ -124,6 +137,7 @@ export function rowsToDrive(rows) {
       amount: isCancel ? 0 : amount,
       isPickup: pickupKind === '迎',
       isCharter: noText.startsWith('貸'),
+      isKaiso,
       isCancel,
       waitTime: '',
       _ocrFlags: { ...flags },
