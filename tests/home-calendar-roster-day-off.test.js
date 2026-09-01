@@ -16,9 +16,15 @@ function renderCalendarSource() {
 }
 
 function renderSource() {
-  const start = html.indexOf('async function render() {');
+  // 引数の有無で壊れないように「関数名まで」で探す。
+  // 2026-09-01: render が引数を取るようになり(async function render(drivesPromise))、
+  // 'async function render() {' の完全一致で探していたこのテストが常に赤になっていた。
+  // 実装の不具合ではなくテストの追従漏れだったが、赤が居座ると本物の退行に気づけない。
+  // 期間の並行読み込みは fetchRenderDrives() へ切り出されたので、そこから含めて見る
+  // (render 本体は await (drivesPromise || fetchRenderDrives()) を呼ぶだけになった)。
+  const start = html.indexOf('function fetchRenderDrives()');
   const end = html.indexOf('\nfunction selectedMetricIds()', start);
-  assert.notEqual(start, -1, 'render must exist');
+  assert.notEqual(start, -1, 'fetchRenderDrives / render must exist');
   assert.notEqual(end, -1, 'render must end before selectedMetricIds');
   return html.slice(start, end);
 }
@@ -32,10 +38,18 @@ test('home calendar renders automatic roster days off without changing existing 
     /import\s*{[^}]*\bisRosterDayOff\b[^}]*}\s*from\s*'\.\/js\/planned-shifts\.js';/,
     'imports isRosterDayOff from planned-shifts.js',
   );
+  // 当月度と前後月度を同時に取り、前後だけは失敗しても空配列に落とす。
+  // 取得の並びは fetchRenderDrives() へ、受け取りは render() へ分かれたので、
+  // 「どの関数に書いてあるか」ではなく「その形になっているか」で見る。
   assert.match(
     render,
-    /const \[rawDrives, previousRosterDrives, nextRosterDrives\] = await Promise\.all\(\[\s*getDrivesForMonth\(viewPeriod\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, -1\)\)\.catch\(\(\) => \[\]\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, 1\)\)\.catch\(\(\) => \[\]\),\s*\]\);/s,
+    /Promise\.all\(\[\s*getDrivesForMonth\(viewPeriod\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, -1\)\)\.catch\(\(\) => \[\]\),\s*getDrivesForMonth\(shiftBillingPeriod\(viewPeriod, 1\)\)\.catch\(\(\) => \[\]\),\s*\]\)/s,
     'loads current and adjacent billing periods concurrently while only adjacent failures degrade to empty arrays',
+  );
+  assert.match(
+    render,
+    /const \[rawDrives, previousRosterDrives, nextRosterDrives\] = await /,
+    'render receives the three period results',
   );
   assert.match(
     render,
