@@ -842,7 +842,13 @@ export function reconstructRows(ocr) {
     }
     if (!isFinite(cap)) cap = 40;
     let best = { lean: 0, score: Infinity };
-    for (let lean = -0.07; lean <= 0.07; lean += 0.0005) {
+    // 探索幅 ±0.15。以前は ±0.07 で、それを超える傾きの写真では補正が頭打ちになり、
+    // 下の行ほど値が右隣の列へ落ちていた（2026-09-03 の明細で実測 0.085。
+    // 営Km「7.5」が「男」列へ入って int 整形で「75」になり、金額も玉突きでずれて
+    // 運賃計が ¥88,200 → ¥24,908 になっていた）。
+    // 広げても過適合しないのは、残差をテンプレ列中心という固定アンカーからの
+    // 距離で測っているため（下の capped MAE）。
+    for (let lean = -0.15; lean <= 0.15; lean += 0.0005) {
       let score = 0;
       for (const it of items) {
         const xc = it.xc - lean * (it.yc - headerY);
