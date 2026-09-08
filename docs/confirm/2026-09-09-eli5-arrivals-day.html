@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>到着便を前の日でも見られるようにした</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#3f7fc1;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.28;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 8px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .bad{background:#fdeeec} .good{background:#e6f6f1}
+  .screen{background:#111;color:#eee;border-radius:12px;padding:14px 16px;margin:14px 0 4px;font-size:14px;line-height:1.6}
+  .screen .bar{display:flex;align-items:center;gap:10px;background:#16161a;border:1px solid #2a2a30;border-radius:8px;padding:8px 10px}
+  .screen .nav{background:#23232a;border-radius:6px;padding:5px 12px;font-size:13px}
+  .screen .mid{flex:1;text-align:center}
+  .screen .lab{font-weight:700}
+  .screen .note{font-size:11.5px;color:#ffb74d;display:block}
+  .screen .note.calm{color:#9a9aa2}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}table{font-size:12.5px}th,td{padding:6px 6px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>前の日の到着便を<br><span style="color:#12a37f">選んで見られる</span>ようにしました</h1>
+  <p class="sub">本番に出ました。調べる途中で、もう1つ問題が隠れているのも見つかりました。</p>
+
+  <div class="card">
+    <h2>隠れていた問題</h2>
+    <p class="lede">到着便のデータは<b>毎日 23:45 が最後の更新</b>です。0時を過ぎても中身は前の日のまま届きます。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 260" role="img" aria-label="0時を過ぎても前日のデータのままという図">
+        <rect width="880" height="260" fill="#fff"/>
+        <line x1="60" y1="120" x2="820" y2="120" stroke="#d8d2bf" stroke-width="2"/>
+        <text x="120" y="150" text-anchor="middle" font-size="14">23:45</text>
+        <circle cx="120" cy="120" r="8" fill="#12a37f"/>
+        <text x="120" y="98" text-anchor="middle" font-size="13" fill="#12a37f">最後の更新</text>
+
+        <text x="330" y="150" text-anchor="middle" font-size="14">0:00</text>
+        <line x1="330" y1="96" x2="330" y2="144" stroke="#d4483b" stroke-width="2.5" stroke-dasharray="5,4"/>
+        <text x="330" y="88" text-anchor="middle" font-size="13" fill="#d4483b">日付がかわる</text>
+
+        <text x="600" y="150" text-anchor="middle" font-size="14">3:00（乗務中）</text>
+        <circle cx="600" cy="120" r="8" fill="#d4483b"/>
+
+        <rect x="420" y="170" width="400" height="70" rx="10" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="620" y="196" text-anchor="middle" font-size="14">画面は前の日のデータを持ったまま</text>
+        <text x="620" y="220" text-anchor="middle" font-size="14" font-weight="700" fill="#d4483b">「これから来る便」として見せていた</text>
+
+        <rect x="60" y="170" width="330" height="70" rx="10" fill="#e6f6f1" stroke="#12a37f" stroke-width="2"/>
+        <text x="225" y="196" text-anchor="middle" font-size="14">ここまでは正しい</text>
+        <text x="225" y="220" text-anchor="middle" font-size="14">その日の便を出している</text>
+      </svg>
+      <figcaption>深夜に見ると、昨日の朝の便が「これから来る便」に見えていました</figcaption>
+    </figure>
+
+    <div class="note"><b>前の日のデータは、どこにも残っていませんでした。</b>毎日1つのファイルを上書きしていたためです。「前日を見たい」以前に、見るものが無い状態でした。</div>
+  </div>
+
+  <div class="card">
+    <h2>直したもの</h2>
+    <p class="lede">画面の上に、いま見ている日を出しました。</p>
+
+    <div class="screen">
+      <div class="bar">
+        <span class="nav">◀</span>
+        <span class="mid"><span class="lab">昨日 9/8(火)</span><span class="note">今日ぶんはまだ配信されていません（表示は前日の記録）</span></span>
+        <span class="nav" style="opacity:.3">▶</span>
+      </div>
+      <div style="font-size:12px;color:#9a9aa2;margin-top:8px">↑ 0時を過ぎて、今日ぶんがまだ来ていないとき</div>
+    </div>
+
+    <div class="screen">
+      <div class="bar" style="border-color:#6b5a2a;background:#1d1a12">
+        <span class="nav">◀</span>
+        <span class="mid"><span class="lab">9/7(月)</span><span class="note calm">この日の記録（乗り場の状況・予測は出ません）</span></span>
+        <span class="nav">▶</span>
+      </div>
+      <div style="font-size:12px;color:#9a9aa2;margin-top:8px">↑ ◀ を押して前の日をさかのぼったとき（7日前まで）</div>
+    </div>
+
+    <div class="note"><b>過去の日を見ているときは、「いま」の話が混ざらないようにしました。</b>乗り場の混み具合・予測・遅延情報は今の状況なので隠します。残るのは、その日の便リスト・時間帯別・集計だけです。</div>
+  </div>
+
+
+  <div class="card" style="border:2px solid var(--ok)">
+    <h2>本番に出ました</h2>
+    <p class="lede">実際の画面で確かめた結果です。</p>
+    <table>
+      <thead><tr><th>操作</th><th>画面に出たもの</th></tr></thead>
+      <tbody>
+        <tr class="good"><td>開いたとき</td><td><b>昨日 9/8(火)</b><br><span style="font-size:13px;color:#5a5a5a">今日ぶんはまだ配信されていません（表示は前日の記録）</span></td></tr>
+        <tr class="good"><td>◀ を1回押す</td><td><b>9/7(月)</b><br><span style="font-size:13px;color:#5a5a5a">この日の記録（乗り場の状況・予測は出ません）</span></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:14px 0 0;font-size:15.5px">集計の数字も直りました。</p>
+    <table>
+      <thead><tr><th>9/7 を見たとき</th><th class="n">前</th><th class="n">いま</th></tr></thead>
+      <tbody>
+        <tr><td>ラベル</td><td class="n bad">直近3時間</td><td class="n good">この日全体</td></tr>
+        <tr><td>時間あたりの人数</td><td class="n bad">21,648人</td><td class="n good">3,988人</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="border:2px solid var(--ng)">
+    <h2>途中でつまずいた話</h2>
+    <p class="lede">1回目のデプロイで、<b>古い中身が本番に出ました</b>。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 250" role="img" aria-label="タグを付ける場所を間違えた図">
+        <rect width="880" height="250" fill="#fff"/>
+
+        <text x="440" y="28" text-anchor="middle" font-size="15" fill="#5a5a5a">本番に出すときは「ここまでを出す」という目印(タグ)を付けます</text>
+
+        <line x1="70" y1="120" x2="810" y2="120" stroke="#d8d2bf" stroke-width="3"/>
+        <circle cx="200" cy="120" r="10" fill="#9a9aa2"/>
+        <text x="200" y="152" text-anchor="middle" font-size="13">数日前</text>
+        <circle cx="700" cy="120" r="10" fill="#12a37f"/>
+        <text x="700" y="152" text-anchor="middle" font-size="13">今回の変更</text>
+
+        <path d="M200,92 L200,66" stroke="#d4483b" stroke-width="2.5"/>
+        <rect x="110" y="34" width="180" height="32" rx="6" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="200" y="55" text-anchor="middle" font-size="13" fill="#d4483b">目印をここに付けた</text>
+
+        <path d="M700,92 L700,66" stroke="#12a37f" stroke-width="2.5" stroke-dasharray="5,4"/>
+        <rect x="610" y="34" width="180" height="32" rx="6" fill="#e6f6f1" stroke="#12a37f" stroke-width="2"/>
+        <text x="700" y="55" text-anchor="middle" font-size="13" fill="#0a7a5f">本当はここ</text>
+
+        <rect x="150" y="180" width="580" height="52" rx="10" fill="#fdf6e0" stroke="#d6a72a" stroke-width="2"/>
+        <text x="440" y="203" text-anchor="middle" font-size="14">機械は「成功しました」と言う（目印までは正しく出したので）</text>
+        <text x="440" y="223" text-anchor="middle" font-size="14" font-weight="700" fill="#8a6a08">でも中身は数日前のまま</text>
+      </svg>
+      <figcaption>成功と出るので、言われるまで気づけない種類の失敗です</figcaption>
+    </figure>
+
+    <div class="note"><b>目印を正しい場所に付け直して、出し直しました。</b>今度は本番に届いた中身が意図したものかどうかまで確かめています。同じ間違いをしないよう、手順をメモに残しました。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li><b>◀ ▶ で日付を移動</b>できます。直近7日ぶん（9/2〜9/8）。</li>
+      <li>0時を過ぎて今日ぶんが来ていないときは、<b>画面にそう書きます</b>。昨日の便を「これから来る」と見せていた状態は直りました。</li>
+      <li>過去の日では、いまの乗り場の状況や予測は出しません（混ざると誤解のもとなので）。</li>
+      <li>5倍以上に見えていた集計の数字も直りました。</li>
+      <li>明日以降は<b>毎日23:55に自動で保存</b>され、常に直近7日が見られます。</li>
+    </ul>
+    <div class="q"><b>お願い:</b> <b>アプリを一度再起動</b>してから開いてください。中身が新しくなっています。</div>
+  </div>
+
+</div>
+</body>
+</html>
