@@ -111,9 +111,13 @@ function render() {
   // 過去日に当てても意味がない(何も出ないか、たまたま今の時刻の便だけになる)。
   const visible = (state.detailMode || !state.isLive) ? all : filterByTimeWindow(all, new Date(), 30, 180);
   const bins = aggregateHeatmapClient(visible);
-  const summaryOpts = state.detailMode
-    ? { windowHours: 19, windowLabel: '今日全体' }
-    : { windowHours: 3.5, windowLabel: '直近3時間' };
+  // 過去の日は全便を出しているので、集計も「その日全体」で見せる。
+  // ここを「直近3時間」のままにすると、日全体の人数を3.5で割った時間あたりが出て数字が狂う。
+  const summaryOpts = !state.isLive
+    ? { windowHours: 19, windowLabel: 'この日全体' }
+    : state.detailMode
+      ? { windowHours: 19, windowLabel: '今日全体' }
+      : { windowHours: 3.5, windowLabel: '直近3時間' };
   const summary = summarizeFlights(visible, summaryOpts);
   const nowT = new Date();
   // 遅延便の号ガイドはタブに依存させない(号1〜4はT1/T2をまたぐ。上の「乗り場の状況」と同じ扱い)
@@ -218,6 +222,9 @@ function syncOriginFilterOptions(visible) {
 function updateDetailButton() {
   const btn = document.getElementById('detail-toggle');
   if (!btn) return;
+  // 過去の日は最初から全便を出しているので、この切り替えは効かない。隠す。
+  if (state.isLive) btn.style.removeProperty('display');
+  else { btn.style.display = 'none'; return; }
   btn.textContent = state.detailMode ? '▲ 直近3時間に戻す' : '▼ 今日の全便を表示';
   btn.classList.toggle('is-active', state.detailMode);
 }
