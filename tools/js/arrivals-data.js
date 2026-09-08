@@ -792,3 +792,84 @@ export function buildLaneNoticeMap(lateFlights) {
   }
   return out;
 }
+
+// =============================================================================
+// 日付切り替え
+//
+// arrivals.json は1日ぶんの上書きで、更新は毎日 23:45 JST が最後。0時を過ぎても
+// 中身は前日のまま来る。それを「今日」として扱うと、前日の早朝便が「これから来る便」
+// に見えてしまう。ここでは「そのデータが何日ぶんか」を updatedAt から決め、
+// 実際の今日とずれているかを判定して、画面に出せるようにする。
+// 過去日は tools/data/arrivals-days/<date>.json に日1本で残してある。
+// =============================================================================
+
+const DOW_JA = ['日', '月', '火', '水', '木', '金', '土'];
+
+// JST の日付文字列 'YYYY-MM-DD' を Date から作る
+function jstDayString(date) {
+  const t = new Date(date.getTime() + 9 * 3600 * 1000);
+  return t.toISOString().slice(0, 10);
+}
+
+// そのデータが何日ぶんか。updatedAt は +09:00 付きなので先頭10文字がそのまま JST の日付。
+export function dataDayOf(data) {
+  const u = data && data.updatedAt;
+  if (!u) return null;
+  const s = String(u).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
+// 最新ファイルの中身が、実際の今日より前の日のものか（＝今日ぶんはまだ来ていない）
+export function isStaleForToday(data, now = new Date()) {
+  const day = dataDayOf(data);
+  if (!day) return false;
+  return day !== jstDayString(now);
+}
+
+// 'YYYY-MM-DD' を n 日ずらす。月・年・うるう年をまたいでも正しい。
+export function shiftDay(day, n) {
+  const [y, m, d] = String(day).split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  t.setUTCDate(t.getUTCDate() + n);
+  return t.toISOString().slice(0, 10);
+}
+
+// どの日を見せるか。
+// requested が無い、または最新ファイルと同じ日なら、最新ファイルをそのまま使う(isLive)。
+// 戻り値: { day, isLive, isToday }
+export function resolveViewDay({ data, requested, now = new Date() }) {
+  const liveDay = dataDayOf(data);
+  const today = jstDayString(now);
+  const day = requested || liveDay || today;
+  return { day, isLive: !!liveDay && day === liveDay, isToday: day === today };
+}
+
+// 画面に出す日付ラベル。実際の今日/昨日は言葉を添える(深夜に見て混乱しないように)。
+export function formatDayLabel(day, now = new Date()) {
+  const [y, m, d] = String(day).split('-').map(Number);
+  const dow = DOW_JA[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+  const base = `${m}/${d}(${dow})`;
+  const today = jstDayString(now);
+  if (day === today) return `今日 ${base}`;
+  if (day === shiftDay(today, -1)) return `昨日 ${base}`;
+  return base;
+}
+
+// 見られる日の一覧(日付別スナップショットのインデックス)。無ければ空。
+export async function loadArrivalDays() {
+  try {
+    const res = await fetch(`./data/arrivals-days/index.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return { days: [] };
+    const j = await res.json();
+    return { days: Array.isArray(j.days) ? j.days : [] };
+  } catch {
+    return { days: [] };
+  }
+}
+
+// 指定した日のスナップショットを読む。
+export async function loadArrivalsForDay(day) {
+  const res = await fetch(`./data/arrivals-days/${day}.json?t=${Date.now()}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return normalizeArrivals(await res.json());
+}

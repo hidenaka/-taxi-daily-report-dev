@@ -1,4 +1,4 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals } from './arrivals-data.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals, loadArrivalDays, loadArrivalsForDay, resolveViewDay, shiftDay, formatDayLabel, dataDayOf } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
@@ -13,7 +13,10 @@ const TAB_TERMINALS = {
 const ORIGIN_FILTER_KEY = 'arrivalsOriginFilter';
 const NORIBA_WINDOW_KEY = 'arrivalsNoribaWindow';
 const LANE_FILTER_KEY = 'arrivalsLaneFilter';
-const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60, laneFilter: 0 };
+// viewDay: 見ている日 'YYYY-MM-DD'。null なら最新ファイルの日付に従う。
+// isLive: いま画面に出ているのが最新ファイルそのものか(＝過去のスナップショットでない)。
+const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60, laneFilter: 0,
+  viewDay: null, isLive: true, isToday: true, availableDays: [] };
 try { state.originFilter = localStorage.getItem(ORIGIN_FILTER_KEY) || ''; } catch { /* ignore */ }
 try { const l = parseInt(localStorage.getItem(LANE_FILTER_KEY), 10); if ([1, 2, 3, 4].includes(l)) state.laneFilter = l; } catch { /* ignore */ }
 try { const w = parseInt(localStorage.getItem(NORIBA_WINDOW_KEY), 10); if ([30, 60, 120].includes(w)) state.noribaWindow = w; } catch { /* ignore */ }
@@ -25,15 +28,31 @@ let refreshForecast = () => {};
 async function refresh() {
   const errorEl = document.getElementById('arrivals-error');
   try {
-    state.arrivals = await loadArrivals();
-    state.poolNotice = await loadPoolNotice();
-    // 現地掲示(lateFlights)の実数で深夜遅延便の人数・号を上書き(現地確定が正)
-    applyNoticeOverrides(state.arrivals?.flights ?? [], state.poolNotice?.lateFlights ?? null);
-    // 過去の掲示から学習した「実際に着いた号」を付ける(今夜の掲示がある便は上書きしない)
-    state.lanePatterns = await loadLanePatterns();
-    applyLaneActuals(state.arrivals?.flights ?? [], state.lanePatterns);
-    state.forecast = (await loadAdvanceForecast()).data;
-    state.poolStatus = (await loadPoolStatus()).data;
+    const live = await loadArrivals();
+    state.availableDays = (await loadArrivalDays()).days;
+    // どの日を見るか。指定が無ければ最新ファイル自身の日付(0時過ぎは前日のまま来る)。
+    const view = resolveViewDay({ data: live, requested: state.viewDay, now: new Date() });
+    state.viewDay = view.day;
+    state.isLive = view.isLive;
+    state.isToday = view.isToday;
+    state.arrivals = view.isLive ? live : await loadArrivalsForDay(view.day);
+
+    // 現地掲示・列パターン・予測・プール現況は「いま」の情報。
+    // 過去の日を見ているときに重ねると、その日の記録に今の状況が混ざるので付けない。
+    if (state.isLive) {
+      state.poolNotice = await loadPoolNotice();
+      // 現地掲示(lateFlights)の実数で深夜遅延便の人数・号を上書き(現地確定が正)
+      applyNoticeOverrides(state.arrivals?.flights ?? [], state.poolNotice?.lateFlights ?? null);
+      // 過去の掲示から学習した「実際に着いた号」を付ける(今夜の掲示がある便は上書きしない)
+      state.lanePatterns = await loadLanePatterns();
+      applyLaneActuals(state.arrivals?.flights ?? [], state.lanePatterns);
+      state.forecast = (await loadAdvanceForecast()).data;
+      state.poolStatus = (await loadPoolStatus()).data;
+    } else {
+      state.poolNotice = null;
+      state.forecast = null;
+      state.poolStatus = null;
+    }
     // 成功時はエラーバナーを隠す。一時的な 404 で出たメッセージが残らないように。
     if (errorEl) { errorEl.textContent = ''; errorEl.hidden = true; }
     render();
@@ -42,10 +61,55 @@ async function refresh() {
   }
 }
 
+// 見ている日のバー。深夜0時を過ぎるとデータは前日のまま来るので、常に日付を出す。
+function renderDayBar() {
+  const bar = document.getElementById('day-bar');
+  const label = document.getElementById('day-label');
+  const note = document.getElementById('day-note');
+  const prev = document.getElementById('day-prev');
+  const next = document.getElementById('day-next');
+  if (!bar || !label) return;
+
+  const now = new Date();
+  label.textContent = formatDayLabel(state.viewDay, now);
+  bar.classList.toggle('is-past', !state.isLive);
+
+  if (state.isLive && !state.isToday) {
+    // 0時を過ぎたが今日ぶんがまだ配信されていない状態。ここを黙っていると
+    // 前日の早朝便が「これから来る便」に見えてしまう。
+    note.textContent = '今日ぶんはまだ配信されていません（表示は前日の記録）';
+    note.classList.add('warn');
+  } else if (!state.isLive) {
+    note.textContent = 'この日の記録（乗り場の状況・予測は出ません）';
+    note.classList.remove('warn');
+  } else {
+    const u = state.arrivals?.updatedAt;
+    note.textContent = u ? `${new Date(u).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })} 時点` : '';
+    note.classList.remove('warn');
+  }
+
+  // 動ける範囲: 保存してある日 + 最新ファイルの日
+  const liveDay = state.isLive ? state.viewDay : dataDayOf(state.arrivals) || state.viewDay;
+  const all = [...new Set([...(state.availableDays || []), liveDay].filter(Boolean))].sort();
+  const oldest = all[0];
+  const newest = all[all.length - 1];
+  if (prev) prev.disabled = !oldest || state.viewDay <= oldest;
+  if (next) next.disabled = !newest || state.viewDay >= newest;
+}
+
+async function goDay(delta) {
+  const target = shiftDay(state.viewDay, delta);
+  state.viewDay = target;
+  await refresh();
+}
+
 function render() {
+  renderDayBar();
   const terminals = TAB_TERMINALS[state.tab] ?? ['T1'];
   const all = filterByTerminals(state.arrivals, terminals);
-  const visible = state.detailMode ? all : filterByTimeWindow(all, new Date(), 30, 180);
+  // 過去の日はその日の全便を出す。「直近3時間」は"いま"を基準にした窓なので、
+  // 過去日に当てても意味がない(何も出ないか、たまたま今の時刻の便だけになる)。
+  const visible = (state.detailMode || !state.isLive) ? all : filterByTimeWindow(all, new Date(), 30, 180);
   const bins = aggregateHeatmapClient(visible);
   const summaryOpts = state.detailMode
     ? { windowHours: 19, windowLabel: '今日全体' }
@@ -66,6 +130,26 @@ function render() {
   updateLaneButtons();
   renderPoolNotice(document.getElementById('pool-notice-banner'), state.poolNotice ?? null);
   renderWeatherBanner(document.getElementById('weather-banner'), state.arrivals.weather ?? null);
+
+  // 「これから来る便」「いまの混み具合」を出すカードは、過去の日には当てはまらない。
+  // 過去日を見ているときは畳んで、その日の記録(便リスト・時間帯別・集計)だけ見せる。
+  setLiveOnlySectionsVisible(state.isLive);
+  if (!state.isLive) {
+    renderSummary(document.getElementById('summary'), summary);
+    renderHeatmap(document.getElementById('heatmap'), bins);
+    renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(flightsToShow));
+    renderUpdatedAt(
+      document.getElementById('arrivals-footer'),
+      state.arrivals.updatedAt,
+      state.arrivals.stats?.unknownAircraft
+    );
+    document.querySelectorAll('.terminal-tab').forEach(el => {
+      el.classList.toggle('is-active', el.dataset.terminal === state.tab);
+    });
+    updateDetailButton();
+    return;
+  }
+
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   const noribaActs = buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date());
   {
@@ -96,6 +180,20 @@ function render() {
     el.classList.toggle('is-active', el.dataset.terminal === state.tab);
   });
   updateDetailButton();
+}
+
+// 「いま」に依存するセクションの出し入れ。過去の日を見ているときは隠す。
+// (乗り場の状況・到着の谷間・遅延便ガイド・プール現況/列移動・現地掲示)
+function setLiveOnlySectionsVisible(show) {
+  for (const id of ['noriba-cards-section', 'arrival-gap', 'topics', 'forecast-section', 'pool-notice-banner']) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    if (show) {
+      el.style.removeProperty('display');
+    } else {
+      el.style.display = 'none';
+    }
+  }
 }
 
 // 出発地フィルタ select の options を visible 便から動的に再構築する。
@@ -143,9 +241,19 @@ function setupTerminalTabs() {
 function setupReload() {
   const btn = document.getElementById('arrivals-reload');
   if (btn) btn.addEventListener('click', () => {
+    // 更新ボタンは「いまの最新」に戻す。過去日を見たまま更新を押して
+    // 何も変わらない、という迷いをなくす。
+    state.viewDay = null;
     refresh();
     refreshForecast();
   });
+}
+
+function setupDayNav() {
+  const prev = document.getElementById('day-prev');
+  const next = document.getElementById('day-next');
+  if (prev) prev.addEventListener('click', () => { if (!prev.disabled) goDay(-1); });
+  if (next) next.addEventListener('click', () => { if (!next.disabled) goDay(+1); });
 }
 
 function setupDetailToggle() {
@@ -198,6 +306,7 @@ function setupNoribaWindow() {
 renderLegend(document.getElementById('legend'));
 setupTerminalTabs();
 setupReload();
+setupDayNav();
 setupDetailToggle();
 setupOriginFilter();
 setupLaneFilter();
@@ -207,4 +316,8 @@ initForecastSection().then(fn => { if (fn) refreshForecast = fn; });
 initForecastSectionToggle();
 let refreshPoolStatus = () => {};
 initPoolStatusSection().then(fn => { if (fn) refreshPoolStatus = fn; });
-setInterval(() => { refresh(); refreshForecast(); refreshPoolStatus(); }, 60000);
+// 過去の日を見ている間は、いまの予測やプール現況を取りに行かない(画面にも出ていない)。
+setInterval(() => {
+  refresh();
+  if (state.isLive) { refreshForecast(); refreshPoolStatus(); }
+}, 60000);

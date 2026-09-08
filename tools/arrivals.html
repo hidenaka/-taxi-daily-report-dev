@@ -33,6 +33,15 @@
     .terminal-tabs { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid #222; flex-wrap: wrap; }
     .terminal-tab { background: #1a1a1d; color: var(--sub); padding: 6px 10px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; }
     .terminal-tab.is-active { background: var(--accent); color: #000; }
+    /* 見ている日のバー */
+    .day-bar { display: flex; align-items: center; gap: 8px; margin: 8px 12px; padding: 7px 10px; background: #16161a; border: 1px solid #2a2a30; border-radius: 8px; }
+    .day-nav { background: #23232a; color: var(--fg); border: none; border-radius: 6px; min-width: 40px; padding: 7px 0; font-size: 15px; cursor: pointer; }
+    .day-nav:disabled { opacity: .3; cursor: default; }
+    .day-center { flex: 1; text-align: center; line-height: 1.35; }
+    .day-label { display: block; font-size: 14px; font-weight: 700; }
+    .day-note { display: block; font-size: 11px; color: var(--sub); }
+    .day-note.warn { color: #ffb74d; }
+    .day-bar.is-past { border-color: #6b5a2a; background: #1d1a12; }
     section { padding: 8px 12px; }
     h2 { font-size: 13px; color: var(--sub); margin: 8px 0; font-weight: normal; }
     #legend { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; padding: 6px 12px; background: #14141a; border-bottom: 1px solid #222; font-size: 11px; color: var(--sub); }
@@ -375,6 +384,16 @@
   </div>
 
   <div id="arrivals-error" hidden></div>
+
+  <!-- 見ている日。深夜0時を過ぎてもデータは前日のまま来るので、どの日を見ているかを常に出す -->
+  <div id="day-bar" class="day-bar">
+    <button id="day-prev" type="button" class="day-nav" aria-label="前の日">◀</button>
+    <div class="day-center">
+      <span id="day-label" class="day-label">—</span>
+      <span id="day-note" class="day-note"></span>
+    </div>
+    <button id="day-next" type="button" class="day-nav" aria-label="次の日">▶</button>
+  </div>
 
   <div id="weather-banner" hidden></div>
 

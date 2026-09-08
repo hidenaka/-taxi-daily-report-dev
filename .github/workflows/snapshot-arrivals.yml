@@ -1,0 +1,73 @@
+name: Snapshot arrivals (daily)
+
+# 到着便データ(tools/data/arrivals.json)は1日分の上書きなので、そのままだと
+# 前日分がどこにも残らない。1日1回、その日の最終版を日付別に切り出して残す。
+#
+# relay の push をトリガーにしない: relay は10分おきに来るうえ、ここで push すると
+# 自分自身を再び起こしてループになる。1日1回の cron なら安全で軽い。
+#
+# 実行時刻: arrivals.json の更新は毎日 23:45 JST が最後なので、その直後に取る。
+
+on:
+  schedule:
+    - cron: '55 14 * * *'   # 14:55 UTC = 23:55 JST
+  workflow_dispatch:         # 手動でも回せる（初回や取りこぼしの復旧用）
+
+permissions:
+  contents: write
+
+concurrency:
+  group: snapshot-arrivals
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 日付別スナップショットを更新
+        id: snap
+        run: |
+          set -euo pipefail
+          SRC=tools/data/arrivals.json
+          DIR=tools/data/arrivals-days
+          if [ ! -f "$SRC" ]; then echo "no source"; exit 0; fi
+
+          # 日付は updatedAt(+09:00 付き)から取る。実行時刻ではなくデータ自身の日付に従う。
+          DAY=$(node -e "const j=require('./$SRC');const u=j.updatedAt||'';process.stdout.write(String(u).slice(0,10))")
+          if [ -z "$DAY" ]; then echo "no updatedAt"; exit 0; fi
+
+          mkdir -p "$DIR"
+          cp "$SRC" "$DIR/$DAY.json"
+
+          # 保持は7日ぶん。古いものは消す(リポジトリを膨らませない)。
+          ls "$DIR"/????-??-??.json 2>/dev/null | sort -r | tail -n +8 | xargs -r rm -f
+
+          # 見られる日の一覧。ブラウザからディレクトリは読めないのでインデックスを置く。
+          node -e "
+            const fs=require('fs');
+            const dir='$DIR';
+            const days=fs.readdirSync(dir).filter(f=>/^\d{4}-\d{2}-\d{2}\.json$/.test(f))
+              .map(f=>f.replace('.json','')).sort().reverse();
+            fs.writeFileSync(dir+'/index.json', JSON.stringify({days, updatedAt:new Date().toISOString()}, null, 2));
+            console.log('保存日:', days.join(', '));
+          "
+
+      - name: コミット
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/data/arrivals-days
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "chore(data): snapshot arrivals $(date -u +%Y-%m-%d)"
+          # relay と push が衝突しうるので、取り込んでから何度か試す
+          for i in 1 2 3 4 5; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            echo "retry $i"; sleep 10
+          done
+          echo "push できなかった"; exit 1
