@@ -26,7 +26,7 @@ export function renderNoribaCards(container, summary) {
     <div class="noriba-card nlane-${l.lane}">
       <div class="nc-head"><span class="nc-num">${l.lane}号</span><span class="nc-label">${l.label}</span></div>
       <div class="nc-pax">${l.seatSum}<span class="nc-unit">人(定員)</span></div>
-      <div class="nc-sub">${l.count}便 ・推定${l.taxiPax}人${seatUnk}</div>
+      <div class="nc-sub">${l.count}便${seatUnk}</div>
       ${lastLine}
     </div>`;
   }).join('');
@@ -43,7 +43,7 @@ export function renderNoribaCards(container, summary) {
     </div>
     <div class="noriba-cards">${cards}</div>
     ${foot}
-    <div class="nc-note">定員＝便の最大座席数（確実）。推定＝タクシー利用見込み（来ない場合あり）。欠航除外。</div>`;
+    <div class="nc-note">定員＝便の最大座席数。欠航は除いています。</div>`;
 }
 
 const TIER_INFO = {
@@ -516,9 +516,8 @@ export function renderNoribaActivity(container, activity, opts = {}) {
       ? `<div class="ns-fwd">この先 <span class="ns-spark" data-spark="${(mv.sparkFuture || []).join(',')}" data-color="#8a8f88"></span> ${_esc(fwdText(mv.activeUntil))}<span class="ns-more">詳細 ›</span></div>`
       : `<div class="ns-fwd"><span class="ns-more" style="margin-left:auto">詳細 ›</span></div>`;
     const flList = (a.detailFlights || []).slice(0, 6).map((f) => {
-      const pax = (typeof f.taxiPax === 'number') ? `・約${f.taxiPax}人` : '';
       const seat = (typeof f.seatCount === 'number') ? `定員${f.seatCount}` : '';
-      return `<div class="ns-fl"><span class="o">${_esc(f.time)} ${_esc(f.fromName)}</span><span class="m">${seat}${pax}</span></div>`;
+      return `<div class="ns-fl"><span class="o">${_esc(f.time)} ${_esc(f.fromName)}</span><span class="m">${seat}</span></div>`;
     }).join('') || `<div class="ns-fl"><span class="m">60分内の到着便はありません</span></div>`;
     const last = a.demand && a.demand.lastFlight ? `<div class="ns-fl" style="border:0"><span class="o">最終便</span><span class="m">${_esc(a.demand.lastFlight.time)} ${_esc(a.demand.lastFlight.fromName)}</span></div>` : '';
     const curveSvg = renderMovementCurveSvg(a.movement && a.movement.curve);
