@@ -587,13 +587,12 @@ export function renderCarriedOver(container, split, now = new Date()) {
     const when = diff > 0 ? `あと${diff}分` : `${-diff}分前に到着`;
     const lane = Number.isInteger(f.poolLane) ? `${f.poolLane}号` : '号未定';
     const delay = Number.isFinite(f.delayMin) && f.delayMin > 0 ? `<span class="co-delay">${f.delayMin}分遅れ</span>` : '';
-    const pax = Number.isFinite(f.estimatedTaxiPax) ? `<span class="co-pax">タクシー ${f.estimatedTaxiPax}人</span>` : '';
     return `<div class="co-row${diff > 0 ? ' is-coming' : ''}">
       <span class="co-time">${hhmm}</span>
       <span class="co-when">${when}</span>
       <span class="co-lane">${lane}</span>
       <span class="co-from">${f.fromName ?? ''} ${f.flightNumber ?? ''}</span>
-      ${delay}${pax}
+      ${delay}
     </div>`;
   }).join('');
   const morningNote = split.morning.length
@@ -632,7 +631,7 @@ export function renderDaySummary(container, summary) {
   const ov = Array.isArray(summary.overnightFlights) ? summary.overnightFlights : [];
   const ovPart = ov.length
     ? `<div class="ds-row"><span class="ds-k">日をまたいだ便</span><span class="ds-v">${ov.length}便`
-      + ov.map(f => `<span class="ds-sub">${hhmm(f.estimatedTime)} ${f.fromName ?? ''} ${f.flightNumber ?? ''}（${f.delayMin}分遅れ${Number.isInteger(f.poolLane) ? ` / ${f.poolLane}号` : ''}${Number.isFinite(f.estimatedTaxiPax) ? ` / タクシー${f.estimatedTaxiPax}人` : ''}）</span>`).join('')
+      + ov.map(f => `<span class="ds-sub">${hhmm(f.estimatedTime)} ${f.fromName ?? ''} ${f.flightNumber ?? ''}（${f.delayMin}分遅れ${Number.isInteger(f.poolLane) ? ` / ${f.poolLane}号` : ''}）</span>`).join('')
       + `</span></div>`
     : `<div class="ds-row"><span class="ds-k">日をまたいだ便</span><span class="ds-v">なし</span></div>`;
 

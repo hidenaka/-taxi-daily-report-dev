@@ -165,7 +165,7 @@ test('renderCarriedOver: 持ち越し便を到着時刻・遅れ・号つきで�
   assert.ok(c.innerHTML.includes('00:33'), '24:33 ではなく 00:33');
   assert.ok(c.innerHTML.includes('113分遅れ'));
   assert.ok(c.innerHTML.includes('3号'));
-  assert.ok(c.innerHTML.includes('81人'));
+  assert.ok(!c.innerHTML.includes('81人'), 'タクシー人数は推定なので出さない');
   assert.ok(c.innerHTML.includes('7分前に到着'), '0:40 から見て 0:33 は7分前');
   assert.ok(c.innerHTML.includes('朝の便'), '畳んだ朝の便の件数を添える');
 });

@@ -54,7 +54,7 @@ function buildSummary(data) {
     }
     // 翌朝までに着くものだけ「今夜の持ち越し」。翌日昼に振り替わった便は別の話。
     if (isPastMidnight(eRaw) && e < CARRIED_OVER_UNTIL_HOUR * 60) {
-      overnight.push({ flightNumber: x.flightNumber, fromName: x.fromName, scheduledTime: x.scheduledTime, estimatedTime: eRaw, poolLane: x.poolLane ?? null, delayMin: d, estimatedTaxiPax: x.estimatedTaxiPax ?? null });
+      overnight.push({ flightNumber: x.flightNumber, fromName: x.fromName, scheduledTime: x.scheduledTime, estimatedTime: eRaw, poolLane: x.poolLane ?? null, delayMin: d });
     }
   }
   return {
