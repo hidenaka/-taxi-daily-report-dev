@@ -48,18 +48,53 @@ test('集計(上の帯)も座席数の合計になる', () => {
   assert.equal(s.hourlyAvg, 250, '500 ÷ 2時間');
 });
 
-test('混雑の色分けは、座席数に合わせてしきい値を上げる', () => {
-  // 搭乗率0.7 ぶん(1/0.7 ≒ 1.43倍)。以前は 300/600 だった。
-  assert.equal(DENSITY_MID, 430);
-  assert.equal(DENSITY_HIGH, 860);
+test('色分けは30分コマの定員合計で決まる', () => {
+  // 1便だけの薄いコマは「少ない」。実データの深夜がこの形。
+  const low = aggregateHeatmapClient([f({ seatCount: 300 })]);
+  assert.equal(low[0].densityTier, 'low');
+  // 昼のピークは複数便が重なって数千になる。
+  const high = aggregateHeatmapClient([
+    f({ seatCount: 500 }), f({ seatCount: 500 }), f({ seatCount: 500 }),
+    f({ seatCount: 500 }), f({ seatCount: 500 }), f({ seatCount: 500 }),
+    f({ seatCount: 500 }),
+  ]);
+  assert.equal(high[0].totalPax, 3500);
+  assert.equal(high[0].densityTier, 'high');
 });
 
-test('色分けの結果は、置きかえ前と同じに保たれる', () => {
-  // 以前「推定300人 = mid」だった状況は、座席430で mid のまま。
-  const mid = aggregateHeatmapClient([f({ seatCount: 430, estimatedPax: 301 })]);
-  assert.equal(mid[0].densityTier, 'mid');
-  const high = aggregateHeatmapClient([f({ seatCount: 860, estimatedPax: 602 })]);
-  assert.equal(high[0].densityTier, 'high');
-  const low = aggregateHeatmapClient([f({ seatCount: 200, estimatedPax: 140 })]);
-  assert.equal(low[0].densityTier, 'low');
+// --- 色分けの境目を実際の値に合わせる ---
+// これまでの境目(430/860)は、1便あたりの感覚で置かれていて、30分コマの実値
+// (昼は3000〜4400)から見るとはるか下だった。結果ほぼ全部が「多い」に振り切れ、
+// 色を見ても空いている時間帯が分からなかった。
+// 7日ぶん(T1+T2・30分コマ)の実測: 25% 2100 / 中央 2900 / 75% 3600。
+// 三等分になる 2500 / 3500 に引き直した(実測で 31% / 39% / 31%)。
+import { classifyDensityFor } from '../tools/js/arrivals-data.js';
+
+test('境目は実データの三等分に合わせる', () => {
+  assert.equal(DENSITY_MID, 2500);
+  assert.equal(DENSITY_HIGH, 3500);
+});
+
+test('深夜の薄い時間帯は「少ない」', () => {
+  // 実測の中央値: 3時台 215 / 5時台 430 / 23時台 1051
+  assert.equal(classifyDensityFor(215), 'low');
+  assert.equal(classifyDensityFor(1051), 'low');
+});
+
+test('昼のふつうの時間帯は「普通」', () => {
+  // 実測: 15時台 3070 / 19時台 2991
+  assert.equal(classifyDensityFor(3070), 'mid');
+  assert.equal(classifyDensityFor(2991), 'mid');
+});
+
+test('ピークは「多い」', () => {
+  // 実測: 9時台 4416 / 18時台 4233
+  assert.equal(classifyDensityFor(4416), 'high');
+  assert.equal(classifyDensityFor(4233), 'high');
+});
+
+test('境目ちょうどは上の段に入れる', () => {
+  assert.equal(classifyDensityFor(2500), 'mid');
+  assert.equal(classifyDensityFor(3500), 'high');
+  assert.equal(classifyDensityFor(2499), 'low');
 });

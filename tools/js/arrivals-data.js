@@ -112,16 +112,24 @@ export function filterByTimeWindow(flights, nowDate, pastMinutes = 30, futureMin
   });
 }
 
-// 混雑の色分けのしきい値。座席数(定員)の合計で見る。
-// もとは推定降客数(座席×0.7)で 600/300 だった。座席数に切り替えたぶん 1/0.7 して
-// あるので、色の付き方は以前と変わらない。
-export const DENSITY_HIGH = 860;
-export const DENSITY_MID = 430;
+// 混雑の色分けのしきい値。30分コマの定員(座席数)合計で見る。
+// 実測(7日ぶん・T1+T2・30分コマ): 25% 2100 / 中央 2900 / 75% 3600。
+// 昼は3000〜4400、深夜は200〜500と10倍以上ひらく。
+// 三等分になる 2500/3500 に置いた(実測で 少ない31% / 普通39% / 多い31%)。
+// 以前は 430/860 で、実値のはるか下にあったため ほぼ全部が「多い」に振り切れ、
+// 色を見ても空いている時間帯が分からなかった。
+export const DENSITY_HIGH = 3500;
+export const DENSITY_MID = 2500;
 
 function classifyDensity(value) {
   if (value >= DENSITY_HIGH) return 'high';
   if (value >= DENSITY_MID) return 'mid';
   return 'low';
+}
+
+// 同じ判定を外からも使えるように(テスト・他画面用)
+export function classifyDensityFor(value) {
+  return classifyDensity(value);
 }
 
 export function aggregateHeatmapClient(flights) {
