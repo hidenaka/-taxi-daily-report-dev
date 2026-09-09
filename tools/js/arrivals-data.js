@@ -160,7 +160,7 @@ export function aggregateHeatmapClient(flights) {
       if (f.isInternational) b.internationalPax += seats;
     }
     if (f.isInternational) b.internationalCount += 1;
-    if (f.status === '遅延') b.delayedCount += 1;
+    if (isDelayedFlight(f)) b.delayedCount += 1;
     if (f.reachTier === 'none') b.reachNoneCount += 1;
   }
   const arr = Array.from(bins.values()).sort((a, b) => a.bin.localeCompare(b.bin));
@@ -184,7 +184,7 @@ export function summarizeFlights(flights, opts = {}) {
     .reduce((s, f) => s + seatsOf(f), 0);
   const totalFlights = operating.length;
   const internationalCount = operating.filter(f => f.isInternational).length;
-  const delayedCount = operating.filter(f => f.status === '遅延').length;
+  const delayedCount = operating.filter(isDelayedFlight).length;
   const unknownCount = operating.filter(f => !(typeof f.seatCount === 'number' && f.seatCount > 0)).length;
   const hourlyAvg = totalFlights > 0 ? Math.round(totalPax / windowHours) : 0;
   const reachNoneCount = operating.filter(f => f.reachTier === 'none').length;
@@ -263,6 +263,31 @@ export function summarizeByNoriba(arrivals, nowDate, windowMin) {
     delete lanes[n]._lastDiff;
   }
   return { lanes: [lanes[1], lanes[2], lanes[3], lanes[4]], undetermined, windowMin, isLateNight };
+}
+
+// 遅れとみなす下限(分)。時間帯別グラフのバッジと集計で共通。
+export const DELAY_MIN = 15;
+
+// その便が何分遅れたか。数えられなければ null。
+//
+// 実際に着いた時刻(actualTime)を優先する。確定後のデータは estimatedTime が
+// 定刻のまま残り、実際の到着だけ actualTime に入るため(実データで確認:
+// 9/8 JL914 定刻18:15 / 予定18:15 / 実際18:44)。まだ着いていない便は
+// actualTime が無いので、到着予定(estimatedTime)で数える。
+// 早着はマイナスにせず0分あつかい。日またぎは wrapHalfDay で補正する。
+export function delayMinutesOf(f) {
+  if (!f) return null;
+  const sched = timeToMinutes(f.scheduledTime);
+  const ref = timeToMinutes(f.actualTime ?? f.estimatedTime ?? null);
+  if (sched === null || ref === null) return null;
+  return Math.max(0, wrapHalfDay(ref - sched));
+}
+
+// 15分以上の遅れか。欠航は数えない(そもそも到着しない)。
+export function isDelayedFlight(f) {
+  if (!f || f.status === '欠航') return false;
+  const d = delayMinutesOf(f);
+  return d !== null && d >= DELAY_MIN;
 }
 
 // 大幅遅延とみなす遅延分数の下限。
@@ -848,6 +873,22 @@ export function shiftDay(day, n) {
   const t = new Date(Date.UTC(y, m - 1, d));
   t.setUTCDate(t.getUTCDate() + n);
   return t.toISOString().slice(0, 10);
+}
+
+// 「◀ ▶」で動ける範囲。
+// 上限は最新ファイルの日(liveDay)。過去日を見ている間も liveDay は変わらないので、
+// いつでも今日へ戻れる。ここを「いま画面に出ているデータの日」で計算していたため、
+// 前日に移ると今日が範囲外になり戻れなくなっていた(2026-09-09 修正)。
+// 今日ぶんのスナップショットは 23:55 まで作られないので、availableDays には
+// 当日が入らない。liveDay を必ず候補に混ぜる。
+export function dayNavRange({ availableDays = [], liveDay = null, viewDay = null }) {
+  const all = [...new Set([...(availableDays || []), liveDay].filter(Boolean))].sort();
+  const oldest = all[0];
+  const newest = all[all.length - 1];
+  return {
+    canPrev: Boolean(oldest && viewDay && viewDay > oldest),
+    canNext: Boolean(newest && viewDay && viewDay < newest),
+  };
 }
 
 // どの日を見せるか。

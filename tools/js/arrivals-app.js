@@ -1,4 +1,4 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals, splitOvernight, loadArrivalDays, loadArrivalsForDay, resolveViewDay, shiftDay, formatDayLabel, dataDayOf } from './arrivals-data.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals, splitOvernight, loadArrivalDays, loadArrivalsForDay, resolveViewDay, shiftDay, formatDayLabel, dataDayOf, dayNavRange } from './arrivals-data.js';
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap, renderCarriedOver, renderDaySummary } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
@@ -16,7 +16,7 @@ const LANE_FILTER_KEY = 'arrivalsLaneFilter';
 // viewDay: 見ている日 'YYYY-MM-DD'。null なら最新ファイルの日付に従う。
 // isLive: いま画面に出ているのが最新ファイルそのものか(＝過去のスナップショットでない)。
 const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60, laneFilter: 0,
-  viewDay: null, isLive: true, isToday: true, availableDays: [] };
+  viewDay: null, isLive: true, isToday: true, availableDays: [], liveDay: null };
 try { state.originFilter = localStorage.getItem(ORIGIN_FILTER_KEY) || ''; } catch { /* ignore */ }
 try { const l = parseInt(localStorage.getItem(LANE_FILTER_KEY), 10); if ([1, 2, 3, 4].includes(l)) state.laneFilter = l; } catch { /* ignore */ }
 try { const w = parseInt(localStorage.getItem(NORIBA_WINDOW_KEY), 10); if ([30, 60, 120].includes(w)) state.noribaWindow = w; } catch { /* ignore */ }
@@ -31,6 +31,8 @@ async function refresh() {
     const live = await loadArrivals();
     state.availableDays = (await loadArrivalDays()).days;
     // どの日を見るか。指定が無ければ最新ファイル自身の日付(0時過ぎは前日のまま来る)。
+    // 最新ファイルの日。過去日を見ている間も保持し、"今日へ戻る" の上限に使う。
+    state.liveDay = dataDayOf(live);
     const view = resolveViewDay({ data: live, requested: state.viewDay, now: new Date() });
     state.viewDay = view.day;
     state.isLive = view.isLive;
@@ -88,13 +90,12 @@ function renderDayBar() {
     note.classList.remove('warn');
   }
 
-  // 動ける範囲: 保存してある日 + 最新ファイルの日
-  const liveDay = state.isLive ? state.viewDay : dataDayOf(state.arrivals) || state.viewDay;
-  const all = [...new Set([...(state.availableDays || []), liveDay].filter(Boolean))].sort();
-  const oldest = all[0];
-  const newest = all[all.length - 1];
-  if (prev) prev.disabled = !oldest || state.viewDay <= oldest;
-  if (next) next.disabled = !newest || state.viewDay >= newest;
+  // 動ける範囲: 保存してある日 + 最新ファイルの日。
+  // 上限は state.liveDay(最新ファイルの日)で決める。過去日を見ている間もこれは
+  // 変わらないので、いつでも今日へ戻れる。
+  const nav = dayNavRange({ availableDays: state.availableDays, liveDay: state.liveDay, viewDay: state.viewDay });
+  if (prev) prev.disabled = !nav.canPrev;
+  if (next) next.disabled = !nav.canNext;
 }
 
 async function goDay(delta) {

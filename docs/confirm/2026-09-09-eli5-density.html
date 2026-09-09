@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>色分けを引き直した</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:35px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 8px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .legend{display:flex;gap:16px;justify-content:center;margin-top:12px;font-size:13.5px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:15px;height:15px;border-radius:3px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  @media(max-width:640px){h1{font-size:24px}.card h2{font-size:20px}.card{padding:18px 14px 20px}table{font-size:13px}th,td{padding:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ぜんぶ赤かったグラフに<span style="color:#12a37f">波が出ました</span></h1>
+  <p class="sub">色の境目を、実際の数字に合わせて引き直しました。</p>
+
+  <div class="card">
+    <h2>9月8日の一日</h2>
+    <p class="lede">同じ日のデータです。上が前、下がいま。</p>
+    <figure>
+<svg viewBox="0 0 880 210" role="img" aria-label="9月8日の一日を、前と後の色分けで並べた帯グラフ">
+<rect width="880" height="210" fill="#fff"/>
+<text x="10" y="38" font-size="14.5" font-weight="700" fill="#d4483b">前</text>
+<text x="10" y="56" font-size="11.5" fill="#5a5a5a">ほぼ赤</text>
+<rect x="62.0" y="20" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="82.6" y="20" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="103.2" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="123.8" y="20" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="144.4" y="20" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="165.0" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="185.6" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="206.2" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="226.8" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="247.4" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="268.1" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="288.7" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="309.3" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="329.9" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="350.5" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="371.1" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="391.7" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="412.3" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="432.9" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="453.5" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="474.1" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="494.7" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="515.3" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="535.9" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="556.5" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="577.1" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="597.7" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="618.3" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="638.9" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="659.6" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="680.2" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="700.8" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="721.4" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="742.0" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="762.6" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="783.2" y="20" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="803.8" y="20" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="824.4" y="20" width="19.4" height="46" rx="2" fill="#7fb3e8"/>
+<text x="10" y="132" font-size="14.5" font-weight="700" fill="#12a37f">いま</text>
+<text x="10" y="150" font-size="11.5" fill="#5a5a5a">波が出た</text>
+<rect x="62.0" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="82.6" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="103.2" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="123.8" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="144.4" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="165.0" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="185.6" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="206.2" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="226.8" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="247.4" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="268.1" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="288.7" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="309.3" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="329.9" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="350.5" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="371.1" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="391.7" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="412.3" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="432.9" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="453.5" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="474.1" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="494.7" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="515.3" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="535.9" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="556.5" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="577.1" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="597.7" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="618.3" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="638.9" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="659.6" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="680.2" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="700.8" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="721.4" y="114" width="19.4" height="46" rx="2" fill="#f0a23c"/><rect x="742.0" y="114" width="19.4" height="46" rx="2" fill="#d4483b"/><rect x="762.6" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="783.2" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="803.8" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/><rect x="824.4" y="114" width="19.4" height="46" rx="2" fill="#7fb3e8"/>
+<text x="113.5" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">06時</text><text x="216.5" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">09時</text><text x="340.2" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">12時</text><text x="463.8" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">15時</text><text x="587.4" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">18時</text><text x="711.1" y="196" text-anchor="middle" font-size="11" fill="#5a5a5a">21時</text>
+</svg>      <div class="legend">
+        <span><i class="sw" style="background:#7fb3e8"></i>少ない</span>
+        <span><i class="sw" style="background:#f0a23c"></i>普通</span>
+        <span><i class="sw" style="background:#d4483b"></i>多い</span>
+      </div>
+      <figcaption>前は38コマ中32コマが「多い」。いまは 11 / 16 / 11 に分かれました</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>なぜ全部赤かったか</h2>
+    <p class="lede">ものさしが小さすぎました。</p>
+    <figure>
+      <svg viewBox="0 0 880 200" role="img" aria-label="境目が実際の値のはるか左にあった図">
+        <rect width="880" height="200" fill="#fff"/>
+        <line x1="60" y1="120" x2="830" y2="120" stroke="#d8d2bf" stroke-width="2"/>
+        <text x="60" y="152" font-size="12" fill="#5a5a5a">0</text>
+        <text x="820" y="152" text-anchor="end" font-size="12" fill="#5a5a5a">4600</text>
+
+        <line x1="188" y1="100" x2="188" y2="140" stroke="#bbb" stroke-width="2"/>
+        <text x="188" y="170" text-anchor="middle" font-size="12" fill="#888">前の境目</text>
+        <text x="188" y="90" text-anchor="middle" font-size="11.5" fill="#888">430 / 860</text>
+
+        <rect x="480" y="104" width="330" height="32" rx="6" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="645" y="126" text-anchor="middle" font-size="14">昼はいつも 3000〜4600</text>
+        <text x="645" y="90" text-anchor="middle" font-size="12" fill="#d4483b">境目のはるか右 → 全部「多い」</text>
+
+        <text x="440" y="42" text-anchor="middle" font-size="15">30分に20便近く着くので、合計はいつも数千になります</text>
+      </svg>
+      <figcaption>30分あたり数千の世界に、数百のものさしを当てていました</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>新しい境目の決め方</h2>
+    <p class="lede">7日ぶんの実データを並べて、三等分になるところで切りました。</p>
+    <table>
+      <thead><tr><th style="width:44%">実データ（7日・30分ごと）</th><th class="n">定員</th></tr></thead>
+      <tbody>
+        <tr><td>下から4分の1</td><td class="n">2,100</td></tr>
+        <tr><td>まんなか</td><td class="n">2,900</td></tr>
+        <tr><td>上から4分の1</td><td class="n">3,600</td></tr>
+        <tr><td>深夜（3〜7時）</td><td class="n">200〜500</td></tr>
+        <tr><td>昼のピーク</td><td class="n">4,400</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>2500 未満 = 少ない / 2500〜3500 = 普通 / 3500 以上 = 多い。</b>7日ぶんで数えると 31% / 39% / 31% に分かれます。この数字は画面には出しません（表示は「少ない・普通・多い」のまま）。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>色分けが<b>やっと使えるようになりました</b>。空いている時間帯がひと目で分かります。</li>
+      <li>数字そのもの（定員・便数）は<b>何も変えていません</b>。色の付け方だけです。</li>
+      <li>テスト1142件すべて通っています。</li>
+      <li><b>本番に出しました</b>（9/9 17:35・SW v364）。実画面で確認済みです。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

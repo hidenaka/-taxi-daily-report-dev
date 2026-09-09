@@ -89,3 +89,40 @@ test('実際の今日なら「今日」と分かるようにする', () => {
 test('実際の前日なら「昨日」と分かるようにする', () => {
   assert.equal(formatDayLabel('2026-09-08', new Date('2026-09-09T10:00:00+09:00')), '昨日 9/8(火)');
 });
+
+// --- 過去日から今日に戻れなかった件 (2026-09-09 本人報告) ---
+// 「◀」で前日に移ると「▶」が押せないままになり、今日に戻れなかった。
+// 原因: 進める範囲の上限を「いま画面に出ているデータの日」から計算していたため、
+// 過去日を見ている間は上限がその過去日になり、今日が範囲の外に落ちていた。
+// 上限は「最新ファイルの日(liveDay)」で決める。これは過去日を見ている間も変わらない。
+import { dayNavRange } from '../tools/js/arrivals-data.js';
+
+test('過去日を見ていても、今日へ進める', () => {
+  const r = dayNavRange({ availableDays: ['2026-09-07', '2026-09-08'], liveDay: '2026-09-09', viewDay: '2026-09-08' });
+  assert.equal(r.canNext, true, '今日(9/9)のスナップショットがまだ無くても進める');
+  assert.equal(r.canPrev, true);
+});
+
+test('今日を見ているときは、これ以上進めない', () => {
+  const r = dayNavRange({ availableDays: ['2026-09-07', '2026-09-08'], liveDay: '2026-09-09', viewDay: '2026-09-09' });
+  assert.equal(r.canNext, false);
+  assert.equal(r.canPrev, true);
+});
+
+test('いちばん古い日では、これ以上戻れない', () => {
+  const r = dayNavRange({ availableDays: ['2026-09-07', '2026-09-08'], liveDay: '2026-09-09', viewDay: '2026-09-07' });
+  assert.equal(r.canPrev, false);
+  assert.equal(r.canNext, true);
+});
+
+test('保存日が無くても、今日だけは動ける形にする', () => {
+  const r = dayNavRange({ availableDays: [], liveDay: '2026-09-09', viewDay: '2026-09-09' });
+  assert.equal(r.canPrev, false);
+  assert.equal(r.canNext, false);
+});
+
+test('保存日に今日ぶんが含まれていても二重にならない', () => {
+  const r = dayNavRange({ availableDays: ['2026-09-08', '2026-09-09'], liveDay: '2026-09-09', viewDay: '2026-09-08' });
+  assert.equal(r.canNext, true);
+  assert.equal(r.canPrev, false, '9/8 が最古なのでこれ以上は戻れない');
+});

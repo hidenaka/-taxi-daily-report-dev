@@ -9,12 +9,12 @@
 //  4. 7日ぶんだけ残して index.json を書き直す
 import fs from "node:fs";
 import path from "node:path";
+import { buildSummary } from "./day-summary.mjs";
 
 const DIR = "tools/data/arrivals-days";
 const SRC = "tools/data/arrivals.json";
 const NOTICE = "tools/data/pool-notice.json";
 const KEEP_DAYS = 7;
-const CARRIED_OVER_UNTIL_HOUR = 6;
 
 const shiftDay = (d, n) => {
   const [y, m, dd] = String(d).split("-").map(Number);
@@ -22,50 +22,6 @@ const shiftDay = (d, n) => {
   t.setUTCDate(t.getUTCDate() + n);
   return t.toISOString().slice(0, 10);
 };
-const minutesOfDay = (t) => {
-  if (!t) return null;
-  const m = String(t).match(/^(\d{1,2}):(\d{2})/);
-  if (!m) return null;
-  const raw = Number(m[1]) * 60 + Number(m[2]);
-  return raw >= 1440 ? raw - 1440 : raw;
-};
-const isPastMidnight = (t) => {
-  if (!t) return false;
-  const m = String(t).match(/^(\d{1,2}):/);
-  return !!m && Number(m[1]) >= 24;
-};
-
-function buildSummary(data) {
-  const all = data.flights || [];
-  const flights = all.filter((x) => x.status !== "欠航");
-  let delayed15 = 0, delayed30 = 0, maxDelay = 0, maxDelayFlight = null;
-  const overnight = [];
-  for (const x of flights) {
-    const s = minutesOfDay(x.scheduledTime);
-    const eRaw = x.estimatedTime ?? x.actualTime;
-    const e = minutesOfDay(eRaw);
-    if (s == null || e == null) continue;
-    const d = isPastMidnight(eRaw) ? (e + 1440) - s : e - s;
-    if (d >= 15) delayed15++;
-    if (d >= 30) delayed30++;
-    if (d > maxDelay) {
-      maxDelay = d;
-      maxDelayFlight = { flightNumber: x.flightNumber, fromName: x.fromName, scheduledTime: x.scheduledTime, estimatedTime: eRaw, poolLane: x.poolLane ?? null, delayMin: d };
-    }
-    // 翌朝までに着くものだけ「今夜の持ち越し」。翌日昼に振り替わった便は別の話。
-    if (isPastMidnight(eRaw) && e < CARRIED_OVER_UNTIL_HOUR * 60) {
-      overnight.push({ flightNumber: x.flightNumber, fromName: x.fromName, scheduledTime: x.scheduledTime, estimatedTime: eRaw, poolLane: x.poolLane ?? null, delayMin: d });
-    }
-  }
-  return {
-    totalFlights: flights.length,
-    cancelledCount: all.length - flights.length,
-    delayed15, delayed30, maxDelay, maxDelayFlight,
-    overnightFlights: overnight,
-    dispatchEndedAt: null,
-  };
-}
-
 fs.mkdirSync(DIR, { recursive: true });
 
 // --- 1〜2) その日のスナップショットとまとめ ---
