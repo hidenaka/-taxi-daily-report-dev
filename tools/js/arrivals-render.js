@@ -1,4 +1,5 @@
 import { airlineToColorKey } from './airline-color.js';
+import { minutesFromNow } from './arrivals-data.js';
 
 const VALID_TERMINALS = new Set(['T1', 'T2', 'T3']);
 
@@ -580,8 +581,9 @@ export function renderCarriedOver(container, split, now = new Date()) {
   const rows = split.carriedOver.map((f) => {
     const t = f.estimatedTime ?? f.scheduledTime;
     const hhmm = String(t).replace(/^(\d{1,2}):/, (_, h) => `${String(Number(h) >= 24 ? Number(h) - 24 : Number(h)).padStart(2, '0')}:`);
-    const m = (Number(String(t).split(':')[0]) >= 24 ? Number(String(t).split(':')[0]) - 24 : Number(String(t).split(':')[0])) * 60 + Number(String(t).split(':')[1]);
-    const diff = m - nowMin;
+    // 日またぎを含む「いまから何分後か」は data 側の計算を使う。
+    // 自前で引くと、0時台に見た 22:45 が「あと1355分」に化ける。
+    const diff = minutesFromNow(t, nowMin) ?? 0;
     const when = diff > 0 ? `あと${diff}分` : `${-diff}分前に到着`;
     const lane = Number.isInteger(f.poolLane) ? `${f.poolLane}号` : '号未定';
     const delay = Number.isFinite(f.delayMin) && f.delayMin > 0 ? `<span class="co-delay">${f.delayMin}分遅れ</span>` : '';
@@ -598,7 +600,11 @@ export function renderCarriedOver(container, split, now = new Date()) {
     ? `<div class="co-morning">朝の便（${split.morning.length}便）は今は畳んでいます</div>`
     : '';
   container.hidden = false;
-  container.innerHTML = `<div class="co-head">🌙 前日から持ち越しの便（${split.carriedOver.length}便）</div>${rows}${morningNote}`;
+  const coming = split.carriedOver.filter((f) => (minutesFromNow(f.estimatedTime ?? f.scheduledTime, nowMin) ?? 0) > 0).length;
+  const head = coming > 0
+    ? `🌙 いま前後の便（これから ${coming}便 / さっき着いた ${split.carriedOver.length - coming}便）`
+    : `🌙 さっき着いた便（${split.carriedOver.length}便）`;
+  container.innerHTML = `<div class="co-head">${head}</div>${rows}${morningNote}`;
 }
 
 // 過去の日の「その日どうだったか」。遅れの実態と、配車業務が終わった時刻を出す。

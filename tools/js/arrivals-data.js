@@ -890,6 +890,11 @@ export const OVERNIGHT_TO_HOUR = 5;      // 〜5時
 // 持ち越しとみなす到着の上限(翌朝6時)。実データに "39:20"(翌日15:20・20時間40分遅れ)が
 // あり、そこまで持ち越しに混ぜると深夜の画面が使えなくなるため区切る。
 export const CARRIED_OVER_UNTIL_HOUR = 6;
+// 深夜に見たとき「前の晩の便」とみなす開始時刻
+export const EVENING_FROM_HOUR = 18;
+// 深夜の一覧で、直前に着いた便をどこまでさかのぼるか(分)。
+// 長くすると 0時台に20便近く並んで、肝心の遅延便が埋もれる。
+export const JUST_LANDED_WITHIN_MIN = 60;
 
 // "24:33" → 33(翌0:33)。"23:45" → 1425。読めなければ null。
 export function minutesOfDay(hhmm) {
@@ -916,6 +921,11 @@ export function minutesFromNow(hhmm, nowMin) {
     // まだ日付が変わる前(23:50 等)に、翌0:33 の便を見ている
     return t + 24 * 60 - nowMin;
   }
+  // 日付が変わった直後(0時台)に、前の晩の便(23:55 等)を見ている。
+  // そのまま引くと 1425分後 になり、15分前に着いたばかりの便が未来へ飛んでいた。
+  if (!isPastMidnightTime(hhmm) && nowMin < OVERNIGHT_TO_HOUR * 60 && t >= EVENING_FROM_HOUR * 60) {
+    return t - 24 * 60 - nowMin;
+  }
   return t - nowMin;
 }
 
@@ -928,11 +938,23 @@ export function splitOvernight(flights, now = new Date()) {
   if (!isOvernight || !Array.isArray(flights)) {
     return { isOvernight: false, carriedOver: [], morning: [] };
   }
+  const nowMin = now.getHours() * 60 + now.getMinutes();
   const carriedOver = [];
   const morning = [];
   for (const f of flights) {
     if (f.status === '欠航') continue;
     const t = f.estimatedTime ?? f.scheduledTime;
+    // 直前に着いたばかりの便。0時を過ぎた直後は、まだロビーに客が残っているので
+    // 「さっき何が着いたか」が要る(23:55着を0:10に見る、など)。
+    if (!isPastMidnightTime(t)) {
+      const ago = minutesFromNow(t, nowMin);
+      if (ago != null && ago <= 0 && ago >= -JUST_LANDED_WITHIN_MIN) {
+        const sch = minutesOfDay(f.scheduledTime);
+        const est = minutesOfDay(t);
+        carriedOver.push({ ...f, delayMin: (sch != null && est != null) ? est - sch : null });
+        continue;
+      }
+    }
     if (isPastMidnightTime(t)) {
       const sch = minutesOfDay(f.scheduledTime);
       const est = minutesOfDay(t);
@@ -946,8 +968,11 @@ export function splitOvernight(flights, now = new Date()) {
       if (m != null && m < OVERNIGHT_TO_HOUR * 60) morning.push(f);
     }
   }
+  // 並べ替えは「いまから何分後か」で。時刻の数値で並べると 24:33(=0:33) が
+  // 23:55 より前に来てしまい、実際の到着順と食い違う。
+  const byWhen = (a, b) => (minutesFromNow(a.estimatedTime ?? a.scheduledTime, nowMin) ?? 0) - (minutesFromNow(b.estimatedTime ?? b.scheduledTime, nowMin) ?? 0);
   const byTime = (a, b) => (minutesOfDay(a.estimatedTime ?? a.scheduledTime) ?? 0) - (minutesOfDay(b.estimatedTime ?? b.scheduledTime) ?? 0);
-  carriedOver.sort(byTime);
+  carriedOver.sort(byWhen);
   morning.sort(byTime);
   return { isOvernight: true, carriedOver, morning };
 }

@@ -55,15 +55,19 @@ const flights = [
 
 test('0時台に見ると、前日から持ち越した便と当日朝の便を分けられる', () => {
   const r = splitOvernight(flights, new Date('2026-09-09T00:40:00+09:00'));
-  assert.deepEqual(r.carriedOver.map(f => f.flightNumber), ['NH4738'],
-    '24時を超えて着く便が「前日から持ち越し」');
+  // 23:41着(59分前)も「さっき着いた便」として一覧に入る。0:33着はそのあと。
+  assert.deepEqual(r.carriedOver.map(f => f.flightNumber), ['NH988', 'NH4738'],
+    '直前に着いた便と、日をまたいで着く便が到着順に並ぶ');
   assert.deepEqual(r.morning.map(f => f.flightNumber), ['NH107', 'JL003'],
     '当日朝の便は分けて後ろへ');
 });
 
 test('持ち越し便には、定刻からの遅れが付く', () => {
   const r = splitOvernight(flights, new Date('2026-09-09T00:40:00+09:00'));
-  assert.equal(r.carriedOver[0].delayMin, 113, '22:40 → 24:33 は113分遅れ');
+  const nh = r.carriedOver.find(f => f.flightNumber === 'NH4738');
+  assert.equal(nh.delayMin, 113, '22:40 → 24:33 は113分遅れ');
+  const n988 = r.carriedOver.find(f => f.flightNumber === 'NH988');
+  assert.equal(n988.delayMin, 11, '23:30 → 23:41 は11分遅れ');
 });
 
 test('昼間に見たときは分けない（深夜だけの見せ方）', () => {
@@ -75,7 +79,8 @@ test('昼間に見たときは分けない（深夜だけの見せ方）', () =>
 test('23時台に見ると、これから日付をまたぐ便も持ち越し側に入る', () => {
   const r = splitOvernight(flights, new Date('2026-09-08T23:50:00+09:00'));
   assert.equal(r.isOvernight, true);
-  assert.deepEqual(r.carriedOver.map(f => f.flightNumber), ['NH4738']);
+  // 23:50 時点。23:41着(9分前)と、これから着く 0:33 の便。
+  assert.deepEqual(r.carriedOver.map(f => f.flightNumber), ['NH988', 'NH4738']);
 });
 
 // --- 翌日まで持ち越された便は「今夜の持ち越し」ではない ---
@@ -100,4 +105,58 @@ test('持ち越しの上限は翌朝6時まで', () => {
   ];
   const r = splitOvernight(f, new Date('2026-09-09T00:40:00+09:00'));
   assert.deepEqual(r.carriedOver.map(x => x.flightNumber), ['D']);
+});
+
+// --- 日付が変わった直後に、直前まで着いていた便を見る ---
+// 0:10 に見たとき「23:55 着(15分前)」は、そのままだと 1425分後 と解釈され
+// 時間窓から外れて消えていた。深夜に一番見たいのは、まさにその直前の便。
+
+test('0時10分に見たとき、23時55分着は15分前として扱う', () => {
+  assert.equal(minutesFromNow('23:55', 10), -15);
+});
+
+test('0時10分に見たとき、23時30分着は40分前', () => {
+  assert.equal(minutesFromNow('23:30', 10), -40);
+});
+
+test('2時に見ても、22時台の便は「前の晩」として過去に置く', () => {
+  assert.equal(minutesFromNow('22:40', 2 * 60), -200);
+});
+
+test('昼間の見え方は変えない', () => {
+  // 15時に見た 23:55 は、まだ来ていない便(8時間55分後)
+  assert.equal(minutesFromNow('23:55', 15 * 60), 8 * 60 + 55);
+  // 15時に見た 13:00 は 2時間前
+  assert.equal(minutesFromNow('13:00', 15 * 60), -120);
+});
+
+test('直前に着いた便も、深夜の一覧に入れる', () => {
+  const f = [
+    { flightNumber: 'A', scheduledTime: '22:40', estimatedTime: '24:33', poolLane: 3 },   // 持ち越し
+    { flightNumber: 'B', scheduledTime: '23:40', estimatedTime: '23:55', poolLane: 1 },   // 15分前に到着
+    { flightNumber: 'C', scheduledTime: '20:00', estimatedTime: '20:05', poolLane: 2 },   // 4時間前(古い)
+    { flightNumber: 'D', scheduledTime: '04:25', estimatedTime: '04:25', poolLane: 4 },   // 朝の便
+  ];
+  const r = splitOvernight(f, new Date('2026-09-09T00:10:00+09:00'));
+  assert.deepEqual(r.carriedOver.map(x => x.flightNumber), ['B', 'A'],
+    '直前に着いた便(B)も含め、到着時刻の順に並べる');
+  assert.deepEqual(r.morning.map(x => x.flightNumber), ['D']);
+});
+
+test('直前の便は、さかのぼる範囲を区切る（何時間も前の便は出さない）', () => {
+  const f = [
+    { flightNumber: 'B', scheduledTime: '23:40', estimatedTime: '23:55', poolLane: 1 },
+    { flightNumber: 'C', scheduledTime: '20:00', estimatedTime: '20:05', poolLane: 2 },
+  ];
+  const r = splitOvernight(f, new Date('2026-09-09T00:10:00+09:00'));
+  assert.ok(!r.carriedOver.some(x => x.flightNumber === 'C'), '4時間前の便は出さない');
+});
+
+test('さっき着いた便は、直近1時間ぶんに絞る（0時台に15便並べない）', () => {
+  const mk = (n, t) => ({ flightNumber: n, scheduledTime: t, estimatedTime: t, poolLane: 1 });
+  const f = [mk('古1', '22:45'), mk('古2', '22:50'), mk('近1', '23:30'), mk('近2', '23:55')];
+  const r = splitOvernight(f, new Date('2026-09-09T00:10:00+09:00'));
+  // 0:10 から見て 22:45 は85分前、23:30 は40分前
+  assert.deepEqual(r.carriedOver.map(x => x.flightNumber), ['近1', '近2'],
+    '1時間より前に着いた便は出さない');
 });
