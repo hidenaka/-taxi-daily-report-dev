@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>推定がゼロになった</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:35px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 8px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .keep{background:#e6f6f1}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:24px}.card h2{font-size:20px}.card{padding:18px 14px 20px}table{font-size:12.5px}th,td{padding:7px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>画面から<span style="color:#12a37f">たぶんの数字が消えました</span></h1>
+  <p class="sub">残っているのは、数えられる数字だけです。</p>
+
+  <div class="card">
+    <h2>何を置きかえたか</h2>
+    <p class="lede">「◯人」の中身を、<b>たぶんの降客数</b>から<b>座席の数</b>に変えました。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 200" role="img" aria-label="推定降客数から座席数への置きかえ">
+        <rect width="880" height="200" fill="#fff"/>
+
+        <text x="215" y="32" text-anchor="middle" font-size="16" font-weight="700" fill="#d4483b">前</text>
+        <rect x="55" y="50" width="320" height="76" rx="10" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="215" y="78" text-anchor="middle" font-size="14">座席244 × <tspan font-weight="700">たぶん7割</tspan></text>
+        <text x="215" y="106" text-anchor="middle" font-size="20" font-weight="700" fill="#d4483b">171人</text>
+        <text x="215" y="148" text-anchor="middle" font-size="13" fill="#d4483b">7割は決め打ち。実際は分からない</text>
+
+        <text x="440" y="95" text-anchor="middle" font-size="26" fill="#5a5a5a">→</text>
+
+        <text x="665" y="32" text-anchor="middle" font-size="16" font-weight="700" fill="#12a37f">いま</text>
+        <rect x="505" y="50" width="320" height="76" rx="10" fill="#e6f6f1" stroke="#12a37f" stroke-width="2"/>
+        <text x="665" y="78" text-anchor="middle" font-size="14">座席の数そのまま</text>
+        <text x="665" y="106" text-anchor="middle" font-size="20" font-weight="700" fill="#0a7a5f">244人（定員）</text>
+        <text x="665" y="148" text-anchor="middle" font-size="13" fill="#0a7a5f">機材で決まっている数字</text>
+      </svg>
+      <figcaption>グラフの形はほぼ同じで、数字だけ確かなものになります</figcaption>
+    </figure>
+
+    <table>
+      <thead><tr><th style="width:40%">場所</th><th>いまの表示</th></tr></thead>
+      <tbody>
+        <tr class="keep"><td>時間帯別のグラフ</td><td>見出しが<b>「時間帯別 定員」</b>／棒に <b>4585人(定員) 19便</b></td></tr>
+        <tr class="keep"><td>上の集計</td><td><b>この日全体 105,783人(定員)</b>／1時間あたり 5,568人(定員)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note"><b>色分け（少ない・普通・多い）は変わりません。</b>数字が1.4倍になるぶん、境目も1.4倍にしました。9/8のデータ38コマすべてで、前と同じ色になることを確かめています。</div>
+  </div>
+
+  <div class="card">
+    <h2>画面に残っている数字</h2>
+    <table>
+      <thead><tr><th style="width:46%">数字</th><th>どこから来たか</th></tr></thead>
+      <tbody>
+        <tr class="keep"><td>定員（座席数）</td><td>機材で決まっている</td></tr>
+        <tr class="keep"><td>現地掲示の人数・客列</td><td>タクシーセンターが出している</td></tr>
+        <tr class="keep"><td>時刻・遅れ・便数・号</td><td>運航データそのまま</td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0;font-size:15px"><b>たぶんで作った数字は、もう画面にありません。</b></p>
+  </div>
+
+  <div class="card" style="border:2px solid var(--yel)">
+    <h2>ついでに見つけたこと</h2>
+    <p class="lede">グラフの色分けが、実は<b>ほとんど機能していません</b>。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 170" role="img" aria-label="しきい値が低すぎてほぼ全部が多いになる図">
+        <rect width="880" height="170" fill="#fff"/>
+        <line x1="60" y1="110" x2="820" y2="110" stroke="#d8d2bf" stroke-width="2"/>
+
+        <line x1="130" y1="88" x2="130" y2="132" stroke="#e8873a" stroke-width="2.5"/>
+        <text x="130" y="150" text-anchor="middle" font-size="12">430</text>
+        <text x="130" y="80" text-anchor="middle" font-size="11.5" fill="#e8873a">ここから「普通」</text>
+
+        <line x1="190" y1="88" x2="190" y2="132" stroke="#d4483b" stroke-width="2.5"/>
+        <text x="190" y="150" text-anchor="middle" font-size="12">860</text>
+        <text x="205" y="80" text-anchor="start" font-size="11.5" fill="#d4483b">ここから「多い」</text>
+
+        <rect x="560" y="96" width="230" height="28" rx="6" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="675" y="115" text-anchor="middle" font-size="13.5">実際の値は 4000〜4600</text>
+        <text x="675" y="150" text-anchor="middle" font-size="12" fill="#d4483b">境目のはるか右 → ほぼ全部「多い」</text>
+
+        <text x="440" y="40" text-anchor="middle" font-size="14.5">30分のコマに20便近く着くので、合計は数千になります</text>
+      </svg>
+      <figcaption>境目が数百なのに、実際の値は数千。ほぼ全部が「多い」に振り切れています</figcaption>
+    </figure>
+
+    <div class="note"><b>これは今回の変更のせいではありません。</b>前からこうでした（前の数字でも同じく全部「多い」）。今回は「見え方を変えない」ことを優先して、そのままにしてあります。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>画面の「◯人」は<b>座席の数（定員）</b>になりました。たぶんの数字はもうありません。</li>
+      <li>色分けは前とまったく同じです（38コマで確認）。</li>
+      <li>ただし<b>その色分け自体が前から効いていません</b>。ほぼ全部「多い」になります。</li>
+      <li>いま dev に入っています。本番にはまだ出していません。</li>
+    </ul>
+    <div class="q"><b>お聞きしたいこと:</b> 色分けの境目を、実際の値に合わせて引き直しますか？（今は数百、実際は数千）<br>直すと「空いている時間帯」がひと目で分かるようになります。</div>
+  </div>
+
+</div>
+</body>
+</html>
