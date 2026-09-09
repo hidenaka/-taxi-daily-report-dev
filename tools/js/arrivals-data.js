@@ -873,3 +873,81 @@ export async function loadArrivalsForDay(day) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return normalizeArrivals(await res.json());
 }
+
+// =============================================================================
+// 日付をまたぐ深夜の便
+//
+// 到着便データは前日 23:45 が最終更新で、そこから遅れた便は「24:33」のように
+// 24時を超えた表記で入る(実データ: 9/8 NH4738 千歳 定刻22:40 → 24:33 号3)。
+// 0時を過ぎるとこの便こそが乗務中に必要な情報だが、"24:33" を素直に読むと
+// 1473分となり「23時間後の便」に化けて埋もれていた。
+// 逆に当日朝の便(4:25 等)は、深夜0時台の乗務には要らない。
+// =============================================================================
+
+// 深夜モードとみなす時間帯(この間は「持ち越し便」を分けて見せる)
+export const OVERNIGHT_FROM_HOUR = 22;   // 22時〜
+export const OVERNIGHT_TO_HOUR = 5;      // 〜5時
+// 持ち越しとみなす到着の上限(翌朝6時)。実データに "39:20"(翌日15:20・20時間40分遅れ)が
+// あり、そこまで持ち越しに混ぜると深夜の画面が使えなくなるため区切る。
+export const CARRIED_OVER_UNTIL_HOUR = 6;
+
+// "24:33" → 33(翌0:33)。"23:45" → 1425。読めなければ null。
+export function minutesOfDay(hhmm) {
+  if (!hhmm) return null;
+  const m = String(hhmm).match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return null;
+  const raw = Number(m[1]) * 60 + Number(m[2]);
+  return raw >= 24 * 60 ? raw - 24 * 60 : raw;
+}
+
+// 24時を超えた表記か(＝日付をまたいで着く便)
+export function isPastMidnightTime(hhmm) {
+  if (!hhmm) return false;
+  const m = String(hhmm).match(/^(\d{1,2}):/);
+  return !!m && Number(m[1]) >= 24;
+}
+
+// いまから何分後か。24時超え表記の便だけ日またぎを考える。
+// 当日朝の便は「昨日の朝」なので、深夜に見ても未来には回さない。
+export function minutesFromNow(hhmm, nowMin) {
+  const t = minutesOfDay(hhmm);
+  if (t == null) return null;
+  if (isPastMidnightTime(hhmm) && nowMin >= 12 * 60) {
+    // まだ日付が変わる前(23:50 等)に、翌0:33 の便を見ている
+    return t + 24 * 60 - nowMin;
+  }
+  return t - nowMin;
+}
+
+// 深夜に見ているとき、「前日から持ち越した便」と「当日朝の便」を分ける。
+// carriedOver: 24時を超えて着く便(定刻からの遅れ delayMin 付き・時刻順)
+// morning:     当日朝(5時まで)の便
+export function splitOvernight(flights, now = new Date()) {
+  const h = now.getHours();
+  const isOvernight = h >= OVERNIGHT_FROM_HOUR || h < OVERNIGHT_TO_HOUR;
+  if (!isOvernight || !Array.isArray(flights)) {
+    return { isOvernight: false, carriedOver: [], morning: [] };
+  }
+  const carriedOver = [];
+  const morning = [];
+  for (const f of flights) {
+    if (f.status === '欠航') continue;
+    const t = f.estimatedTime ?? f.scheduledTime;
+    if (isPastMidnightTime(t)) {
+      const sch = minutesOfDay(f.scheduledTime);
+      const est = minutesOfDay(t);
+      // 翌朝までに着くものだけ。それを超えるのは「翌日に振り替わった便」で今夜の話ではない。
+      if (est == null || est >= CARRIED_OVER_UNTIL_HOUR * 60) continue;
+      // 定刻が前日の夜、到着が翌日なので 24時間ぶん足して遅れを出す
+      const delayMin = (sch != null && est != null) ? (est + 24 * 60) - sch : null;
+      carriedOver.push({ ...f, delayMin });
+    } else {
+      const m = minutesOfDay(t);
+      if (m != null && m < OVERNIGHT_TO_HOUR * 60) morning.push(f);
+    }
+  }
+  const byTime = (a, b) => (minutesOfDay(a.estimatedTime ?? a.scheduledTime) ?? 0) - (minutesOfDay(b.estimatedTime ?? b.scheduledTime) ?? 0);
+  carriedOver.sort(byTime);
+  morning.sort(byTime);
+  return { isOvernight: true, carriedOver, morning };
+}

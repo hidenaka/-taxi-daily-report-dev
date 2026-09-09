@@ -566,3 +566,70 @@ export function renderNoribaActivity(container, activity, opts = {}) {
     });
   });
 }
+
+// 深夜の「前日から持ち越した便」。0時を過ぎた乗務中に一番要る情報なので最上部に出す。
+// 当日朝の便は件数だけ添える(この時間帯には要らないが、無いと不安になるため)。
+export function renderCarriedOver(container, split, now = new Date()) {
+  if (!container) return;
+  if (!split || !split.isOvernight || !split.carriedOver.length) {
+    container.innerHTML = '';
+    container.hidden = true;
+    return;
+  }
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const rows = split.carriedOver.map((f) => {
+    const t = f.estimatedTime ?? f.scheduledTime;
+    const hhmm = String(t).replace(/^(\d{1,2}):/, (_, h) => `${String(Number(h) >= 24 ? Number(h) - 24 : Number(h)).padStart(2, '0')}:`);
+    const m = (Number(String(t).split(':')[0]) >= 24 ? Number(String(t).split(':')[0]) - 24 : Number(String(t).split(':')[0])) * 60 + Number(String(t).split(':')[1]);
+    const diff = m - nowMin;
+    const when = diff > 0 ? `あと${diff}分` : `${-diff}分前に到着`;
+    const lane = Number.isInteger(f.poolLane) ? `${f.poolLane}号` : '号未定';
+    const delay = Number.isFinite(f.delayMin) && f.delayMin > 0 ? `<span class="co-delay">${f.delayMin}分遅れ</span>` : '';
+    const pax = Number.isFinite(f.estimatedTaxiPax) ? `<span class="co-pax">タクシー ${f.estimatedTaxiPax}人</span>` : '';
+    return `<div class="co-row${diff > 0 ? ' is-coming' : ''}">
+      <span class="co-time">${hhmm}</span>
+      <span class="co-when">${when}</span>
+      <span class="co-lane">${lane}</span>
+      <span class="co-from">${f.fromName ?? ''} ${f.flightNumber ?? ''}</span>
+      ${delay}${pax}
+    </div>`;
+  }).join('');
+  const morningNote = split.morning.length
+    ? `<div class="co-morning">朝の便（${split.morning.length}便）は今は畳んでいます</div>`
+    : '';
+  container.hidden = false;
+  container.innerHTML = `<div class="co-head">🌙 前日から持ち越しの便（${split.carriedOver.length}便）</div>${rows}${morningNote}`;
+}
+
+// 過去の日の「その日どうだったか」。遅れの実態と、配車業務が終わった時刻を出す。
+// 深夜まで乗務する人が「あの日は何時まで客がいたか」を後から確かめるための欄。
+export function renderDaySummary(container, summary) {
+  if (!container) return;
+  if (!summary) { container.innerHTML = ''; container.hidden = true; return; }
+  const hhmm = (t) => String(t ?? '').replace(/^(\d{1,2}):/, (_, h) => {
+    const n = Number(h);
+    return `${String(n >= 24 ? n - 24 : n).padStart(2, '0')}:`;
+  });
+  const endPart = summary.dispatchEndedAt
+    ? `<div class="ds-row"><span class="ds-k">配車業務の終了案内</span><span class="ds-v ds-end">${summary.dispatchEndedAt}</span><span class="ds-note">この時刻に「本日の配車業務は終了しました」が出ました</span></div>`
+    : `<div class="ds-row"><span class="ds-k">配車業務の終了案内</span><span class="ds-v">—</span><span class="ds-note">記録が残っていません</span></div>`;
+
+  const delayPart = summary.delayed15 > 0
+    ? `<div class="ds-row"><span class="ds-k">遅れた便</span><span class="ds-v">15分以上 ${summary.delayed15}便<span class="ds-sub">（30分以上 ${summary.delayed30}便）</span></span></div>`
+    : `<div class="ds-row"><span class="ds-k">遅れた便</span><span class="ds-v">なし</span><span class="ds-note">15分以上の遅れはありませんでした</span></div>`;
+
+  const m = summary.maxDelayFlight;
+  const maxPart = m
+    ? `<div class="ds-row"><span class="ds-k">いちばん遅れた便</span><span class="ds-v">${m.fromName ?? ''} ${m.flightNumber ?? ''}<span class="ds-sub">定刻 ${m.scheduledTime} → ${hhmm(m.estimatedTime)}（${m.delayMin}分遅れ${Number.isInteger(m.poolLane) ? ` / ${m.poolLane}号` : ''}）</span></span></div>`
+    : '';
+
+  const ov = Array.isArray(summary.overnightFlights) ? summary.overnightFlights : [];
+  const ovPart = ov.length
+    ? `<div class="ds-row"><span class="ds-k">日をまたいだ便</span><span class="ds-v">${ov.length}便`
+      + ov.map(f => `<span class="ds-sub">${hhmm(f.estimatedTime)} ${f.fromName ?? ''} ${f.flightNumber ?? ''}（${f.delayMin}分遅れ${Number.isInteger(f.poolLane) ? ` / ${f.poolLane}号` : ''}${Number.isFinite(f.estimatedTaxiPax) ? ` / タクシー${f.estimatedTaxiPax}人` : ''}）</span>`).join('')
+      + `</span></div>`
+    : `<div class="ds-row"><span class="ds-k">日をまたいだ便</span><span class="ds-v">なし</span></div>`;
+
+  container.hidden = false;
+  container.innerHTML = `<div class="ds-head">📋 この日のまとめ</div>${endPart}${delayPart}${maxPart}${ovPart}`;
+}

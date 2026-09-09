@@ -1,5 +1,5 @@
-import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals, loadArrivalDays, loadArrivalsForDay, resolveViewDay, shiftDay, formatDayLabel, dataDayOf } from './arrivals-data.js';
-import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap } from './arrivals-render.js';
+import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, filterByLane, aggregateHeatmapClient, summarizeFlights, detectTopics, buildDelayLaneGuide, sortFlightsByTime, listOriginOptions, buildNoribaActivity, detectArrivalGap, applyNoticeOverrides, buildLaneNoticeMap, loadLanePatterns, applyLaneActuals, splitOvernight, loadArrivalDays, loadArrivalsForDay, resolveViewDay, shiftDay, formatDayLabel, dataDayOf } from './arrivals-data.js';
+import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap, renderCarriedOver, renderDaySummary } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
 
@@ -138,7 +138,10 @@ function render() {
   // 「これから来る便」「いまの混み具合」を出すカードは、過去の日には当てはまらない。
   // 過去日を見ているときは畳んで、その日の記録(便リスト・時間帯別・集計)だけ見せる。
   setLiveOnlySectionsVisible(state.isLive);
+  if (state.isLive) { const ds = document.getElementById('day-summary'); if (ds) { ds.hidden = true; ds.innerHTML = ''; } }
   if (!state.isLive) {
+    // その日どうだったか(遅れ・配車業務の終了時刻)。過去日にだけ意味がある。
+    renderDaySummary(document.getElementById('day-summary'), state.arrivals.summary ?? null);
     renderSummary(document.getElementById('summary'), summary);
     renderHeatmap(document.getElementById('heatmap'), bins);
     renderFlightList(document.getElementById('flight-list'), sortFlightsByTime(flightsToShow));
@@ -154,6 +157,8 @@ function render() {
     return;
   }
 
+  // 深夜: 前日から持ち越した便を最上部に。0時を過ぎるとこれが一番要る情報。
+  renderCarriedOver(document.getElementById("carried-over"), splitOvernight(state.arrivals.flights, new Date()), new Date());
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   const noribaActs = buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date());
   {
@@ -189,7 +194,7 @@ function render() {
 // 「いま」に依存するセクションの出し入れ。過去の日を見ているときは隠す。
 // (乗り場の状況・到着の谷間・遅延便ガイド・プール現況/列移動・現地掲示)
 function setLiveOnlySectionsVisible(show) {
-  for (const id of ['noriba-cards-section', 'arrival-gap', 'topics', 'forecast-section', 'pool-notice-banner']) {
+  for (const id of ['carried-over', 'noriba-cards-section', 'arrival-gap', 'topics', 'forecast-section', 'pool-notice-banner']) {
     const el = document.getElementById(id);
     if (!el) continue;
     if (show) {

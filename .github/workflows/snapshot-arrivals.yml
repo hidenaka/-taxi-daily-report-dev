@@ -3,15 +3,21 @@ name: Snapshot arrivals (daily)
 # 到着便データ(tools/data/arrivals.json)は1日分の上書きなので、そのままだと
 # 前日分がどこにも残らない。1日1回、その日の最終版を日付別に切り出して残す。
 #
-# relay の push をトリガーにしない: relay は10分おきに来るうえ、ここで push すると
-# 自分自身を再び起こしてループになる。1日1回の cron なら安全で軽い。
+# あわせて「本日の配車業務は終了しました」の掲示が出た時刻も記録する。
+# この掲示は 0:20〜2:00 頃に出る(実測: 9/5 02:00 / 9/6 00:50 / 9/7 01:14 /
+# 9/8 00:21 / 9/9 01:30)ので、日付が変わったあとに拾う必要がある。
+# 「何時まで客がいたか」を後から確かめるための、乗務員にとって一番効く指標。
 #
-# 実行時刻: arrivals.json の更新は毎日 23:45 JST が最後なので、その直後に取る。
+# relay の push をトリガーにしない: relay は10分おきに来るうえ、ここで push すると
+# 自分自身を再び起こしてループになる。cron なら安全で軽い。
 
 on:
   schedule:
-    - cron: '55 14 * * *'   # 14:55 UTC = 23:55 JST
-  workflow_dispatch:         # 手動でも回せる（初回や取りこぼしの復旧用）
+    # 23:55 JST … その日の arrivals を切り出す（更新は 23:45 が最後）
+    - cron: '55 14 * * *'
+    # 0:10〜3:00 JST の20分おき … 終了掲示が出た時刻を捕まえる
+    - cron: '*/20 15-18 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,33 +32,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 日付別スナップショットを更新
-        id: snap
+      - name: 日付別スナップショットと、この日のまとめを更新
         run: |
           set -euo pipefail
-          SRC=tools/data/arrivals.json
-          DIR=tools/data/arrivals-days
-          if [ ! -f "$SRC" ]; then echo "no source"; exit 0; fi
-
-          # 日付は updatedAt(+09:00 付き)から取る。実行時刻ではなくデータ自身の日付に従う。
-          DAY=$(node -e "const j=require('./$SRC');const u=j.updatedAt||'';process.stdout.write(String(u).slice(0,10))")
-          if [ -z "$DAY" ]; then echo "no updatedAt"; exit 0; fi
-
-          mkdir -p "$DIR"
-          cp "$SRC" "$DIR/$DAY.json"
-
-          # 保持は7日ぶん。古いものは消す(リポジトリを膨らませない)。
-          ls "$DIR"/????-??-??.json 2>/dev/null | sort -r | tail -n +8 | xargs -r rm -f
-
-          # 見られる日の一覧。ブラウザからディレクトリは読めないのでインデックスを置く。
-          node -e "
-            const fs=require('fs');
-            const dir='$DIR';
-            const days=fs.readdirSync(dir).filter(f=>/^\d{4}-\d{2}-\d{2}\.json$/.test(f))
-              .map(f=>f.replace('.json','')).sort().reverse();
-            fs.writeFileSync(dir+'/index.json', JSON.stringify({days, updatedAt:new Date().toISOString()}, null, 2));
-            console.log('保存日:', days.join(', '));
-          "
+          node .github/scripts/snapshot-arrivals.mjs
 
       - name: コミット
         run: |
@@ -64,7 +47,7 @@ jobs:
             echo "変更なし"
             exit 0
           fi
-          git commit -m "chore(data): snapshot arrivals $(date -u +%Y-%m-%d)"
+          git commit -m "chore(data): snapshot arrivals $(TZ=Asia/Tokyo date +%Y-%m-%d\ %H:%M) JST"
           # relay と push が衝突しうるので、取り込んでから何度か試す
           for i in 1 2 3 4 5; do
             git pull --rebase origin main && git push origin HEAD:main && exit 0
