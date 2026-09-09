@@ -67,13 +67,13 @@ export function renderHeatmap(container, bins) {
     const unknownNote = b.unknownCount > 0 ? ` <span class="unknown-note">機材不明${b.unknownCount}</span>` : '';
     const delayBadge = b.delayedCount > 0 ? ` <span class="delay-badge">⚠${b.delayedCount}遅延</span>` : '';
     const intlBadge = b.internationalPax > 0
-      ? ` <span class="intl-badge">国際${b.internationalPax}人</span>`
+      ? ` <span class="intl-badge">国際${b.internationalPax}</span>`
       : '';
     const tier = TIER_INFO[b.densityTier];
     const tierBadge = b.totalPax > 0
       ? ` <span class="tier-badge">${tier.emoji}${tier.label}</span>`
       : '';
-    const valueLabel = `${b.totalPax}人 (${b.flightCount}便)`;
+    const valueLabel = `${b.totalPax}人(定員) (${b.flightCount}便)`;
     row.innerHTML = `
       <span class="heatmap-time">${b.bin}</span>
       <span class="heatmap-bar-wrap">
@@ -120,8 +120,8 @@ export function renderSummary(container, summary) {
     : '';
   container.innerHTML = `
     ${cancelledPart}
-    <span class="summary-item">${summary.windowLabel} <strong>${summary.totalPax.toLocaleString()}人</strong></span>
-    <span class="summary-item">時間あたり <strong>${summary.hourlyAvg.toLocaleString()}人</strong></span>
+    <span class="summary-item">${summary.windowLabel} <strong>${summary.totalPax.toLocaleString()}人</strong>(定員)</span>
+    <span class="summary-item">1時間あたり <strong>${summary.hourlyAvg.toLocaleString()}人</strong>(定員)</span>
     <span class="summary-item">${summary.totalFlights}便</span>
     ${reachNonePart}
     ${intlPart}

@@ -112,8 +112,11 @@ export function filterByTimeWindow(flights, nowDate, pastMinutes = 30, futureMin
   });
 }
 
-const DENSITY_HIGH = 600;
-const DENSITY_MID = 300;
+// 混雑の色分けのしきい値。座席数(定員)の合計で見る。
+// もとは推定降客数(座席×0.7)で 600/300 だった。座席数に切り替えたぶん 1/0.7 して
+// あるので、色の付き方は以前と変わらない。
+export const DENSITY_HIGH = 860;
+export const DENSITY_MID = 430;
 
 function classifyDensity(value) {
   if (value >= DENSITY_HIGH) return 'high';
@@ -140,10 +143,13 @@ export function aggregateHeatmapClient(flights) {
     // 欠航便は降客をもたらさない。降客数には含めず別計上する。
     if (f.status === '欠航') { b.cancelledCount += 1; continue; }
     b.flightCount += 1;
-    if (f.estimatedPax === null) b.unknownCount += 1;
+    // 人数は座席数(定員)で数える。以前は搭乗率0.7を掛けた推定降客数だったが、
+    // その率は実測ではなく決め打ちだった(本人指示「実数は表示」)。
+    const seats = (typeof f.seatCount === 'number' && f.seatCount > 0) ? f.seatCount : null;
+    if (seats === null) b.unknownCount += 1;
     else {
-      b.totalPax += f.estimatedPax;
-      if (f.isInternational) b.internationalPax += f.estimatedPax;
+      b.totalPax += seats;
+      if (f.isInternational) b.internationalPax += seats;
     }
     if (f.isInternational) b.internationalCount += 1;
     if (f.status === '遅延') b.delayedCount += 1;
@@ -162,14 +168,16 @@ export function summarizeFlights(flights, opts = {}) {
   // 欠航便は降客をもたらさないので集計から除外し、別途 cancelledCount で数える。
   const cancelledCount = flights.filter(f => f.status === '欠航').length;
   const operating = flights.filter(f => f.status !== '欠航');
-  const totalPax = operating.reduce((s, f) => s + (f.estimatedPax ?? 0), 0);
+  // 座席数(定員)の合計。推定の降客数ではない。
+  const seatsOf = (f) => (typeof f.seatCount === 'number' && f.seatCount > 0) ? f.seatCount : 0;
+  const totalPax = operating.reduce((s, f) => s + seatsOf(f), 0);
   const internationalPax = operating
     .filter(f => f.isInternational)
-    .reduce((s, f) => s + (f.estimatedPax ?? 0), 0);
+    .reduce((s, f) => s + seatsOf(f), 0);
   const totalFlights = operating.length;
   const internationalCount = operating.filter(f => f.isInternational).length;
   const delayedCount = operating.filter(f => f.status === '遅延').length;
-  const unknownCount = operating.filter(f => f.estimatedPax === null).length;
+  const unknownCount = operating.filter(f => !(typeof f.seatCount === 'number' && f.seatCount > 0)).length;
   const hourlyAvg = totalFlights > 0 ? Math.round(totalPax / windowHours) : 0;
   const reachNoneCount = operating.filter(f => f.reachTier === 'none').length;
   return {

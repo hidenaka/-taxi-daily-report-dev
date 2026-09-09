@@ -261,8 +261,9 @@ import { aggregateHeatmapClient, summarizeFlights } from '../tools/js/arrivals-d
 
 test('aggregateHeatmapClient: 欠航便は降客数に含めず cancelledCount で別計上', () => {
   const flights = [
-    { estimatedTime: '13:10', estimatedPax: 100, isInternational: false, status: '到着' },
-    { estimatedTime: '13:20', estimatedPax: 80, isInternational: true, status: '欠航' },
+    // 人数は座席数(定員)で数える
+    { estimatedTime: '13:10', seatCount: 100, isInternational: false, status: '到着' },
+    { estimatedTime: '13:20', seatCount: 80, isInternational: true, status: '欠航' },
   ];
   const bins = aggregateHeatmapClient(flights);
   const b = bins.find(x => x.bin === '13:00');
@@ -273,9 +274,9 @@ test('aggregateHeatmapClient: 欠航便は降客数に含めず cancelledCount �
 
 test('summarizeFlights: 欠航便を pax から除外し cancelledCount を返す', () => {
   const flights = [
-    { estimatedPax: 100, isInternational: false, status: '到着' },
-    { estimatedPax: 80, isInternational: true, status: '欠航' },
-    { estimatedPax: 60, isInternational: false, status: '欠航' },
+    { seatCount: 100, isInternational: false, status: '到着' },
+    { seatCount: 80, isInternational: true, status: '欠航' },
+    { seatCount: 60, isInternational: false, status: '欠航' },
   ];
   const s = summarizeFlights(flights);
   assert.equal(s.totalPax, 100);     // 欠航2便分を除外
