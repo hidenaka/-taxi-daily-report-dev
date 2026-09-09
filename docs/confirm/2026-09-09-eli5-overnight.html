@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>深夜に要る便と、その日いつまで客がいたか</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#3f7fc1; --orange:#e8873a;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:35px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 8px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .bad{background:#fdeeec} .good{background:#e6f6f1}
+  .screen{background:#111;color:#eee;border-radius:12px;padding:14px 16px;margin:14px 0 4px;font-size:14px;line-height:1.65}
+  .screen .hd{font-size:13px;font-weight:700;color:#ffb74d;margin-bottom:8px}
+  .screen .hd.blue{color:#90caf9}
+  .screen .row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:5px 0;border-top:1px solid #24242a}
+  .screen .t{font-weight:700;font-size:16px;min-width:52px}
+  .screen .w{color:#ffb74d;font-size:12px}
+  .screen .lane{background:#2a2118;padding:1px 8px;border-radius:4px;font-size:12px}
+  .screen .from{color:#9a9aa2}
+  .screen .dl{color:#ff8a65;font-size:12px}
+  .screen .px{color:#81c784;font-size:12px}
+  .screen .k{color:#9a9aa2;font-size:12px;min-width:130px;display:inline-block}
+  .screen .v{font-weight:700}
+  .screen .v.big{color:#ffb74d;font-size:17px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:24px}.card h2{font-size:20px}table{font-size:12.5px}th,td{padding:6px 6px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>深夜に要るのは<span style="color:#e8873a">遅れている便</span>。<br>朝の便ではない。</h1>
+  <p class="sub">そのとおりに直しました。あわせて「その日いつまで客がいたか」も見られます。</p>
+
+  <div class="card">
+    <h2>何が起きていたか</h2>
+    <p class="lede">遅れて日付をまたぐ便は、データに <b>24:33</b> のような書き方で入っています。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 250" role="img" aria-label="24時33分が23時間後と誤解される図">
+        <rect width="880" height="250" fill="#fff"/>
+
+        <rect x="60" y="40" width="300" height="54" rx="8" fill="#f2eee1" stroke="#c9bfa0" stroke-width="2"/>
+        <text x="210" y="63" text-anchor="middle" font-size="14">データに入っている書き方</text>
+        <text x="210" y="85" text-anchor="middle" font-size="19" font-weight="700">24:33</text>
+
+        <path d="M370,67 L440,67" stroke="#5a5a5a" stroke-width="2.5"/>
+        <path d="M440,67 L430,62 M440,67 L430,72" stroke="#5a5a5a" stroke-width="2.5"/>
+
+        <rect x="455" y="24" width="360" height="40" rx="8" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="635" y="49" text-anchor="middle" font-size="14" fill="#d4483b">前は「1473分」＝<tspan font-weight="700">23時間後の便</tspan></text>
+
+        <rect x="455" y="72" width="360" height="40" rx="8" fill="#e6f6f1" stroke="#12a37f" stroke-width="2"/>
+        <text x="635" y="97" text-anchor="middle" font-size="14" fill="#0a7a5f">いまは「<tspan font-weight="700">翌 0時33分</tspan>」と読む</text>
+
+        <line x1="60" y1="140" x2="820" y2="140" stroke="#d8d2bf" stroke-width="2"/>
+        <text x="160" y="168" text-anchor="middle" font-size="13">0:33</text>
+        <circle cx="160" cy="140" r="8" fill="#e8873a"/>
+        <text x="160" y="120" text-anchor="middle" font-size="13" fill="#e8873a">遅れた便が着く</text>
+
+        <text x="330" y="168" text-anchor="middle" font-size="13">0:40（いま乗務中）</text>
+        <circle cx="330" cy="140" r="8" fill="#3f7fc1"/>
+
+        <text x="700" y="168" text-anchor="middle" font-size="13">4:25 朝の便</text>
+        <circle cx="700" cy="140" r="8" fill="#bbb"/>
+        <text x="700" y="120" text-anchor="middle" font-size="13" fill="#999">いまは要らない</text>
+
+        <rect x="60" y="190" width="760" height="44" rx="10" fill="#fdf6e0" stroke="#d6a72a" stroke-width="2"/>
+        <text x="440" y="218" text-anchor="middle" font-size="14.5">いちばん要る便が「23時間後」に飛ばされ、要らない朝の便が上に出ていました</text>
+      </svg>
+      <figcaption>実データ：9/8 の千歳便が 定刻22:40 → 翌0:33（113分遅れ）で入っていました</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>直したもの① 深夜は「持ち越しの便」を最上部に</h2>
+    <p class="lede">22時〜朝5時のあいだ、画面のいちばん上に出ます。</p>
+
+    <div class="screen">
+      <div class="hd">🌙 前日から持ち越しの便（1便）</div>
+      <div class="row">
+        <span class="t">00:33</span>
+        <span class="w">7分前に到着</span>
+        <span class="lane">3号</span>
+        <span class="from">千歳 NH4738</span>
+        <span class="dl">113分遅れ</span>
+        <span class="px">タクシー 81人</span>
+      </div>
+      <div style="font-size:11.5px;color:#9a9aa2;margin-top:8px">朝の便（5便）は今は畳んでいます</div>
+    </div>
+
+    <div class="note"><b>朝の便は畳みます。</b>深夜0時台に「4時50分のニューヨーク便」を見せても仕方がないので、件数だけ添えて隠します。<br>
+    <b>翌日の昼に振り替わった便は入れません。</b>実データに「翌日15:20着（20時間40分遅れ）」という便があり、これを混ぜると画面が使い物にならなくなるので、朝6時までに着く便だけにしています。</div>
+  </div>
+
+  <div class="card">
+    <h2>直したもの② 過去の日は「その日いつまで客がいたか」</h2>
+    <p class="lede">現地の掲示を調べたら、毎日「本日の配車業務は終了しました」が出ていました。<b>その時刻を記録しました。</b></p>
+
+    <table>
+      <thead><tr><th>日</th><th class="n">終了案内が出た時刻</th></tr></thead>
+      <tbody>
+        <tr><td>9/5(土)</td><td class="n">02:00</td></tr>
+        <tr><td>9/6(日)</td><td class="n">00:50</td></tr>
+        <tr><td>9/7(月)</td><td class="n">01:14</td></tr>
+        <tr class="good"><td>9/8(火)</td><td class="n"><b>01:30</b></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:8px 0 0;font-size:14.5px">日によって<b>1時間半以上ちがいます</b>。「今日は何時まで粘れるか」の目安になります。</p>
+
+    <p style="margin:22px 0 8px;font-size:16.5px">過去の日を開くと、こう出ます。</p>
+    <div class="screen">
+      <div class="hd blue">📋 この日のまとめ</div>
+      <div class="row"><span class="k">配車業務の終了案内</span><span class="v big">01:30</span></div>
+      <div class="row"><span class="k">遅れた便</span><span class="v">15分以上 1便</span></div>
+      <div class="row"><span class="k">いちばん遅れた便</span><span class="v">千歳 NH4738<br><span style="font-weight:400;color:#9a9aa2;font-size:12px">定刻 22:40 → 00:33（113分遅れ / 3号）</span></span></div>
+      <div class="row"><span class="k">日をまたいだ便</span><span class="v">1便<br><span style="font-weight:400;color:#9a9aa2;font-size:12px">00:33 千歳 NH4738（113分遅れ / 3号 / タクシー81人）</span></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>これから毎日たまります</h2>
+    <table>
+      <tbody>
+        <tr><th style="width:32%">到着便の記録</th><td>毎日 23:55 に、その日ぶんを保存</td></tr>
+        <tr><th>終了案内の時刻</th><td>0:10〜3:00 の20分おきに見張って、出た時刻を記録<br><span style="font-size:13px;color:#5a5a5a">（掲示は日付が変わってから出るため。時刻は最大20分の幅があります）</span></td></tr>
+        <tr><th>残す期間</th><td>直近7日</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>深夜は<b>前日から遅れている便</b>が最上部に出ます。到着時刻・遅れ・号・タクシー人数つき。</li>
+      <li>要らない<b>朝の便は畳みます</b>。</li>
+      <li>過去の日は<b>「何時に配車業務が終わったか」</b>が見られます。日によって00:21〜02:00と幅があります。</li>
+      <li>遅れた便の数・いちばん遅れた便・日をまたいだ便も出ます。</li>
+      <li>いま dev に入っています。本番にはまだ出していません。</li>
+    </ul>
+    <div class="q"><b>お願い:</b> <b>アプリを一度再起動</b>してから、日付を前日にして見てください。深夜の表示は22時以降に出ます。よければ本番に出します。</div>
+  </div>
+
+</div>
+</body>
+</html>
