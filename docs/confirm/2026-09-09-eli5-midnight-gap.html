@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>0時台に直前の便が消えていた話</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --orange:#e8873a;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:900px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:35px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:25px;line-height:1.35;margin:0 0 8px}
+  .card .lede{font-size:16.5px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .screen{background:#111;color:#eee;border-radius:12px;padding:14px 16px;margin:14px 0 4px;font-size:14px;line-height:1.65}
+  .screen .hd{font-size:13px;font-weight:700;color:#ffb74d;margin-bottom:8px}
+  .screen .row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;padding:5px 0;border-top:1px solid #24242a}
+  .screen .t{font-weight:700;font-size:16px;min-width:52px}
+  .screen .w{color:#ffb74d;font-size:12px;min-width:86px}
+  .screen .lane{background:#2a2118;padding:1px 8px;border-radius:4px;font-size:12px}
+  .screen .from{color:#9a9aa2}
+  .screen .dl{color:#ff8a65;font-size:12px}
+  .screen .px{color:#81c784;font-size:12px}
+  .screen .empty{color:#d4483b;font-weight:700;padding:10px 0}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:24px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ご指摘のとおり、<span style="color:#d4483b">見えていませんでした</span></h1>
+  <p class="sub">0時10分に見たとき、23時50分に着いた便は画面から消えていました。直しました。</p>
+
+  <div class="card">
+    <h2>なぜ消えていたか</h2>
+    <p class="lede">時計が0時を回ると、直前の便の時刻が<b>ひたすら大きな数</b>になっていました。</p>
+
+    <figure>
+      <svg viewBox="0 0 880 270" role="img" aria-label="0時を回ると前の晩の便が未来に飛ぶ図">
+        <rect width="880" height="270" fill="#fff"/>
+
+        <line x1="70" y1="110" x2="810" y2="110" stroke="#d8d2bf" stroke-width="3"/>
+
+        <circle cx="240" cy="110" r="9" fill="#e8873a"/>
+        <text x="240" y="94" text-anchor="middle" font-size="13" fill="#e8873a">23:55 着</text>
+        <text x="240" y="138" text-anchor="middle" font-size="12" fill="#5a5a5a">お客がロビーに出てくる</text>
+
+        <line x1="380" y1="80" x2="380" y2="140" stroke="#d4483b" stroke-width="2.5" stroke-dasharray="5,4"/>
+        <text x="380" y="72" text-anchor="middle" font-size="13" fill="#d4483b">0:00</text>
+
+        <circle cx="470" cy="110" r="9" fill="#3f7fc1"/>
+        <text x="470" y="94" text-anchor="middle" font-size="13" fill="#3f7fc1">0:10（いま）</text>
+
+        <path d="M250,160 Q360,190 460,165" stroke="#12a37f" stroke-width="2.5" fill="none"/>
+        <text x="355" y="196" text-anchor="middle" font-size="14" fill="#0a7a5f">本当は「15分前」</text>
+
+        <rect x="530" y="150" width="290" height="48" rx="10" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+        <text x="675" y="170" text-anchor="middle" font-size="13.5" fill="#d4483b">でもアプリは</text>
+        <text x="675" y="190" text-anchor="middle" font-size="15" font-weight="700" fill="#d4483b">「1425分後の便」</text>
+
+        <rect x="70" y="222" width="740" height="36" rx="8" fill="#fdf6e0" stroke="#d6a72a" stroke-width="2"/>
+        <text x="440" y="246" text-anchor="middle" font-size="14">遠い未来の便あつかい → 表示の範囲から外れて<tspan font-weight="700">まるごと消える</tspan></text>
+      </svg>
+      <figcaption>0時を回った瞬間、直前まで見えていた便が全部いなくなっていました</figcaption>
+    </figure>
+
+    <div class="note"><b>実データで確かめたら、0時10分の画面は「0件」でした。</b>深夜にいちばん見たい「さっきロビーに出た客」がまるごと落ちていたことになります。</div>
+  </div>
+
+  <div class="card">
+    <h2>直す前と後</h2>
+
+    <p style="margin:0 0 6px;font-size:15.5px"><b>前</b>（9/8の実データ・0時10分に見たとき）</p>
+    <div class="screen">
+      <div class="hd">🌙 前日から持ち越しの便</div>
+      <div class="empty">表示なし（0件）</div>
+    </div>
+
+    <p style="margin:22px 0 6px;font-size:15.5px"><b>後</b>（同じ条件）</p>
+    <div class="screen">
+      <div class="hd">🌙 いま前後の便（これから 1便 / さっき着いた 3便）</div>
+      <div class="row"><span class="t">23:10</span><span class="w">60分前に到着</span><span class="lane">3号</span><span class="from">那覇 NH478</span><span class="px">タクシー 3人</span></div>
+      <div class="row"><span class="t">23:30</span><span class="w">40分前に到着</span><span class="lane">3号</span><span class="from">那覇 NH1134</span><span class="px">タクシー 4人</span></div>
+      <div class="row"><span class="t">23:41</span><span class="w">29分前に到着</span><span class="lane">3号</span><span class="from">千歳 NH988</span><span class="dl">11分遅れ</span><span class="px">タクシー 5人</span></div>
+      <div class="row" style="background:#1d1a12"><span class="t">00:33</span><span class="w">あと23分</span><span class="lane">3号</span><span class="from">千歳 NH4738</span><span class="dl">113分遅れ</span><span class="px">タクシー 81人</span></div>
+      <div style="font-size:11.5px;color:#9a9aa2;margin-top:8px">朝の便（5便）は今は畳んでいます</div>
+    </div>
+
+    <div class="note"><b>さかのぼりは1時間ぶんに絞りました。</b>最初は90分にしたところ0時10分の画面に15便並んでしまい、肝心の遅延便（113分遅れ・81人）が埋もれたためです。</div>
+  </div>
+
+  <div class="card">
+    <h2>時刻の見出しも直しました</h2>
+    <p class="lede">画面に出す「あと何分／何分前」を計算していた場所が、もう一箇所ありました。</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14.5px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+      <thead><tr><th style="background:#f2eee1;padding:9px 10px;text-align:left;font-size:13px">0時10分に見た 22:45 の便</th><th style="background:#f2eee1;padding:9px 10px;text-align:right;font-size:13px">表示</th></tr></thead>
+      <tbody>
+        <tr style="background:#fdeeec"><td style="padding:9px 10px;border-top:1px solid var(--line)">前</td><td style="padding:9px 10px;border-top:1px solid var(--line);text-align:right"><b>あと1355分</b></td></tr>
+        <tr style="background:#e6f6f1"><td style="padding:9px 10px;border-top:1px solid var(--line)">後</td><td style="padding:9px 10px;border-top:1px solid var(--line);text-align:right"><b>85分前に到着</b></td></tr>
+      </tbody>
+    </table>
+    <p style="margin:10px 0 0;font-size:14.5px">同じ計算を2か所で別々に書いていたのが原因でした。1か所にまとめました。</p>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>0時を回ると、直前の便が<b>「1425分後」</b>になって画面から消えていました。ご指摘のとおりです。</li>
+      <li>いまは<b>「29分前に到着」</b>のように、さっき着いた便が並びます（直近1時間ぶん）。</li>
+      <li>遅れて日付をまたぐ便（<b>あと23分・113分遅れ・81人</b>）も同じ並びに出ます。</li>
+      <li>朝の便は畳んだままです。</li>
+      <li>いま dev に入っています。本番にはまだ出していません。</li>
+    </ul>
+    <div class="q"><b>お願い:</b> <b>アプリを一度再起動</b>してください。この表示は22時以降に出ます。よければ本番に出します。</div>
+  </div>
+
+</div>
+</body>
+</html>
