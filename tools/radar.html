@@ -158,6 +158,10 @@
     };
     window.addEventListener('resize', fitHeight);
     window.addEventListener('orientationchange', fitHeight);
+    // 起動時にも合わせる。100dvh と実際の高さがずれる端末があり、
+    // 下に黒い余白が残ることがあるため。
+    document.addEventListener('DOMContentLoaded', fitHeight);
+    window.addEventListener('load', fitHeight);
   </script>
   <script src="../vendor/leaflet/leaflet.js"></script>
 
