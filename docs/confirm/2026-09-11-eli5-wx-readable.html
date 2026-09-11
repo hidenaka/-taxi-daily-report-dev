@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>予報を読みやすくした</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>読まずに<span style="color:#12a37f">見て分かる</span>形にしました</h1>
+  <p class="sub">48行の文字を、山のかたちに変えました。</p>
+
+  <div class="card">
+    <h2>何が見にくかったか</h2>
+    <figure>
+      <svg viewBox="0 0 880 300" role="img" aria-label="48行の文字から棒グラフへ">
+        <rect width="880" height="300" fill="#fff"/>
+
+        <text x="200" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#d4483b">前</text>
+        <rect x="50" y="46" width="300" height="216" rx="10" fill="#20202a"/>
+        <g font-size="12" fill="#cfd6dd" font-family="monospace">
+          <text x="68" y="74">いま  ☁  21℃  雨 89%</text>
+          <text x="68" y="100">18時  ⛅  21℃  雨 88%</text>
+          <text x="68" y="126">19時  🌦  21℃  雨 83%</text>
+          <text x="68" y="152">20時  🌦  20℃  雨 76%</text>
+          <text x="68" y="178">21時  🌧  20℃  雨 73%</text>
+          <text x="68" y="204">22時  🌧  20℃  雨 78%</text>
+          <text x="68" y="230">…（あと42行）</text>
+        </g>
+        <text x="200" y="286" text-anchor="middle" font-size="13" fill="#d4483b">上から全部読まないと分からない</text>
+
+        <text x="440" y="160" text-anchor="middle" font-size="26" fill="#5a5a5a">→</text>
+
+        <text x="680" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#12a37f">いま</text>
+        <rect x="530" y="46" width="300" height="216" rx="10" fill="#20202a"/>
+        <text x="548" y="72" font-size="13" font-weight="700" fill="#7fc4ff">いま雨が降りやすい</text>
+        <g fill="#3d8fe0">
+          <rect x="552" y="112" width="14" height="86" rx="3"/>
+          <rect x="574" y="114" width="14" height="84" rx="3"/>
+          <rect x="596" y="120" width="14" height="78" rx="3"/>
+          <rect x="618" y="126" width="14" height="72" rx="3"/>
+          <rect x="640" y="130" width="14" height="68" rx="3"/>
+          <rect x="662" y="124" width="14" height="74" rx="3"/>
+          <rect x="684" y="114" width="14" height="84" rx="3"/>
+          <rect x="706" y="150" width="14" height="48" rx="3"/>
+          <rect x="728" y="168" width="14" height="30" rx="3"/>
+          <rect x="750" y="180" width="14" height="18" rx="3"/>
+          <rect x="772" y="186" width="14" height="12" rx="3"/>
+          <rect x="794" y="190" width="14" height="8" rx="3"/>
+        </g>
+        <g font-size="10" fill="#9aa4ae">
+          <text x="559" y="216" text-anchor="middle">いま</text>
+          <text x="625" y="216" text-anchor="middle">20時</text>
+          <text x="691" y="216" text-anchor="middle">23時</text>
+          <text x="757" y="216" text-anchor="middle">2時</text>
+        </g>
+        <text x="680" y="286" text-anchor="middle" font-size="13" fill="#0a7a5f">山のかたちで「いつ弱まるか」が見える</text>
+      </svg>
+      <figcaption>棒の高さ＝雨の降りやすさ。高いほど降ります</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/radar-weather2.jpg" alt="作り直した天気パネル。先頭に一言、次に棒グラフ、下に7日間">
+      <figcaption>いちばん上の一言 →　時間ごとの山 →　これから7日</figcaption>
+    </figure>
+    <div class="note"><b>いちばん上の一言が答えです。</b>「いま雨が降りやすい」「20時ごろから雨が降りやすい」「しばらく雨は降りにくい」のどれかが出ます。グラフはその裏づけとして見てください。</div>
+  </div>
+
+  <div class="card">
+    <h2>直したところ</h2>
+    <figure>
+      <svg viewBox="0 0 880 200" role="img" aria-label="3つの直し">
+        <rect width="880" height="200" fill="#fff"/>
+        <g>
+          <circle cx="150" cy="70" r="30" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+          <text x="150" y="79" text-anchor="middle" font-size="24">1</text>
+          <text x="150" y="128" text-anchor="middle" font-size="15" font-weight="700">答えを先頭に</text>
+          <text x="150" y="152" text-anchor="middle" font-size="12.5" fill="#5a5a5a">いつ降るかを1行で</text>
+
+          <circle cx="440" cy="70" r="30" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+          <text x="440" y="79" text-anchor="middle" font-size="24">2</text>
+          <text x="440" y="128" text-anchor="middle" font-size="15" font-weight="700">文字を山に</text>
+          <text x="440" y="152" text-anchor="middle" font-size="12.5" fill="#5a5a5a">横に流して見る</text>
+
+          <circle cx="730" cy="70" r="30" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+          <text x="730" y="79" text-anchor="middle" font-size="24">3</text>
+          <text x="730" y="128" text-anchor="middle" font-size="15" font-weight="700">幅を止める</text>
+          <text x="730" y="152" text-anchor="middle" font-size="12.5" fill="#5a5a5a">横に伸びて迷子にならない</text>
+        </g>
+      </svg>
+      <figcaption>7日のほうにも帯を付けて、雨の多い日がひと目で分かるようにしました</figcaption>
+    </figure>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>先頭の<b>一言</b>だけ読めば足ります。</li>
+      <li>時間ごとは<b>山のかたち</b>。横に指で送ると48時間先まで。</li>
+      <li>7日のほうも<b>帯</b>で雨の多い日が分かります。</li>
+      <li>テスト1203件すべて通っています。</li>
+    </ul>
+    <div class="q"><b>いま dev です。</b>これで読みやすければ「本番へ」と言ってください。</div>
+  </div>
+
+</div>
+</body>
+</html>

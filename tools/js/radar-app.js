@@ -4,6 +4,7 @@
 // 出典表示「出典：気象庁」は利用条件なので必ず地図に出す。
 import { weatherUrl, pickHourly, pickDaily, dayLabel, rainStartHint, RAIN_POP } from './radar-weather.js';
 import { weatherEmoji, weatherLabel } from '../../js/weather.js';
+import { distanceKm } from '../../js/area-geo.js';
 import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
@@ -22,6 +23,10 @@ let frames = [];
 let index = 0;
 let playTimer = null;
 let hereMarker = null;
+// 最後に選んだ場所。地図を手で動かして離れたら、名前は出さない
+// （「羽田空港の天気」と出ているのに中心は別の街、を防ぐ）。
+let placePin = null;   // { name, lat, lon }
+const PLACE_NEAR_KM = 3;
 const layers = new Map();  // frameIndex → L.tileLayer
 
 // --- 地図 -----------------------------------------------------------------
@@ -45,7 +50,7 @@ function saveView() {
 let saveTimer = null;
 function saveViewSoon() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveView, 400);
+  saveTimer = setTimeout(() => { saveView(); syncPlaceLabel(); }, 400);
 }
 
 function createMap() {
@@ -135,6 +140,7 @@ function goTo(lat, lon, zoom = 12, label = '') {
   // 遠くへ飛ぶ操作なので、滑らせるより一気に移るほうが分かりやすい。
   map.setView([lat, lon], zoom, { animate: false });
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
+  placePin = label ? { name: label, lat, lon } : null;
   if (label) {
     el('radar-place-label').textContent = label;
     el('radar-place-label').hidden = false;
@@ -196,6 +202,23 @@ function useCurrentPosition() {
     },
     { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
   );
+}
+
+// いま地図の中心にある場所の呼び名。選んだ場所から離れていたら名前は使わない。
+function currentPlaceName() {
+  if (!placePin) return null;
+  const c = map.getCenter();
+  const km = distanceKm([c.lat, c.lng], [placePin.lat, placePin.lon]);
+  return km !== null && km <= PLACE_NEAR_KM ? placePin.name : null;
+}
+
+// 地図を動かしたあと、離れていたら場所の名前を消す
+function syncPlaceLabel() {
+  const label = el('radar-place-label');
+  if (!label) return;
+  const name = currentPlaceName();
+  if (name) { label.textContent = name; label.hidden = false; }
+  else { label.hidden = true; }
 }
 
 // --- 天気 -----------------------------------------------------------------
@@ -291,8 +314,7 @@ async function openWeatherPanel() {
   const body = el('radar-wx-body');
   body.innerHTML = '<div class="no-hit">読み込み中…</div>';
   const c = map.getCenter();
-  const label = el('radar-place-label');
-  const name = label && !label.hidden ? label.textContent : 'この場所';
+  const name = currentPlaceName() || 'この場所';
   try {
     renderWeather(await loadWeather(c.lat, c.lng), name);
   } catch {
