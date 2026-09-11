@@ -18,13 +18,17 @@
     .app-tabs {
       display: flex; position: sticky; top: 0; z-index: 10;
       background: #0a0a0f; border-bottom: 1px solid #222;
+      overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
     }
+    .app-tabs::-webkit-scrollbar { display: none; }
     .app-tab {
-      flex: 1; padding: 14px 8px; text-align: center; text-decoration: none;
+      flex: 1 0 auto; white-space: nowrap;
+      padding: 14px 10px; text-align: center; text-decoration: none;
       color: var(--sub); font-size: 15px; font-weight: 600; letter-spacing: 0.3px;
       border-bottom: 3px solid transparent;
       -webkit-tap-highlight-color: transparent;
     }
+    @media (max-width: 430px) { .app-tab { font-size: 13px; padding: 13px 8px; letter-spacing: 0; } }
     .app-tab.active {
       color: var(--fg); border-bottom-color: var(--accent);
       background: rgba(78, 161, 255, 0.08);
@@ -388,10 +392,10 @@
   </script>
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="radar.html" class="app-tab">🌧 雨雲レーダーβ</a>
     <a href="ic.html" class="app-tab">🛣 IC判定</a>
     <a href="arrivals.html" class="app-tab active" aria-current="page">✈ 空港ツール</a>
     <a href="stands.html" id="tab-stands" class="app-tab" style="display:none">📍 乗り場</a>
-    <a href="radar.html" class="app-tab">🌧 雨雲</a>
   </nav>
   <script type="module" src="js/stands-tab.js"></script>
 

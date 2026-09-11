@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cabis ｜ 雨雲レーダー</title>
+  <title>Cabis ｜ 雨雲レーダーβ</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -17,6 +17,11 @@
     body{visibility:hidden;pointer-events:none;}
     #radar-map{position:fixed;top:48px;left:0;right:0;bottom:0;background:#eef1f4;}
     .app-tabs{position:fixed;top:0;left:0;right:0;z-index:1200;}
+    /* タブ名が長いので、狭い端末では横に流す（2段にすると地図と被る） */
+    .app-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+    .app-tabs::-webkit-scrollbar{display:none;}
+    .app-tab{flex:1 0 auto;white-space:nowrap;}
+    @media (max-width:430px){ .app-tab{font-size:13px;padding:13px 8px;letter-spacing:0;} }
 
     /* 時間バー（下） */
     #radar-bar{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:1300;
@@ -128,12 +133,13 @@
 
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="radar.html" class="app-tab active" aria-current="page">🌧 雨雲レーダーβ</a>
     <a href="ic.html" class="app-tab">🛣 IC判定</a>
     <a href="arrivals.html" class="app-tab">✈ 空港ツール</a>
-    <a href="stands.html" class="app-tab">📍 乗り場</a>
-    <a href="radar.html" class="app-tab active" aria-current="page">🌧 雨雲</a>
+    <a href="stands.html" id="tab-stands" class="app-tab" style="display:none">📍 乗り場</a>
   </nav>
 
+  <script type="module" src="js/stands-tab.js"></script>
   <div id="radar-map"></div>
 
   <div id="radar-place-label" hidden></div>
