@@ -14,7 +14,6 @@ const MAX_LAYERS = 12;                 // 端末のメモリを食わないよ�
 const PLAY_INTERVAL_MS = 450;
 
 const el = (id) => document.getElementById(id);
-try { document.body.dataset.radarBuild = 'probe1'; } catch (e) { /* 調査用 */ }
 
 let map = null;
 let frames = [];
@@ -33,10 +32,18 @@ function readView() {
 }
 function saveView() {
   try {
-    document.body.dataset.radarSave = String(Number(document.body.dataset.radarSave || 0) + 1);
     const c = map.getCenter();
     localStorage.setItem(VIEW_KEY, JSON.stringify({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }));
-  } catch (e) { document.body.dataset.radarSaveErr = String(e); }
+  } catch { /* 保存できなくても動作に影響なし */ }
+}
+
+// 地図を触り終わったタイミングで保存する。
+// Leaflet の moveend / zoomend は、この画面では発火しなかった(dev実機で計測して確認)。
+// 指を離した・ホイールを止めた、という操作そのものを拾うほうが確実。
+let saveTimer = null;
+function saveViewSoon() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveView, 400);
 }
 
 function createMap() {
@@ -46,10 +53,10 @@ function createMap() {
     maxZoom: 18, subdomains: 'abcd',
     attribution: '© OpenStreetMap contributors © CARTO ｜ 雨雲：出典 気象庁',
   }).addTo(map);
-  // イベント名をまとめて渡す書き方は、この環境では発火しなかった(実機で確認)。
-  // 1つずつ登録する。
-  map.on('moveend', saveView);
-  map.on('zoomend', saveView);
+  const c = map.getContainer();
+  for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {
+    c.addEventListener(ev, saveViewSoon, { passive: true });
+  }
 }
 
 // --- 雨雲のコマ -----------------------------------------------------------
@@ -117,6 +124,7 @@ async function loadAreaCoords() {
 
 function goTo(lat, lon, zoom = 12, label = '') {
   map.setView([lat, lon], zoom);
+  saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   if (label) {
     el('radar-place-label').textContent = label;
     el('radar-place-label').hidden = false;
