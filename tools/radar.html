@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cabis ｜ 雨雲レーダー</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
+  <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <style>
+    body{visibility:hidden;pointer-events:none;}
+    #radar-map{position:fixed;top:48px;left:0;right:0;bottom:0;background:#eef1f4;}
+    .app-tabs{position:fixed;top:0;left:0;right:0;z-index:1200;}
+
+    /* 時間バー（下） */
+    #radar-bar{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:1300;
+      background:rgba(21,21,28,.92);color:#fff;border-radius:12px;padding:10px 12px 12px;
+      box-shadow:0 -2px 14px rgba(0,0,0,.35);}
+    .time-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+    #radar-clock{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+    #radar-rel{font-size:14px;color:#cfd6dd;}
+    .kind{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;}
+    .kind.obs{background:#1e4f7a;color:#cfe6ff;}
+    .kind.fcst{background:#6a5310;color:#ffe9a8;}
+    #radar-slider{width:100%;margin:2px 0 4px;accent-color:#4da3ff;}
+    .scale{display:flex;justify-content:space-between;font-size:10px;color:#9aa4ae;margin-bottom:8px;}
+    .bar-actions{display:flex;gap:8px;}
+    .bar-actions button{flex:1;padding:10px 0;border-radius:9px;border:none;font-size:14px;font-weight:600;cursor:pointer;}
+    #radar-play{background:#2f6fd0;color:#fff;}
+    #radar-place-btn{background:#2a2a34;color:#e8edf2;}
+
+    /* 雨の強さ凡例 */
+    #radar-legend{position:fixed;right:8px;top:58px;z-index:1250;background:rgba(21,21,28,.88);
+      color:#e8edf2;border-radius:10px;padding:8px 9px;font-size:10px;line-height:1.5;}
+    #radar-legend .lg-title{font-weight:700;margin-bottom:4px;font-size:10px;color:#9aa4ae;}
+    #radar-legend .lg-row{display:flex;align-items:center;gap:6px;}
+    #radar-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;}
+
+    /* いま見ている場所 */
+    #radar-place-label{position:fixed;left:8px;top:58px;z-index:1250;background:rgba(21,21,28,.88);
+      color:#e8edf2;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;}
+
+    /* 場所えらびパネル */
+    #radar-place-panel{position:fixed;left:0;right:0;bottom:0;z-index:1400;background:#15151c;color:#fff;
+      border-top-left-radius:14px;border-top-right-radius:14px;padding:14px 16px calc(20px + env(safe-area-inset-bottom));
+      box-shadow:0 -4px 16px rgba(0,0,0,.45);transform:translateY(110%);transition:transform .2s;max-height:72vh;overflow:auto;}
+    #radar-place-panel.open{transform:translateY(0);}
+    .pp-head{display:flex;align-items:center;margin-bottom:10px;}
+    .pp-head h2{margin:0;font-size:17px;}
+    .pp-head button{margin-left:auto;background:none;border:none;color:#9aa4ae;font-size:22px;cursor:pointer;line-height:1;}
+    #radar-here{width:100%;padding:12px 0;border-radius:10px;border:none;background:#2f6fd0;color:#fff;
+      font-size:15px;font-weight:600;cursor:pointer;margin-bottom:6px;}
+    #radar-geo-status{font-size:12px;color:#9aa4ae;min-height:16px;margin-bottom:10px;}
+    .pp-label{font-size:11px;color:#9aa4ae;letter-spacing:.06em;margin:12px 0 6px;}
+    #radar-presets{display:flex;flex-wrap:wrap;gap:8px;}
+    .place-chip{padding:9px 14px;border-radius:999px;border:1px solid #3a3a46;background:#22222c;color:#e8edf2;
+      font-size:14px;cursor:pointer;}
+    #radar-search{width:100%;padding:11px 12px;border-radius:10px;border:1px solid #3a3a46;background:#1c1c24;
+      color:#fff;font-size:15px;}
+    #radar-results{margin-top:6px;}
+    .place-row{display:block;width:100%;text-align:left;padding:11px 12px;border:none;border-bottom:1px solid #2a2a34;
+      background:none;color:#e8edf2;font-size:14px;cursor:pointer;}
+    .no-hit{padding:11px 2px;font-size:13px;color:#9aa4ae;}
+
+    #radar-error{position:fixed;left:12px;right:12px;top:58px;z-index:1350;background:#5a1f1a;color:#ffd9d5;
+      border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <script type="module">
+    import { enforceAccess } from '../js/access-control.js';
+    if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
+      throw new Error('access-denied: redirected');
+    }
+  </script>
+  <script src="../vendor/leaflet/leaflet.js"></script>
+
+  <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
+    <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="ic.html" class="app-tab">🛣 IC判定</a>
+    <a href="arrivals.html" class="app-tab">✈ 空港ツール</a>
+    <a href="stands.html" class="app-tab">📍 乗り場</a>
+    <a href="radar.html" class="app-tab active" aria-current="page">🌧 雨雲</a>
+  </nav>
+
+  <div id="radar-map"></div>
+
+  <div id="radar-place-label" hidden></div>
+
+  <div id="radar-legend" aria-label="雨の強さ">
+    <div class="lg-title">1時間の雨量</div>
+    <div class="lg-row"><i style="background:#B40068"></i>80mm〜</div>
+    <div class="lg-row"><i style="background:#FF2800"></i>50〜80</div>
+    <div class="lg-row"><i style="background:#FF9900"></i>30〜50</div>
+    <div class="lg-row"><i style="background:#FFF500"></i>20〜30</div>
+    <div class="lg-row"><i style="background:#0041FF"></i>10〜20</div>
+    <div class="lg-row"><i style="background:#218CFF"></i>5〜10</div>
+    <div class="lg-row"><i style="background:#A0D2FF"></i>1〜5</div>
+  </div>
+
+  <div id="radar-error" hidden></div>
+
+  <div id="radar-bar">
+    <div class="time-head">
+      <span id="radar-clock">--:--</span>
+      <span id="radar-rel"></span>
+      <span id="radar-kind" class="kind obs"></span>
+    </div>
+    <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
+    <div class="scale"><span>3時間前</span><span>いま</span><span>1時間先</span></div>
+    <div class="bar-actions">
+      <button id="radar-play" type="button">▶ 動かす</button>
+      <button id="radar-place-btn" type="button">📍 場所をえらぶ</button>
+    </div>
+  </div>
+
+  <div id="radar-place-panel" aria-label="場所をえらぶ">
+    <div class="pp-head">
+      <h2>場所をえらぶ</h2>
+      <button id="radar-place-close" type="button" aria-label="閉じる">×</button>
+    </div>
+    <button id="radar-here" type="button">📍 いまの場所を見る</button>
+    <div id="radar-geo-status" aria-live="polite"></div>
+    <div class="pp-label">よく行くところ</div>
+    <div id="radar-presets"></div>
+    <div class="pp-label">地名で探す</div>
+    <input id="radar-search" type="search" placeholder="例: 羽田、六本木、みなとみらい" autocomplete="off">
+    <div id="radar-results"></div>
+  </div>
+
+  <script type="module" src="js/radar-app.js"></script>
+</body>
+</html>

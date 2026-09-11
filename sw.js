@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v367';
+const CACHE_NAME = CACHE_PREFIX + 'v368';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -22,6 +22,9 @@ const STATIC_FILES = [
   './tools/arrivals.html',
   './tools/noriba-trends.html',
   './tools/stands.html',
+  './tools/radar.html',
+  './tools/js/radar-app.js',
+  './tools/js/radar-data.js',
   './tools/airport-fare.html',
   './tools/js/airport-fare-app.js',
   './tools/js/airport-fare-data.js',
@@ -153,6 +156,9 @@ self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   // GitHub API・天候API・migrate/admin はキャッシュせず素通し
   if (url.hostname === 'api.github.com' || url.hostname.includes('open-meteo')) return;
+  // 雨雲レーダーのタイルと時刻一覧は素通し。5分ごとに新しいURLが増えるので
+  // キャッシュに入れると際限なく溜まり、古い雨雲が残る。
+  if (url.hostname === 'www.jma.go.jp') return;
   if (url.pathname.includes('/migrate.html') || url.pathname.includes('/admin.html')) return;
   // 強制アップデート(復旧)ページは絶対にキャッシュさせない＝常に最新をネットから取得。
   // （このページ自身が SW/キャッシュを消す役目なので、古い版が出ると意味がない）
