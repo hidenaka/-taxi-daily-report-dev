@@ -245,26 +245,45 @@ test('バーの位置から、いちばん近いコマを選ぶ', () => {
   assert.equal(nearestFrameIndex([], 5), -1);
 });
 
-test('目盛りは3時間おきに置く', () => {
+test('先の目盛りは1時間おき、過去は3時間おき', () => {
   const now = parseJmaTime('20260911011500');
   const frames = [
     { timeMs: now - 180 * 60000, kind: 'obs' },
     { timeMs: now, kind: 'obs', isLatestObs: true },
-    { timeMs: now + 840 * 60000, kind: 'fcst' },
+    { timeMs: now + 300 * 60000, kind: 'fcst' },
   ];
   const ticks = buildTicks(frames);
-  assert.deepEqual(ticks.map((t) => t.label), ['3時間前', 'いま', '3時間後', '6時間後', '9時間後', '12時間後']);
+  assert.deepEqual(ticks.map((t) => t.label), [
+    '3時間前', 'いま', '11時', '12時', '13時', '14時', '15時',
+  ]);
+  // 先の目盛りは、何時のことか分かるように時計で出す(JST)
+  assert.deepEqual(ticks.map((t) => t.kind), [
+    'past', 'now', 'future', 'future', 'future', 'future', 'future',
+  ]);
 });
 
-test('目盛りの位置も時間に比例する', () => {
-  const now = parseJmaTime('20260911011500');
+test('先の目盛りの位置も時間に比例する', () => {
+  // ちょうど毎正時に置くので、いまが 10:15 なら 11時 の目盛りは 105分/120分 = 87.5%
+  const now = parseJmaTime('20260911011500');   // 10:15 JST
   const frames = [
-    { timeMs: now - 180 * 60000, kind: 'obs' },
+    { timeMs: now - 60 * 60000, kind: 'obs' },  // 09:15
     { timeMs: now, kind: 'obs', isLatestObs: true },
-    { timeMs: now + 180 * 60000, kind: 'fcst' },
+    { timeMs: now + 60 * 60000, kind: 'fcst' }, // 11:15
   ];
-  const ticks = buildTicks(frames);   // 全6時間ぶん
-  assert.deepEqual(ticks.map((t) => Math.round(t.pct)), [0, 50, 100]);
+  const ticks = buildTicks(frames);   // 全2時間
+  assert.deepEqual(ticks.map((t) => t.label), ['いま', '11時']);
+  assert.deepEqual(ticks.map((t) => Math.round(t.pct)), [50, 88]);
+});
+
+test('端数の時刻でも、ちょうどの時刻に目盛りを置く', () => {
+  // 10:15 が「いま」なら、先の目盛りは 11時 12時 …（10:15ではない）
+  const now = parseJmaTime('20260911011500');   // 10:15 JST
+  const frames = [
+    { timeMs: now, kind: 'obs', isLatestObs: true },
+    { timeMs: now + 150 * 60000, kind: 'fcst' },
+  ];
+  const ticks = buildTicks(frames);
+  assert.deepEqual(ticks.map((t) => t.label), ['いま', '11時', '12時']);
 });
 
 test('目盛りが無いときは空', () => {

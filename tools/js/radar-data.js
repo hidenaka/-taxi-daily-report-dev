@@ -172,8 +172,20 @@ export function nearestFrameIndex(frames, minutes) {
   return best;
 }
 
-// 3時間おきの目盛り。「いま」を基準に、前後で範囲に入るものだけを返す。
-export const TICK_STEP_MIN = 180;
+// 目盛り。
+// 先(未来)は1時間おき。「何時のことか」がそのまま読めるように時計で出す(JST)。
+// 過去は3時間ぶんしかないので3時間おき(左端の「3時間前」だけ)。
+export const TICK_PAST_STEP_MIN = 180;
+
+const HOUR_MS = 3600000;
+
+function jstHourLabel(ms) {
+  // ja-JP の hour:'numeric' は既に「11時」の形で返る。'時' を足すと二重になる。
+  const h = new Intl.DateTimeFormat('ja-JP', {
+    hour: 'numeric', hour12: false, timeZone: 'Asia/Tokyo',
+  }).format(new Date(ms));
+  return h.endsWith('時') ? h : `${h}時`;
+}
 
 export function buildTicks(frames) {
   const rows = Array.isArray(frames) ? frames : [];
@@ -186,19 +198,24 @@ export function buildTicks(frames) {
   if (span <= 0) return [];
 
   const ticks = [];
-  const push = (ms, label) => {
+  const push = (ms, label, kind) => {
     if (ms < first - 60000 || ms > last + 60000) return;
     const pct = Math.min(100, Math.max(0, ((ms - first) / span) * 100));
-    ticks.push({ label, pct, ms });
+    ticks.push({ label, pct, ms, kind });
   };
-  // 過去側
-  for (let m = Math.floor((nowMs - first) / 60000 / TICK_STEP_MIN) * TICK_STEP_MIN; m > 0; m -= TICK_STEP_MIN) {
-    push(nowMs - m * 60000, `${m / 60}時間前`);
+
+  // 過去側(3時間おき)
+  const pastMin = Math.floor((nowMs - first) / 60000 / TICK_PAST_STEP_MIN) * TICK_PAST_STEP_MIN;
+  for (let m = pastMin; m > 0; m -= TICK_PAST_STEP_MIN) {
+    push(nowMs - m * 60000, `${m / 60}時間前`, 'past');
   }
-  push(nowMs, 'いま');
-  // 先側
-  for (let m = TICK_STEP_MIN; m <= (last - nowMs) / 60000; m += TICK_STEP_MIN) {
-    push(nowMs + m * 60000, `${m / 60}時間後`);
+  push(nowMs, 'いま', 'now');
+
+  // 先側(1時間おき)。「10:15のいま」なら 11時 12時 … と、ちょうどの時刻に置く。
+  const firstHour = Math.ceil(nowMs / HOUR_MS) * HOUR_MS;
+  for (let ms = firstHour; ms <= last + 60000; ms += HOUR_MS) {
+    if (ms <= nowMs) continue;
+    push(ms, jstHourLabel(ms), 'future');
   }
   return ticks;
 }

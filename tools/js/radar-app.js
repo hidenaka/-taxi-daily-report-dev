@@ -109,13 +109,30 @@ function renderTicks() {
   const box = el('radar-scale');
   if (!box) return;
   const ticks = buildTicks(frames);
-  box.innerHTML = ticks.map((t, i) => {
+  if (ticks.length === 0) { box.innerHTML = ''; return; }
+
+  // 線は1時間おきに全部引く。字は、隣と近すぎるものを伏せる（線だけ残す）。
+  // 端末の幅で入る数が変わるので、実際の幅から決める。
+  const width = box.getBoundingClientRect().width || 340;
+  const MIN_LABEL_PX = 34;
+  let lastLabeledPct = -Infinity;
+  const html = ticks.map((t, i) => {
     const cls = ['tk'];
-    if (t.label === 'いま') cls.push('now');
+    const px = (t.pct / 100) * width;
+    const lastPx = (lastLabeledPct / 100) * width;
+    // 「いま」と左端は必ず出す。ほかは前のラベルから離れているときだけ。
+    const must = t.kind === 'now' || i === 0;
+    if (must || px - lastPx >= MIN_LABEL_PX) {
+      lastLabeledPct = t.pct;
+    } else {
+      cls.push('mute');
+    }
+    if (t.kind === 'now') cls.push('now');
     if (i === 0 && t.pct < 6) cls.push('edge');
     if (i === ticks.length - 1 && t.pct > 94) cls.push('edge', 'r');
     return `<span class="${cls.join(' ')}" style="left:${t.pct.toFixed(2)}%">${t.label}</span>`;
   }).join('');
+  box.innerHTML = html;
 }
 
 function renderTimeUi() {
@@ -385,6 +402,7 @@ async function start() {
     t = setTimeout(() => runSearch(q), 150);
   });
 
+  window.addEventListener('resize', () => { if (frames.length) renderTicks(); });
   frames = await loadFrames();
   if (frames.length === 0) {
     el('radar-error').textContent = '雨雲データを取得できませんでした。少し時間をおいて開き直してください。';
