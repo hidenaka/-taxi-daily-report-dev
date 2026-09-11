@@ -181,7 +181,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue, saveConfig } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly, tierBasisDrives, tierBasisSalesExcl } from './js/payroll.js';
 import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
@@ -549,11 +549,18 @@ async function render(drivesPromise) {
     const tierKey = String(Math.min(config.responsibilityShifts, 11));
     const projectionTiers = rateTable && (rateTable[tierKey] || rateTable["11"]);
     if (projectionTiers && projectionTiers.length > 0) {
-      const currentSalesExclTax = monthly.exclTax;
+      // 歩率の段は「11出番まで」の売上で決まる。12出番目以降(公出)は固定歩率で
+      // 段には関わらない(給与計算 calcTotalPay と同じ規則)。
+      // ここで月度合計(monthly.exclTax)を使っていたため、12出番目以降の売上まで
+      // 段の判定・歩率マップ・1出番平均に入っていた(2026-09-11 本人指摘)。
+      const tierDrives = tierBasisDrives(rawDrives);
+      const currentSalesExclTax = tierBasisSalesExcl(rawDrives);
       const isLocked = rawDrives.length >= 11; // 11乗務以降は歩率確定
       const remainingShifts = Math.max(0, respShifts - rawDrives.length);
+      // 段に効く残り出番。予定が12出番以上でも、段に関われるのは11出番目まで。
+      const remainingTierShifts = Math.max(0, 11 - rawDrives.length);
       const tierShiftCount = Number(tierKey) || 11;
-      const drivenAvgExcl = rawDrives.length > 0 ? currentSalesExclTax / rawDrives.length : 0;
+      const drivenAvgExcl = tierDrives.length > 0 ? currentSalesExclTax / tierDrives.length : 0;
       const projectedSalesExcl = drivenAvgExcl * tierShiftCount;
       const anchorSalesExcl = isLocked ? currentSalesExclTax : projectedSalesExcl;
       const currentTierIdx = findTierIdx(projectionTiers, anchorSalesExcl);
@@ -588,7 +595,7 @@ async function render(drivesPromise) {
             </div>
             <span style="font-size:14px;color:#558b2f;">→</span>
             <div style="text-align:center;padding:8px 4px;background:#f1f8e9;border-radius:6px;border:1px solid #c5e1a5;">
-              <div style="font-size:9px;color:#666;">月度予測</div>
+              <div style="font-size:9px;color:#666;">歩率の判定額</div>
               <div style="font-size:14px;color:#1b5e20;margin:2px 0;font-weight:700;font-variant-numeric:tabular-nums;">${formatYen(projectedSalesExcl)}</div>
               <div style="font-size:9px;color:#666;">×${tierShiftCount}乗務(税抜)</div>
             </div>
@@ -757,13 +764,13 @@ async function render(drivesPromise) {
             const upTierTotalIncl = upTier.tier.salesMin * 1.1;
             const requiredRemainingExcl = Math.max(0, upTier.tier.salesMin - currentSalesExclTax);
             const requiredRemainingIncl = requiredRemainingExcl * 1.1;
-            const requiredRemainingAvgExcl = remainingShifts > 0 ? requiredRemainingExcl / remainingShifts : 0;
+            const requiredRemainingAvgExcl = remainingTierShifts > 0 ? requiredRemainingExcl / remainingTierShifts : 0;
             const requiredRemainingAvgIncl = requiredRemainingAvgExcl * 1.1;
             // 現状ペースで月度合計に届くか
             const projectedDeficit = upTier.tier.salesMin - projectedSalesExcl;
             const parenText = projectedDeficit <= 0
               ? `（現状${formatYen(drivenAvgExcl)}(税抜) → 既にこの水準より高い／現状ペース継続で次の歩率段に到達見込み）`
-              : `（現状${formatYen(drivenAvgExcl)}(税抜) → 月度合計まで残${formatYen(projectedDeficit)}(税抜)、残出番平均 +${formatYen((projectedDeficit) / remainingShifts)}/出番で月度合計到達）`;
+              : `（現状${formatYen(drivenAvgExcl)}(税抜) → 11出番ぶんの合計まで残${formatYen(projectedDeficit)}(税抜)、残出番平均 +${formatYen((projectedDeficit) / remainingTierShifts)}/出番で到達）`;
             nextTierHtml = `
               <div style="margin-top:14px;padding:12px;background:#fff;border:1px solid #c5e1a5;border-radius:8px;">
                 <div style="font-size:10px;color:#1b5e20;letter-spacing:.05em;margin-bottom:6px;font-weight:600;">次の歩率段（${upTierMan}万円段 ${(upTier.tier.rate*100).toFixed(1)}%）の条件</div>
@@ -775,16 +782,16 @@ async function render(drivesPromise) {
                   </div>
                 </div>
                 <div style="padding:5px 7px;background:#f9fbf3;border-radius:5px;margin-bottom:6px;">
-                  <div style="font-size:9.5px;color:#666;">月度合計</div>
+                  <div style="font-size:9.5px;color:#666;">11出番ぶんの合計</div>
                   <div style="font-size:12.5px;color:#1b5e20;font-weight:600;">${formatYen(upTierTotalExcl)}以上(税抜) / ${formatYen(upTierTotalIncl)}以上(税込)</div>
                 </div>
                 <div style="padding:5px 7px;background:#f9fbf3;border-radius:5px;">
-                  <div style="font-size:9.5px;color:#666;">残${remainingShifts}出番の必要平均（月度合計到達のため）</div>
+                  <div style="font-size:9.5px;color:#666;">残${remainingTierShifts}出番の必要平均（11出番ぶんの合計に届くため）</div>
                   <div style="font-size:13px;color:#1b5e20;font-weight:700;line-height:1.4;">
                     ${formatYen(requiredRemainingAvgExcl)}/出番(税抜)<br>
                     <span style="font-size:11px;font-weight:600;">${formatYen(requiredRemainingAvgIncl)}/出番(税込)</span>
                   </div>
-                  <div style="font-size:9.5px;color:#558b2f;margin-top:3px;padding-top:3px;border-top:1px dashed #c5e1a5;">残${remainingShifts}出番合計 ${formatYen(requiredRemainingExcl)}(税抜) / <strong>${formatYen(requiredRemainingIncl)}(税込)</strong></div>
+                  <div style="font-size:9.5px;color:#558b2f;margin-top:3px;padding-top:3px;border-top:1px dashed #c5e1a5;">残${remainingTierShifts}出番合計 ${formatYen(requiredRemainingExcl)}(税抜) / <strong>${formatYen(requiredRemainingIncl)}(税込)</strong></div>
                   <div style="font-size:9.5px;color:#9e9e9e;margin-top:3px;font-style:italic;">${parenText}</div>
                 </div>
               </div>

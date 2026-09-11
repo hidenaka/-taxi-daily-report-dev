@@ -44,6 +44,23 @@ export function calcDailySales(drive) {
   };
 }
 
+// 歩率の段を決める売上の対象になる出番数の上限。
+// 12乗務目以降(公出)は固定歩率で、段の判定には関わらない。
+// calcTotalPay の 12乗務以上の分岐が drives.slice(0, 11) で歩率を出しているのと同じ規則。
+export const RATE_TIER_SHIFT_CAP = 11;
+
+// 段の判定に使う出番だけを取り出す(日付昇順前提。1〜11出番目)。
+export function tierBasisDrives(drives) {
+  const arr = Array.isArray(drives) ? drives : [];
+  return arr.slice(0, RATE_TIER_SHIFT_CAP);
+}
+
+// 段の判定に使う売上(税抜)。ホームの歩率マップ・次の段の条件はこれを基準にする。
+// 月度合計(全出番)を使うと、12出番目以降の売上まで段に効いてしまう(2026-09-11 本人指摘)。
+export function tierBasisSalesExcl(drives) {
+  return calcMonthlySales(tierBasisDrives(drives)).exclTax;
+}
+
 export function calcMonthlySales(drives) {
   let inclTax = 0;
   for (const drive of drives) {
