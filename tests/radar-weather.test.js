@@ -80,3 +80,40 @@ test('今日は「今日」と出す', () => {
   assert.equal(dayLabel('2026-09-12', new Date('2026-09-11T11:30:00+09:00')), '明日');
   assert.equal(dayLabel('2026-09-13', new Date('2026-09-11T11:30:00+09:00')), '9/13(日)');
 });
+
+// --- 見出しの一言 (2026-09-11 本人「予報のところみにくい」) ----------------
+// 48行の羅列は、読む前に「で、いつ降るの」が分からない。
+// 先頭に一言だけ答えを出す。
+import { rainStartHint, RAIN_POP } from '../tools/js/radar-weather.js';
+
+const hrs = (pops, startHour = 17) => pops.map((pop, i) => ({
+  hour: (startHour + i) % 24, pop, temp: 20, code: 3, isNow: i === 0,
+  date: '2026-09-11', time: '',
+}));
+
+test('降り出す時間を一言で出す', () => {
+  assert.equal(rainStartHint(hrs([10, 20, 40, 70, 80])), '20時ごろから雨が降りやすい');
+});
+
+test('いま既に降りやすければ、そう言う', () => {
+  assert.equal(rainStartHint(hrs([80, 80, 30])), 'いま雨が降りやすい');
+});
+
+test('降りにくい日は、そう言い切る', () => {
+  assert.equal(rainStartHint(hrs([0, 5, 10, 20, 30])), 'しばらく雨は降りにくい');
+});
+
+test('見る範囲は絞れる', () => {
+  // 24時間先までしか見ない（それ以上先の「降る」は今の判断に使えない）
+  const long = hrs([...Array(30).fill(10), 90]);
+  assert.equal(rainStartHint(long, 24), 'しばらく雨は降りにくい');
+});
+
+test('雨とみなす降りやすさ', () => {
+  assert.equal(RAIN_POP, 50);
+});
+
+test('データが無ければ何も言わない', () => {
+  assert.equal(rainStartHint([]), '');
+  assert.equal(rainStartHint(null), '');
+});

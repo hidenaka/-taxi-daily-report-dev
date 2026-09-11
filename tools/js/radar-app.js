@@ -2,7 +2,7 @@
 //
 // 材料づくりは radar-data.js（純関数・テストあり）。ここは配線だけ。
 // 出典表示「出典：気象庁」は利用条件なので必ず地図に出す。
-import { weatherUrl, pickHourly, pickDaily, dayLabel } from './radar-weather.js';
+import { weatherUrl, pickHourly, pickDaily, dayLabel, rainStartHint, RAIN_POP } from './radar-weather.js';
 import { weatherEmoji, weatherLabel } from '../../js/weather.js';
 import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
@@ -226,10 +226,17 @@ function renderWeather(data, placeName) {
     body.innerHTML = '<div class="no-hit">天気を取得できませんでした</div>';
     return;
   }
-  const cur = hours[0];
-  const popCls = (v) => (v !== null && v >= 50 ? 'pp hi' : 'pp');
   const num = (v, unit = '') => (v === null || v === undefined ? '--' : v + unit);
+  const cur = hours[0];
   let html = '';
+
+  // まず答えを1行で。表を上から読ませない。
+  const hint = rainStartHint(hours);
+  if (hint) {
+    const cls = hint.includes('降りにくい') ? 'wx-hint' : 'wx-hint rain';
+    html += `<div class="${cls}">${hint}</div>`;
+  }
+
   if (cur) {
     html += `<div class="wx-now">
       <span class="emo">${weatherEmoji(cur.code)}</span>
@@ -239,31 +246,43 @@ function renderWeather(data, placeName) {
       </span>
     </div>`;
   }
+
+  // 時間ごと: 横に流れるグラフ。棒の高さ＝雨の降りやすさ。
+  // 3時間おきに時刻と気温を出して、目盛りが混まないようにする。
+  html += '<div class="wx-sec">これから48時間</div><div class="wx-chart" id="wx-chart">';
   let lastDate = null;
-  for (const h of hours) {
-    if (h.date !== lastDate) {
-      html += `<div class="wx-daybar">${dayLabel(h.date, now)}</div>`;
-      lastDate = h.date;
+  hours.forEach((h, i) => {
+    if (lastDate !== null && h.date !== lastDate) {
+      html += `<div class="wx-daysep">${dayLabel(h.date, now)}</div>`;
     }
-    html += `<div class="wx-row${h.isNow ? ' now' : ''}">
-      <span class="h">${h.isNow ? 'いま' : h.hour + '時'}</span>
-      <span class="e">${weatherEmoji(h.code)}</span>
-      <span class="tp">${num(h.temp, '℃')}</span>
-      <span class="${popCls(h.pop)}">雨 ${num(h.pop, '%')}</span>
+    lastDate = h.date;
+    const hi = typeof h.pop === 'number' && h.pop >= RAIN_POP;
+    const showTick = h.isNow || i % 3 === 0;
+    const barH = Math.max(2, Math.round(((h.pop ?? 0) / 100) * 64));
+    html += `<div class="wx-col${hi ? ' hi' : ''}${h.isNow ? ' now' : ''}">
+      <div class="ch">${h.isNow ? 'いま' : (showTick ? h.hour + '時' : '')}</div>
+      <div class="ce">${showTick ? weatherEmoji(h.code) : ''}</div>
+      <div class="cbar"><i style="height:${barH}px"></i></div>
+      <div class="cpp">${hi || showTick ? num(h.pop, '') : ''}</div>
+      <div class="ct">${showTick ? num(h.temp, '°') : ''}</div>
     </div>`;
-  }
+  });
+  html += '</div>';
+
+  // 日ごと: 雨の降りやすさを帯で見せる
   if (days.length) {
-    html += '<div class="wx-daybar">これから7日</div>';
+    html += '<div class="wx-sec">これから7日</div>';
     for (const d of days) {
       html += `<div class="wx-day">
         <span class="d">${dayLabel(d.date, now)}</span>
         <span class="e">${weatherEmoji(d.code)}</span>
         <span class="tp"><span class="mx">${num(d.max)}</span> / <span class="mn">${num(d.min)}</span>℃</span>
-        <span class="pp">雨 ${num(d.pop, '%')}</span>
+        <span class="dbar"><i style="width:${Math.max(0, Math.min(100, d.pop ?? 0))}%"></i></span>
+        <span class="pp">${num(d.pop, '%')}</span>
       </div>`;
     }
   }
-  html += '<div class="wx-src">天気の出どころ: Open-Meteo</div>';
+  html += '<div class="wx-src">天気の出どころ: Open-Meteo ／ 棒と帯の高さ＝雨の降りやすさ</div>';
   body.innerHTML = html;
 }
 

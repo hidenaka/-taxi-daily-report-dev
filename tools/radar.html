@@ -75,26 +75,44 @@
       border-top-left-radius:14px;border-top-right-radius:14px;padding:14px 16px calc(20px + env(safe-area-inset-bottom));
       box-shadow:0 -4px 16px rgba(0,0,0,.45);transform:translateY(110%);transition:transform .2s;max-height:78vh;overflow:auto;}
     #radar-weather-panel.open{transform:translateY(0);}
-    .wx-now{display:flex;align-items:center;gap:14px;padding:12px 14px;background:#1c1c24;border-radius:12px;margin-bottom:12px;}
+    /* 中身は読みやすい幅で止める（横に伸びると目が迷子になる） */
+    #radar-wx-body{max-width:560px;margin:0 auto;}
+    /* 答えを先頭に1行で */
+    .wx-hint{font-size:18px;font-weight:700;padding:2px 2px 10px;color:#fff;}
+    .wx-hint.rain{color:#7fc4ff;}
+    .wx-now{display:flex;align-items:center;gap:14px;padding:12px 14px;background:#1c1c24;border-radius:12px;margin-bottom:14px;}
     .wx-now .emo{font-size:40px;line-height:1;}
     .wx-now .t{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;}
     .wx-now .sub{font-size:13px;color:#9aa4ae;}
-    .wx-daybar{position:sticky;top:0;background:#15151c;font-size:11px;color:#9aa4ae;letter-spacing:.06em;
-      padding:8px 2px 5px;border-bottom:1px solid #2a2a34;z-index:1;}
-    .wx-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #23232c;font-size:14px;}
-    .wx-row.now{background:rgba(47,111,208,.16);border-radius:8px;}
-    .wx-row .h{width:46px;color:#cfd6dd;font-variant-numeric:tabular-nums;}
-    .wx-row .e{width:26px;font-size:18px;text-align:center;}
-    .wx-row .tp{width:52px;text-align:right;font-variant-numeric:tabular-nums;}
-    .wx-row .pp{width:56px;text-align:right;font-variant-numeric:tabular-nums;color:#7fb3e8;}
-    .wx-row .pp.hi{color:#4da3ff;font-weight:700;}
+    .wx-sec{font-size:11px;color:#9aa4ae;letter-spacing:.06em;margin:0 0 6px;}
+
+    /* 時間ごと＝横に流れるグラフ。48行の羅列より、降り出しの山が見える */
+    .wx-chart{display:flex;gap:0;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;
+      -webkit-overflow-scrolling:touch;}
+    .wx-col{flex:0 0 38px;text-align:center;position:relative;padding-top:2px;}
+    .wx-col.dawn{background:rgba(255,255,255,.035);}
+    .wx-col.now{background:rgba(47,111,208,.22);border-radius:8px;}
+    .wx-col .ch{font-size:11px;color:#9aa4ae;height:14px;font-variant-numeric:tabular-nums;}
+    .wx-col .ce{font-size:15px;height:20px;line-height:20px;}
+    .wx-col .cbar{height:64px;display:flex;align-items:flex-end;justify-content:center;}
+    .wx-col .cbar i{display:block;width:16px;border-radius:3px 3px 0 0;background:#3d8fe0;min-height:2px;}
+    .wx-col.hi .cbar i{background:#4da3ff;}
+    .wx-col .cpp{font-size:10.5px;color:#7fb3e8;height:14px;font-variant-numeric:tabular-nums;}
+    .wx-col.hi .cpp{color:#9fd0ff;font-weight:700;}
+    .wx-col .ct{font-size:11.5px;color:#dfe5ea;height:16px;font-variant-numeric:tabular-nums;}
+    .wx-daysep{flex:0 0 auto;writing-mode:vertical-rl;font-size:10.5px;color:#6b7480;
+      padding:0 3px;border-left:1px dashed #3a3a46;margin-left:2px;}
+
+    /* 日ごと */
     .wx-day{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #23232c;font-size:14px;}
     .wx-day .d{width:74px;color:#cfd6dd;}
     .wx-day .e{width:26px;font-size:18px;text-align:center;}
-    .wx-day .tp{flex:1;font-variant-numeric:tabular-nums;}
+    .wx-day .tp{width:92px;font-variant-numeric:tabular-nums;}
     .wx-day .tp .mx{color:#ff9f7a;font-weight:700;} .wx-day .tp .mn{color:#8fb6e8;}
-    .wx-day .pp{width:56px;text-align:right;color:#7fb3e8;font-variant-numeric:tabular-nums;}
-    .wx-src{margin-top:12px;font-size:10.5px;color:#6b7480;}
+    .wx-day .dbar{flex:1;height:8px;background:#23232c;border-radius:4px;overflow:hidden;}
+    .wx-day .dbar i{display:block;height:100%;background:#3d8fe0;}
+    .wx-day .pp{width:48px;text-align:right;color:#7fb3e8;font-variant-numeric:tabular-nums;}
+    .wx-src{margin-top:12px;font-size:10.5px;color:#6b7480;text-align:center;}
     #radar-error{position:fixed;left:12px;right:12px;top:58px;z-index:1350;background:#5a1f1a;color:#ffd9d5;
       border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;}
   </style>

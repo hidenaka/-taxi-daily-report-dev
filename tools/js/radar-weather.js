@@ -78,3 +78,17 @@ export function dayLabel(date, now = null) {
   const dow = DOW[new Date(y, m - 1, d).getDay()];
   return `${m}/${d}(${dow})`;
 }
+
+// これ以上なら「雨が降りやすい」とみなす降水確率。
+export const RAIN_POP = 50;
+
+// 「で、いつ降るのか」を先頭に一言で出すための文。
+// 時間ごとの表を上から読ませないための見出し。既定では24時間先までを見る。
+export function rainStartHint(hours, withinHours = 24) {
+  const rows = Array.isArray(hours) ? hours.slice(0, withinHours) : [];
+  if (rows.length === 0) return '';
+  const i = rows.findIndex((h) => typeof h.pop === 'number' && h.pop >= RAIN_POP);
+  if (i < 0) return 'しばらく雨は降りにくい';
+  if (i === 0) return 'いま雨が降りやすい';
+  return `${rows[i].hour}時ごろから雨が降りやすい`;
+}

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>天気も見えるようになった</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>はい、<span style="color:#12a37f">空港ツールの右隣</span>です</h1>
+  <p class="sub">そこに天気も入れました。</p>
+
+  <div class="card">
+    <h2>タブの並び</h2>
+    <figure>
+      <svg viewBox="0 0 880 150" role="img" aria-label="タブの並び。雨雲は空港ツールの右隣">
+        <rect width="880" height="150" fill="#fff"/>
+        <g font-size="15">
+          <rect x="40" y="48" width="180" height="48" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="130" y="78" text-anchor="middle">⏱ 乗務タイマー</text>
+          <rect x="232" y="48" width="150" height="48" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="307" y="78" text-anchor="middle">🛣 IC判定</text>
+          <rect x="394" y="48" width="170" height="48" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="479" y="78" text-anchor="middle">✈ 空港ツール</text>
+          <rect x="576" y="48" width="150" height="48" rx="8" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+          <text x="651" y="78" text-anchor="middle" font-weight="700">🌧 雨雲</text>
+        </g>
+        <text x="651" y="122" text-anchor="middle" font-size="13.5" fill="#0a7a5f">ここです</text>
+      </svg>
+      <figcaption>「乗り場」タブはお使いの会社では出ない設定なので、雨雲が空港ツールの右隣になります</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>ボタンが3つになりました</h2>
+    <figure>
+      <svg viewBox="0 0 880 120" role="img" aria-label="動かす・場所・天気の3つのボタン">
+        <rect width="880" height="120" fill="#fff"/>
+        <rect x="40" y="34" width="250" height="52" rx="9" fill="#2f6fd0"/>
+        <text x="165" y="66" text-anchor="middle" font-size="16" fill="#fff">▶ 動かす</text>
+        <rect x="306" y="34" width="250" height="52" rx="9" fill="#2a2a34"/>
+        <text x="431" y="66" text-anchor="middle" font-size="16" fill="#e8edf2">📍 場所</text>
+        <rect x="572" y="34" width="250" height="52" rx="9" fill="#2a2a34"/>
+        <text x="697" y="66" text-anchor="middle" font-size="16" fill="#e8edf2">☁ 天気</text>
+        <text x="697" y="106" text-anchor="middle" font-size="13" fill="#12a37f">↑ これが新しい</text>
+      </svg>
+      <figcaption>地図の真ん中に見えている場所の天気が出ます</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/radar-weather.jpg" alt="羽田空港の天気。いま21℃・曇・雨の降りやすさ89%、時間ごとの一覧">
+      <figcaption>「羽田空港の天気」。いまの気温と、時間ごとの雨の降りやすさ</figcaption>
+    </figure>
+    <div class="note"><b>雨の降りやすさが50%以上だと、数字が濃い青になります。</b>ぱっと見て「この時間から降る」が分かるようにしています。</div>
+  </div>
+
+  <div class="card">
+    <h2>出るもの</h2>
+    <figure>
+      <svg viewBox="0 0 880 200" role="img" aria-label="48時間ぶんの時間ごとと7日ぶんの日ごと">
+        <rect width="880" height="200" fill="#fff"/>
+        <rect x="50" y="36" width="370" height="128" rx="12" fill="#f1f6fb" stroke="#9fc3e8" stroke-width="2"/>
+        <text x="235" y="70" text-anchor="middle" font-size="17" font-weight="700">時間ごと</text>
+        <text x="235" y="102" text-anchor="middle" font-size="15">これから48時間</text>
+        <text x="235" y="132" text-anchor="middle" font-size="13.5" fill="#5a5a5a">天気・気温・雨の降りやすさ</text>
+
+        <rect x="460" y="36" width="370" height="128" rx="12" fill="#f6f4ec" stroke="#c9bfa0" stroke-width="2"/>
+        <text x="645" y="70" text-anchor="middle" font-size="17" font-weight="700">日ごと</text>
+        <text x="645" y="102" text-anchor="middle" font-size="15">これから7日</text>
+        <text x="645" y="132" text-anchor="middle" font-size="13.5" fill="#5a5a5a">最高/最低の気温・雨の降りやすさ</text>
+      </svg>
+      <figcaption>場所を変えると、その場所の天気に切り替わります</figcaption>
+    </figure>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>雨雲タブは<b>空港ツールの右隣</b>です。</li>
+      <li>その中に<b>「☁ 天気」</b>を足しました。雨雲と同じ場所の天気が出ます。</li>
+      <li>費用はかかりません（日報の天気で使っている先と同じ）。</li>
+      <li>テスト1197件すべて通っています。</li>
+    </ul>
+    <div class="q"><b>いま dev です。</b>触ってみて、よければ「本番へ」と言ってください。</div>
+  </div>
+
+</div>
+</body>
+</html>
