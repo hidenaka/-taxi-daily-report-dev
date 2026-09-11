@@ -2,6 +2,8 @@
 //
 // 材料づくりは radar-data.js（純関数・テストあり）。ここは配線だけ。
 // 出典表示「出典：気象庁」は利用条件なので必ず地図に出す。
+import { weatherUrl, pickHourly, pickDaily, dayLabel } from './radar-weather.js';
+import { weatherEmoji, weatherLabel } from '../../js/weather.js';
 import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
@@ -196,6 +198,92 @@ function useCurrentPosition() {
   );
 }
 
+// --- 天気 -----------------------------------------------------------------
+// いま地図の真ん中に見えている場所の天気を出す。場所えらびと同じ場所を指すので、
+// 「この辺りは何時から降るか」をそのまま見られる。
+// 出どころは Open-Meteo（このアプリが日報の天気取得で既に使っている先。鍵不要）。
+const WX_TTL_MS = 15 * 60 * 1000;   // 15分は取り直さない
+const wxCache = new Map();          // 'lat,lon'(小数2桁) → { at, data }
+
+async function loadWeather(lat, lon) {
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+  const hit = wxCache.get(key);
+  if (hit && Date.now() - hit.at < WX_TTL_MS) return hit.data;
+  const res = await fetch(weatherUrl(lat, lon), { cache: 'no-store' });
+  if (!res.ok) throw new Error('weather ' + res.status);
+  const data = await res.json();
+  wxCache.set(key, { at: Date.now(), data });
+  return data;
+}
+
+function renderWeather(data, placeName) {
+  const now = new Date();
+  const hours = pickHourly(data, now, 48);
+  const days = pickDaily(data);
+  const body = el('radar-wx-body');
+  el('radar-wx-title').textContent = placeName ? `${placeName}の天気` : '天気';
+  if (hours.length === 0 && days.length === 0) {
+    body.innerHTML = '<div class="no-hit">天気を取得できませんでした</div>';
+    return;
+  }
+  const cur = hours[0];
+  const popCls = (v) => (v !== null && v >= 50 ? 'pp hi' : 'pp');
+  const num = (v, unit = '') => (v === null || v === undefined ? '--' : v + unit);
+  let html = '';
+  if (cur) {
+    html += `<div class="wx-now">
+      <span class="emo">${weatherEmoji(cur.code)}</span>
+      <span>
+        <span class="t">${num(cur.temp, '℃')}</span>
+        <div class="sub">${weatherLabel(cur.code)} ・ 雨の降りやすさ ${num(cur.pop, '%')}</div>
+      </span>
+    </div>`;
+  }
+  let lastDate = null;
+  for (const h of hours) {
+    if (h.date !== lastDate) {
+      html += `<div class="wx-daybar">${dayLabel(h.date, now)}</div>`;
+      lastDate = h.date;
+    }
+    html += `<div class="wx-row${h.isNow ? ' now' : ''}">
+      <span class="h">${h.isNow ? 'いま' : h.hour + '時'}</span>
+      <span class="e">${weatherEmoji(h.code)}</span>
+      <span class="tp">${num(h.temp, '℃')}</span>
+      <span class="${popCls(h.pop)}">雨 ${num(h.pop, '%')}</span>
+    </div>`;
+  }
+  if (days.length) {
+    html += '<div class="wx-daybar">これから7日</div>';
+    for (const d of days) {
+      html += `<div class="wx-day">
+        <span class="d">${dayLabel(d.date, now)}</span>
+        <span class="e">${weatherEmoji(d.code)}</span>
+        <span class="tp"><span class="mx">${num(d.max)}</span> / <span class="mn">${num(d.min)}</span>℃</span>
+        <span class="pp">雨 ${num(d.pop, '%')}</span>
+      </div>`;
+    }
+  }
+  html += '<div class="wx-src">天気の出どころ: Open-Meteo</div>';
+  body.innerHTML = html;
+}
+
+async function openWeatherPanel() {
+  el('radar-weather-panel').classList.add('open');
+  const body = el('radar-wx-body');
+  body.innerHTML = '<div class="no-hit">読み込み中…</div>';
+  const c = map.getCenter();
+  const label = el('radar-place-label');
+  const name = label && !label.hidden ? label.textContent : 'この場所';
+  try {
+    renderWeather(await loadWeather(c.lat, c.lng), name);
+  } catch {
+    body.innerHTML = '<div class="no-hit">天気を取得できませんでした。少し時間をおいて開き直してください。</div>';
+  }
+}
+function closeWeatherPanel() {
+  el('radar-weather-panel').classList.remove('open');
+}
+
 function openPlacePanel() {
   el('radar-place-panel').classList.add('open');
   el('radar-search').focus();
@@ -225,6 +313,8 @@ async function start() {
     show(Number(e.target.value));
   });
   el('radar-place-btn').addEventListener('click', openPlacePanel);
+  el('radar-weather-btn').addEventListener('click', openWeatherPanel);
+  el('radar-weather-close').addEventListener('click', closeWeatherPanel);
   el('radar-place-close').addEventListener('click', closePlacePanel);
   el('radar-here').addEventListener('click', useCurrentPosition);
   let t = null;

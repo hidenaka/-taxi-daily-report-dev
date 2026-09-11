@@ -70,6 +70,31 @@
       background:none;color:#e8edf2;font-size:14px;cursor:pointer;}
     .no-hit{padding:11px 2px;font-size:13px;color:#9aa4ae;}
 
+    /* 天気パネル */
+    #radar-weather-panel{position:fixed;left:0;right:0;bottom:0;z-index:1400;background:#15151c;color:#fff;
+      border-top-left-radius:14px;border-top-right-radius:14px;padding:14px 16px calc(20px + env(safe-area-inset-bottom));
+      box-shadow:0 -4px 16px rgba(0,0,0,.45);transform:translateY(110%);transition:transform .2s;max-height:78vh;overflow:auto;}
+    #radar-weather-panel.open{transform:translateY(0);}
+    .wx-now{display:flex;align-items:center;gap:14px;padding:12px 14px;background:#1c1c24;border-radius:12px;margin-bottom:12px;}
+    .wx-now .emo{font-size:40px;line-height:1;}
+    .wx-now .t{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;}
+    .wx-now .sub{font-size:13px;color:#9aa4ae;}
+    .wx-daybar{position:sticky;top:0;background:#15151c;font-size:11px;color:#9aa4ae;letter-spacing:.06em;
+      padding:8px 2px 5px;border-bottom:1px solid #2a2a34;z-index:1;}
+    .wx-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid #23232c;font-size:14px;}
+    .wx-row.now{background:rgba(47,111,208,.16);border-radius:8px;}
+    .wx-row .h{width:46px;color:#cfd6dd;font-variant-numeric:tabular-nums;}
+    .wx-row .e{width:26px;font-size:18px;text-align:center;}
+    .wx-row .tp{width:52px;text-align:right;font-variant-numeric:tabular-nums;}
+    .wx-row .pp{width:56px;text-align:right;font-variant-numeric:tabular-nums;color:#7fb3e8;}
+    .wx-row .pp.hi{color:#4da3ff;font-weight:700;}
+    .wx-day{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #23232c;font-size:14px;}
+    .wx-day .d{width:74px;color:#cfd6dd;}
+    .wx-day .e{width:26px;font-size:18px;text-align:center;}
+    .wx-day .tp{flex:1;font-variant-numeric:tabular-nums;}
+    .wx-day .tp .mx{color:#ff9f7a;font-weight:700;} .wx-day .tp .mn{color:#8fb6e8;}
+    .wx-day .pp{width:56px;text-align:right;color:#7fb3e8;font-variant-numeric:tabular-nums;}
+    .wx-src{margin-top:12px;font-size:10.5px;color:#6b7480;}
     #radar-error{position:fixed;left:12px;right:12px;top:58px;z-index:1350;background:#5a1f1a;color:#ffd9d5;
       border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.6;}
   </style>
@@ -118,11 +143,20 @@
     <div class="scale"><span id="radar-scale-left">3時間前</span><span id="radar-now-mark">いま</span><span id="radar-scale-right">先の予想</span></div>
     <div class="bar-actions">
       <button id="radar-play" type="button">▶ 動かす</button>
-      <button id="radar-place-btn" type="button">📍 場所をえらぶ</button>
+      <button id="radar-place-btn" type="button">📍 場所</button>
+      <button id="radar-weather-btn" type="button">☁ 天気</button>
     </div>
   </div>
 
-  <div id="radar-place-panel" aria-label="場所をえらぶ">
+  <div id=radar-weather-panel aria-label=天気>
+    <div class=pp-head>
+      <h2 id=radar-wx-title>天気</h2>
+      <button id=radar-weather-close type=button aria-label=閉じる>×</button>
+    </div>
+    <div id=radar-wx-body></div>
+  </div>
+
+  <div id=radar-place-panel aria-label=場所をえらぶ>
     <div class="pp-head">
       <h2>場所をえらぶ</h2>
       <button id="radar-place-close" type="button" aria-label="閉じる">×</button>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>夜まで見えるようになった</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>1時間先 → <span style="color:#12a37f">明日の未明まで</span></h1>
+  <p class="sub">つまみを右へ動かすと、夜勤の終わりごろの雨まで見えます。</p>
+
+  <div class="card">
+    <h2>伸びたのはここ</h2>
+    <figure>
+      <svg viewBox="0 0 880 260" role="img" aria-label="見られる時間の範囲が1時間先から14時間先に伸びた">
+        <rect width="880" height="260" fill="#fff"/>
+
+        <text x="40" y="56" font-size="15" font-weight="700" fill="#d4483b">前</text>
+        <rect x="40" y="68" width="300" height="30" rx="4" fill="#cfe3f7"/>
+        <rect x="340" y="68" width="70" height="30" rx="4" fill="#fdf0c9"/>
+        <line x1="340" y1="56" x2="340" y2="110" stroke="#e5443a" stroke-width="3"/>
+        <text x="340" y="48" text-anchor="middle" font-size="12" fill="#e5443a" font-weight="700">いま</text>
+        <text x="190" y="89" text-anchor="middle" font-size="13">3時間前から</text>
+        <text x="430" y="89" font-size="13" fill="#8a6a08">1時間先まで</text>
+
+        <text x="40" y="168" font-size="15" font-weight="700" fill="#12a37f">いま</text>
+        <rect x="40" y="180" width="130" height="30" rx="4" fill="#cfe3f7"/>
+        <rect x="170" y="180" width="30" height="30" rx="4" fill="#fdf0c9"/>
+        <rect x="200" y="180" width="620" height="30" rx="4" fill="#ffe3a8"/>
+        <line x1="170" y1="168" x2="170" y2="222" stroke="#e5443a" stroke-width="3"/>
+        <text x="170" y="160" text-anchor="middle" font-size="12" fill="#e5443a" font-weight="700">いま</text>
+        <text x="105" y="201" text-anchor="middle" font-size="12">3時間前</text>
+        <text x="510" y="201" text-anchor="middle" font-size="13.5" fill="#6a5310">約14時間先まで（1時間ごと）</text>
+        <text x="820" y="242" text-anchor="end" font-size="12.5" fill="#5a5a5a">＝ 明日の未明ごろ</text>
+      </svg>
+      <figcaption>細かい5分きざみは1時間先まで。その先は1時間きざみになります</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/radar-forecast.jpg" alt="13時間45分後の雨雲予想。関東一円に雨域が広がっている">
+      <figcaption>いちばん右まで動かしたところ。「01:00／13時間45分後／この先の予想（1時間ごと）」</figcaption>
+    </figure>
+    <div class="note"><b>粗くなる区間は、画面が教えます。</b>細かいほうは青いラベル、1時間ごとの予想は黄色いラベルが出ます。<br>どこまで先が出せるかは気象庁の更新タイミングで13〜15時間先と変わるので、目盛りの右端には<b>そのときの実際の数字</b>を出しています。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>つまみの範囲が <b>3時間前 〜 約14時間先</b>（全62コマ）になりました。</li>
+      <li>先の予想は気象庁の別の予報に自動で切り替わります。</li>
+      <li>取れないときは、これまで通り1時間先までで動きます。</li>
+      <li>テスト1189件すべて通っています。</li>
+    </ul>
+    <div class="q"><b>いま dev です。</b>触ってみて、よければ「本番へ」と言ってください。</div>
+  </div>
+
+</div>
+</body>
+</html>
