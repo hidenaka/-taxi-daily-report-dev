@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>歩率の段が高く出ていた</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  td.n{text-align:right;font-variant-numeric:tabular-nums}
+  tr:last-child td{border-bottom:0}
+  .bad{color:#d4483b;font-weight:700} .good{color:#0a7a5f;font-weight:700}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  .end .q{margin:18px 0 0;padding:14px 16px;background:#2c2f33;border-radius:12px;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}table{font-size:12.5px}th,td{padding:7px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>ご指摘のとおりでした。<span style="color:#d4483b">歩率が高く出ていました</span></h1>
+  <p class="sub">画面の歩率だけ。実際の給料の計算は正しいままです。</p>
+
+  <div class="card">
+    <h2>何が起きていたか</h2>
+    <p class="lede">歩率の段は <b>11出番まで</b>の売上で決まります。画面は <b>全部</b>の売上で見ていました。</p>
+    <figure>
+      <svg viewBox="0 0 880 250" role="img" aria-label="12出番目以降の売上まで歩率の判定に入っていた図">
+        <rect width="880" height="250" fill="#fff"/>
+
+        <text x="60" y="52" font-size="14.5" font-weight="700" fill="#d4483b">前</text>
+        <g>
+          <rect x="60" y="64" width="520" height="34" rx="5" fill="#c8e6c9" stroke="#81c784"/>
+          <text x="320" y="87" text-anchor="middle" font-size="14">1〜11出番の売上</text>
+          <rect x="584" y="64" width="150" height="34" rx="5" fill="#fdeeec" stroke="#d4483b" stroke-width="2"/>
+          <text x="659" y="87" text-anchor="middle" font-size="14" fill="#d4483b">12出番目〜</text>
+          <path d="M60 108 L734 108" stroke="#d4483b" stroke-width="2" stroke-dasharray="5,4"/>
+          <text x="397" y="128" text-anchor="middle" font-size="13.5" fill="#d4483b">ここ全部を足して段を決めていた → 段が上がりすぎる</text>
+        </g>
+
+        <text x="60" y="176" font-size="14.5" font-weight="700" fill="#12a37f">いま</text>
+        <g>
+          <rect x="60" y="188" width="520" height="34" rx="5" fill="#c8e6c9" stroke="#12a37f" stroke-width="2"/>
+          <text x="320" y="211" text-anchor="middle" font-size="14">1〜11出番の売上</text>
+          <rect x="584" y="188" width="150" height="34" rx="5" fill="#f4f4f4" stroke="#ccc" stroke-dasharray="5,4"/>
+          <text x="659" y="211" text-anchor="middle" font-size="13" fill="#999">段には入れない</text>
+          <path d="M60 232 L580 232" stroke="#12a37f" stroke-width="2"/>
+          <text x="320" y="248" text-anchor="middle" font-size="13" fill="#0a7a5f">ここだけで段を決める</text>
+        </g>
+      </svg>
+      <figcaption>12出番目以降は固定の歩率なので、段の判定には関係しません</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>どれくらいズレていたか</h2>
+    <p class="lede">ご自身の過去データで、12出番以上あった月を全部調べました。</p>
+    <figure>
+      <svg viewBox="0 0 880 150" role="img" aria-label="16か月中15か月で段がずれていた">
+        <rect width="880" height="150" fill="#fff"/>
+        <g>
+          <text x="440" y="36" text-anchor="middle" font-size="15">12出番以上あった月度</text>
+        </g>
+        <g transform="translate(140,58)">
+          <!-- 16 squares, 15 red -->
+          <g fill="#d4483b">
+            <rect x="0" y="0" width="30" height="30" rx="4"/><rect x="38" y="0" width="30" height="30" rx="4"/><rect x="76" y="0" width="30" height="30" rx="4"/><rect x="114" y="0" width="30" height="30" rx="4"/>
+            <rect x="152" y="0" width="30" height="30" rx="4"/><rect x="190" y="0" width="30" height="30" rx="4"/><rect x="228" y="0" width="30" height="30" rx="4"/><rect x="266" y="0" width="30" height="30" rx="4"/>
+            <rect x="304" y="0" width="30" height="30" rx="4"/><rect x="342" y="0" width="30" height="30" rx="4"/><rect x="380" y="0" width="30" height="30" rx="4"/><rect x="418" y="0" width="30" height="30" rx="4"/>
+            <rect x="456" y="0" width="30" height="30" rx="4"/><rect x="494" y="0" width="30" height="30" rx="4"/><rect x="532" y="0" width="30" height="30" rx="4"/>
+          </g>
+          <rect x="570" y="0" width="30" height="30" rx="4" fill="#c8e6c9" stroke="#81c784"/>
+          <text x="300" y="62" text-anchor="middle" font-size="14"><tspan fill="#d4483b" font-weight="700">15か月</tspan> で段がずれていた（<tspan fill="#0a7a5f">1か月</tspan>だけ一致）</text>
+        </g>
+      </svg>
+      <figcaption>赤＝画面の歩率が実際より高く出ていた月</figcaption>
+    </figure>
+    <table>
+      <thead><tr><th>月度</th><th class="n">出番</th><th class="n">前の表示</th><th class="n">正しい歩率</th></tr></thead>
+      <tbody>
+        <tr><td>2025年2月</td><td class="n">14</td><td class="n bad">69.2%</td><td class="n good">66.2%</td></tr>
+        <tr><td>2024年9月</td><td class="n">13</td><td class="n bad">69.2%</td><td class="n good">66.2%</td></tr>
+        <tr><td>2026年6月</td><td class="n">12</td><td class="n bad">69.2%</td><td class="n good">67.6%</td></tr>
+        <tr><td>2026年1月</td><td class="n">12</td><td class="n">69.2%</td><td class="n">69.2%</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>給料そのものは合っていました。</b>給与計算は前から11出番までで歩率を出しています。ズレていたのは<b>画面に出る歩率と、次の段までの条件</b>だけです。直した後は16か月ぶん全部、給与計算の歩率とぴったり一致しました。</div>
+  </div>
+
+  <div class="card">
+    <h2>画面の見え方</h2>
+    <table>
+      <thead><tr><th style="width:42%">場所</th><th>どう変わるか</th></tr></thead>
+      <tbody>
+        <tr><td>歩率マップの現在位置</td><td>11出番までの平均で置かれる（段が下がって見えることがあります）</td></tr>
+        <tr><td>「現状ペース ◯円/出番」</td><td>11出番までの平均</td></tr>
+        <tr><td>「月度予測」の枠</td><td><b>「歩率の判定額」</b>に名前を変更（中身は11乗務ぶん）</td></tr>
+        <tr><td>次の歩率段「月度合計」</td><td><b>「11出番ぶんの合計」</b>に名前を変更</td></tr>
+        <tr><td>次の段の「残◯出番」</td><td>段に効く残り（11出番目まで）で数える</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>画面の歩率が<b>実際より高く</b>出ていました。ご指摘どおりです。</li>
+      <li>給料の計算そのものは<b>前から正しい</b>です。</li>
+      <li>過去16か月で検算し、全部一致しました。</li>
+      <li>テスト1166件すべて通っています。</li>
+    </ul>
+    <div class="q"><b>本番に出しました</b>（9/11 10:05・SW v366）。アプリを開き直すと新しくなります。</div>
+  </div>
+
+</div>
+</body>
+</html>
