@@ -123,7 +123,10 @@ async function loadAreaCoords() {
 }
 
 function goTo(lat, lon, zoom = 12, label = '') {
-  map.setView([lat, lon], zoom);
+  // animate:false で即座に移動する。動かしながらだと、直後に読む中心が
+  // まだ移動前のままで、覚える場所が1つ前になってしまう(実機で確認)。
+  // 遠くへ飛ぶ操作なので、滑らせるより一気に移るほうが分かりやすい。
+  map.setView([lat, lon], zoom, { animate: false });
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   if (label) {
     el('radar-place-label').textContent = label;
