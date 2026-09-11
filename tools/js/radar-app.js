@@ -3,8 +3,8 @@
 // 材料づくりは radar-data.js（純関数・テストあり）。ここは配線だけ。
 // 出典表示「出典：気象庁」は利用条件なので必ず地図に出す。
 import {
-  TARGET_TIMES_OBS, TARGET_TIMES_FCST,
-  buildFrames, tileUrl, frameLabel, frameClock,
+  TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
+  buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
 
@@ -100,7 +100,9 @@ function renderTimeUi() {
   el('radar-slider').value = String(index);
   el('radar-clock').textContent = frameClock(f);
   el('radar-rel').textContent = frameLabel(f, nowMs);
-  el('radar-kind').textContent = f.kind === 'fcst' ? 'この先の予想' : '実際に降った雨';
+  el('radar-kind').textContent = f.kind !== 'fcst'
+    ? '実際に降った雨'
+    : (f.product === 'rasrf' ? 'この先の予想（1時間ごと）' : 'この先の予想');
   el('radar-kind').className = f.kind === 'fcst' ? 'kind fcst' : 'kind obs';
 }
 
@@ -204,11 +206,13 @@ function closePlacePanel() {
 
 // --- 起動 -----------------------------------------------------------------
 async function loadFrames() {
-  const [obs, fcst] = await Promise.all([
-    fetch(TARGET_TIMES_OBS, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
-    fetch(TARGET_TIMES_FCST, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : [])).catch(() => []),
+  const get = (url) => fetch(url, { cache: 'no-store' })
+    .then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  // 短時間予報(1〜15時間先)が取れなくても、ナウキャストだけで動くようにしておく。
+  const [obs, fcst, short] = await Promise.all([
+    get(TARGET_TIMES_OBS), get(TARGET_TIMES_FCST), get(TARGET_TIMES_SHORT),
   ]);
-  return buildFrames(obs, fcst);
+  return buildFramesWithShortRange(obs, fcst, short);
 }
 
 async function start() {
@@ -238,6 +242,12 @@ async function start() {
     return;
   }
   el('radar-slider').max = String(frames.length - 1);
+  // 「いま」の目盛りを、実際のコマ位置へ置く
+  const nowIdx = frames.findIndex((f) => f.isLatestObs);
+  const mark = el('radar-now-mark');
+  if (mark && nowIdx >= 0 && frames.length > 1) {
+    mark.style.left = `${(nowIdx / (frames.length - 1)) * 100}%`;
+  }
   const latest = frames.findIndex((f) => f.isLatestObs);
   show(latest >= 0 ? latest : frames.length - 1);
 }

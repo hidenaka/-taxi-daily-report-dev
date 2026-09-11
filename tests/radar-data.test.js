@@ -123,3 +123,84 @@ test('よく行く場所は最初から選べる', () => {
   assert.ok(haneda.lat > 35 && haneda.lat < 36);
   assert.ok(haneda.lon > 139 && haneda.lon < 140);
 });
+
+// --- もっと先の時間まで見る (2026-09-11 本人要望) ---------------------------
+// ナウキャスト(5分刻み)は1時間先まで。その先は「降水短時間予報」(rasrf)を足す。
+//   1〜6時間先  … 10分ごとに更新される基準時刻から（1時間刻み）
+//   7〜15時間先 … 毎正時の基準時刻から（1時間刻み）
+// 同じ時刻が複数の基準時刻にあるので、いちばん新しい基準時刻のものを採る。
+import { buildFramesWithShortRange, TARGET_TIMES_SHORT } from '../tools/js/radar-data.js';
+
+const shortRange = [
+  // 古い基準時刻（採らない）
+  { basetime: '20260911000000', validtime: '20260911030000', elements: ['rasrf'] },
+  // 新しい基準時刻（こちらを採る）
+  { basetime: '20260911015000', validtime: '20260911030000', elements: ['rasrf'] },
+  { basetime: '20260911015000', validtime: '20260911040000', elements: ['rasrf'] },
+  // 毎正時の基準時刻から、さらに先
+  { basetime: '20260911010000', validtime: '20260911080000', elements: ['rasrf'] },
+  { basetime: '20260911010000', validtime: '20260911160000', elements: ['rasrf'] },
+  // 過去の解析（先の予想ではないので使わない）
+  { basetime: '20260911000000', validtime: '20260911000000', elements: ['rasrf'] },
+];
+
+test('1時間より先のコマが後ろに足される', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  // n1(3コマ) + n2(2コマ: 02:00, 02:15) + 短時間予報(03:00,04:00,08:00,16:00)
+  assert.equal(frames.length, 9);
+  assert.deepEqual(frames.slice(5).map(f => f.validtime), [
+    '20260911030000', '20260911040000', '20260911080000', '20260911160000',
+  ]);
+  assert.ok(frames.slice(5).every(f => f.kind === 'fcst'));
+});
+
+test('同じ時刻なら新しい基準時刻のものを採る', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  const f = frames.find(x => x.validtime === '20260911030000');
+  assert.equal(f.basetime, '20260911015000');
+});
+
+test('ナウキャストと重なる時間帯は、細かいほうを残す', () => {
+  const overlap = [{ basetime: '20260911015000', validtime: '20260911021500', elements: ['rasrf'] }];
+  const frames = buildFramesWithShortRange(n1, n2, overlap);
+  const f = frames.find(x => x.validtime === '20260911021500');
+  assert.equal(f.product, 'hrpns', '5分刻みのナウキャストを優先');
+  assert.equal(frames.length, 5);
+});
+
+test('過去の解析は先の予想として混ぜない', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  assert.ok(!frames.some(f => f.validtime === '20260911000000'));
+});
+
+test('コマごとに、どのデータかが分かる', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  assert.equal(frames[0].product, 'hrpns');
+  assert.equal(frames[8].product, 'rasrf');
+});
+
+test('短時間予報のタイルURLは別の場所を指す', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  const f = frames[8];
+  assert.equal(
+    tileUrl(f, 10, 909, 403),
+    'https://www.jma.go.jp/bosai/jmatile/data/rasrf/20260911010000/none/20260911160000/surf/rasrf/10/909/403.png'
+  );
+});
+
+test('先の時間の言い方', () => {
+  const frames = buildFramesWithShortRange(n1, n2, shortRange);
+  const now = parseJmaTime('20260911011500');
+  assert.equal(frameLabel(frames[8], now), '14時間45分後');
+  assert.equal(frameLabel(frames[7], now), '6時間45分後');
+});
+
+test('短時間予報が取れなくても、これまで通り動く', () => {
+  const frames = buildFramesWithShortRange(n1, n2, []);
+  assert.equal(frames.length, 5);
+  assert.deepEqual(frames, buildFrames(n1, n2));
+});
+
+test('短時間予報の時刻一覧の場所', () => {
+  assert.equal(TARGET_TIMES_SHORT, 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/targetTimes.json');
+});

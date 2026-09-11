@@ -13,6 +13,9 @@
 const BASE = 'https://www.jma.go.jp/bosai/jmatile/data/nowc';
 export const TARGET_TIMES_OBS = `${BASE}/targetTimes_N1.json`;
 export const TARGET_TIMES_FCST = `${BASE}/targetTimes_N2.json`;
+// 降水短時間予報。ナウキャストの先(1〜15時間先・1時間刻み)を埋める。
+const SHORT_BASE = 'https://www.jma.go.jp/bosai/jmatile/data/rasrf';
+export const TARGET_TIMES_SHORT = `${SHORT_BASE}/targetTimes.json`;
 
 // 気象庁の 'YYYYMMDDHHmmss'(UTC) → ミリ秒。読めなければ null。
 export function parseJmaTime(s) {
@@ -28,7 +31,7 @@ export function parseJmaTime(s) {
 export function buildFrames(obsList, fcstList) {
   const pick = (list, kind) => (Array.isArray(list) ? list : [])
     .map((x) => ({
-      basetime: x?.basetime, validtime: x?.validtime, kind,
+      basetime: x?.basetime, validtime: x?.validtime, kind, product: 'hrpns',
       timeMs: parseJmaTime(x?.validtime),
     }))
     .filter((f) => f.basetime && f.validtime && f.timeMs !== null);
@@ -44,7 +47,9 @@ export function buildFrames(obsList, fcstList) {
 }
 
 export function tileUrl(frame, z, x, y) {
-  return `${BASE}/${frame.basetime}/none/${frame.validtime}/surf/hrpns/${z}/${x}/${y}.png`;
+  const root = frame.product === 'rasrf' ? SHORT_BASE : BASE;
+  const kind = frame.product === 'rasrf' ? 'rasrf' : 'hrpns';
+  return `${root}/${frame.basetime}/none/${frame.validtime}/surf/${kind}/${z}/${x}/${y}.png`;
 }
 
 // そのコマの時刻(日本時間 HH:MM)
@@ -61,7 +66,10 @@ export function frameLabel(frame, nowMs) {
   const diffMin = Math.round((frame.timeMs - nowMs) / 60000);
   if (diffMin === 0) return 'いま';
   const abs = Math.abs(diffMin);
-  const unit = abs >= 60 && abs % 60 === 0 ? `${abs / 60}時間` : `${abs}分`;
+  // 15時間先まで出せるので、1時間を超えたら「◯時間◯分」にする。
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  const unit = h === 0 ? `${m}分` : (m === 0 ? `${h}時間` : `${h}時間${m}分`);
   return diffMin < 0 ? `${unit}前` : `${unit}後`;
 }
 
@@ -96,4 +104,40 @@ export function searchPlaces(query, coords, limit = 20) {
     return a.name.localeCompare(b.name, 'ja');
   });
   return hits.slice(0, limit).map(({ name, lat, lon }) => ({ name, lat, lon }));
+}
+
+// ナウキャスト(5分刻み・1時間先まで)の続きに、降水短時間予報を足す。
+//
+// 短時間予報の時刻一覧は、基準時刻ちがいの同じ予報時刻がたくさん並ぶ。
+//   ・10分ごとに更新される基準時刻 … 1〜6時間先
+//   ・毎正時の基準時刻            … 7〜15時間先
+// 同じ予報時刻が複数あるので、いちばん新しい基準時刻のものを採る。
+// 過去ぶん(解析)も混ざっているので、ナウキャストの最後より先だけを使う。
+// 重なる時間帯は、細かいナウキャスト(5分刻み)を残す。
+export function buildFramesWithShortRange(obsList, fcstList, shortList) {
+  const base = buildFrames(obsList, fcstList);
+  const rows = Array.isArray(shortList) ? shortList : [];
+  if (rows.length === 0) return base;
+
+  const lastMs = base.length ? base[base.length - 1].timeMs : null;
+  const taken = new Set(base.map((f) => f.validtime));
+
+  // 予報時刻ごとに、いちばん新しい基準時刻を選ぶ
+  const newest = new Map();
+  for (const x of rows) {
+    const timeMs = parseJmaTime(x?.validtime);
+    if (!x?.basetime || !x?.validtime || timeMs === null) continue;
+    if (lastMs !== null && timeMs <= lastMs) continue;   // ナウキャストで足りている範囲
+    if (taken.has(x.validtime)) continue;
+    const cur = newest.get(x.validtime);
+    if (!cur || x.basetime > cur.basetime) {
+      newest.set(x.validtime, { basetime: x.basetime, validtime: x.validtime, timeMs });
+    }
+  }
+
+  const extra = [...newest.values()]
+    .sort((a, b) => a.timeMs - b.timeMs)
+    .map((f) => ({ ...f, kind: 'fcst', product: 'rasrf', isLatestObs: false }));
+
+  return [...base, ...extra];
 }
