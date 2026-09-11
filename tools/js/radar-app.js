@@ -44,7 +44,10 @@ function createMap() {
     maxZoom: 18, subdomains: 'abcd',
     attribution: '© OpenStreetMap contributors © CARTO ｜ 雨雲：出典 気象庁',
   }).addTo(map);
-  map.on('moveend zoomend', saveView);
+  // イベント名をまとめて渡す書き方は、この環境では発火しなかった(実機で確認)。
+  // 1つずつ登録する。
+  map.on('moveend', saveView);
+  map.on('zoomend', saveView);
 }
 
 // --- 雨雲のコマ -----------------------------------------------------------
