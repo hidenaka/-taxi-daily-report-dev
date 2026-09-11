@@ -14,6 +14,7 @@ const MAX_LAYERS = 12;                 // 端末のメモリを食わないよ�
 const PLAY_INTERVAL_MS = 450;
 
 const el = (id) => document.getElementById(id);
+try { document.body.dataset.radarBuild = 'probe1'; } catch (e) { /* 調査用 */ }
 
 let map = null;
 let frames = [];
