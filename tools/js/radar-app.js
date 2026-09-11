@@ -244,6 +244,14 @@ async function start() {
   el('radar-slider').max = String(frames.length - 1);
   // 「いま」の目盛りを、実際のコマ位置へ置く
   const nowIdx = frames.findIndex((f) => f.isLatestObs);
+  // 目盛りの両端は、実際に持っているコマに合わせて書く。
+  // どこまで先が出せるかは更新のタイミングで13〜15時間先と変わるため、
+  // 固定の文言だと実際とずれる。
+  const nowMs = nowIdx >= 0 ? frames[nowIdx].timeMs : null;
+  const left = el('radar-scale-left');
+  const right = el('radar-scale-right');
+  if (left && nowMs !== null) left.textContent = frameLabel(frames[0], nowMs);
+  if (right && nowMs !== null) right.textContent = frameLabel(frames[frames.length - 1], nowMs);
   const mark = el('radar-now-mark');
   if (mark && nowIdx >= 0 && frames.length > 1) {
     mark.style.left = `${(nowIdx / (frames.length - 1)) * 100}%`;
