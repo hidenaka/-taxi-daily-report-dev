@@ -32,9 +32,10 @@ function readView() {
 }
 function saveView() {
   try {
+    document.body.dataset.radarSave = String(Number(document.body.dataset.radarSave || 0) + 1);
     const c = map.getCenter();
     localStorage.setItem(VIEW_KEY, JSON.stringify({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }));
-  } catch { /* 保存できなくても動作に影響なし */ }
+  } catch (e) { document.body.dataset.radarSaveErr = String(e); }
 }
 
 function createMap() {
