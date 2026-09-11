@@ -49,9 +49,12 @@ function saveViewSoon() {
 function createMap() {
   const v = readView();
   map = L.map('radar-map', { zoomControl: true }).setView([v.lat, v.lon], v.zoom);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, subdomains: 'abcd',
-    attribution: '© OpenStreetMap contributors © CARTO ｜ 雨雲：出典 気象庁',
+  // 背景は国土地理院の淡色地図。Carto の light_all はタイルに
+  // 「API KEY REQUIRED」の透かしが入るようになっていた(実機で確認)。
+  // 地理院タイルは鍵不要・日本語表記で、出典表示のみが条件。
+  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
+    maxZoom: 18, maxNativeZoom: 18,
+    attribution: '地理院タイル ｜ 雨雲：出典 気象庁',
   }).addTo(map);
   const c = map.getContainer();
   for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {

@@ -2,7 +2,8 @@
 // 既存編集モードから initGeoref({stand, onSave}) で起動。完了時は onSave(updatedStand) を呼ぶ。
 import { computeHomography, applyToPdfLines } from './stands-georef.js';
 
-const TILE_CARTO = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+// 地理院タイル(淡色)。Carto light_all は透かしが入るようになったため差し替え(2026-09-11)。
+const TILE_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
 
 export function initGeoref({ stand, onSave }) {
   if (!stand) return;
@@ -32,7 +33,7 @@ export function initGeoref({ stand, onSave }) {
   if (mapEl._leaflet_id) mapEl._leaflet_id = null;
   mapEl.innerHTML = '';
   const map = L.map(mapEl, { zoomControl: true }).setView([stand.pin.lat, stand.pin.lng], 18);
-  L.tileLayer(TILE_CARTO, { maxZoom: 20, subdomains: 'abcd', attribution: '© OSM © CARTO' }).addTo(map);
+  L.tileLayer(TILE_BASE, { maxZoom: 20, subdomains: 'abcd', attribution: '地理院タイル' }).addTo(map);
   L.marker([stand.pin.lat, stand.pin.lng], { title: stand.name }).addTo(map);
 
   pdfImg.src = `data/stands-ref/${imgFile}`;

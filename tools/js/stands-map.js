@@ -15,13 +15,15 @@ const MARKER_COLOR = {
 
 export function createStandsMap(elId) {
   const map = L.map(elId, { zoomControl: true }).setView(TOKYO_CENTER, 13);
-  // 淡色のシンプル地図（道路名主体・余計な情報を削いだ確認用ベース）。Carto Positron。
+  // 淡色のシンプル地図。国土地理院の淡色地図を使う。
+  // 以前の Carto light_all はタイルに「API KEY REQUIRED」の透かしが入るように
+  // なっていた(2026-09-11 実機で確認)。地理院タイルは鍵不要・日本語表記。
   L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png',
     {
       maxZoom: 20,
-      subdomains: 'abcd',
-      attribution: '© OpenStreetMap contributors © CARTO',
+      maxNativeZoom: 18,
+      attribution: '地理院タイル',
     },
   ).addTo(map);
   return map;
