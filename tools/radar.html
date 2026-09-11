@@ -22,6 +22,9 @@
       height:100dvh;min-height:100dvh;display:flex;flex-direction:column;
       overflow:hidden;overscroll-behavior:none;
       padding-top:var(--app-update-h,0px);   /* 更新の帯のぶんだけ下げる */
+      /* 共通CSSが下タブぶんの余白(64px)を入れているが、このページに下タブは無い。
+         残すと画面の下に黒い帯が出る。 */
+      padding-bottom:0;
     }
     .app-tabs{flex:0 0 auto;position:relative;z-index:1200;}
     #radar-stage{flex:1 1 auto;min-height:0;position:relative;}
