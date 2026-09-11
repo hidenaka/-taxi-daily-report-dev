@@ -8,6 +8,7 @@ import { distanceKm } from '../../js/area-geo.js';
 import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
+  frameOffsets, nearestFrameIndex, buildTicks,
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
 
@@ -22,6 +23,7 @@ let map = null;
 let frames = [];
 let index = 0;
 let playTimer = null;
+let offsets = { minutes: [], percents: [], totalMin: 0 };
 let hereMarker = null;
 // 最後に選んだ場所。地図を手で動かして離れたら、名前は出さない
 // （「羽田空港の天気」と出ているのに中心は別の街、を防ぐ）。
@@ -101,10 +103,25 @@ function show(i) {
   if (index + 1 < frames.length) layerFor(index + 1).setOpacity(0);
 }
 
+// バーの下の目盛り。3時間おきに「3時間前 / いま / 3時間後 …」を、
+// 時間に比例した位置へ置く。どのあたりの時刻を見ているかが読めるようにするため。
+function renderTicks() {
+  const box = el('radar-scale');
+  if (!box) return;
+  const ticks = buildTicks(frames);
+  box.innerHTML = ticks.map((t, i) => {
+    const cls = ['tk'];
+    if (t.label === 'いま') cls.push('now');
+    if (i === 0 && t.pct < 6) cls.push('edge');
+    if (i === ticks.length - 1 && t.pct > 94) cls.push('edge', 'r');
+    return `<span class="${cls.join(' ')}" style="left:${t.pct.toFixed(2)}%">${t.label}</span>`;
+  }).join('');
+}
+
 function renderTimeUi() {
   const f = frames[index];
   const nowMs = (frames.find((x) => x.isLatestObs) || {}).timeMs ?? null;
-  el('radar-slider').value = String(index);
+  el('radar-slider').value = String(offsets.minutes[index] ?? 0);
   el('radar-clock').textContent = frameClock(f);
   el('radar-rel').textContent = frameLabel(f, nowMs);
   el('radar-kind').textContent = f.kind !== 'fcst'
@@ -353,7 +370,8 @@ async function start() {
   el('radar-play').addEventListener('click', () => setPlaying(!playTimer));
   el('radar-slider').addEventListener('input', (e) => {
     setPlaying(false);
-    show(Number(e.target.value));
+    // つまみの値は「先頭のコマからの経過分」。いちばん近いコマに吸い付かせる。
+    show(nearestFrameIndex(frames, Number(e.target.value)));
   });
   el('radar-place-btn').addEventListener('click', openPlacePanel);
   el('radar-weather-btn').addEventListener('click', openWeatherPanel);
@@ -374,21 +392,13 @@ async function start() {
     el('radar-bar').hidden = true;
     return;
   }
-  el('radar-slider').max = String(frames.length - 1);
-  // 「いま」の目盛りを、実際のコマ位置へ置く
-  const nowIdx = frames.findIndex((f) => f.isLatestObs);
-  // 目盛りの両端は、実際に持っているコマに合わせて書く。
-  // どこまで先が出せるかは更新のタイミングで13〜15時間先と変わるため、
-  // 固定の文言だと実際とずれる。
-  const nowMs = nowIdx >= 0 ? frames[nowIdx].timeMs : null;
-  const left = el('radar-scale-left');
-  const right = el('radar-scale-right');
-  if (left && nowMs !== null) left.textContent = frameLabel(frames[0], nowMs);
-  if (right && nowMs !== null) right.textContent = frameLabel(frames[frames.length - 1], nowMs);
-  const mark = el('radar-now-mark');
-  if (mark && nowIdx >= 0 && frames.length > 1) {
-    mark.style.left = `${(nowIdx / (frames.length - 1)) * 100}%`;
-  }
+  offsets = frameOffsets(frames);
+  const slider = el('radar-slider');
+  slider.min = '0';
+  slider.max = String(offsets.totalMin);
+  slider.step = '1';
+  renderTicks();
+
   const latest = frames.findIndex((f) => f.isLatestObs);
   show(latest >= 0 ? latest : frames.length - 1);
 }

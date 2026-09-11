@@ -204,3 +204,70 @@ test('短時間予報が取れなくても、これまで通り動く', () => {
 test('短時間予報の時刻一覧の場所', () => {
   assert.equal(TARGET_TIMES_SHORT, 'https://www.jma.go.jp/bosai/jmatile/data/rasrf/targetTimes.json');
 });
+
+// --- 時間バーの目盛り (2026-09-12 本人指摘) ---------------------------------
+// 1) 何時のコマを見ているのか、バーの上で位置が読めない
+// 2) 「3時間前」より「14時間後」のほうが幅が狭い＝コマ番号で等間隔に並べていたため。
+//    過去3時間は5分刻みで37コマ、先は1時間刻みで13コマ。時間の長さと幅が合っていなかった。
+// → バーは時間に比例させ、3時間おきの目盛りを置く。
+import { frameOffsets, buildTicks, nearestFrameIndex } from '../tools/js/radar-data.js';
+
+// 実況3コマ(5分刻み) + 予測1コマ(1時間後) の極端な例で、比例しているかを見る
+const obs3 = [
+  { basetime: '20260911011500', validtime: '20260911011500', elements: ['hrpns'] },
+  { basetime: '20260911011000', validtime: '20260911011000', elements: ['hrpns'] },
+  { basetime: '20260911010500', validtime: '20260911010500', elements: ['hrpns'] },
+];
+const far = [{ basetime: '20260911011500', validtime: '20260911021500', elements: ['hrpns'] }];
+
+test('コマの位置は「時間の長さ」で決まる', () => {
+  const frames = buildFrames(obs3, far);           // 01:05 01:10 01:15 02:15 (計70分)
+  const off = frameOffsets(frames);
+  assert.equal(off.totalMin, 70);
+  assert.deepEqual(off.minutes, [0, 5, 10, 70]);
+  assert.deepEqual(off.percents.map((p) => Math.round(p)), [0, 7, 14, 100]);
+});
+
+test('コマが1つでも落ちない', () => {
+  const one = buildFrames([obs3[0]], []);
+  const off = frameOffsets(one);
+  assert.equal(off.totalMin, 0);
+  assert.deepEqual(off.percents, [0]);
+  assert.deepEqual(frameOffsets([]), { minutes: [], percents: [], totalMin: 0 });
+});
+
+test('バーの位置から、いちばん近いコマを選ぶ', () => {
+  const frames = buildFrames(obs3, far);
+  assert.equal(nearestFrameIndex(frames, 0), 0);
+  assert.equal(nearestFrameIndex(frames, 6), 1, '6分の位置は 5分のコマ');
+  assert.equal(nearestFrameIndex(frames, 40), 2, '40分の位置は 10分のコマ（次は70分）');
+  assert.equal(nearestFrameIndex(frames, 999), 3, '右端を超えたら最後のコマ');
+  assert.equal(nearestFrameIndex([], 5), -1);
+});
+
+test('目盛りは3時間おきに置く', () => {
+  const now = parseJmaTime('20260911011500');
+  const frames = [
+    { timeMs: now - 180 * 60000, kind: 'obs' },
+    { timeMs: now, kind: 'obs', isLatestObs: true },
+    { timeMs: now + 840 * 60000, kind: 'fcst' },
+  ];
+  const ticks = buildTicks(frames);
+  assert.deepEqual(ticks.map((t) => t.label), ['3時間前', 'いま', '3時間後', '6時間後', '9時間後', '12時間後']);
+});
+
+test('目盛りの位置も時間に比例する', () => {
+  const now = parseJmaTime('20260911011500');
+  const frames = [
+    { timeMs: now - 180 * 60000, kind: 'obs' },
+    { timeMs: now, kind: 'obs', isLatestObs: true },
+    { timeMs: now + 180 * 60000, kind: 'fcst' },
+  ];
+  const ticks = buildTicks(frames);   // 全6時間ぶん
+  assert.deepEqual(ticks.map((t) => Math.round(t.pct)), [0, 50, 100]);
+});
+
+test('目盛りが無いときは空', () => {
+  assert.deepEqual(buildTicks([]), []);
+  assert.deepEqual(buildTicks(null), []);
+});

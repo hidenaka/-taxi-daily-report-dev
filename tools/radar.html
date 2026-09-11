@@ -15,8 +15,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <style>
     body{visibility:hidden;pointer-events:none;}
-    #radar-map{position:fixed;top:48px;left:0;right:0;bottom:0;background:#eef1f4;}
-    .app-tabs{position:fixed;top:0;left:0;right:0;z-index:1200;}
+    #radar-map{position:fixed;top:calc(48px + var(--app-update-h,0px));left:0;right:0;bottom:0;background:#eef1f4;}
+    .app-tabs{position:fixed;top:var(--app-update-h,0px);left:0;right:0;z-index:1200;}
     /* タブ名が長いので、狭い端末では横に流す（2段にすると地図と被る） */
     .app-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
     .app-tabs::-webkit-scrollbar{display:none;}
@@ -34,9 +34,14 @@
     .kind.obs{background:#1e4f7a;color:#cfe6ff;}
     .kind.fcst{background:#6a5310;color:#ffe9a8;}
     #radar-slider{width:100%;margin:2px 0 4px;accent-color:#4da3ff;}
-    .scale{position:relative;display:flex;justify-content:space-between;font-size:10px;color:#9aa4ae;margin-bottom:8px;}
-    /* 「いま」は真ん中ではなく、実際のコマ位置に置く（過去3時間より先のほうが長いため） */
-    #radar-now-mark{position:absolute;transform:translateX(-50%);white-space:nowrap;}
+    /* 目盛り。バーは時間に比例させているので、3時間おきの位置も比例で置ける */
+    .scale{position:relative;height:26px;margin-bottom:6px;}
+    .scale .tk{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap;
+      font-size:10px;color:#9aa4ae;padding-top:9px;}
+    .scale .tk::before{content:"";position:absolute;top:0;left:50%;width:1px;height:6px;background:#4a525b;}
+    .scale .tk.now{color:#cfe6ff;font-weight:700;}
+    .scale .tk.now::before{background:#4da3ff;height:8px;}
+    .scale .tk.edge{transform:none;} .scale .tk.edge.r{transform:translateX(-100%);}
     .bar-actions{display:flex;gap:8px;}
     .bar-actions button{flex:1;padding:10px 0;border-radius:9px;border:none;font-size:14px;font-weight:600;cursor:pointer;}
     #radar-play{background:#2f6fd0;color:#fff;}
@@ -164,7 +169,7 @@
       <span id="radar-kind" class="kind obs"></span>
     </div>
     <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
-    <div class="scale"><span id="radar-scale-left">3時間前</span><span id="radar-now-mark">いま</span><span id="radar-scale-right">先の予想</span></div>
+    <div class="scale" id="radar-scale"></div>
     <div class="bar-actions">
       <button id="radar-play" type="button">▶ 動かす</button>
       <button id="radar-place-btn" type="button">📍 場所</button>

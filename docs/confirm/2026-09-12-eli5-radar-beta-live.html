@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>雨雲レーダーβ 公開</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:15px;margin:12px 0 4px;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  th,td{padding:11px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#f2eee1;font-size:13px;font-weight:700}
+  tr:last-child td{border-bottom:0}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}table{font-size:13px}th,td{padding:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>本番に<span style="color:#12a37f">出しました</span></h1>
+  <p class="sub">アプリを開き直すと、乗務タイマーの右隣に増えています。</p>
+
+  <div class="card">
+    <h2>ボタンの場所</h2>
+    <figure>
+      <svg viewBox="0 0 880 170" role="img" aria-label="乗務タイマーの右隣に雨雲レーダーβ">
+        <rect width="880" height="170" fill="#fff"/>
+        <g font-size="15">
+          <rect x="30" y="52" width="180" height="52" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="120" y="84" text-anchor="middle">⏱ 乗務タイマー</text>
+
+          <rect x="222" y="52" width="215" height="52" rx="8" fill="#e6f6f1" stroke="#12a37f" stroke-width="2.5"/>
+          <text x="329" y="84" text-anchor="middle" font-weight="700">🌧 雨雲レーダーβ</text>
+
+          <rect x="449" y="52" width="150" height="52" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="524" y="84" text-anchor="middle">🛣 IC判定</text>
+
+          <rect x="611" y="52" width="170" height="52" rx="8" fill="#f2eee1" stroke="#c9bfa0"/>
+          <text x="696" y="84" text-anchor="middle">✈ 空港ツール</text>
+        </g>
+        <text x="329" y="136" text-anchor="middle" font-size="13.5" fill="#0a7a5f">ここが新しい</text>
+      </svg>
+      <figcaption>この並びは、どのページを開いていても同じです</figcaption>
+    </figure>
+    <div class="note"><b>どのページからでも行き来できます。</b>雨雲レーダーβの中にも同じボタンがあるので、そこから乗務タイマーやIC判定へ戻れます。</div>
+  </div>
+
+  <div class="card">
+    <h2>本番で見たもの</h2>
+    <table>
+      <thead><tr><th style="width:44%">確認したこと</th><th>結果</th></tr></thead>
+      <tbody>
+        <tr><td>ページの名前</td><td>Cabis ｜ 雨雲レーダーβ</td></tr>
+        <tr><td>タブの並び（4ページとも）</td><td>乗務タイマー / 雨雲レーダーβ / IC判定 / 空港ツール</td></tr>
+        <tr><td>いま見ているページの印</td><td>正しく付いている</td></tr>
+        <tr><td>雨雲のコマ数</td><td>63コマ（3時間前 〜 約14時間先）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/radar-beta-live.jpg" alt="雨雲レーダーβの画面。八王子あたりに雨雲が出ている">
+      <figcaption>八王子のあたり。前に見ていた場所から始まります</figcaption>
+    </figure>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>名前は <b>雨雲レーダーβ</b>。乗務タイマーの右隣です。</li>
+      <li>どのページからでも、同じボタンで行き来できます。</li>
+      <li>雨雲・場所えらび・天気の3つが入っています。</li>
+      <li>テスト1203件すべて通っています。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

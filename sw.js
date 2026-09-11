@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v382';
+const CACHE_NAME = CACHE_PREFIX + 'v383';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -139,6 +139,14 @@ self.addEventListener('install', e => {
     await Promise.allSettled(EXTERNAL_FILES.map(u => cache.add(u))); // 外部: 失敗許容
   })());
   self.skipWaiting();
+});
+
+// 画面の「今すぐ更新」からの合図。待機中のまま止まっている新SWを即座に交代させる。
+// install で skipWaiting() を呼んでいても、インストール中にタップされた等で
+// 待機のまま残ることがある。そのときリロードだけしても古いSWが応答し続けるため、
+// 「押しても更新されない」状態になっていた(2026-09-12 本人報告)。
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

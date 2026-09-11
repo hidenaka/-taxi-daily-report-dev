@@ -141,3 +141,64 @@ export function buildFramesWithShortRange(obsList, fcstList, shortList) {
 
   return [...base, ...extra];
 }
+
+// --- 時間バーの目盛り -----------------------------------------------------
+// コマ番号で等間隔に並べると、過去3時間(5分刻み37コマ)が幅の6割を占め、
+// 先の13時間(1時間刻み)が2割という、時間の長さと合わない見た目になっていた。
+// バーの位置は「先頭のコマからの経過分」で決める。
+
+// 各コマが先頭から何分の位置か、バー上の%はいくつか。
+export function frameOffsets(frames) {
+  const rows = Array.isArray(frames) ? frames : [];
+  if (rows.length === 0) return { minutes: [], percents: [], totalMin: 0 };
+  const base = rows[0].timeMs;
+  const minutes = rows.map((f) => Math.round((f.timeMs - base) / 60000));
+  const totalMin = minutes[minutes.length - 1];
+  const percents = minutes.map((m) => (totalMin > 0 ? (m / totalMin) * 100 : 0));
+  return { minutes, percents, totalMin };
+}
+
+// バー上の位置(先頭からの分)から、いちばん近いコマ番号を返す。
+export function nearestFrameIndex(frames, minutes) {
+  const rows = Array.isArray(frames) ? frames : [];
+  if (rows.length === 0) return -1;
+  const base = rows[0].timeMs;
+  let best = 0;
+  let bestDiff = Infinity;
+  rows.forEach((f, i) => {
+    const d = Math.abs((f.timeMs - base) / 60000 - minutes);
+    if (d < bestDiff) { bestDiff = d; best = i; }
+  });
+  return best;
+}
+
+// 3時間おきの目盛り。「いま」を基準に、前後で範囲に入るものだけを返す。
+export const TICK_STEP_MIN = 180;
+
+export function buildTicks(frames) {
+  const rows = Array.isArray(frames) ? frames : [];
+  if (rows.length < 2) return [];
+  const nowFrame = rows.find((f) => f.isLatestObs) || rows[0];
+  const nowMs = nowFrame.timeMs;
+  const first = rows[0].timeMs;
+  const last = rows[rows.length - 1].timeMs;
+  const span = last - first;
+  if (span <= 0) return [];
+
+  const ticks = [];
+  const push = (ms, label) => {
+    if (ms < first - 60000 || ms > last + 60000) return;
+    const pct = Math.min(100, Math.max(0, ((ms - first) / span) * 100));
+    ticks.push({ label, pct, ms });
+  };
+  // 過去側
+  for (let m = Math.floor((nowMs - first) / 60000 / TICK_STEP_MIN) * TICK_STEP_MIN; m > 0; m -= TICK_STEP_MIN) {
+    push(nowMs - m * 60000, `${m / 60}時間前`);
+  }
+  push(nowMs, 'いま');
+  // 先側
+  for (let m = TICK_STEP_MIN; m <= (last - nowMs) / 60000; m += TICK_STEP_MIN) {
+    push(nowMs + m * 60000, `${m / 60}時間後`);
+  }
+  return ticks;
+}
