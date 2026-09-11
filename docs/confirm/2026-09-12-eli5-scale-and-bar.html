@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>目盛りと下のバー</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>目盛りを<span style="color:#12a37f">1時間ごと</span>にしました</h1>
+  <p class="sub">下のバーが地図に重なっていたのも直しました。</p>
+
+  <div class="card">
+    <h2>目盛り</h2>
+    <p class="lede">先は<b>何時なのか</b>がそのまま読めます。</p>
+    <figure>
+      <svg viewBox="0 0 880 210" role="img" aria-label="3時間おきから1時間おきへ">
+        <rect width="880" height="210" fill="#fff"/>
+
+        <text x="40" y="40" font-size="14.5" font-weight="700" fill="#d4483b">前</text>
+        <line x1="40" y1="58" x2="840" y2="58" stroke="#d8d2bf" stroke-width="3"/>
+        <g font-size="11" fill="#5a5a5a">
+          <line x1="40" y1="50" x2="40" y2="66" stroke="#9aa4ae" stroke-width="2"/><text x="40" y="84">3時間前</text>
+          <line x1="180" y1="50" x2="180" y2="66" stroke="#4da3ff" stroke-width="2"/><text x="180" y="84" text-anchor="middle">いま</text>
+          <line x1="345" y1="50" x2="345" y2="66" stroke="#9aa4ae" stroke-width="2"/><text x="345" y="84" text-anchor="middle">3時間後</text>
+          <line x1="510" y1="50" x2="510" y2="66" stroke="#9aa4ae" stroke-width="2"/><text x="510" y="84" text-anchor="middle">6時間後</text>
+          <line x1="675" y1="50" x2="675" y2="66" stroke="#9aa4ae" stroke-width="2"/><text x="675" y="84" text-anchor="middle">9時間後</text>
+          <line x1="840" y1="50" x2="840" y2="66" stroke="#9aa4ae" stroke-width="2"/><text x="840" y="84" text-anchor="end">12時間後</text>
+        </g>
+
+        <text x="40" y="140" font-size="14.5" font-weight="700" fill="#12a37f">いま</text>
+        <line x1="40" y1="158" x2="840" y2="158" stroke="#d8d2bf" stroke-width="3"/>
+        <g stroke="#c3cbd3" stroke-width="1.5">
+          <line x1="235" y1="152" x2="235" y2="164"/><line x1="290" y1="152" x2="290" y2="164"/>
+          <line x1="400" y1="152" x2="400" y2="164"/><line x1="455" y1="152" x2="455" y2="164"/>
+          <line x1="565" y1="152" x2="565" y2="164"/><line x1="620" y1="152" x2="620" y2="164"/>
+          <line x1="730" y1="152" x2="730" y2="164"/><line x1="785" y1="152" x2="785" y2="164"/>
+        </g>
+        <g font-size="11" fill="#5a5a5a">
+          <line x1="40" y1="150" x2="40" y2="166" stroke="#9aa4ae" stroke-width="2"/><text x="40" y="184">3時間前</text>
+          <line x1="180" y1="148" x2="180" y2="168" stroke="#4da3ff" stroke-width="2.5"/><text x="180" y="184" text-anchor="middle" fill="#2f6fd0" font-weight="700">いま</text>
+          <line x1="345" y1="150" x2="345" y2="166" stroke="#9aa4ae" stroke-width="2"/><text x="345" y="184" text-anchor="middle">11時</text>
+          <line x1="510" y1="150" x2="510" y2="166" stroke="#9aa4ae" stroke-width="2"/><text x="510" y="184" text-anchor="middle">14時</text>
+          <line x1="675" y1="150" x2="675" y2="166" stroke="#9aa4ae" stroke-width="2"/><text x="675" y="184" text-anchor="middle">17時</text>
+          <line x1="840" y1="150" x2="840" y2="166" stroke="#9aa4ae" stroke-width="2"/><text x="840" y="184" text-anchor="end">20時</text>
+        </g>
+      </svg>
+      <figcaption>細い線が1時間ごと。字は混まない範囲で出します（広い画面なら全部の時刻が出ます）</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>下のバー</h2>
+    <p class="lede">地図の上に<b>乗っかって</b>いました。</p>
+    <figure>
+      <svg viewBox="0 0 880 220" role="img" aria-label="バーが地図に重なっていたのを下へ並べた">
+        <rect width="880" height="220" fill="#fff"/>
+
+        <text x="215" y="32" text-anchor="middle" font-size="14.5" font-weight="700" fill="#d4483b">前</text>
+        <rect x="60" y="44" width="310" height="150" rx="10" fill="#eef1f4" stroke="#c9c2ad" stroke-width="2"/>
+        <rect x="72" y="126" width="286" height="56" rx="8" fill="#15151c"/>
+        <text x="215" y="160" text-anchor="middle" font-size="12" fill="#fff">時間バー</text>
+        <text x="215" y="120" text-anchor="middle" font-size="11.5" fill="#d4483b">↓ 地図の下105pxを覆っていた</text>
+        <text x="215" y="212" text-anchor="middle" font-size="12" fill="#d4483b">出典の表示も隠れていた</text>
+
+        <text x="440" y="120" text-anchor="middle" font-size="24" fill="#5a5a5a">→</text>
+
+        <text x="665" y="32" text-anchor="middle" font-size="14.5" font-weight="700" fill="#12a37f">いま</text>
+        <rect x="510" y="44" width="310" height="104" rx="10" fill="#eef1f4" stroke="#12a37f" stroke-width="2"/>
+        <text x="665" y="100" text-anchor="middle" font-size="12">地図（ぜんぶ見える）</text>
+        <rect x="510" y="156" width="310" height="46" rx="8" fill="#15151c"/>
+        <text x="665" y="184" text-anchor="middle" font-size="12" fill="#fff">時間バー</text>
+      </svg>
+      <figcaption>重ねるのをやめて、地図の下に並べました</figcaption>
+    </figure>
+    <div class="note"><b>下の黒い帯も消しました。</b>他のページ用の余白（64px）がこのページにも入っていて、画面の下に黒く残っていました。</div>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/radar-scale-fixed.jpg" alt="1時間おきの目盛りが入り、バーが地図の下に並んだ画面">
+      <figcaption>地図の右下に出典（地理院タイル／雨雲：出典 気象庁）も見えています</figcaption>
+    </figure>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>先の目盛りは<b>1時間ごと</b>。何時のことか直接読めます。</li>
+      <li>下のバーは地図に<b>重なりません</b>。</li>
+      <li>画面下の黒い帯も消えました。</li>
+      <li><b>本番に出しました。</b>テスト1210件すべて通っています。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

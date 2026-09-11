@@ -19,7 +19,9 @@
       visibility:hidden;pointer-events:none;margin:0;
       /* 画面の高さちょうどに収め、ページ自体はスクロールさせない。
          こうするとタブは常に一番上に居続ける（位置固定に頼らない）。 */
-      height:100dvh;min-height:100dvh;display:flex;flex-direction:column;
+      height:100vh;          /* 古い端末向けの保険 */
+      height:100svh;         /* 操作バーが出ている状態の高さ。下が隠れない */
+      display:flex;flex-direction:column;
       overflow:hidden;overscroll-behavior:none;
       padding-top:var(--app-update-h,0px);   /* 更新の帯のぶんだけ下げる */
       /* 共通CSSが下タブぶんの余白(64px)を入れているが、このページに下タブは無い。
@@ -37,8 +39,10 @@
 
     /* 時間バー（下） */
     /* 地図の下に並べる。重ねると地図の下端（出典表示を含む）が隠れてしまう。 */
-    #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;margin-bottom:calc(8px + env(safe-area-inset-bottom));
-      background:rgba(21,21,28,.92);color:#fff;border-radius:12px;padding:10px 12px 12px;
+    #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;
+      margin-bottom:8px;   /* ホームバーぶんは下の padding で確保する(二重に空けない) */
+      background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
+      padding:10px 12px calc(12px + env(safe-area-inset-bottom));
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
     .time-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
     #radar-clock{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
@@ -155,16 +159,9 @@
     for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
       document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
     }
-    // 端末の画面の高さが変わったとき(アドレスバーの出入り等)に高さを合わせ直す
-    const fitHeight = () => {
-      document.body.style.height = window.innerHeight + 'px';
-    };
-    window.addEventListener('resize', fitHeight);
-    window.addEventListener('orientationchange', fitHeight);
-    // 起動時にも合わせる。100dvh と実際の高さがずれる端末があり、
-    // 下に黒い余白が残ることがあるため。
-    document.addEventListener('DOMContentLoaded', fitHeight);
-    window.addEventListener('load', fitHeight);
+    // 高さは CSS の 100svh に任せる。JS で window.innerHeight を入れると、
+    // スマホの操作バーが隠れている前提の大きい値になることがあり、
+    // 下のボタンがその裏に潜り込む(2026-09-12 本人報告)。
   </script>
   <script src="../vendor/leaflet/leaflet.js"></script>
 
