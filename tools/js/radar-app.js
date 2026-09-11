@@ -305,7 +305,9 @@ function renderWeather(data, placeName) {
       </div>`;
     }
   }
-  html += '<div class="wx-src">天気の出どころ: Open-Meteo ／ 棒と帯の高さ＝雨の降りやすさ</div>';
+  // 予報の升目は約5km四方(実測: 緯度0.05°・経度0.0625°)。近所同士は同じ数字になるので、
+  // 「住所を変えたのに数字が同じ」を不具合と思わせないために一言添える。
+  html += '<div class="wx-src">棒と帯の高さ＝雨の降りやすさ<br>この予報は約5km四方ごと（近所同士は同じ数字）。雨雲の絵は約250mごと<br>天気の出どころ: Open-Meteo</div>';
   body.innerHTML = html;
 }
 
