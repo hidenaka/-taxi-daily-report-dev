@@ -104,7 +104,8 @@ async function showRunningVersion() {
     const fromCache = (keys.find((k) => k.startsWith('taxi-daily-')) || '').replace('taxi-daily-', '');
     // キャッシュが無い(=ネットから直接読んでいる)ときは、HTMLに埋めた版を使う
     const meta = document.querySelector('meta[name="app-version"]');
-    const v = fromCache || (meta && meta.content) || '';
+    // HTML に埋めた版を優先する。キャッシュ名は、HTMLが古いままでも新しく見えることがある。
+    const v = (meta && meta.content) || fromCache || '';
     if (!v) return;
     const slot = el('radar-ver');
     if (slot) slot.textContent = v;

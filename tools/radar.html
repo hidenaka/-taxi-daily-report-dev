@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v397">
+  <meta name="app-version" content="v398">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -47,7 +47,8 @@
        ホームバー(画面下の横棒)ぶんは無条件で最低34px空ける。 */
     #radar-bar{
       position:fixed;left:8px;right:8px;z-index:1300;
-      bottom:max(34px, calc(8px + env(safe-area-inset-bottom, 0px)));
+      /* 下タブ(高さ56px + ホームバー)の上に置く */
+      bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 8px);
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
       padding:10px 12px 12px;
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
@@ -262,6 +263,11 @@
     <div id="radar-results"></div>
   </div>
 
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+  </script>
   <script type="module" src="js/radar-app.js"></script>
 </body>
 </html>
