@@ -86,6 +86,8 @@ async function showRunningVersion() {
     const meta = document.querySelector('meta[name="app-version"]');
     const v = fromCache || (meta && meta.content) || '';
     if (!v) return;
+    const slot = el('radar-ver');
+    if (slot) slot.textContent = v;
     const el2 = document.querySelector('.leaflet-control-attribution');
     if (el2 && !el2.textContent.includes(v)) el2.insertAdjacentHTML('beforeend', ` ｜ ${v}`);
   } catch { /* 出せなくても動作に影響なし */ }

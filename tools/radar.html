@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v394">
+  <meta name="app-version" content="v395">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -42,18 +42,15 @@
     /* 時間バー（下） */
     /* 地図の下に並べる。重ねると地図の下端（出典表示を含む）が隠れてしまう。 */
     #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;
-      /* ホームバー(画面下の横棒)に掛からないよう、下に必ず空ける。 */
-      margin-bottom:max(8px, env(safe-area-inset-bottom, 0px));
+      /* 画面下のホームバー(横棒)に掛からないよう、無条件で必ず空ける。
+         端末やアプリの起動の仕方で env() が 0 を返すことがあり、
+         条件付きにすると空かない端末が出るため、最低 34px を常に確保する。 */
+      margin-bottom:max(34px, calc(8px + env(safe-area-inset-bottom, 0px)));
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
       padding:10px 12px 12px;
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
-
-    /* ホーム画面から起動したアプリ（iPhone / iPad）では、画面下にホームバーが重なる。
-       端末によっては env() が 0 を返すため、最低28pxは必ず空ける。 */
-    @media (display-mode: standalone) {
-      #radar-bar{ margin-bottom:max(28px, env(safe-area-inset-bottom, 0px)); }
-    }
     .time-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
+    .ver{font-size:11px;color:#7b858f;font-variant-numeric:tabular-nums;}
     #radar-clock{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
     #radar-rel{font-size:14px;color:#cfd6dd;}
     .kind{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;}
@@ -218,6 +215,7 @@
       <span id="radar-clock">--:--</span>
       <span id="radar-rel"></span>
       <span id="radar-kind" class="kind obs"></span>
+      <span id="radar-ver" class="ver"></span>
     </div>
     <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
     <div class="scale" id="radar-scale"></div>
