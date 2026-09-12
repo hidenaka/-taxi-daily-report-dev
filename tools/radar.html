@@ -24,9 +24,10 @@
       display:flex;flex-direction:column;
       overflow:hidden;overscroll-behavior:none;
       padding-top:var(--app-update-h,0px);   /* 更新の帯のぶんだけ下げる */
-      /* 共通CSSが下タブぶんの余白(64px)を入れているが、このページに下タブは無い。
-         残すと画面の下に黒い帯が出る。 */
-      padding-bottom:0;
+      /* 共通CSSの下タブぶんの余白(64px)はこのページに不要（黒い帯として残る）。
+         代わりにホームバー(画面下の横棒)ぶんだけを空ける。ここで一度確保すれば
+         中のどの部品もホームバーに掛からない。 */
+      padding-bottom:env(safe-area-inset-bottom, 0px);
     }
     .app-tabs{flex:0 0 auto;position:relative;z-index:1200;}
     #radar-stage{flex:1 1 auto;min-height:0;position:relative;}
@@ -42,7 +43,7 @@
     #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;
       margin-bottom:8px;   /* ホームバーぶんは下の padding で確保する(二重に空けない) */
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
-      padding:10px 12px calc(12px + env(safe-area-inset-bottom));
+      padding:10px 12px 12px;   /* ホームバーぶんは body 側で確保済み */
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
     .time-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
     #radar-clock{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
@@ -162,6 +163,17 @@
     // 高さは CSS の 100svh に任せる。JS で window.innerHeight を入れると、
     // スマホの操作バーが隠れている前提の大きい値になることがあり、
     // 下のボタンがその裏に潜り込む(2026-09-12 本人報告)。
+    // 100svh が使えない古い端末だけ、実際に見えている高さに合わせる。
+    if (!(window.CSS && CSS.supports && CSS.supports('height', '100svh'))) {
+      const fit = () => {
+        const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+        document.body.style.height = Math.round(h) + 'px';
+      };
+      fit();
+      window.addEventListener('resize', fit);
+      window.addEventListener('orientationchange', fit);
+      if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
+    }
   </script>
   <script src="../vendor/leaflet/leaflet.js"></script>
 
