@@ -80,8 +80,11 @@ function createMap() {
 // 稼働中のキャッシュ名(= 版)を出典表示の横に足す
 async function showRunningVersion() {
   try {
-    const keys = await caches.keys();
-    const v = (keys.find((k) => k.startsWith('taxi-daily-')) || '').replace('taxi-daily-', '');
+    const keys = await caches.keys().catch(() => []);
+    const fromCache = (keys.find((k) => k.startsWith('taxi-daily-')) || '').replace('taxi-daily-', '');
+    // キャッシュが無い(=ネットから直接読んでいる)ときは、HTMLに埋めた版を使う
+    const meta = document.querySelector('meta[name="app-version"]');
+    const v = fromCache || (meta && meta.content) || '';
     if (!v) return;
     const el2 = document.querySelector('.leaflet-control-attribution');
     if (el2 && !el2.textContent.includes(v)) el2.insertAdjacentHTML('beforeend', ` ｜ ${v}`);
