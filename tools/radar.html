@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v396">
+  <meta name="app-version" content="v397">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -32,7 +32,8 @@
     }
     .app-tabs{flex:0 0 auto;position:relative;z-index:1200;}
     #radar-stage{flex:1 1 auto;min-height:0;position:relative;}
-    #radar-map{position:absolute;inset:0;background:#eef1f4;}
+    /* 地図はバーのぶんだけ短くする（重ねると出典表示が隠れる） */
+    #radar-map{position:absolute;top:0;left:0;right:0;bottom:var(--bar-space, 0px);background:#eef1f4;}
     /* タブ名が長いので、狭い端末では横に流す（2段にすると地図と被る） */
     .app-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
     .app-tabs::-webkit-scrollbar{display:none;}
@@ -41,11 +42,12 @@
 
     /* 時間バー（下） */
     /* 地図の下に並べる。重ねると地図の下端（出典表示を含む）が隠れてしまう。 */
-    #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;
-      /* 画面下のホームバー(横棒)に掛からないよう、無条件で必ず空ける。
-         端末やアプリの起動の仕方で env() が 0 を返すことがあり、
-         条件付きにすると空かない端末が出るため、最低 34px を常に確保する。 */
-      margin-bottom:max(34px, calc(8px + env(safe-area-inset-bottom, 0px)));
+    /* 下のバーは画面に固定する。流れの中に置くと、高さの計算が実際より大きい端末で
+       画面の外へ押し出され、切り落とされて見えなくなるため。
+       ホームバー(画面下の横棒)ぶんは無条件で最低34px空ける。 */
+    #radar-bar{
+      position:fixed;left:8px;right:8px;z-index:1300;
+      bottom:max(34px, calc(8px + env(safe-area-inset-bottom, 0px)));
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
       padding:10px 12px 12px;
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}

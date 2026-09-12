@@ -70,6 +70,26 @@ function createMap() {
   // 「直したはずなのに直っていない」が、更新前の版を見ているだけなのか
   // 判別できるようにするため。
   showRunningVersion();
+  // 画面に固定した下のバーのぶん、地図を短くする（バーに隠れないように）。
+  // バーの高さは中身で変わるので、実測して伝える。
+  const syncBarSpace = () => {
+    const bar = el('radar-bar');
+    if (!bar) return;
+    const r = bar.getBoundingClientRect();
+    const bottomGap = Math.max(0, (document.documentElement.clientHeight || window.innerHeight) - r.bottom);
+    const space = Math.ceil(r.height + bottomGap + 8);
+    document.documentElement.style.setProperty('--bar-space', space + 'px');
+    if (map) map.invalidateSize({ animate: false });
+  };
+  syncBarSpace();
+  window.addEventListener('resize', syncBarSpace);
+  window.addEventListener('orientationchange', syncBarSpace);
+  window.addEventListener('load', syncBarSpace);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', syncBarSpace);
+  // コマや目盛りが入ってバーの高さが変わったあとにも合わせ直す
+  setTimeout(syncBarSpace, 600);
+  setTimeout(syncBarSpace, 2000);
+
   const c = map.getContainer();
   for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {
     c.addEventListener(ev, saveViewSoon, { passive: true });
