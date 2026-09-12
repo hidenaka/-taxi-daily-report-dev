@@ -12,7 +12,8 @@ import {
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
 
-const VIEW_KEY = 'radarLastView';      // 最後に見ていた場所（次に開いたとき同じ場所から）
+const VIEW_KEY = 'radarLastView';
+const GEO_DENIED_KEY = 'radarGeoDenied';   // 現在地を断られた端末では、毎回きかない      // 最後に見ていた場所（次に開いたとき同じ場所から）
 const DEFAULT_VIEW = { lat: 35.5494, lon: 139.7798, zoom: 11 }; // 羽田
 const MAX_LAYERS = 12;                 // 端末のメモリを食わないよう、持っておくコマ数の上限
 const PLAY_INTERVAL_MS = 450;
@@ -231,26 +232,52 @@ async function runSearch(q) {
   }
 }
 
+// 現在地に赤い点を置く。move=true なら地図もそこへ動かす。
+function markHere(lat, lon, move) {
+  if (hereMarker) map.removeLayer(hereMarker);
+  hereMarker = L.circleMarker([lat, lon], {
+    radius: 7, color: '#fff', weight: 2, fillColor: '#e5443a', fillOpacity: 1,
+  }).addTo(map);
+  if (move) goTo(lat, lon, 13, 'いまの場所');
+}
+
+const GEO_OPTS = { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 };
+
 function useCurrentPosition() {
   const status = el('radar-geo-status');
   if (!navigator.geolocation) { status.textContent = 'この端末では現在地を使えません'; return; }
   status.textContent = '現在地を確認中…';
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const { latitude, longitude } = pos.coords;
       status.textContent = '';
-      if (hereMarker) map.removeLayer(hereMarker);
-      hereMarker = L.circleMarker([latitude, longitude], {
-        radius: 7, color: '#fff', weight: 2, fillColor: '#e5443a', fillOpacity: 1, zIndex: 500,
-      }).addTo(map);
-      goTo(latitude, longitude, 13, 'いまの場所');
+      try { localStorage.removeItem(GEO_DENIED_KEY); } catch { /* 無視 */ }
+      markHere(pos.coords.latitude, pos.coords.longitude, true);
     },
     (err) => {
       status.textContent = err && err.code === 1
         ? '現在地の利用が許可されていません'
         : '現在地を取得できませんでした';
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
     },
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
+    GEO_OPTS,
+  );
+}
+
+// 開いたときに、そのまま自分の場所が分かるようにする。
+// 断られたことがある端末では、毎回きかない（ボタンからはいつでも使える）。
+function autoLocateOnStart() {
+  if (!navigator.geolocation) return;
+  try { if (localStorage.getItem(GEO_DENIED_KEY) === '1') return; } catch { /* 無視 */ }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => markHere(pos.coords.latitude, pos.coords.longitude, true),
+    (err) => {
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
+    },
+    GEO_OPTS,
   );
 }
 
@@ -433,6 +460,7 @@ async function start() {
   slider.step = '1';
   renderTicks();
 
+  autoLocateOnStart();
   const latest = frames.findIndex((f) => f.isLatestObs);
   show(latest >= 0 ? latest : frames.length - 1);
 }
