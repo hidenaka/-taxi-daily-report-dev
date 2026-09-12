@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v395">
+  <meta name="app-version" content="v396">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -165,20 +165,32 @@
     for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) {
       document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
     }
-    // 高さは CSS の 100svh に任せる。JS で window.innerHeight を入れると、
-    // スマホの操作バーが隠れている前提の大きい値になることがあり、
-    // 下のボタンがその裏に潜り込む(2026-09-12 本人報告)。
-    // 100svh が使えない古い端末だけ、実際に見えている高さに合わせる。
-    if (!(window.CSS && CSS.supports && CSS.supports('height', '100svh'))) {
-      const fit = () => {
-        const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
-        document.body.style.height = Math.round(h) + 'px';
-      };
-      fit();
-      window.addEventListener('resize', fit);
-      window.addEventListener('orientationchange', fit);
-      if (window.visualViewport) window.visualViewport.addEventListener('resize', fit);
-    }
+    // 画面の高さは CSS の単位(100svh 等)に任せない。
+    // ホーム画面から起動したアプリで、CSS の高さが実際に見えている範囲より
+    // 大きくなる端末があり、下のバーが画面の外へ出て見えなくなっていた
+    // (2026-09-12 本人報告「下のタブ表示されない」)。
+    //
+    // 実際の表示領域(documentElement.clientHeight)に合わせ、さらに描画後に
+    // バーがはみ出していないか測って、はみ出していたらその分だけ縮める。
+    const fitAppHeight = () => {
+      const h = document.documentElement.clientHeight || window.innerHeight;
+      if (!h) return;
+      document.body.style.height = h + 'px';
+      requestAnimationFrame(() => {
+        const bar = document.getElementById('radar-bar');
+        if (!bar) return;
+        const over = Math.ceil(bar.getBoundingClientRect().bottom) - h;
+        if (over > 0) document.body.style.height = (h - over) + 'px';
+      });
+    };
+    fitAppHeight();
+    document.addEventListener('DOMContentLoaded', fitAppHeight);
+    window.addEventListener('load', fitAppHeight);
+    window.addEventListener('resize', fitAppHeight);
+    window.addEventListener('orientationchange', fitAppHeight);
+    window.addEventListener('pageshow', fitAppHeight);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) fitAppHeight(); });
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', fitAppHeight);
   </script>
   <script src="../vendor/leaflet/leaflet.js"></script>
 
