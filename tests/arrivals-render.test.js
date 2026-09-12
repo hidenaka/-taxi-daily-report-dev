@@ -183,3 +183,52 @@ test('renderCarriedOver: 深夜でなければ隠す', () => {
   renderCarriedOver(c, { isOvernight: false, carriedOver: [], morning: [] }, new Date('2026-09-08T14:00:00+09:00'));
   assert.equal(c.hidden, true);
 });
+
+// --- さっき着いた便を畳む (2026-09-12 本人「これ長いから畳めるようにして」) ---
+// 深夜は42便ぶん並ぶことがあり、画面が長くなって読めない。
+// これから来る便は出したまま、着いてしまった便だけ畳む。
+
+const manyArrived = (n) => Array.from({ length: n }, (_, i) => ({
+  flightNumber: `X${i}`, fromName: '札幌', scheduledTime: '22:00',
+  estimatedTime: `23:${String(10 + i).padStart(2, '0')}`, poolLane: 1, delayMin: 70,
+}));
+
+test('renderCarriedOver: 着いた便は畳んだ状態で出す', () => {
+  const c = stub();
+  renderCarriedOver(c, { isOvernight: true, morning: [], carriedOver: manyArrived(42) },
+    new Date('2026-09-13T00:30:00+09:00'));
+  assert.ok(c.innerHTML.includes('<details'), '畳める形で出す');
+  assert.ok(!/<details[^>]*\sopen/.test(c.innerHTML), '既定は畳んだまま');
+  assert.ok(c.innerHTML.includes('さっき着いた便'), '見出しに件数を出す');
+  assert.ok(c.innerHTML.includes('42便'));
+});
+
+test('renderCarriedOver: これから来る便は畳まず、そのまま見せる', () => {
+  const c = stub();
+  renderCarriedOver(c, { isOvernight: true, morning: [],
+    carriedOver: [
+      { flightNumber: 'COMING', fromName: '那覇', scheduledTime: '23:00', estimatedTime: '24:50', poolLane: 2, delayMin: 110 },
+      ...manyArrived(5),
+    ] },
+    new Date('2026-09-13T00:30:00+09:00'));
+  const beforeDetails = c.innerHTML.split('<details')[0];
+  assert.ok(beforeDetails.includes('COMING'), 'これから来る便は畳みの外に出す');
+  assert.ok(beforeDetails.includes('あと20分'), '0:30 から見て 0:50 は20分後');
+  assert.ok(c.innerHTML.includes('<details'), '着いた便のほうは畳む');
+});
+
+test('renderCarriedOver: 前に開いていたら開いたまま出す', () => {
+  const c = stub();
+  renderCarriedOver(c, { isOvernight: true, morning: [], carriedOver: manyArrived(3) },
+    new Date('2026-09-13T00:30:00+09:00'), { open: true });
+  assert.ok(/<details[^>]*\sopen/.test(c.innerHTML), '開いた状態を引き継ぐ');
+});
+
+test('renderCarriedOver: 着いた便が無ければ畳みは出さない', () => {
+  const c = stub();
+  renderCarriedOver(c, { isOvernight: true, morning: [],
+    carriedOver: [{ flightNumber: 'COMING', fromName: '那覇', scheduledTime: '23:00', estimatedTime: '24:50', poolLane: 2, delayMin: 110 }] },
+    new Date('2026-09-13T00:30:00+09:00'));
+  assert.ok(!c.innerHTML.includes('<details'), '畳むものが無いときは出さない');
+  assert.ok(c.innerHTML.includes('COMING'));
+});

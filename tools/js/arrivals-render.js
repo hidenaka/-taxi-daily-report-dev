@@ -569,7 +569,10 @@ export function renderNoribaActivity(container, activity, opts = {}) {
 
 // 深夜の「前日から持ち越した便」。0時を過ぎた乗務中に一番要る情報なので最上部に出す。
 // 当日朝の便は件数だけ添える(この時間帯には要らないが、無いと不安になるため)。
-export function renderCarriedOver(container, split, now = new Date()) {
+// 深夜の「前日から持ち越した便」。
+// これから来る便はそのまま見せ、着いてしまった便は畳む（42便並ぶ日があり長すぎる）。
+// opts.open=true で、前に開いていた状態を引き継ぐ。
+export function renderCarriedOver(container, split, now = new Date(), opts = {}) {
   if (!container) return;
   if (!split || !split.isOvernight || !split.carriedOver.length) {
     container.innerHTML = '';
@@ -577,7 +580,7 @@ export function renderCarriedOver(container, split, now = new Date()) {
     return;
   }
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const rows = split.carriedOver.map((f) => {
+  const rowHtml = (f) => {
     const t = f.estimatedTime ?? f.scheduledTime;
     const hhmm = String(t).replace(/^(\d{1,2}):/, (_, h) => `${String(Number(h) >= 24 ? Number(h) - 24 : Number(h)).padStart(2, '0')}:`);
     // 日またぎを含む「いまから何分後か」は data 側の計算を使う。
@@ -593,16 +596,29 @@ export function renderCarriedOver(container, split, now = new Date()) {
       <span class="co-from">${f.fromName ?? ''} ${f.flightNumber ?? ''}</span>
       ${delay}
     </div>`;
-  }).join('');
+  };
+
+  const isComing = (f) => (minutesFromNow(f.estimatedTime ?? f.scheduledTime, nowMin) ?? 0) > 0;
+  const coming = split.carriedOver.filter(isComing);
+  const arrived = split.carriedOver.filter((f) => !isComing(f));
+
   const morningNote = split.morning.length
     ? `<div class="co-morning">朝の便（${split.morning.length}便）は今は畳んでいます</div>`
     : '';
+  const head = coming.length > 0
+    ? `🌙 いま前後の便（これから ${coming.length}便 / さっき着いた ${arrived.length}便）`
+    : `🌙 さっき着いた便（${arrived.length}便）`;
+
+  // 着いた便は畳む。畳みの中だと分からないので、見出しに件数を出す。
+  const foldHtml = arrived.length > 0
+    ? `<details class="co-fold"${opts.open ? ' open' : ''}>
+      <summary class="co-summary">さっき着いた便（${arrived.length}便）</summary>
+      ${arrived.map(rowHtml).join('')}
+    </details>`
+    : '';
+
   container.hidden = false;
-  const coming = split.carriedOver.filter((f) => (minutesFromNow(f.estimatedTime ?? f.scheduledTime, nowMin) ?? 0) > 0).length;
-  const head = coming > 0
-    ? `🌙 いま前後の便（これから ${coming}便 / さっき着いた ${split.carriedOver.length - coming}便）`
-    : `🌙 さっき着いた便（${split.carriedOver.length}便）`;
-  container.innerHTML = `<div class="co-head">${head}</div>${rows}${morningNote}`;
+  container.innerHTML = `<div class="co-head">${head}</div>${coming.map(rowHtml).join('')}${foldHtml}${morningNote}`;
 }
 
 // 過去の日の「その日どうだったか」。遅れの実態と、配車業務が終わった時刻を出す。

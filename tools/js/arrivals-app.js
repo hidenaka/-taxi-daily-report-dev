@@ -13,6 +13,8 @@ const TAB_TERMINALS = {
 const ORIGIN_FILTER_KEY = 'arrivalsOriginFilter';
 const NORIBA_WINDOW_KEY = 'arrivalsNoribaWindow';
 const LANE_FILTER_KEY = 'arrivalsLaneFilter';
+// 「さっき着いた便」の畳みを開いたままにしておくか（本人が開いたらそのまま）
+const CARRIED_OPEN_KEY = 'arrivalsCarriedOpen';
 // viewDay: 見ている日 'YYYY-MM-DD'。null なら最新ファイルの日付に従う。
 // isLive: いま画面に出ているのが最新ファイルそのものか(＝過去のスナップショットでない)。
 const state = { arrivals: null, tab: 'T1T2', detailMode: false, originFilter: '', noribaWindow: 60, laneFilter: 0,
@@ -159,7 +161,7 @@ function render() {
   }
 
   // 深夜: 前日から持ち越した便を最上部に。0時を過ぎるとこれが一番要る情報。
-  renderCarriedOver(document.getElementById("carried-over"), splitOvernight(state.arrivals.flights, new Date()), new Date());
+  renderCarriedOver(document.getElementById("carried-over"), splitOvernight(state.arrivals.flights, new Date()), new Date(), { open: readCarriedOpen() });
   // 乗り場別 到着見込み(全ターミナル横断・タブに依存しない)
   const noribaActs = buildNoribaActivity(state.arrivals, state.forecast ?? null, state.poolStatus ?? null, new Date());
   {
@@ -262,6 +264,21 @@ function setupReload() {
   });
 }
 
+function readCarriedOpen() {
+  try { return localStorage.getItem(CARRIED_OPEN_KEY) === '1'; } catch { return false; }
+}
+
+// 畳みを開け閉めしたら覚える（描き直しても同じ状態で出す）
+function setupCarriedFold() {
+  const box = document.getElementById('carried-over');
+  if (!box) return;
+  box.addEventListener('toggle', (e) => {
+    const d = e.target;
+    if (!d || d.tagName !== 'DETAILS') return;
+    try { localStorage.setItem(CARRIED_OPEN_KEY, d.open ? '1' : '0'); } catch { /* 無視 */ }
+  }, true);   // toggle は伝播しないので capture で拾う
+}
+
 function setupDayNav() {
   const prev = document.getElementById('day-prev');
   const next = document.getElementById('day-next');
@@ -320,6 +337,7 @@ renderLegend(document.getElementById('legend'));
 setupTerminalTabs();
 setupReload();
 setupDayNav();
+setupCarriedFold();
 setupDetailToggle();
 setupOriginFilter();
 setupLaneFilter();

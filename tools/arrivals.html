@@ -57,6 +57,14 @@
     .co-from { color: var(--sub); }
     .co-delay { color: #ff8a65; font-size: 12px; }
     .co-morning { margin-top: 6px; font-size: 11px; color: var(--sub); }
+    /* 着いた便の畳み。深夜は42便並ぶ日があり、開いたままだと画面が長すぎる */
+    .co-fold { margin-top: 4px; }
+    .co-summary { cursor: pointer; list-style: none; padding: 9px 2px; font-size: 13px; color: #ffcc80;
+      border-top: 1px solid #2a2118; -webkit-tap-highlight-color: transparent; }
+    .co-summary::-webkit-details-marker { display: none; }
+    .co-summary::before { content: "▸ "; display: inline-block; width: 1em; }
+    .co-fold[open] > .co-summary::before { content: "▾ "; }
+    .co-fold[open] > .co-summary { color: var(--sub); }
     /* 過去日のまとめ */
     .day-summary { margin: 8px 12px; padding: 10px 12px; background: #14161a; border: 1px solid #2a3038; border-radius: 8px; }
     .ds-head { font-size: 13px; font-weight: 700; color: #90caf9; margin-bottom: 8px; }
