@@ -65,10 +65,26 @@ function createMap() {
     maxZoom: 18, maxNativeZoom: 18,
     attribution: '地理院タイル ｜ 雨雲：出典 気象庁',
   }).addTo(map);
+  // いま動いているアプリの版を、出典表示の横に小さく出す。
+  // 「直したはずなのに直っていない」が、更新前の版を見ているだけなのか
+  // 判別できるようにするため。
+  showRunningVersion();
   const c = map.getContainer();
   for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {
     c.addEventListener(ev, saveViewSoon, { passive: true });
   }
+}
+
+
+// 稼働中のキャッシュ名(= 版)を出典表示の横に足す
+async function showRunningVersion() {
+  try {
+    const keys = await caches.keys();
+    const v = (keys.find((k) => k.startsWith('taxi-daily-')) || '').replace('taxi-daily-', '');
+    if (!v) return;
+    const el2 = document.querySelector('.leaflet-control-attribution');
+    if (el2 && !el2.textContent.includes(v)) el2.insertAdjacentHTML('beforeend', ` ｜ ${v}`);
+  } catch { /* 出せなくても動作に影響なし */ }
 }
 
 // --- 雨雲のコマ -----------------------------------------------------------
