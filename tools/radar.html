@@ -25,9 +25,8 @@
       overflow:hidden;overscroll-behavior:none;
       padding-top:var(--app-update-h,0px);   /* 更新の帯のぶんだけ下げる */
       /* 共通CSSの下タブぶんの余白(64px)はこのページに不要（黒い帯として残る）。
-         代わりにホームバー(画面下の横棒)ぶんだけを空ける。ここで一度確保すれば
-         中のどの部品もホームバーに掛からない。 */
-      padding-bottom:env(safe-area-inset-bottom, 0px);
+         ホームバーぶんは下のバーの margin-bottom で確保する（1か所に寄せる）。 */
+      padding-bottom:0;
     }
     .app-tabs{flex:0 0 auto;position:relative;z-index:1200;}
     #radar-stage{flex:1 1 auto;min-height:0;position:relative;}
@@ -41,10 +40,17 @@
     /* 時間バー（下） */
     /* 地図の下に並べる。重ねると地図の下端（出典表示を含む）が隠れてしまう。 */
     #radar-bar{flex:0 0 auto;z-index:1300;margin:8px;
-      margin-bottom:8px;   /* ホームバーぶんは下の padding で確保する(二重に空けない) */
+      /* ホームバー(画面下の横棒)に掛からないよう、下に必ず空ける。 */
+      margin-bottom:max(8px, env(safe-area-inset-bottom, 0px));
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;
-      padding:10px 12px 12px;   /* ホームバーぶんは body 側で確保済み */
+      padding:10px 12px 12px;
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
+
+    /* ホーム画面から起動したアプリ（iPhone / iPad）では、画面下にホームバーが重なる。
+       端末によっては env() が 0 を返すため、最低28pxは必ず空ける。 */
+    @media (display-mode: standalone) {
+      #radar-bar{ margin-bottom:max(28px, env(safe-area-inset-bottom, 0px)); }
+    }
     .time-head{display:flex;align-items:baseline;gap:10px;margin-bottom:6px;}
     #radar-clock{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
     #radar-rel{font-size:14px;color:#cfd6dd;}
