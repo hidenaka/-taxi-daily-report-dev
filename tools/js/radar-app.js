@@ -10,6 +10,7 @@ import {
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
   frameOffsets, nearestFrameIndex, buildTicks,
   RAIN_LEVELS, rainLevelFromPixel, pointTile, describeRainTimeline,
+  MUNI_TABLE_URL, reverseGeocodeUrl, formatCenterAddress,
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
 
@@ -233,7 +234,7 @@ async function refreshRainStrip() {
 let stripTimer = null;
 function refreshRainStripSoon() {
   clearTimeout(stripTimer);
-  stripTimer = setTimeout(refreshRainStrip, 350);
+  stripTimer = setTimeout(() => { refreshRainStrip(); refreshCenterAddress(); }, 350);
 }
 
 function renderTicks() {
@@ -287,6 +288,46 @@ function setPlaying(on) {
   }, PLAY_INTERVAL_MS);
 }
 
+// --- まん中がどこか（住所） ------------------------------------------------
+// 「まん中の雨」と言われても、どこのことか分からないと使えない。
+// 国土地理院の逆ジオコーダで、まん中の住所（市区町村＋町名）を出す。
+let muniTable = null;
+const addrCache = new Map();     // 'lat,lon'(小数3桁) → 住所
+let addrToken = 0;
+
+async function loadMuniTable() {
+  if (muniTable) return muniTable;
+  try {
+    const r = await fetch(MUNI_TABLE_URL);
+    muniTable = r.ok ? await r.json() : {};
+  } catch { muniTable = {}; }
+  return muniTable;
+}
+
+async function centerAddress(lat, lon) {
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;   // 約100mで丸めて、同じ場所は聞き直さない
+  if (addrCache.has(key)) return addrCache.get(key);
+  const [table, res] = await Promise.all([
+    loadMuniTable(),
+    fetch(reverseGeocodeUrl(lat, lon)).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
+  const got = res && res.results ? res.results : null;
+  const addr = got ? formatCenterAddress(table[got.muniCd], got.lv01Nm) : '';
+  addrCache.set(key, addr);
+  return addr;
+}
+
+async function refreshCenterAddress() {
+  const label = el('radar-place-label');
+  if (!label || !map) return;
+  const token = ++addrToken;
+  const c = map.getCenter();
+  const addr = await centerAddress(c.lat, c.lng);
+  if (token !== addrToken) return;              // 途中で動いた
+  if (addr) { label.textContent = addr; label.hidden = false; }
+  else { label.hidden = true; }
+}
+
 // --- 場所えらび -----------------------------------------------------------
 let areaCoords = null;
 
@@ -307,10 +348,6 @@ function goTo(lat, lon, zoom = 12, label = '') {
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   placePin = label ? { name: label, lat, lon } : null;
   refreshRainStripSoon();   // 場所が変わったら、この場所の雨を調べ直す
-  if (label) {
-    el('radar-place-label').textContent = label;
-    el('radar-place-label').hidden = false;
-  }
   closePlacePanel();
 }
 
@@ -404,14 +441,8 @@ function currentPlaceName() {
   return km !== null && km <= PLACE_NEAR_KM ? placePin.name : null;
 }
 
-// 地図を動かしたあと、離れていたら場所の名前を消す
-function syncPlaceLabel() {
-  const label = el('radar-place-label');
-  if (!label) return;
-  const name = currentPlaceName();
-  if (name) { label.textContent = name; label.hidden = false; }
-  else { label.hidden = true; }
-}
+// 場所ラベルは「まん中の住所」に一本化した（refreshCenterAddress が書く）。
+function syncPlaceLabel() { /* 住所側で更新する */ }
 
 // --- 天気 -----------------------------------------------------------------
 // いま地図の真ん中に見えている場所の天気を出す。場所えらびと同じ場所を指すので、
@@ -508,7 +539,9 @@ async function openWeatherPanel() {
   const body = el('radar-wx-body');
   body.innerHTML = '<div class="no-hit">読み込み中…</div>';
   const c = map.getCenter();
-  const name = currentPlaceName() || 'この場所';
+  // 見出しは、地図のまん中の住所にそろえる（帯の一言と同じ場所を指す）
+  const label = el('radar-place-label');
+  const name = (label && !label.hidden && label.textContent) || currentPlaceName() || 'この場所';
   try {
     renderWeather(await loadWeather(c.lat, c.lng), name);
   } catch {

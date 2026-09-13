@@ -293,3 +293,25 @@ export function describeRainTimeline(levels, frames) {
   }
   return 'この先ずっと雨なし';
 }
+
+// --- 地図のまん中が「どこか」を住所で出す ------------------------------------
+// 国土地理院の逆ジオコーダ。鍵不要・出典表示のみ（地図と同じ地理院）。
+// 返るのは市区町村コード(muniCd)と町名(lv01Nm)。
+// コード→名前は tools/data/muni.json（同梱・1,919件）で引く。
+export const MUNI_TABLE_URL = 'data/muni.json';
+
+export function reverseGeocodeUrl(lat, lon) {
+  const q = new URLSearchParams({ lat: String(lat), lon: String(lon) });
+  return `https://mreversegeocoder.gsi.go.jp/reverse-geocoder/LonLatToAddress?${q.toString()}`;
+}
+
+// 表の値は「都道府県,市区町村」。東京の中は都道府県を省く（乗務は都内が主で、
+// 毎回「東京都」が付くと長くなって読みにくいため）。
+export function formatCenterAddress(muniEntry, lv01Nm) {
+  const town = (lv01Nm ?? '').trim();
+  if (!muniEntry) return town;
+  const [pref = '', city = ''] = String(muniEntry).split(',');
+  if (!city) return town;
+  const head = pref === '東京都' ? city : `${pref}${city}`;
+  return town ? `${head}${town}` : head;
+}
