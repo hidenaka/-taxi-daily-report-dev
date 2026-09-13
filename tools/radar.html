@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v407">
+  <meta name="app-version" content="v408">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -104,7 +104,10 @@
     #radar-locate.is-denied{color:#b9484a;}
 
     /* 帯が見ている場所の印。地図のまん中に重ねる（触れない） */
-    #radar-center{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+    /* 地図の中央に置く。箱(stage)は下のバーの裏まで伸びているので、
+       単純な top:50% だと印だけ下にずれる（住所と指す場所が食い違う）。 */
+    #radar-center{position:absolute;left:50%;top:calc((100% - var(--bar-space, 0px)) / 2);
+      width:26px;height:26px;margin:-13px 0 0 -13px;
       z-index:1240;pointer-events:none;}
     #radar-center::before,#radar-center::after{content:"";position:absolute;background:#1f2a36;}
     #radar-center::before{left:12px;top:0;width:2px;height:26px;}
