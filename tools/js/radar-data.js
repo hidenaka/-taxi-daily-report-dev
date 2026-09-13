@@ -311,7 +311,10 @@ export function formatCenterAddress(muniEntry, lv01Nm) {
   // 政令市の町名は「　中区英町」のように全角空白つきで返ることがある
   const town = String(lv01Nm ?? '').replace(/[\s\u3000]+/g, '');
   if (!muniEntry) return town;
-  const [pref = '', city = ''] = String(muniEntry).split(',');
+  // 市区町村名は「横浜市　中区」のように全角空白つきで入っている（対応表に171件）
+  const [prefRaw = '', cityRaw = ''] = String(muniEntry).split(',');
+  const pref = prefRaw.replace(/[\s\u3000]+/g, '');
+  const city = cityRaw.replace(/[\s\u3000]+/g, '');
   if (!city) return town;
   const head = pref === '東京都' ? city : `${pref}${city}`;
   return town ? `${head}${town}` : head;
