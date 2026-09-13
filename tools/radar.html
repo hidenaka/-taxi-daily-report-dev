@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v405">
+  <meta name="app-version" content="v406">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -90,6 +90,17 @@
     #radar-legend .lg-title{font-weight:700;margin-bottom:4px;font-size:10px;color:#9aa4ae;}
     #radar-legend .lg-row{display:flex;align-items:center;gap:6px;}
     #radar-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;}
+
+    /* いまの場所に戻るボタン。地図の右下（出典表示の上）。 */
+    #radar-locate{position:absolute;right:10px;bottom:30px;z-index:1260;
+      width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,.18);
+      background:rgba(255,255,255,.95);color:#2f6fd0;font-size:20px;line-height:1;
+      box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+      -webkit-tap-highlight-color:transparent;}
+    #radar-locate:active{background:#eef4fd;}
+    #radar-locate.is-busy{color:#9aa4ae;}
+    #radar-locate.is-denied{color:#b9484a;}
 
     /* 帯が見ている場所の印。地図のまん中に重ねる（触れない） */
     #radar-center{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
@@ -242,6 +253,7 @@
     <div class="lg-row"><i style="background:#A0D2FF"></i>1〜5</div>
     </div>
 
+    <button id="radar-locate" type="button" aria-label="いまの場所に戻る" title="いまの場所に戻る">◎</button>
     <div id="radar-error" hidden></div>
   </div>
 

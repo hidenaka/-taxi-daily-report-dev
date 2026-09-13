@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>まん中がどこか</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg,img{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>まん中が<span style="color:#12a37f">どこか</span>、出るようにしました</h1>
+  <p class="sub">地図を動かすと、住所も雨も付いてきます。</p>
+
+  <div class="card">
+    <h2>3つが同じ場所を指します</h2>
+    <figure>
+      <svg viewBox="0 0 880 300" role="img" aria-label="住所・十字の印・帯が同じ場所を指す">
+        <rect width="880" height="300" fill="#fff"/>
+        <rect x="150" y="20" width="580" height="180" rx="10" fill="#f6f7f4" stroke="#c9c2ad" stroke-width="2"/>
+
+        <rect x="160" y="30" width="230" height="24" rx="6" fill="#15151c"/>
+        <text x="172" y="47" font-size="12" fill="#e8edf2">神奈川県横浜市中区真砂町一丁目</text>
+        <text x="140" y="47" text-anchor="end" font-size="13" font-weight="700" fill="#0a7a5f">①住所</text>
+
+        <g stroke="#1f2a36" stroke-width="2">
+          <line x1="440" y1="98" x2="440" y2="124"/>
+          <line x1="427" y1="111" x2="453" y2="111"/>
+        </g>
+        <circle cx="440" cy="111" r="6" fill="rgba(255,255,255,.6)" stroke="#1f2a36" stroke-width="2"/>
+        <text x="470" y="116" font-size="13" font-weight="700" fill="#0a7a5f">②まん中の印</text>
+
+        <rect x="150" y="222" width="580" height="16" rx="4" fill="#23232c"/>
+        <rect x="300" y="222" width="60" height="16" fill="#a0d2ff"/>
+        <rect x="360" y="222" width="40" height="16" fill="#218cff"/>
+        <text x="140" y="235" text-anchor="end" font-size="13" font-weight="700" fill="#0a7a5f">③雨の帯</text>
+        <text x="440" y="266" text-anchor="middle" font-size="13.5">この住所の雨が、時間順に並びます</text>
+      </svg>
+      <figcaption>住所・印・帯は、いつでも同じ1点のことを言っています</figcaption>
+    </figure>
+    <div class="note"><b>押して固定する形はやめました。</b>地図を動かせば、動かした先のまん中に付いてきます。</div>
+  </div>
+
+  <div class="card">
+    <h2>実際の画面</h2>
+    <figure>
+      <img src="images/center-address.jpg" alt="左上に住所、地図のまん中に十字の印、下に雨の帯">
+      <figcaption>左上「神奈川県横浜市中区真砂町一丁目」／まん中に十字の印</figcaption>
+    </figure>
+    <div class="note"><b>住所は町名まで出ます。</b>東京都内は「大田区羽田空港三丁目」のように都県名を省き、都外は「神奈川県横浜市中区…」と付けます。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>地図を動かすと、まん中の<b>住所</b>が左上に出ます。</li>
+      <li>まん中には<b>十字の印</b>があります。</li>
+      <li>雨の帯は、その住所の雨です。</li>
+      <li><b>本番に出しました（v405）。</b>テスト1234件すべて通っています。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

@@ -417,6 +417,39 @@ function useCurrentPosition() {
   );
 }
 
+// 地図の上の「いまの場所に戻る」ボタン。
+// 地図を動かして座標が変わっても、ひと押しで自分の場所に戻れるようにする。
+// 一度断っていても、押されたときは聞き直す（本人の意思表示なので）。
+function locateNow() {
+  const btn = el('radar-locate');
+  if (!navigator.geolocation) {
+    if (btn) { btn.classList.add('is-denied'); btn.title = 'この端末では現在地を使えません'; }
+    return;
+  }
+  if (btn) { btn.classList.add('is-busy'); btn.classList.remove('is-denied'); btn.textContent = '…'; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      if (btn) { btn.classList.remove('is-busy'); btn.textContent = '◎'; btn.title = 'いまの場所に戻る'; }
+      try { localStorage.removeItem(GEO_DENIED_KEY); } catch { /* 無視 */ }
+      markHere(pos.coords.latitude, pos.coords.longitude, true);
+    },
+    (err) => {
+      if (btn) {
+        btn.classList.remove('is-busy');
+        btn.textContent = '◎';
+        btn.classList.add('is-denied');
+        btn.title = err && err.code === 1
+          ? '現在地の利用が許可されていません（端末の設定から許可してください）'
+          : '現在地を取得できませんでした';
+      }
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
+    },
+    GEO_OPTS,
+  );
+}
+
 // 開いたときに、そのまま自分の場所が分かるようにする。
 // 断られたことがある端末では、毎回きかない（ボタンからはいつでも使える）。
 function autoLocateOnStart() {
@@ -582,6 +615,7 @@ async function start() {
     show(nearestFrameIndex(frames, Number(e.target.value)));
   });
   el('radar-place-btn').addEventListener('click', openPlacePanel);
+  el('radar-locate').addEventListener('click', locateNow);
   el('radar-weather-btn').addEventListener('click', openWeatherPanel);
   el('radar-weather-close').addEventListener('click', closeWeatherPanel);
   el('radar-place-close').addEventListener('click', closePlacePanel);
