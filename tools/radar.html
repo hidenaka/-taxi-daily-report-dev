@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v401">
+  <meta name="app-version" content="v402">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -63,7 +63,6 @@
        「いつ降り出すか」をバーの色で分かるようにする。 */
     /* 帯の上の一言。どこの・いつ降るか。 */
     #radar-strip-cap{font-size:11.5px;color:#cfd6dd;min-height:15px;line-height:15px;margin-bottom:1px;}
-    #radar-strip-cap.is-probe{color:#7fc4ff;font-weight:600;}
     #radar-strip{position:relative;height:14px;margin:2px 0 2px;border-radius:4px;overflow:hidden;
       background:#23232c;}
     #radar-strip i{position:absolute;top:0;bottom:0;display:block;}
@@ -91,6 +90,15 @@
     #radar-legend .lg-title{font-weight:700;margin-bottom:4px;font-size:10px;color:#9aa4ae;}
     #radar-legend .lg-row{display:flex;align-items:center;gap:6px;}
     #radar-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;}
+
+    /* 帯が見ている場所の印。地図のまん中に重ねる（触れない） */
+    #radar-center{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;
+      z-index:1240;pointer-events:none;}
+    #radar-center::before,#radar-center::after{content:"";position:absolute;background:#1f2a36;}
+    #radar-center::before{left:12px;top:0;width:2px;height:26px;}
+    #radar-center::after{top:12px;left:0;height:2px;width:26px;}
+    #radar-center span{position:absolute;left:7px;top:7px;width:12px;height:12px;border-radius:50%;
+      border:2px solid #1f2a36;background:rgba(255,255,255,.45);}
 
     /* いま見ている場所 */
     #radar-place-label{position:absolute;left:8px;top:8px;z-index:1250;background:rgba(21,21,28,.88);
@@ -219,6 +227,8 @@
   <div id="radar-stage">
     <div id="radar-map"></div>
 
+    <!-- 帯が見ている場所（＝地図のまん中）を示す印 -->
+    <div id="radar-center" aria-hidden="true"><span></span></div>
     <div id="radar-place-label" hidden></div>
 
     <div id="radar-legend" aria-label="雨の強さ">

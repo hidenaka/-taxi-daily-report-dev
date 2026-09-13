@@ -91,7 +91,6 @@ function createMap() {
   setTimeout(syncBarSpace, 600);
   setTimeout(syncBarSpace, 2000);
 
-  map.on('click', (e) => setProbe(e.latlng));
   const c = map.getContainer();
   for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {
     c.addEventListener(ev, saveViewSoon, { passive: true });
@@ -158,9 +157,7 @@ const stripCanvas = document.createElement('canvas');
 stripCanvas.width = 256; stripCanvas.height = 256;
 const stripCtx = stripCanvas.getContext('2d', { willReadFrequently: true });
 let stripToken = 0;              // 場所が変わったら前の調査は捨てる
-// タップで選んだ地点。null なら地図の真ん中を見る。
-let probePoint = null;
-let probeMarker = null;
+// 帯はいつでも「地図の真ん中」を見る（本人指示 2026-09-13）。
 
 function loadTileImage(url) {
   return new Promise((resolve) => {
@@ -204,10 +201,8 @@ function paintStrip(levels) {
   // 帯の上に「どこの」「いつ降るか」を一言で
   const cap = el('radar-strip-cap');
   if (cap) {
-    const where = probePoint ? '押した場所' : 'この場所';
     const when = describeRainTimeline(levels, frames);
-    cap.textContent = when ? `${where}：${when}` : '';
-    cap.classList.toggle('is-probe', !!probePoint);
+    cap.textContent = when ? `まん中の場所：${when}` : '';
   }
 }
 
@@ -216,8 +211,8 @@ async function refreshRainStrip() {
   const box = el('radar-strip');
   if (!box || frames.length === 0 || !map) return;
   const token = ++stripToken;
-  const c = probePoint || map.getCenter();
-  const tile = pointTile(c.lat, c.lng ?? c.lon, RAIN_SAMPLE_ZOOM);
+  const c = map.getCenter();
+  const tile = pointTile(c.lat, c.lng, RAIN_SAMPLE_ZOOM);
   box.innerHTML = '<span class="rs-note">この場所の雨を調べています…</span>';
   const levels = new Array(frames.length).fill(-1);
   const CONCURRENCY = 6;
@@ -292,28 +287,6 @@ function setPlaying(on) {
   }, PLAY_INTERVAL_MS);
 }
 
-// --- 地図を押したら、その場所の雨を見る -----------------------------------
-// 真ん中まで動かさなくても、気になる場所を押すだけで、その1点の雨が帯に出る。
-// もう一度押す(同じ印を押す)と、真ん中に戻る。
-function setProbe(latlng) {
-  probePoint = { lat: latlng.lat, lng: latlng.lng };
-  if (probeMarker) map.removeLayer(probeMarker);
-  probeMarker = L.circleMarker([latlng.lat, latlng.lng], {
-    radius: 8, color: '#4da3ff', weight: 3, fillColor: '#0b2436', fillOpacity: .75,
-  }).addTo(map);
-  probeMarker.on('click', (e) => {
-    if (e.originalEvent) e.originalEvent.stopPropagation();
-    clearProbe();
-  });
-  refreshRainStripSoon();
-}
-
-function clearProbe() {
-  probePoint = null;
-  if (probeMarker) { map.removeLayer(probeMarker); probeMarker = null; }
-  refreshRainStripSoon();
-}
-
 // --- 場所えらび -----------------------------------------------------------
 let areaCoords = null;
 
@@ -333,9 +306,6 @@ function goTo(lat, lon, zoom = 12, label = '') {
   map.setView([lat, lon], zoom, { animate: false });
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   placePin = label ? { name: label, lat, lon } : null;
-  // 場所を選び直したら、押した印は解除して選んだ場所を見る
-  if (probeMarker) { map.removeLayer(probeMarker); probeMarker = null; }
-  probePoint = null;
   refreshRainStripSoon();   // 場所が変わったら、この場所の雨を調べ直す
   if (label) {
     el('radar-place-label').textContent = label;
