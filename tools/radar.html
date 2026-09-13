@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v406">
+  <meta name="app-version" content="v407">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -92,7 +92,8 @@
     #radar-legend i{display:inline-block;width:14px;height:10px;border-radius:2px;}
 
     /* いまの場所に戻るボタン。地図の右下（出典表示の上）。 */
-    #radar-locate{position:absolute;right:10px;bottom:30px;z-index:1260;
+    /* 地図の下端を基準に置く。箱(stage)の下端だと、下のバーの裏に隠れる。 */
+    #radar-locate{position:absolute;right:10px;bottom:calc(var(--bar-space, 0px) + 30px);z-index:1260;
       width:44px;height:44px;border-radius:50%;border:1px solid rgba(0,0,0,.18);
       background:rgba(255,255,255,.95);color:#2f6fd0;font-size:20px;line-height:1;
       box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer;
