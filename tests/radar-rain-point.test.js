@@ -60,3 +60,39 @@ test('ズームが違えばタイルも違う', () => {
   assert.equal(z8.x, 227);
   assert.equal(z8.y, 100);
 });
+
+// --- タップした地点の雨を一言で (2026-09-13 本人要望) -----------------------
+// 帯だけだと「で、いつ降るの」が読み取りにくいので、先頭に一言そえる。
+import { describeRainTimeline } from '../tools/js/radar-data.js';
+
+const fr = (mins) => mins.map((m, i) => ({
+  timeMs: Date.UTC(2026, 8, 13, 0, 0) + m * 60000,
+  kind: m <= 0 ? 'obs' : 'fcst',
+  isLatestObs: m === 0,
+}));
+
+test('いま降っていれば、そう言う', () => {
+  const frames = fr([-10, 0, 10, 20]);
+  assert.equal(describeRainTimeline([1, 1, 2, 0], frames), 'いま雨（1〜5mm/h）');
+});
+
+test('この先で降り出すなら、その時刻を言う', () => {
+  const frames = fr([-10, 0, 60, 120]);
+  // 基準 2026-09-13T00:00Z = 9時(JST)。+60分のコマは 10時。
+  assert.equal(describeRainTimeline([-1, -1, 1, 3], frames), '10時ごろから雨');
+});
+
+test('ずっと降らないなら、そう言い切る', () => {
+  const frames = fr([-10, 0, 60]);
+  assert.equal(describeRainTimeline([-1, -1, -1], frames), 'この先ずっと雨なし');
+});
+
+test('過去だけ降っていて、この先降らないなら「雨なし」', () => {
+  const frames = fr([-20, -10, 0, 60]);
+  assert.equal(describeRainTimeline([2, 1, -1, -1], frames), 'この先ずっと雨なし');
+});
+
+test('材料が無ければ空', () => {
+  assert.equal(describeRainTimeline([], []), '');
+  assert.equal(describeRainTimeline(null, null), '');
+});

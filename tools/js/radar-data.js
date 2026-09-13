@@ -273,3 +273,23 @@ export function pointTile(lat, lon, z) {
     py: Math.min(255, Math.max(0, Math.floor((fy - y) * 256))),
   };
 }
+
+// 帯だけでは「で、いつ降るのか」が読み取りにくいので、先頭に一言そえる。
+// levels は各コマの雨の強さ(rainLevelFromPixel の結果)、frames は同じ並び。
+export function describeRainTimeline(levels, frames) {
+  const lv = Array.isArray(levels) ? levels : [];
+  const fr = Array.isArray(frames) ? frames : [];
+  if (lv.length === 0 || fr.length === 0) return '';
+  let nowIdx = fr.findIndex((f) => f.isLatestObs);
+  if (nowIdx < 0) nowIdx = 0;
+  if (lv[nowIdx] >= 0) return `いま雨（${RAIN_LEVELS[lv[nowIdx]].label}mm/h）`;
+  for (let i = nowIdx + 1; i < lv.length; i++) {
+    if (lv[i] >= 0) {
+      const h = new Intl.DateTimeFormat('ja-JP', {
+        hour: 'numeric', hour12: false, timeZone: 'Asia/Tokyo',
+      }).format(new Date(fr[i].timeMs));
+      return `${h.endsWith('時') ? h : `${h}時`}ごろから雨`;
+    }
+  }
+  return 'この先ずっと雨なし';
+}
