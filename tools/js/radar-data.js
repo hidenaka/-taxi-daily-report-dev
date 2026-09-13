@@ -219,3 +219,57 @@ export function buildTicks(frames) {
   }
   return ticks;
 }
+
+// --- その場所の雨の強さ（時刻バーの色分け用） ---------------------------------
+// 気象庁のタイルは、雨の強さが決まった色で塗られている。
+// 実測した色（2026-09-13 実タイルから全画素を数えて確認）:
+//   透明        … 雨なし
+//   242,242,255 … 0.1〜1 mm/h
+//   160,210,255 … 1〜5
+//   33,140,255  … 5〜10
+//   0,65,255    … 10〜20
+//   250,245,0   … 20〜30
+//   255,153,0   … 30〜50
+//   255,40,0    … 50〜80
+//   180,0,104   … 80以上
+export const RAIN_LEVELS = [
+  { rgb: [242, 242, 255], label: '0.1〜1', css: 'rgb(242,242,255)' },
+  { rgb: [160, 210, 255], label: '1〜5', css: 'rgb(160,210,255)' },
+  { rgb: [33, 140, 255], label: '5〜10', css: 'rgb(33,140,255)' },
+  { rgb: [0, 65, 255], label: '10〜20', css: 'rgb(0,65,255)' },
+  { rgb: [250, 245, 0], label: '20〜30', css: 'rgb(250,245,0)' },
+  { rgb: [255, 153, 0], label: '30〜50', css: 'rgb(255,153,0)' },
+  { rgb: [255, 40, 0], label: '50〜80', css: 'rgb(255,40,0)' },
+  { rgb: [180, 0, 104], label: '80〜', css: 'rgb(180,0,104)' },
+];
+
+// 画像の圧縮などで色が少しずれることがあるので、近ければ同じ段とみなす。
+// どの段からも遠い色（表に無い色）は雨なし扱いにする。
+const RAIN_MATCH_MAX = 60 * 60;   // 各成分20ずれ相当まで
+
+// 画素の色 → 雨の強さの段(0〜7)。雨なしは -1。
+export function rainLevelFromPixel(r, g, b, a) {
+  if (!a) return -1;
+  let best = -1;
+  let bestDist = Infinity;
+  RAIN_LEVELS.forEach((lv, i) => {
+    const d = (lv.rgb[0] - r) ** 2 + (lv.rgb[1] - g) ** 2 + (lv.rgb[2] - b) ** 2;
+    if (d < bestDist) { bestDist = d; best = i; }
+  });
+  return bestDist <= RAIN_MATCH_MAX ? best : -1;
+}
+
+// 緯度経度 → タイル番号と、そのタイルの中の画素位置
+export function pointTile(lat, lon, z) {
+  const n = 2 ** z;
+  const fx = ((lon + 180) / 360) * n;
+  const la = (lat * Math.PI) / 180;
+  const fy = ((1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2) * n;
+  const x = Math.floor(fx);
+  const y = Math.floor(fy);
+  return {
+    x, y,
+    px: Math.min(255, Math.max(0, Math.floor((fx - x) * 256))),
+    py: Math.min(255, Math.max(0, Math.floor((fy - y) * 256))),
+  };
+}

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v399">
+  <meta name="app-version" content="v400">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -59,6 +59,13 @@
     .kind{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:700;}
     .kind.obs{background:#1e4f7a;color:#cfe6ff;}
     .kind.fcst{background:#6a5310;color:#ffe9a8;}
+    /* 地図の真ん中の場所について、コマごとの雨の強さを色で並べた帯。
+       「いつ降り出すか」をバーの色で分かるようにする。 */
+    #radar-strip{position:relative;height:14px;margin:2px 0 2px;border-radius:4px;overflow:hidden;
+      background:#23232c;}
+    #radar-strip i{position:absolute;top:0;bottom:0;display:block;}
+    #radar-strip .rs-note{position:absolute;left:6px;top:0;line-height:14px;font-size:10px;color:#7b858f;}
+    #radar-strip.is-dry .rs-note{color:#9aa4ae;}
     #radar-slider{width:100%;margin:2px 0 4px;accent-color:#4da3ff;}
     /* 目盛り。バーは時間に比例。先は1時間おきに線を引き、字が混むところは線だけ残す */
     .scale{position:relative;height:26px;margin-bottom:6px;}
@@ -232,6 +239,7 @@
       <span id="radar-kind" class="kind obs"></span>
       <span id="radar-ver" class="ver"></span>
     </div>
+    <div id="radar-strip" aria-label="この場所の雨の強さ"><span class="rs-note">この場所の雨を調べています…</span></div>
     <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
     <div class="scale" id="radar-scale"></div>
     <div class="bar-actions">

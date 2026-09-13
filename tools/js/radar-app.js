@@ -9,6 +9,7 @@ import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
   frameOffsets, nearestFrameIndex, buildTicks,
+  RAIN_LEVELS, rainLevelFromPixel, pointTile,
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
 
@@ -53,7 +54,7 @@ function saveView() {
 let saveTimer = null;
 function saveViewSoon() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveView(); syncPlaceLabel(); }, 400);
+  saveTimer = setTimeout(() => { saveView(); syncPlaceLabel(); refreshRainStripSoon(); }, 400);
 }
 
 function createMap() {
@@ -148,6 +149,85 @@ function show(i) {
 
 // バーの下の目盛り。3時間おきに「3時間前 / いま / 3時間後 …」を、
 // 時間に比例した位置へ置く。どのあたりの時刻を見ているかが読めるようにするため。
+// --- この場所の雨の強さの帯 -------------------------------------------------
+// 地図の真ん中の1点について、各コマのタイルの色を読んで雨の強さを並べる。
+// タイルは地図が表示に使うものと同じなので、たいてい読み込み済み。
+const RAIN_SAMPLE_ZOOM = 10;     // 実データがある最大のズーム
+const stripCanvas = document.createElement('canvas');
+stripCanvas.width = 256; stripCanvas.height = 256;
+const stripCtx = stripCanvas.getContext('2d', { willReadFrequently: true });
+let stripToken = 0;              // 場所が変わったら前の調査は捨てる
+
+function loadTileImage(url) {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = () => resolve(null);
+    im.src = url;
+  });
+}
+
+async function levelAt(frame, tile) {
+  const im = await loadTileImage(tileUrl(frame, RAIN_SAMPLE_ZOOM, tile.x, tile.y));
+  if (!im) return -1;
+  try {
+    stripCtx.clearRect(0, 0, 256, 256);
+    stripCtx.drawImage(im, 0, 0);
+    const d = stripCtx.getImageData(tile.px, tile.py, 1, 1).data;
+    return rainLevelFromPixel(d[0], d[1], d[2], d[3]);
+  } catch {
+    return -1;   // 読めない端末では帯を出さないだけ
+  }
+}
+
+function paintStrip(levels) {
+  const box = el('radar-strip');
+  if (!box) return;
+  const pcts = offsets.percents;
+  let html = '';
+  levels.forEach((lv, i) => {
+    if (lv < 0) return;                         // 雨なしは塗らない
+    const left = pcts[i] ?? 0;
+    const right = i + 1 < pcts.length ? pcts[i + 1] : 100;
+    const w = Math.max(0.4, right - left);
+    html += `<i style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%;background:${RAIN_LEVELS[lv].css}"></i>`;
+  });
+  const any = levels.some((lv) => lv >= 0);
+  box.classList.toggle('is-dry', !any);
+  box.innerHTML = html + (any ? '' : '<span class="rs-note">この場所は、この先ずっと雨なし</span>');
+}
+
+// 場所が変わるたびに調べ直す。一度に何本も走らないよう、古い調査は捨てる。
+async function refreshRainStrip() {
+  const box = el('radar-strip');
+  if (!box || frames.length === 0 || !map) return;
+  const token = ++stripToken;
+  const c = map.getCenter();
+  const tile = pointTile(c.lat, c.lng, RAIN_SAMPLE_ZOOM);
+  box.innerHTML = '<span class="rs-note">この場所の雨を調べています…</span>';
+  const levels = new Array(frames.length).fill(-1);
+  const CONCURRENCY = 6;
+  let next = 0;
+  const worker = async () => {
+    while (next < frames.length) {
+      const i = next++;
+      const lv = await levelAt(frames[i], tile);
+      if (token !== stripToken) return;          // 途中で場所が変わった
+      levels[i] = lv;
+      if (i % 8 === 0) paintStrip(levels);       // 途中経過も出す
+    }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  if (token === stripToken) paintStrip(levels);
+}
+
+let stripTimer = null;
+function refreshRainStripSoon() {
+  clearTimeout(stripTimer);
+  stripTimer = setTimeout(refreshRainStrip, 350);
+}
+
 function renderTicks() {
   const box = el('radar-scale');
   if (!box) return;
@@ -218,6 +298,7 @@ function goTo(lat, lon, zoom = 12, label = '') {
   map.setView([lat, lon], zoom, { animate: false });
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   placePin = label ? { name: label, lat, lon } : null;
+  refreshRainStripSoon();   // 場所が変わったら、この場所の雨を調べ直す
   if (label) {
     el('radar-place-label').textContent = label;
     el('radar-place-label').hidden = false;
@@ -486,6 +567,7 @@ async function start() {
   slider.step = '1';
   renderTicks();
 
+  refreshRainStripSoon();
   autoLocateOnStart();
   const latest = frames.findIndex((f) => f.isLatestObs);
   show(latest >= 0 ? latest : frames.length - 1);

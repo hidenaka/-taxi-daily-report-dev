@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>さっき着いた便を畳む</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5a5a5a; --bg:#fbf7ef; --card:#fff; --line:#e2dccb;
+    --ok:#12a37f; --ng:#d4483b; --yel:#f5c542; --blue:#2f6fd0;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic",Meiryo,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:48px 22px 90px}
+  h1{font-size:36px;line-height:1.3;margin:0 0 10px}
+  .sub{font-size:19px;color:var(--ink2);margin:0 0 40px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 22px 26px;margin:0 0 30px;box-shadow:0 8px 26px rgba(0,0,0,.05)}
+  .card h2{font-size:26px;line-height:1.35;margin:0 0 6px}
+  .card .lede{font-size:17px;color:var(--ink2);margin:0 0 18px}
+  svg{display:block;width:100%;height:auto;border-radius:10px}
+  figcaption{font-size:13.5px;color:var(--ink2);text-align:center;margin-top:10px}
+  .note{margin:16px 0 0;padding:14px 16px;background:#fdf6e0;border-left:5px solid var(--yel);border-radius:0 10px 10px 0;font-size:15.5px}
+  .note b{color:#8a6a08}
+  .end{margin-top:6px;padding:26px 24px;background:var(--ink);color:#f7f3e8;border-radius:18px}
+  .end h2{color:var(--yel);margin:0 0 12px;font-size:23px}
+  .end ul{margin:0;padding-left:20px} .end li{margin:8px 0;font-size:16px}
+  @media(max-width:640px){h1{font-size:25px}.card h2{font-size:20px}.card{padding:18px 14px 20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1><span style="color:#12a37f">109px</span> まで縮みました</h1>
+  <p class="sub">開いたときは 1442px ありました。</p>
+
+  <div class="card">
+    <h2>こうなりました</h2>
+    <figure>
+      <svg viewBox="0 0 880 330" role="img" aria-label="43便の一覧が1行に畳まれる">
+        <rect width="880" height="330" fill="#fff"/>
+
+        <text x="200" y="32" text-anchor="middle" font-size="15" font-weight="700" fill="#d4483b">前</text>
+        <rect x="60" y="44" width="280" height="262" rx="10" fill="#20202a"/>
+        <text x="76" y="68" font-size="12" fill="#ffb74d">🌙 さっき着いた便（43便）</text>
+        <g font-size="10.5" fill="#cfd6dd" font-family="monospace">
+          <text x="76" y="92">23:10  1号  札幌 X0</text>
+          <text x="76" y="112">23:11  1号  札幌 X1</text>
+          <text x="76" y="132">23:12  1号  札幌 X2</text>
+          <text x="76" y="152">23:13  1号  札幌 X3</text>
+          <text x="76" y="172">23:14  1号  札幌 X4</text>
+          <text x="76" y="192">23:15  1号  札幌 X5</text>
+          <text x="76" y="212">23:16  1号  札幌 X6</text>
+          <text x="76" y="232">23:17  1号  札幌 X7</text>
+          <text x="76" y="252">…</text>
+          <text x="76" y="276">（43行つづく）</text>
+        </g>
+        <text x="200" y="322" text-anchor="middle" font-size="12.5" fill="#d4483b">下まで指でずっと送る必要があった</text>
+
+        <text x="440" y="170" text-anchor="middle" font-size="26" fill="#5a5a5a">→</text>
+
+        <text x="680" y="32" text-anchor="middle" font-size="15" font-weight="700" fill="#12a37f">いま</text>
+        <rect x="540" y="44" width="280" height="86" rx="10" fill="#20202a"/>
+        <text x="556" y="68" font-size="12" fill="#ffb74d">🌙 さっき着いた便（43便）</text>
+        <text x="556" y="98" font-size="12" fill="#ffcc80">▸ さっき着いた便（43便）</text>
+        <text x="680" y="152" text-anchor="middle" font-size="12.5" fill="#0a7a5f">1行になった（押すと開く）</text>
+        <text x="680" y="196" text-anchor="middle" font-size="13">件数は畳んだままでも分かります</text>
+      </svg>
+      <figcaption>押すと開き、もう一度押すと閉じます</figcaption>
+    </figure>
+  </div>
+
+  <div class="card">
+    <h2>これから来る便は畳みません</h2>
+    <figure>
+      <svg viewBox="0 0 880 200" role="img" aria-label="これから来る便は畳みの外">
+        <rect width="880" height="200" fill="#fff"/>
+        <rect x="180" y="30" width="520" height="140" rx="10" fill="#20202a"/>
+        <text x="200" y="56" font-size="12.5" fill="#ffb74d">🌙 いま前後の便（これから 1便 / さっき着いた 42便）</text>
+        <rect x="196" y="66" width="488" height="30" rx="5" fill="#2b3a4a"/>
+        <text x="208" y="86" font-size="12" fill="#fff">00:50  あと20分  2号  那覇 NH999   110分遅れ</text>
+        <text x="700" y="86" font-size="11.5" fill="#7fc4ff">← いつも見える</text>
+        <text x="208" y="122" font-size="12" fill="#ffcc80">▸ さっき着いた便（42便）</text>
+        <text x="700" y="122" font-size="11.5" fill="#9aa4ae">← 畳んである</text>
+      </svg>
+      <figcaption>これから来る便（=まだ拾える便）は、畳みの外に残します</figcaption>
+    </figure>
+    <div class="note"><b>開け閉めは覚えます。</b>開いたままにしておけば、次に開いたときも開いています。</div>
+  </div>
+
+  <div class="end">
+    <h2>まとめ</h2>
+    <ul>
+      <li>着いてしまった便は<b>1行に畳みました</b>（押すと開きます）。</li>
+      <li>これから来る便は<b>そのまま見えます</b>。</li>
+      <li>畳んだままでも件数は分かります。</li>
+      <li><b>本番に出しました。</b>テスト1214件すべて通っています。</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
