@@ -308,7 +308,8 @@ export function reverseGeocodeUrl(lat, lon) {
 // 表の値は「都道府県,市区町村」。東京の中は都道府県を省く（乗務は都内が主で、
 // 毎回「東京都」が付くと長くなって読みにくいため）。
 export function formatCenterAddress(muniEntry, lv01Nm) {
-  const town = (lv01Nm ?? '').trim();
+  // 政令市の町名は「　中区英町」のように全角空白つきで返ることがある
+  const town = String(lv01Nm ?? '').replace(/[\s\u3000]+/g, '');
   if (!muniEntry) return town;
   const [pref = '', city = ''] = String(muniEntry).split(',');
   if (!city) return town;

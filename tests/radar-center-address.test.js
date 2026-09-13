@@ -35,3 +35,9 @@ test('どちらも無ければ空', () => {
   assert.equal(formatCenterAddress(null, null), '');
   assert.equal(formatCenterAddress('', ''), '');
 });
+
+test('政令市の区名に付く空白は取る', () => {
+  // 逆ジオコーダは 横浜市の町名を「　中区英町」のように空白つきで返す
+  assert.equal(formatCenterAddress('神奈川県,横浜市', '　中区英町'), '神奈川県横浜市中区英町');
+  assert.equal(formatCenterAddress('神奈川県,川崎市', ' 川崎区殿町'), '神奈川県川崎市川崎区殿町');
+});
