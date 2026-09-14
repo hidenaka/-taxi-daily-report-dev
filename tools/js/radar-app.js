@@ -9,7 +9,7 @@ import {
   TARGET_TIMES_OBS, TARGET_TIMES_FCST, TARGET_TIMES_SHORT,
   buildFramesWithShortRange, tileUrl, frameLabel, frameClock,
   frameOffsets, nearestFrameIndex, buildTicks,
-  RAIN_LEVELS, rainLevelFromPixel, pointTile, describeRainTimeline,
+  RAIN_LEVELS, maxLevelAround, pointTile, describeRainTimeline,
   MUNI_TABLE_URL, reverseGeocodeUrl, formatCenterAddress,
   searchPlaces, PRESET_PLACES,
 } from './radar-data.js';
@@ -154,6 +154,7 @@ function show(i) {
 // 地図の真ん中の1点について、各コマのタイルの色を読んで雨の強さを並べる。
 // タイルは地図が表示に使うものと同じなので、たいてい読み込み済み。
 const RAIN_SAMPLE_ZOOM = 10;     // 実データがある最大のズーム
+const RAIN_SAMPLE_RADIUS = 2;    // 前後2画素＝約1km四方を見る
 const stripCanvas = document.createElement('canvas');
 stripCanvas.width = 256; stripCanvas.height = 256;
 const stripCtx = stripCanvas.getContext('2d', { willReadFrequently: true });
@@ -176,8 +177,10 @@ async function levelAt(frame, tile) {
   try {
     stripCtx.clearRect(0, 0, 256, 256);
     stripCtx.drawImage(im, 0, 0);
-    const d = stripCtx.getImageData(tile.px, tile.py, 1, 1).data;
-    return rainLevelFromPixel(d[0], d[1], d[2], d[3]);
+    // 1画素(約250m)だけだと、すぐ隣まで来ている雨を見落とす。
+    // 周り約1km四方でいちばん強い雨を採る。
+    const d = stripCtx.getImageData(0, 0, 256, 256).data;
+    return maxLevelAround(d, 256, 256, tile.px, tile.py, RAIN_SAMPLE_RADIUS);
   } catch {
     return -1;   // 読めない端末では帯を出さないだけ
   }

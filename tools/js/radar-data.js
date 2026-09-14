@@ -319,3 +319,18 @@ export function formatCenterAddress(muniEntry, lv01Nm) {
   const head = pref === '東京都' ? city : `${pref}${city}`;
   return town ? `${head}${town}` : head;
 }
+
+// 1画素(約250m)だけを見ると、すぐ隣まで来ている雨を「雨なし」と判定してしまう。
+// 指定した画素を中心に半径 r 画素ぶんを見て、いちばん強い段を返す。
+// data は RGBA の並び（canvas の getImageData と同じ）。
+export function maxLevelAround(data, w, h, cx, cy, r) {
+  let best = -1;
+  for (let y = Math.max(0, cy - r); y <= Math.min(h - 1, cy + r); y++) {
+    for (let x = Math.max(0, cx - r); x <= Math.min(w - 1, cx + r); x++) {
+      const i = (y * w + x) * 4;
+      const lv = rainLevelFromPixel(data[i], data[i + 1], data[i + 2], data[i + 3]);
+      if (lv > best) best = lv;
+    }
+  }
+  return best;
+}

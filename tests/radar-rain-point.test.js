@@ -96,3 +96,55 @@ test('材料が無ければ空', () => {
   assert.equal(describeRainTimeline([], []), '');
   assert.equal(describeRainTimeline(null, null), '');
 });
+
+// --- 1点だけ見ると雨を見落とす (2026-09-14 本人「雨予想の表示がまだされていない」) ---
+// 250m四方の1画素だけを見ると、すぐ隣まで来ている雨が「雨なし」になる。
+// 実際、東京の中心で62コマ中1コマしか色が付かず、見えないのと同じだった。
+// 周り（約1km四方）でいちばん強い雨を採る。
+import { maxLevelAround } from '../tools/js/radar-data.js';
+
+// 幅5・高さ5 の小さな画像を作る（RGBA）
+const mkImg = (w, h, paint) => {
+  const d = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const rgba = paint(x, y);
+      const i = (y * w + x) * 4;
+      d[i] = rgba[0]; d[i + 1] = rgba[1]; d[i + 2] = rgba[2]; d[i + 3] = rgba[3];
+    }
+  }
+  return d;
+};
+const NONE = [0, 0, 0, 0];
+const WEAK = [242, 242, 255, 255];   // 段0
+const MID = [0, 65, 255, 255];       // 段3
+
+test('まん中が雨なしでも、隣に雨があれば拾う', () => {
+  const d = mkImg(5, 5, (x, y) => (x === 4 && y === 2 ? MID : NONE));
+  assert.equal(maxLevelAround(d, 5, 5, 2, 2, 2), 3);
+});
+
+test('いちばん強い段を採る', () => {
+  const d = mkImg(5, 5, (x, y) => {
+    if (x === 1 && y === 1) return WEAK;
+    if (x === 3 && y === 3) return MID;
+    return NONE;
+  });
+  assert.equal(maxLevelAround(d, 5, 5, 2, 2, 2), 3);
+});
+
+test('範囲の外に雨があっても拾わない', () => {
+  const d = mkImg(5, 5, (x, y) => (x === 4 && y === 4 ? MID : NONE));
+  assert.equal(maxLevelAround(d, 5, 5, 0, 0, 1), -1, '左上の1マス周りには無い');
+});
+
+test('どこにも雨が無ければ -1', () => {
+  const d = mkImg(5, 5, () => NONE);
+  assert.equal(maxLevelAround(d, 5, 5, 2, 2, 2), -1);
+});
+
+test('画像の端でもはみ出さない', () => {
+  const d = mkImg(5, 5, (x, y) => (x === 0 && y === 0 ? WEAK : NONE));
+  assert.equal(maxLevelAround(d, 5, 5, 0, 0, 3), 0);
+  assert.equal(maxLevelAround(d, 5, 5, 4, 4, 3), -1);
+});
