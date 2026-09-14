@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 雨雲レーダーβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v409">
+  <meta name="app-version" content="v410">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -66,6 +66,8 @@
     #radar-strip{position:relative;height:18px;margin:2px 0 2px;border-radius:4px;overflow:hidden;
       background:#23232c;}
     #radar-strip i{position:absolute;top:0;bottom:0;display:block;}
+    /* 「いま」の区切り。左が実際に降った雨、右が予想。 */
+    #radar-strip .rs-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#cfe6ff;opacity:.9;}
     #radar-strip .rs-note{position:absolute;left:6px;top:0;line-height:18px;font-size:10.5px;color:#7b858f;}
     #radar-strip.is-dry .rs-note{color:#9aa4ae;}
     #radar-slider{width:100%;margin:2px 0 4px;accent-color:#4da3ff;}
