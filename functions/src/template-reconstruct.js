@@ -43,7 +43,7 @@ import TEMPLATE from "../data/keiho-template.json" with { type: "json" };
 //   time    … 時刻（乗車 / 降車 / 時間）。H:MM へ正規化
 //   decimal … 小数（営Km）。NN.N へ正規化
 //   fare    … 金額（合計 / 料金 / 現収 / 未収 / 立替）。カンマ除去し整数へ
-//   flag    … 真偽（迎）。それらしき文字があれば "迎"
+//   flag    … 迎車/アプリ（迎）。迎らしき字なら "迎"、ア なら "ア"
 //   text    … 自由文（乗車地 / 降車地 / 備考）
 //
 // group:
@@ -291,7 +291,11 @@ export function normalizeCell(rawText, type, confidence) {
       text = raw || '';
     }
   } else if (type === 'flag') {
-    text = /[迎連週迅]/.test(raw) ? '迎' : '';
+    // 迎 列は「迎」(迎車) と「ア」(アプリ配車) の2種類。ア を落とすと
+    // 下流の pickupKind='ア' 判定(車種推定・日報表示)が効かなくなる。
+    if (/[迎連週迅]/.test(raw)) text = '迎';
+    else if (/[アァｱ]/.test(raw)) text = 'ア';
+    else text = '';
   } else {
     // text（乗車地 / 降車地 / 備考）。PP-OCRv5 の簡体字字形を常用漢字へ。
     text = normalizeKanji(raw);
@@ -414,7 +418,7 @@ function classifyBodyCell(text) {
   if (!t) return null;
   if (/[区市]/.test(t) && t.length >= 4) return 'place';
   if (/決済|決斉|チケット|ETC|Visa|QuickPay|AMEX|交通|遠割/i.test(t)) return 'note';
-  if (/^[迎連週迅]$/.test(t)) return 'flag';
+  if (/^[迎連週迅アァ]$/.test(t)) return 'flag';
   if (/^\d{1,2}[:：.\-]\d{2}$/.test(t)) return 'time';
   const digits = t.replace(/[^0-9]/g, '');
   if (digits.length === 4 && /^[0-9:：.\-]+$/.test(t)) return 'time';
@@ -929,7 +933,7 @@ export function reconstructRows(ocr) {
     const t = txt(c.b);
     // 迎 はフラグ列。地名らしいテキストが落ちたら 乗車地 へ送る。
     if (ci === IDX_MUKAE) {
-      const isFlagLike = t.length <= 1 || /^[迎連週迅]+$/.test(t);
+      const isFlagLike = t.length <= 1 || /^[迎連週迅アァ]+$/.test(t);
       if (!isFlagLike && /[一-鿿]/.test(t)) ci = IDX_NORIBA;
     }
     // No は 1〜3 文字の数字/休 のみ。時刻らしい box（":" を含む等）が

@@ -415,7 +415,7 @@ function renderTripsTable(drive) {
       <td>${shiftTimeStr(t.boardTime)}</td>
       <td>${shiftTimeStr(t.alightTime)}</td>
       <td class="r">${dur}分</td>
-      <td>${t.isPickup ? '迎車' : ''}${t.isCharter ? '貸' : ''}</td>
+      <td>${t.isPickup ? '迎車' : (t.pickupKind === 'ア' ? 'アプリ' : '')}${t.isCharter ? '貸' : ''}</td>
       <td class="place" title="${t.boardPlace}">${t.boardPlace}</td>
       <td class="place" title="${t.alightPlace}">${t.alightPlace}${t.isCancel ? (Number(t.amount) > 0 ? ' [キャンセル・補填]' : ' [×]') : ''}</td>
       <td class="r">${(t.km || 0).toFixed(1)}</td>

@@ -118,7 +118,8 @@ export function rowsToDrive(rows) {
 
     const km = parseKm(row['営Km']);
     const amount = parseAmount(row['合計']);
-    const pickupKind = row['迎'] === '迎' ? '迎' : '';
+    // 迎 列: '迎'(迎車) / 'ア'(アプリ配車) / ''(流し)。js/parser.js と同じ値域。
+    const pickupKind = row['迎'] === '迎' ? '迎' : row['迎'] === 'ア' ? 'ア' : '';
     // isCancel: アプリの判定（js/parser.js）に合わせる。
     // 行頭「キ」、または amount===400、または km===0 で amount が 500/1000。
     const isCancelMarker = /キ/.test(noText);
