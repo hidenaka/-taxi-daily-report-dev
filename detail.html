@@ -415,7 +415,7 @@ function renderTripsTable(drive) {
       <td>${shiftTimeStr(t.boardTime)}</td>
       <td>${shiftTimeStr(t.alightTime)}</td>
       <td class="r">${dur}分</td>
-      <td>${t.isPickup ? '迎車' : (t.pickupKind === 'ア' ? 'アプリ' : '')}${t.isCharter ? '貸' : ''}</td>
+      <td>${t.pickupKind === 'ア' ? '迎車(ア)' : (t.isPickup ? '迎車' : '')}${t.isCharter ? '貸' : ''}</td>
       <td class="place" title="${t.boardPlace}">${t.boardPlace}</td>
       <td class="place" title="${t.alightPlace}">${t.alightPlace}${t.isCancel ? (Number(t.amount) > 0 ? ' [キャンセル・補填]' : ' [×]') : ''}</td>
       <td class="r">${(t.km || 0).toFixed(1)}</td>
@@ -434,7 +434,7 @@ function renderTripsTable(drive) {
       <tbody>${rows}</tbody>
     </table>
     </div>
-    <div class="legend">区: 迎車=お客様の指定場所までお迎え / 貸=貸切。「次まで」=このイベント終了から次イベント開始までの空車時間。橙=キャンセル、薄橙背景=貸切</div>
+    <div class="legend">区: 迎車=お客様の指定場所までお迎え(ア=アプリ配車、迎車に含む) / 貸=貸切。「次まで」=このイベント終了から次イベント開始までの空車時間。橙=キャンセル、薄橙背景=貸切</div>
   `;
 }
 

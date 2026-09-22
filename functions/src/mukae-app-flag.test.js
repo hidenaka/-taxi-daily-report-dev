@@ -17,7 +17,7 @@ test("normalizeCell(flag): 迎 系はこれまでどおり 迎、空は空", () 
   assert.strictEqual(normalizeCell("", "flag", 1).text, "");
 });
 
-test("rowsToDrive: 迎=ア の行は pickupKind='ア'・isPickup=false", () => {
+test("rowsToDrive: 迎=ア の行は pickupKind='ア'・isPickup=true(アも迎車にカウント)", () => {
   const row = {
     No: "2", 乗車: "8:45", 降車: "9:15", 迎: "ア",
     乗車地: "大田区上池台1", 降車地: "渋谷区渋谷3", 営Km: "8.6", 合計: "5,000",
@@ -25,7 +25,7 @@ test("rowsToDrive: 迎=ア の行は pickupKind='ア'・isPickup=false", () => {
   const { trips } = rowsToDrive([row]);
   assert.strictEqual(trips.length, 1);
   assert.strictEqual(trips[0].pickupKind, "ア");
-  assert.strictEqual(trips[0].isPickup, false);
+  assert.strictEqual(trips[0].isPickup, true);
 });
 
 test("rowsToDrive: 迎=迎 の行は従来どおり pickupKind='迎'・isPickup=true", () => {

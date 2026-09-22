@@ -136,7 +136,8 @@ export function rowsToDrive(rows) {
       alightPlace: row['降車地'] || '',
       km,
       amount: isCancel ? 0 : amount,
-      isPickup: pickupKind === '迎',
+      // 迎車カウント: 迎(電話等の迎車)もア(アプリ配車)も迎車(本人指示 2026-09-22)。種別は pickupKind で残す
+      isPickup: pickupKind === '迎' || pickupKind === 'ア',
       isCharter: noText.startsWith('貸'),
       isKaiso,
       isCancel,

@@ -49,7 +49,7 @@ function parseClaudeRow(cells) {
     // 「キ」マーカー由来のキャンセルは明細に印字された金額をそのまま残す
     // (タクシーチケット等の補填が印字されるケースで情報を捨てない 2026-08-10)。
     amount: (isCancel && !isCancelMarker) ? 0 : parseAmount(amt),
-    isPickup: pickup === '迎',
+    isPickup: pickup === '迎' || pickup === 'ア',   // ア(アプリ配車)も迎車にカウント(2026-09-22)
     isCharter,
     isCancel,
     waitTime: wait || ''
@@ -97,7 +97,7 @@ function parseGeminiRow(cells) {
     // 「キ」マーカー由来のキャンセルは明細に印字された金額をそのまま残す
     // (タクシーチケット等の補填が印字されるケースで情報を捨てない 2026-08-10)。
     amount: (isCancel && !isCancelMarker) ? 0 : parseAmount(amt),
-    isPickup: pickup === '迎',
+    isPickup: pickup === '迎' || pickup === 'ア',   // ア(アプリ配車)も迎車にカウント(2026-09-22)
     isCharter,
     isCancel,
     waitTime: ''

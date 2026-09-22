@@ -124,3 +124,11 @@ test('parseReport: 末尾が乗車行なら returnTime は null', () => {
   const result = parseReport(text);
   assert.equal(result.returnTime, null);
 });
+
+test('parseReport: 迎=ア(アプリ配車)は pickupKind="ア" のまま isPickup=true(迎車にカウント)', () => {
+  const text = `No\t乗車\t降車\t時間\t迎\t乗車地\t降車地\t営Km\t合計\t待機
+3\t12:00\t12:20\t0:20\tア\t品川区A\t港区B\t5.2\t2500\t`;
+  const result = parseReport(text);
+  assert.equal(result.trips[0].pickupKind, 'ア');
+  assert.equal(result.trips[0].isPickup, true);
+});
