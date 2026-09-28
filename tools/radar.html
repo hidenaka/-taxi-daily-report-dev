@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v421">
+  <meta name="app-version" content="v422">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -131,70 +131,152 @@
       border:2px solid #1f2a36;background:rgba(255,255,255,.45);}
 
     /* いま見ている場所。左上は切り替えボタンが居るので、その下に置く */
-    #radar-place-label{position:absolute;left:8px;top:54px;z-index:1250;background:rgba(21,21,28,.88);
+    #radar-place-label{position:absolute;left:10px;top:56px;z-index:1250;background:rgba(21,21,28,.88);
       color:#e8edf2;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;}
     /* 工事のときは、雨の帯が見ている点の印・雨の凡例・場所の名前は出さない（雨の話なので） */
-    body.mode-koji #radar-center,body.mode-koji #radar-legend,body.mode-koji #radar-place-label{display:none;}
+    body.mode-koji #radar-center,body.mode-koji #radar-legend,body.mode-koji #radar-place-label,
+    body.mode-koji #radar-locate{display:none;}
 
     /* 雨雲 / 工事 の切り替え。地図の左上 */
-    #map-mode{position:absolute;left:8px;top:8px;z-index:1260;display:flex;gap:0;
+    #map-mode{position:absolute;left:10px;top:10px;z-index:1400;display:flex;gap:0;
       background:rgba(21,21,28,.9);border-radius:999px;padding:3px;}
     #map-mode button{border:none;background:none;color:#9aa4ae;font-size:13px;font-weight:700;
       padding:7px 14px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
     #map-mode button.active{background:#2f6fd0;color:#fff;}
 
-    /* 工事バー（下）。雨のバーと同じ位置・同じ見た目にそろえる */
-    #koji-bar{position:fixed;left:8px;right:8px;z-index:1300;
-      bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 8px);
-      background:rgba(21,21,28,.92);color:#fff;border-radius:12px;padding:10px 12px 12px;
-      box-shadow:0 -2px 14px rgba(0,0,0,.35);}
-    #koji-bar[hidden]{display:none;}
-    .kj-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;}
-    .kj-clocklbl{font-size:11px;color:#9aa4ae;}
-    #koji-clock{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em;}
-    #koji-date{font-size:13px;font-weight:700;color:#cfd6dd;}
-    #koji-updated{margin-left:auto;font-size:11px;color:#7b858f;}
-    .kj-head2{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px;}
-    #koji-count{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;}
-    #koji-count-note{font-size:12.5px;color:#cfd6dd;}
-    /* 時刻のつまみ（本家と同じ形: 日付の丸・6時間ごとの点・日付ラベル） */
-    .kj-track{position:relative;height:52px;margin:2px 4px 2px;}
-    .kj-track input{position:absolute;left:0;right:0;top:6px;width:100%;margin:0;height:30px;background:transparent;
+    /* ===== 工事マップ（本家 osanpo-safety の画面をそのまま移植） ===== */
+    #koji-ui{position:absolute;inset:0;pointer-events:none;z-index:1300;
+      --k-bg:#f1f0ec;--k-panel:rgba(255,255,255,.96);--k-ink:#1d2024;--k-sub:#6b7076;--k-faint:#9aa0a6;
+      --k-line:#e4e2dc;--k-chip:#f3f2ee;--k-accent:#e0452f;--k-dark:#1d2024;--k-good:#17905a;
+      --k-shadow:0 6px 24px rgba(20,24,28,.10);
+      font-family:"Noto Sans JP","Hiragino Sans",sans-serif;color:var(--k-ink);}
+    #koji-ui[hidden]{display:none;}
+    #koji-ui>*{pointer-events:auto;}
+    .k-card{background:var(--k-panel);border-radius:18px;box-shadow:var(--k-shadow);}
+    #koji-ui button{font:inherit;color:inherit;cursor:pointer;}
+    /* 見出し */
+    .k-brand{position:absolute;top:58px;left:10px;display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;}
+    .k-logo{width:34px;height:34px;border-radius:50%;border:3px solid var(--k-dark);display:grid;place-items:center;font-weight:900;font-size:15px;}
+    .k-brand h1{margin:0;font-size:17px;font-weight:900;letter-spacing:.04em;line-height:1.15;}
+    .k-brand .k-en{font-size:9px;letter-spacing:.2em;color:var(--k-sub);font-weight:600;}
+    .k-stats{border-left:1px solid var(--k-line);padding-left:10px;margin-left:2px;display:flex;gap:4px;align-items:baseline;}
+    .k-stats b{font-size:17px;font-weight:800;}
+    .k-stats span{font-size:11px;color:var(--k-sub);}
+    @media (max-width:760px){ .k-stats{display:none;} }
+    /* 右上の切り替え */
+    .k-tools{position:absolute;top:10px;right:10px;display:flex;gap:8px;align-items:center;}
+    .k-seg{display:flex;padding:5px;gap:2px;}
+    .k-seg button{border:0;background:transparent;border-radius:999px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--k-sub);}
+    .k-seg button[aria-pressed="true"]{background:var(--k-dark);color:var(--k-bg);}
+    .k-round{width:40px;height:40px;border:0;border-radius:50%;display:grid;place-items:center;}
+    .k-round svg{width:20px;height:20px;}
+    .k-round[aria-pressed="true"]{background:var(--k-dark);color:var(--k-bg);}
+    @media (max-width:760px){ .k-tools .k-seg{display:none;} }
+    /* 左の一覧 */
+    .k-list{position:absolute;top:152px;left:10px;bottom:var(--k-bottom,250px);width:344px;display:flex;flex-direction:column;overflow:hidden;}
+    .k-list .top{padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--k-line);}
+    .k-search{display:flex;align-items:center;gap:8px;background:var(--k-chip);border-radius:12px;padding:10px 12px;color:var(--k-sub);}
+    .k-search input{border:0;background:transparent;outline:0;font:inherit;font-size:14px;color:var(--k-ink);width:100%;}
+    .k-tabs{display:flex;gap:6px;flex-wrap:wrap;}
+    .k-tabs button{border:0;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;background:var(--k-chip);color:var(--k-sub);}
+    .k-tabs button[aria-pressed="true"]{background:var(--k-dark);color:var(--k-bg);}
+    .k-legend{display:flex;flex-wrap:wrap;gap:5px;}
+    .k-legend button{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--k-line);background:transparent;
+      border-radius:999px;padding:3px 9px 3px 6px;font-size:11.5px;font-weight:700;}
+    .k-legend button i{width:10px;height:10px;border-radius:50%;}
+    .k-legend button b{font-weight:600;color:var(--k-sub);}
+    .k-legend button[aria-pressed="false"]{opacity:.35;}
+    .k-list .items{overflow:auto;padding:4px 0 8px;flex:1;}
+    .k-list .item{display:grid;grid-template-columns:40px 1fr auto;gap:0 12px;align-items:center;padding:10px 16px;border:0;background:transparent;width:100%;text-align:left;}
+    .k-list .item:hover,.k-list .item:focus-visible{background:var(--k-chip);outline:0;}
+    .k-list .badge{width:36px;height:36px;border-radius:50%;border:3px solid;display:grid;place-items:center;font-weight:900;font-size:14px;grid-row:span 2;}
+    .k-list .item .t{font-weight:700;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .k-list .item .s{font-size:11.5px;color:var(--k-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .k-list .item .r{text-align:right;grid-row:span 2;}
+    .k-list .item .r b{font-size:19px;font-weight:800;display:block;line-height:1.1;}
+    .k-list .item .r span{font-size:11px;color:var(--k-good);font-weight:700;}
+    .k-list .bar{grid-column:2 / 4;height:3px;background:var(--k-line);border-radius:2px;margin-top:8px;overflow:hidden;}
+    .k-list .bar i{display:block;height:100%;}
+    .k-list .more{font-size:12px;color:var(--k-sub);padding:10px 16px;}
+    #listBtn{display:none;position:absolute;top:106px;left:10px;border:0;padding:9px 14px;font-weight:700;font-size:13px;}
+    @media (max-width:760px){
+      #listBtn{display:block;}
+      .k-list{display:none;top:152px;left:10px;right:10px;width:auto;bottom:var(--k-bottom,300px);}
+      .k-list.open{display:flex;}
+    }
+    /* 下の時刻 */
+    .k-time{position:absolute;left:10px;right:10px;bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 8px);
+      padding:12px 16px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 18px;align-items:center;}
+    .k-clock small{display:block;font-size:11px;color:var(--k-sub);margin-bottom:2px;}
+    .k-clock .num{font-size:34px;font-weight:800;line-height:1;}
+    .k-clock .date{font-size:13px;font-weight:700;color:var(--k-sub);margin-left:8px;}
+    .k-track{position:relative;height:54px;}
+    .k-track input{position:absolute;left:0;right:0;top:8px;width:100%;margin:0;height:32px;background:transparent;
       -webkit-appearance:none;appearance:none;z-index:2;cursor:pointer;}
-    .kj-track input::-webkit-slider-runnable-track{height:10px;background:transparent;}
-    .kj-track input::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
-      background:#15151c;border:6px solid #4da3ff;margin-top:-8px;box-shadow:0 2px 8px rgba(0,0,0,.5);}
-    .kj-track input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#15151c;border:6px solid #4da3ff;}
-    .kj-rail{position:absolute;left:13px;right:13px;top:16px;height:9px;border-radius:5px;background:#33333f;overflow:hidden;}
-    .kj-rail .kj-done{position:absolute;left:0;top:0;bottom:0;background:#4da3ff;}
-    .kj-ticks{position:absolute;left:13px;right:13px;top:0;height:52px;pointer-events:none;}
-    .kj-ticks .d{position:absolute;top:12px;width:16px;height:16px;margin-left:-8px;border-radius:50%;
-      background:#15151c;border:3px solid #cfe6ff;}
-    .kj-ticks .d.f{border-color:#4a525b;}
-    .kj-ticks .p{position:absolute;top:19px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#6b7580;}
-    .kj-ticks .l{position:absolute;top:34px;transform:translateX(-50%);font-size:10px;font-weight:700;color:#9aa4ae;white-space:nowrap;}
-    .kj-ctrl{display:flex;gap:8px;margin:2px 0 6px;}
-    .kj-ctrl button{flex:1;padding:9px 0;border-radius:9px;border:1px solid #3a3a46;background:#22222c;
-      color:#cfd6dd;font-size:13px;font-weight:600;cursor:pointer;}
-    #koji-play{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
-    #koji-roads[aria-pressed="true"]{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
-    /* 区の名前（道路の色分けを出したときだけ） */
-    .ward-label{font-size:11px;font-weight:700;color:#3f3f46;background:rgba(255,255,255,.72);
-      border-radius:6px;padding:1px 5px;white-space:nowrap;}
-    .kj-legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px;color:#cfd6dd;margin-bottom:6px;}
-    .kj-legend span{display:flex;align-items:center;gap:5px;}
-    .kj-legend i{width:14px;height:6px;border-radius:3px;display:inline-block;}
-    .kj-note{font-size:10.5px;line-height:1.5;color:#8b98a6;}
-    #koji-error{font-size:12px;color:#ffb4a8;margin-top:4px;}
+    .k-track input::-webkit-slider-runnable-track{height:12px;background:transparent;}
+    .k-track input::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;
+      background:var(--k-panel);border:6px solid var(--k-accent);margin-top:-9px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+    .k-track input::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--k-panel);border:6px solid var(--k-accent);}
+    .k-rail{position:absolute;left:14px;right:14px;top:19px;height:10px;border-radius:5px;background:var(--k-line);overflow:hidden;}
+    .k-rail .k-done{position:absolute;left:0;top:0;bottom:0;background:var(--k-dark);}
+    .k-ticks{position:absolute;left:14px;right:14px;top:0;height:54px;pointer-events:none;}
+    .k-ticks .d{position:absolute;top:15px;width:18px;height:18px;margin-left:-9px;border-radius:50%;background:var(--k-panel);border:3px solid var(--k-dark);}
+    .k-ticks .d.f{border-color:var(--k-faint);}
+    .k-ticks .p{position:absolute;top:22px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--k-panel);}
+    .k-ticks .l{position:absolute;top:38px;transform:translateX(-50%);font-size:10px;font-weight:700;color:var(--k-sub);white-space:nowrap;}
+    .k-summary{grid-column:2 / 3;font-size:12.5px;color:var(--k-sub);}
+    .k-summary b{color:var(--k-ink);}
+    .k-ctrl{display:flex;gap:10px;align-items:center;}
+    #play{width:46px;height:46px;border-radius:50%;border:0;background:var(--k-dark);color:var(--k-bg);display:grid;place-items:center;}
+    #now{border:2px solid var(--k-dark);background:transparent;border-radius:999px;padding:9px 14px;font-weight:700;font-size:13px;white-space:nowrap;}
+    @media (max-width:760px){
+      .k-time{grid-template-columns:1fr auto;gap:4px 12px;}
+      .k-track{grid-column:1 / 3;}
+      .k-summary{grid-column:1 / 3;}
+    }
+    /* もやの凡例 */
+    .k-cloud{position:absolute;right:10px;bottom:var(--k-bottom,250px);padding:9px 12px;font-size:11px;color:var(--k-sub);
+      display:flex;flex-direction:column;gap:5px;width:220px;}
+    .k-cloud i{height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(255,214,70,.5),#ffb700,#f07f00,#e0301e,#7a0019);}
+    .k-cloud .ends{display:flex;justify-content:space-between;font-weight:700;}
+    .k-cloud .dir{display:flex;align-items:center;gap:8px;border-top:1px solid var(--k-line);padding-top:6px;line-height:1.4;}
+    .k-cloud .dir em{flex:none;width:44px;height:8px;border-radius:4px;background:linear-gradient(90deg,#fde7a8,#f07f00);}
+    @media (max-width:760px){ .k-cloud{display:none;} }
+    /* 色分け・見え方（狭い画面では時刻の上に出す） */
+    .k-mseg{display:none;}
+    @media (max-width:760px){
+      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 186px);
+        justify-content:center;gap:8px;flex-wrap:wrap;}
+      .k-mseg .k-seg button{padding:6px 10px;font-size:12px;}
+    }
+    /* 道の持ち主 */
+    .k-owners{position:absolute;top:62px;right:10px;padding:10px 12px;display:flex;flex-direction:column;gap:7px;width:220px;font-size:12.5px;}
+    .k-owners[hidden]{display:none;}
+    .k-owners small{color:var(--k-sub);font-size:11px;line-height:1.4;}
+    .k-owners .k-legend i.bd{width:16px;height:0;border-radius:0;border-top:2px dashed var(--k-ink);}
+    /* 区の名前・地名ラベル */
+    .koji-ward{font-weight:900;font-size:13px;letter-spacing:.08em;color:#1d2024;opacity:.62;pointer-events:none;
+      text-shadow:0 0 3px #f1f0ec,0 0 3px #f1f0ec,0 0 6px #f1f0ec;}
+    .koji-place{background:rgba(255,255,255,.96);border-radius:8px;padding:3px 8px 2px;text-align:center;
+      box-shadow:0 1px 6px rgba(0,0,0,.14);pointer-events:none;line-height:1.1;}
+    .koji-place b{display:block;font-size:12.5px;font-weight:900;color:#1d2024;}
+    .koji-place span{font-size:8px;letter-spacing:.12em;color:#6b7076;font-weight:600;}
+    /* この地図について */
+    #about{border:0;border-radius:18px;max-width:560px;width:calc(100% - 32px);background:#fff;color:#1d2024;
+      box-shadow:0 6px 24px rgba(20,24,28,.2);padding:20px 22px;line-height:1.7;font-size:14px;}
+    #about::backdrop{background:rgba(0,0,0,.35);}
+    #about h2{margin:0 0 8px;font-size:18px;}
+    #about .src{font-size:12px;color:#6b7076;}
+    #about .close{border:0;background:#1d2024;color:#f1f0ec;border-radius:999px;padding:10px 20px;font-weight:700;}
+    .pill{display:inline-block;border-radius:999px;padding:1px 8px;font-size:11.5px;font-weight:700;margin:0 3px 3px 0;}
 
     /* 工事の吹き出し */
-    .kj-pop-title{font-size:15px;font-weight:700;margin-bottom:4px;}
-    .kj-pop-lv{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;margin-bottom:4px;}
-    .kj-pop-lv i{width:12px;height:12px;border-radius:3px;display:inline-block;}
-    .kj-pop-row{font-size:13px;line-height:1.5;}
-    .kj-pop .kj-dim{color:#6b7c93;font-size:12px;}
-    .kj-warn{margin-top:4px;font-size:12px;color:#b45309;}
-    .kj-pop-note{margin-top:6px;font-size:11px;line-height:1.45;color:#6b7c93;}
+    .koji-pop{max-width:280px;font-size:13px;line-height:1.6;color:#1d2024;}
+    .koji-pop .ttl{font-size:15px;font-weight:900;margin-top:2px;}
+    .koji-pop .sub{color:#6b7076;}
+    .koji-pop .small{font-size:12px;}
+    .koji-pop .b{font-weight:700;}
+    .koji-pop .warn{border-left:3px solid #e0452f;padding-left:8px;margin:4px 0;}
 
     /* 場所えらびパネル */
     #radar-place-panel{position:fixed;left:0;right:0;bottom:0;z-index:1400;background:#15151c;color:#fff;
@@ -362,32 +444,85 @@
     </div>
   </div>
 
-  <div id="koji-bar" hidden>
-    <div class="kj-head">
-      <span class="kj-clocklbl">表示中の時刻</span>
-      <span id="koji-clock">—</span>
-      <span id="koji-date"></span>
-      <span id="koji-updated"></span>
+  <!-- ここから工事マップ（本家 osanpo-safety の画面をそのまま移植） -->
+  <div id="koji-ui" hidden>
+    <div class="k-brand k-card">
+      <div class="k-logo" aria-hidden="true">工</div>
+      <div><h1>工事レーダー</h1><div class="k-en">TOKYO ROADWORKS RADAR</div></div>
+      <div class="k-stats"><b id="sTotal">—</b><span>件</span><b id="sRoads">—</b><span>路線</span><span id="koji-updated"></span></div>
     </div>
-    <!-- 時刻えらびは工事マップ本家と同じ「いまから7日先まで・1時間きざみのつまみ」 -->
-    <div class="kj-track">
-      <div class="kj-rail"><div class="kj-done" id="koji-done"></div></div>
-      <div class="kj-ticks" id="koji-ticks"></div>
-      <input id="koji-time" type="range" min="0" max="167" step="1" value="0" aria-label="時刻（いまから7日先まで）">
+
+    <div class="k-tools">
+      <div class="k-seg k-card" role="group" aria-label="色分け">
+        <button data-mode="level" aria-pressed="true">ふさぎ具合</button>
+        <button data-mode="kind" aria-pressed="false">工事の種類</button>
+        <button data-mode="dir" aria-pressed="false">車の向き</button>
+        <button data-mode="jam" aria-pressed="false">混みやすさ</button>
+      </div>
+      <div class="k-seg k-card" role="group" aria-label="見え方">
+        <button data-view="3d" aria-pressed="true">立体</button>
+        <button data-view="2d" aria-pressed="false">平面</button>
+      </div>
+      <button class="k-round k-card" id="roads" aria-label="道の持ち主（国道・都道・区道）と区の境を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 9 4M20 20 15 4M12 6v2M12 11v2M12 16v2"/></svg></button>
+      <button class="k-round k-card" id="info" aria-label="この地図について"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     </div>
-    <div class="kj-ctrl">
-      <button id="koji-play" type="button">▶ 動かす</button>
-      <button id="koji-now" type="button">いまの時刻</button>
-      <button id="koji-roads" type="button" aria-pressed="false">道路の色分け</button>
+
+    <button id="listBtn" class="k-card">工事一覧</button>
+
+    <div class="k-owners k-card" id="owners" hidden aria-label="道の持ち主（押すと表示・非表示）">
+      <b>道の持ち主</b>
+      <div class="k-legend" id="ownerLegend"></div>
+      <small id="ownerHint">区道は拡大すると出ます</small>
     </div>
-    <div class="kj-head2"><span id="koji-count">—</span><span id="koji-count-note">この画面で工事中</span></div>
-    <div class="kj-legend" id="koji-legend"></div>
-    <div class="kj-note">
-      予定に基づく目安。実際の通行は現地の標識・警察の指示に従ってください。<br>
-      東京23区の<b>都道のみ</b>（区道・国道・高速は含みません）。どちら側の車線かは推定。<br>
-      出典: 東京都建設局 路上工事情報（CC BY 4.0）／道路の形と名前 © OpenStreetMap contributors
+
+    <aside class="k-list k-card" id="list" aria-label="この時間の工事">
+      <div class="top">
+        <label class="k-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="q" placeholder="道路名・工事で探す（例: 環七、水道）" autocomplete="off"></label>
+        <div class="k-tabs" id="sort" role="group" aria-label="並べ方">
+          <button data-sort="heavy" aria-pressed="true">ふさぐ順</button>
+          <button data-sort="soon" aria-pressed="false">早く終わる順</button>
+          <button data-sort="late" aria-pressed="false">遅くまで続く順</button>
+        </div>
+        <div class="k-legend" id="legend" aria-label="凡例（押すと表示・非表示）"></div>
+      </div>
+      <div class="items" id="items"></div>
+    </aside>
+
+    <div class="k-cloud k-card" aria-label="見方">
+      <span>もや＝車線をふさぐ工事の集まり</span><i></i><span class="ends"><b>少</b><b>多</b></span>
+      <span class="dir"><em></em>うすい→こい、流れる点線＝車の進む向き（片側だけの工事）</span>
     </div>
-    <div id="koji-error" hidden></div>
+
+    <div class="k-mseg">
+      <div class="k-seg k-card" role="group" aria-label="色分け"><button data-mode="level" aria-pressed="true">ふさぎ具合</button><button data-mode="kind" aria-pressed="false">工事の種類</button><button data-mode="dir" aria-pressed="false">車の向き</button><button data-mode="jam" aria-pressed="false">混みやすさ</button></div>
+      <div class="k-seg k-card" role="group" aria-label="見え方"><button data-view="3d" aria-pressed="true">立体</button><button data-view="2d" aria-pressed="false">平面</button></div>
+    </div>
+
+    <div class="k-time k-card">
+      <div class="k-clock"><small>表示中の時刻</small><span class="num" id="clock">—</span><span class="date" id="date"></span></div>
+      <div class="k-track">
+        <div class="k-rail"><div class="k-done" id="done"></div></div>
+        <div class="k-ticks" id="ticks"></div>
+        <input id="t" type="range" min="0" max="167" step="1" value="0" aria-label="時刻（いまから7日先まで）">
+      </div>
+      <div class="k-ctrl">
+        <button id="play" aria-label="再生"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4v16l13-8z"/></svg></button>
+        <button id="now">いまの時刻</button>
+      </div>
+      <div class="k-summary" id="summary">読み込み中…</div>
+    </div>
+
+    <dialog id="about">
+      <h2>この地図について</h2>
+      <p>東京都が公開している「23区内 都道の路上工事情報」を毎朝取り込み、その時刻に作業している工事だけを色付きで表示しています。うすい灰色は、工事期間中だがその時刻は作業していない場所です。</p>
+      <p><b>ふさぎ具合</b>: 全面通行止め／片側交互通行／3分の1以上の車線／一部の車線／記載なし。<br><b>どちら側の車線か</b>: 線が道路の左右に寄っているとき、その側の車線をふさぎます。拡大すると出る<b>矢印</b>は、ふさがれる車線を走る車の向きです（上り＝都心へ向かう車線、内回り＝都心寄り、として推定。都は記号の意味を公開していません）。</p>
+      <p><b>混みやすさ（目安）</b>: その時刻の交通の多さ（令和3年度 道路交通センサスの時間帯別交通量から、23区の都道で24時間観測した区間の「ピーク時に対する割合」）を、工事で残る車線の割合で割ったもの。1を超えると「混みやすい」。片側だけの工事はその向きの車線で数えます。ピーク時の都道はおおむね容量いっぱい、とみなした目安で、実際の渋滞を測ったものではありません。</p>
+      <p><b>道の持ち主</b>（右上の道のボタン）: 国道＝青、都道＝緑、区道など＝紫。点線は区の境です。国土地理院の地図データの「道路の種類」で色分けしているので、管理者とは少しずれます。区道の工事情報はまだ地図に入っていません。</p>
+      <p><b>位置</b>: 都のデータの住所（丁目）と道路名から、その名前の道路の上に置いています（道路の形と名前: © OpenStreetMap contributors）。その名前の道路が住所の近くに無い工事は、道路には置かず<b>白抜きの丸</b>（位置は目安）で出します。</p>
+      <p><b>時間帯</b>は各工事の予定で、毎日同じ時間帯として表示しています（曜日・休工日は元データに無い）。工事はすべて下道（都道）で、高速道路そのものの規制は含みません。実際の通行可否は現地の標識・警察・道路管理者の情報を確認してください。</p>
+      <p class="src">出典: 東京都建設局 路上工事情報（CC BY 4.0）／ 地図: 国土地理院 ／ 道路の形と名前: © OpenStreetMap contributors（ODbL）</p>
+      <form method="dialog"><button class="close">閉じる</button></form>
+    </dialog>
   </div>
 
   <div id=radar-weather-panel aria-label=天気>

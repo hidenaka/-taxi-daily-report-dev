@@ -14,7 +14,7 @@ const OUT = new URL('../../tools/data/koji.json', import.meta.url).pathname;
 
 // 画面で使う項目だけ残す（risk_* は歩行者向けの旧機能・タクシーでは使わない）
 const KEEP = ['id', 'title', 'restrictionType', 'startAt', 'endAt', 'timeWindow',
-  'lanesRestricted', 'lanesTotal', 'roadSide', 'laneSummary', 'placement'];
+  'lanesRestricted', 'lanesTotal', 'roadSide', 'laneSummary', 'placement', 'roadBearing', 'source'];
 
 const round = (n) => Math.round(n * 1e5) / 1e5;   // 小数5桁 ≒ 1m
 
