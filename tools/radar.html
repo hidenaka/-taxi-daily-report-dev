@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v423">
+  <meta name="app-version" content="v424">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -173,7 +173,7 @@
     .k-round[aria-pressed="true"]{background:var(--k-dark);color:var(--k-bg);}
     @media (max-width:760px){ .k-tools .k-seg{display:none;} }
     /* 左の一覧 */
-    .k-list{position:absolute;top:152px;left:10px;bottom:var(--k-bottom,250px);width:344px;display:flex;flex-direction:column;overflow:hidden;}
+    .k-list{position:absolute;top:152px;left:10px;bottom:190px;width:344px;display:flex;flex-direction:column;overflow:hidden;}
     .k-list .top{padding:14px 14px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--k-line);}
     .k-search{display:flex;align-items:center;gap:8px;background:var(--k-chip);border-radius:12px;padding:10px 12px;color:var(--k-sub);}
     .k-search input{border:0;background:transparent;outline:0;font:inherit;font-size:14px;color:var(--k-ink);width:100%;}
@@ -201,11 +201,11 @@
     #listBtn{display:none;position:absolute;top:106px;left:10px;border:0;padding:9px 14px;font-weight:700;font-size:13px;}
     @media (max-width:760px){
       #listBtn{display:block;}
-      .k-list{display:none;top:152px;left:10px;right:10px;width:auto;bottom:var(--k-bottom,300px);}
+      .k-list{display:none;top:152px;left:10px;right:10px;width:auto;bottom:240px;}
       .k-list.open{display:flex;}
     }
     /* 下の時刻 */
-    .k-time{position:absolute;left:10px;right:10px;bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 8px);
+    .k-time{position:absolute;left:10px;right:10px;bottom:10px;
       padding:12px 16px 10px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 18px;align-items:center;}
     .k-clock small{display:block;font-size:11px;color:var(--k-sub);margin-bottom:2px;}
     .k-clock .num{font-size:34px;font-weight:800;line-height:1;}
@@ -235,7 +235,7 @@
       .k-summary{grid-column:1 / 3;}
     }
     /* もやの凡例 */
-    .k-cloud{position:absolute;right:10px;bottom:var(--k-bottom,250px);padding:9px 12px;font-size:11px;color:var(--k-sub);
+    .k-cloud{position:absolute;right:10px;bottom:190px;padding:9px 12px;font-size:11px;color:var(--k-sub);
       display:flex;flex-direction:column;gap:5px;width:220px;}
     .k-cloud i{height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(255,214,70,.5),#ffb700,#f07f00,#e0301e,#7a0019);}
     .k-cloud .ends{display:flex;justify-content:space-between;font-weight:700;}
@@ -245,7 +245,7 @@
     /* 色分け・見え方（狭い画面では時刻の上に出す） */
     .k-mseg{display:none;}
     @media (max-width:760px){
-      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 186px);
+      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:196px;
         justify-content:center;gap:8px;flex-wrap:wrap;}
       .k-mseg .k-seg button{padding:6px 10px;font-size:12px;}
     }
@@ -424,25 +424,6 @@
 
     <button id="radar-locate" type="button" aria-label="いまの場所に戻る" title="いまの場所に戻る">◎</button>
     <div id="radar-error" hidden></div>
-  </div>
-
-  <div id="radar-bar">
-    <div class="time-head">
-      <span id="radar-clock">--:--</span>
-      <span id="radar-rel"></span>
-      <span id="radar-kind" class="kind obs"></span>
-      <span id="radar-ver" class="ver"></span>
-    </div>
-    <div id="radar-strip-cap" aria-live="polite"></div>
-    <div id="radar-strip" aria-label="この場所の雨の強さ"><span class="rs-note">この場所の雨を調べています…</span></div>
-    <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
-    <div class="scale" id="radar-scale"></div>
-    <div class="bar-actions">
-      <button id="radar-play" type="button">▶ 動かす</button>
-      <button id="radar-place-btn" type="button">📍 場所</button>
-      <button id="radar-weather-btn" type="button">☁ 天気</button>
-    </div>
-  </div>
 
   <!-- ここから工事マップ（本家 osanpo-safety の画面をそのまま移植） -->
   <div id="koji-ui" hidden>
@@ -523,6 +504,26 @@
       <p class="src">出典: 東京都建設局 路上工事情報（CC BY 4.0）／ 地図: 国土地理院 ／ 道路の形と名前: © OpenStreetMap contributors（ODbL）</p>
       <form method="dialog"><button class="close">閉じる</button></form>
     </dialog>
+  </div>
+
+  </div>
+
+  <div id="radar-bar">
+    <div class="time-head">
+      <span id="radar-clock">--:--</span>
+      <span id="radar-rel"></span>
+      <span id="radar-kind" class="kind obs"></span>
+      <span id="radar-ver" class="ver"></span>
+    </div>
+    <div id="radar-strip-cap" aria-live="polite"></div>
+    <div id="radar-strip" aria-label="この場所の雨の強さ"><span class="rs-note">この場所の雨を調べています…</span></div>
+    <input id="radar-slider" type="range" min="0" max="0" value="0" step="1" aria-label="時刻">
+    <div class="scale" id="radar-scale"></div>
+    <div class="bar-actions">
+      <button id="radar-play" type="button">▶ 動かす</button>
+      <button id="radar-place-btn" type="button">📍 場所</button>
+      <button id="radar-weather-btn" type="button">☁ 天気</button>
+    </div>
   </div>
 
   <div id=radar-weather-panel aria-label=天気>
