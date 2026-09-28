@@ -14,22 +14,11 @@ import {
 
 const DATA_URL = './data/koji.json';
 
-/** 層を足せる状態か（style の読み込みが終わったか）。
-    isStyleLoaded() はタイルの読み込み待ちでも false のままになるので、
-    「style そのものが読めたか」を見る。読めるまで0.1秒ごとに確認（最大10秒）。 */
-function canAddLayers(m) {
-  try { return m.isStyleLoaded() || !!(m.style && m.style._loaded); } catch { return false; }
-}
-
-function whenStyleLoaded(m, timeoutMs = 10000) {
-  return new Promise((resolve) => {
-    if (canAddLayers(m)) return resolve(true);
-    const t0 = Date.now();
-    const id = setInterval(() => {
-      if (canAddLayers(m) || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(canAddLayers(m)); }
-    }, 100);
-  });
-}
+/** 地図に層を足せるようになるまで、実際に足してみて確かめる。
+    MapLibre は画面が裏（別タブ・バックグラウンド）にいる間は描画が止まり、
+    「読み込み終わった」の合図も来ない。合図を待つのではなく、できるまで0.3秒おきに試し、
+    画面が表に戻ったときにもすぐ試す（裏にいる間は何回でも待つ）。 */
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 const SRC = 'koji';
 const HEAT_SRC = 'koji-heat';
 const LAYERS = ['koji-heat', 'koji-off-line', 'koji-off-pt', 'koji-casing', 'koji-line', 'koji-pt', 'koji-approx'];
@@ -52,6 +41,7 @@ export function createKojiLayer(map, { onStatus } = {}) {
   let timeMs = Date.now();
   let loadError = '';
   let added = false;
+  let tries = 0;
   let popup = null;
 
   async function load() {
@@ -68,7 +58,6 @@ export function createKojiLayer(map, { onStatus } = {}) {
 
   function addLayers() {
     if (added) return;
-    if (!canAddLayers(map)) throw new Error('地図の読み込みがまだ終わっていません');
     const empty = { type: 'FeatureCollection', features: [] };
     map.addSource(SRC, { type: 'geojson', data: empty, attribution: '東京都建設局 路上工事情報(CC BY 4.0) / © OpenStreetMap contributors' });
     map.addSource(HEAT_SRC, { type: 'geojson', data: empty });
@@ -212,16 +201,32 @@ export function createKojiLayer(map, { onStatus } = {}) {
     if (!next) { popup?.remove(); setLayerVisibility(false); return; }
     onStatus?.({ loading: true });
     await load();
-    await whenStyleLoaded(map);     // 層を足せるようになるまで待つ
-    try {
-      addLayers();
-    } catch (e) {
-      loadError = `工事の地図を作れませんでした（${e.message}）`;
-      onStatus?.({ error: loadError });
-      return;
-    }
+    const ok = await ensureLayers();
+    if (!ok) { onStatus?.({ error: loadError }); return; }
     setLayerVisibility(true);
     draw();
+  }
+
+  /** 足せるまで試す。裏にいる間は待ち続け、表に戻ったらすぐ試す。 */
+  async function ensureLayers() {
+    while (visible && !added) {
+      try {
+        addLayers();
+        return true;
+      } catch (e) {
+        if (document.hidden) {
+          await new Promise((r) => document.addEventListener('visibilitychange', r, { once: true }));
+        } else {
+          tries += 1;
+          if (tries > 40) {          // 表にいるのに12秒たっても足せない＝本当の失敗
+            loadError = `工事の地図を作れませんでした（${e.message}）`;
+            return false;
+          }
+          await sleep(300);
+        }
+      }
+    }
+    return added;
   }
 
   function setTime(ms) { timeMs = ms; if (visible) draw(); }

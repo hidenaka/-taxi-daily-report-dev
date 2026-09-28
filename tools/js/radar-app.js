@@ -137,24 +137,12 @@ function createMap() {
   }
 }
 
-/** 層を足せる状態か（style の読み込みが終わったか）。
-    isStyleLoaded() はタイルの読み込み待ちでも false のままになるので、
-    「style そのものが読めたか」を見る。読めるまで0.1秒ごとに確認（最大10秒）。 */
+/** 地図が層を受け付けるようになったか。
+    MapLibre は画面が裏にいる間は描画が止まり、読み込み完了の合図も来ない。
+    合図を待たず「足してみて、だめならまた試す」形にする（show() が自分で呼び直す）。 */
 function canAddLayers(m) {
   try { return m.isStyleLoaded() || !!(m.style && m.style._loaded); } catch { return false; }
 }
-
-function whenStyleLoaded(m, timeoutMs = 10000) {
-  return new Promise((resolve) => {
-    if (canAddLayers(m)) return resolve(true);
-    const t0 = Date.now();
-    const id = setInterval(() => {
-      if (canAddLayers(m) || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(canAddLayers(m)); }
-    }, 100);
-  });
-}
-
-function mapReady() { return whenStyleLoaded(map); }
 
 
 // 稼働中のキャッシュ名(= 版)を出典表示の横に足す
@@ -205,8 +193,15 @@ function layerFor(i) {
   return id;
 }
 
+let showRetry = null;
 function show(i) {
-  if (!frames.length || !canAddLayers(map)) return;
+  if (!frames.length) return;
+  // 地図の準備ができていなければ、できてから同じコマを出す（裏にいる間は待つ）
+  if (!canAddLayers(map)) {
+    clearTimeout(showRetry);
+    showRetry = setTimeout(() => show(i), 300);
+    return;
+  }
   index = Math.max(0, Math.min(frames.length - 1, i));
   layerFor(index);
   // 工事を見ているときは雨雲を重ねない（線が読めなくなる）
@@ -779,7 +774,7 @@ async function loadFrames() {
 async function start() {
   createMap();
   renderPresets();
-  await mapReady();       // MapLibre は style の読み込み後でないと層を足せない
+
 
   el('radar-play').addEventListener('click', () => setPlaying(!playTimer));
   el('radar-slider').addEventListener('input', (e) => {
