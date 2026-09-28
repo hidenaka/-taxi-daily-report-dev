@@ -38,7 +38,658 @@ const PLACE_NEAR_KM = 3;
 const layers = new Map();  // frameIndex → 雨雲ラスターの layer/source id
 let mode = 'rain';         // いま見ているほう
 let koji = null;           // 工事の画面（createKojiUi の戻り）
-// --- 工事 / 雨雲 の切り替え -------------------------------------------------
+let syncBarSpaceFn = null; // 下のバーの高さを地図に伝える（切り替え後にも呼ぶ）
+
+// --- 地図 -----------------------------------------------------------------
+function readView() {
+  try {
+    const v = JSON.parse(localStorage.getItem(VIEW_KEY));
+    if (v && Number.isFinite(v.lat) && Number.isFinite(v.lon) && Number.isFinite(v.zoom)) return v;
+  } catch { /* 壊れていたら既定へ */ }
+  return DEFAULT_VIEW;
+}
+function saveView() {
+  try {
+    const c = map.getCenter();
+    localStorage.setItem(VIEW_KEY, JSON.stringify({
+      lat: c.lat, lon: c.lng, zoom: map.getZoom(),
+      pitch: map.getPitch(), bearing: map.getBearing(),
+    }));
+  } catch { /* 保存できなくても動作に影響なし */ }
+}
+
+// 地図を触り終わったタイミングで保存する。
+// MapLibre の moveend に加えて、指を離した・ホイールを止めた操作そのものも拾う
+// （Leaflet のころ moveend が発火しない端末があったため、保険として残す）。
+let saveTimer = null;
+function saveViewSoon() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveView(); syncPlaceLabel();
+    if (mode === 'koji') koji?.refresh();   // 画面の中の工事だけを描き直す
+    else refreshRainStripSoon();
+  }, 400);
+}
+
+function createMap() {
+  const v = readView();
+  // 地図の仕組みは工事マップ本家と同じ MapLibre GL（2026-09-28 本人指示で Leaflet から移行）。
+  // 下地は国土地理院の淡色地図を灰色・薄くして敷く（本家 public/radar.js と同じ指定）。
+  // 地理院タイルは鍵不要・日本語表記で、出典表示のみが条件。
+  map = new maplibregl.Map({
+    container: 'radar-map',
+    style: {
+      version: 8,
+      sources: {
+        gsi: {
+          type: 'raster',
+          tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
+          tileSize: 256, maxzoom: 18, attribution: '地理院タイル',
+        },
+      },
+      layers: [
+        { id: 'bg', type: 'background', paint: { 'background-color': '#f1f0ec' } },
+        {
+          id: 'gsi', type: 'raster', source: 'gsi',
+          paint: {
+            'raster-saturation': -1,        // 灰色にする
+            'raster-opacity': 0.55,         // 薄くする
+            'raster-brightness-min': 0.12,
+            'raster-brightness-max': 1,
+            'raster-contrast': -0.2,
+          },
+        },
+      ],
+    },
+    center: [v.lon, v.lat], zoom: v.zoom,
+    // 本家と同じ「立体（斜めから見る）」を既定にする
+    pitch: Number.isFinite(v.pitch) ? v.pitch : 50,
+    bearing: Number.isFinite(v.bearing) ? v.bearing : -12,
+    maxPitch: 65,
+    attributionControl: { compact: true },
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+  map.on('moveend', saveViewSoon);
+  // いま動いているアプリの版を、出典表示の横に小さく出す。
+  // 「直したはずなのに直っていない」が、更新前の版を見ているだけなのか
+  // 判別できるようにするため。
+  showRunningVersion();
+  // 画面に固定した下のバーのぶん、地図を短くする（バーに隠れないように）。
+  // バーの高さは中身で変わるので、実測して伝える。
+  const syncBarSpace = () => {
+    const bar = el('radar-bar');
+    if (!bar || bar.hidden) {
+      document.documentElement.style.setProperty('--bar-space', '0px');
+      if (map) map.resize();
+      return;
+    }
+    const r = bar.getBoundingClientRect();
+    const bottomGap = Math.max(0, (document.documentElement.clientHeight || window.innerHeight) - r.bottom);
+    const space = Math.ceil(r.height + bottomGap + 8);
+    document.documentElement.style.setProperty('--bar-space', space + 'px');
+    if (map) map.resize();
+  };
+  syncBarSpace();
+  syncBarSpaceFn = syncBarSpace;
+  window.addEventListener('resize', syncBarSpace);
+  window.addEventListener('orientationchange', syncBarSpace);
+  window.addEventListener('load', syncBarSpace);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', syncBarSpace);
+  // コマや目盛りが入ってバーの高さが変わったあとにも合わせ直す
+  setTimeout(syncBarSpace, 600);
+  setTimeout(syncBarSpace, 2000);
+
+  const c = map.getContainer();
+  for (const ev of ['pointerup', 'touchend', 'mouseup', 'wheel']) {
+    c.addEventListener(ev, saveViewSoon, { passive: true });
+  }
+}
+
+/** 地図が層を受け付けるようになったか。
+    MapLibre は画面が裏にいる間は描画が止まり、読み込み完了の合図も来ない。
+    合図を待たず「足してみて、だめならまた試す」形にする（show() が自分で呼び直す）。 */
+function canAddLayers(m) {
+  try { return m.isStyleLoaded() || !!(m.style && m.style._loaded); } catch { return false; }
+}
+
+
+// 稼働中のキャッシュ名(= 版)を出典表示の横に足す
+async function showRunningVersion() {
+  try {
+    const keys = await caches.keys().catch(() => []);
+    const fromCache = (keys.find((k) => k.startsWith('taxi-daily-')) || '').replace('taxi-daily-', '');
+    // キャッシュが無い(=ネットから直接読んでいる)ときは、HTMLに埋めた版を使う
+    const meta = document.querySelector('meta[name="app-version"]');
+    // HTML に埋めた版を優先する。キャッシュ名は、HTMLが古いままでも新しく見えることがある。
+    const v = (meta && meta.content) || fromCache || '';
+    if (!v) return;
+    const slot = el('radar-ver');
+    if (slot) slot.textContent = v;
+    const el2 = document.querySelector('.maplibregl-ctrl-attrib-inner');
+    if (el2 && !el2.textContent.includes(v)) el2.insertAdjacentHTML('beforeend', ` ｜ ${v}`);
+  } catch { /* 出せなくても動作に影響なし */ }
+}
+
+// --- 雨雲のコマ -----------------------------------------------------------
+// MapLibre では「コマ＝ラスターの source と layer の組」。読み込み済みのコマは
+// そのまま残し、不透明度だけ入れ替える（切り替えたときにちらつかない）。
+const rainId = (i) => `rain-${i}`;
+
+function layerFor(i) {
+  if (layers.has(i)) return layers.get(i);
+  const f = frames[i];
+  const id = rainId(i);
+  map.addSource(id, {
+    type: 'raster',
+    tiles: [tileUrl(f, '{z}', '{x}', '{y}')],
+    tileSize: 256,
+    maxzoom: 10,          // 実データは約1kmメッシュ。これ以上は引き伸ばして見せる
+    attribution: '雨雲：出典 気象庁',
+  });
+  map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': 0, 'raster-fade-duration': 0 } });
+  layers.set(i, id);
+  // 遠いコマから捨てる（端末のメモリを食わないため）
+  if (layers.size > MAX_LAYERS) {
+    const far = [...layers.keys()].sort((a, b) => Math.abs(b - index) - Math.abs(a - index))[0];
+    if (far !== index) {
+      const fid = layers.get(far);
+      if (map.getLayer(fid)) map.removeLayer(fid);
+      if (map.getSource(fid)) map.removeSource(fid);
+      layers.delete(far);
+    }
+  }
+  return id;
+}
+
+let showRetry = null;
+function show(i) {
+  if (!frames.length) return;
+  // 地図の準備ができていなければ、できてから同じコマを出す（裏にいる間は待つ）
+  if (!canAddLayers(map)) {
+    clearTimeout(showRetry);
+    showRetry = setTimeout(() => show(i), 300);
+    return;
+  }
+  index = Math.max(0, Math.min(frames.length - 1, i));
+  layerFor(index);
+  // 工事を見ているときは雨雲を重ねない（線が読めなくなる）
+  const op = mode === 'koji' ? 0 : 0.72;
+  for (const [k, id] of layers) {
+    if (map.getLayer(id)) map.setPaintProperty(id, 'raster-opacity', k === index ? op : 0);
+  }
+  renderTimeUi();
+  // 次のコマを先に読み込んでおく（動かしたときのカクつきを減らす）
+  if (index + 1 < frames.length) layerFor(index + 1);
+}
+
+// バーの下の目盛り。3時間おきに「3時間前 / いま / 3時間後 …」を、
+// 時間に比例した位置へ置く。どのあたりの時刻を見ているかが読めるようにするため。
+// --- この場所の雨の強さの帯 -------------------------------------------------
+// 地図の真ん中の1点について、各コマのタイルの色を読んで雨の強さを並べる。
+// タイルは地図が表示に使うものと同じなので、たいてい読み込み済み。
+const RAIN_SAMPLE_ZOOM = 10;     // 実データがある最大のズーム
+const RAIN_SAMPLE_RADIUS = 2;    // 前後2画素＝約1km四方を見る
+const stripCanvas = document.createElement('canvas');
+stripCanvas.width = 256; stripCanvas.height = 256;
+const stripCtx = stripCanvas.getContext('2d', { willReadFrequently: true });
+let stripToken = 0;              // 場所が変わったら前の調査は捨てる
+// 帯はいつでも「地図の真ん中」を見る（本人指示 2026-09-13）。
+
+function loadTileImage(url) {
+  return new Promise((resolve) => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => resolve(im);
+    im.onerror = () => resolve(null);
+    im.src = url;
+  });
+}
+
+async function levelAt(frame, tile) {
+  // 地図が表示に使うURLと分けて取りに行く。
+  // 同じURLだと、地図側が CORS なしで入れたキャッシュを掴んでしまい、
+  // 画素を読もうとした瞬間に例外になる端末がある（読めない＝雨なしに見えてしまう）。
+  const im = await loadTileImage(`${tileUrl(frame, RAIN_SAMPLE_ZOOM, tile.x, tile.y)}?px=1`);
+  if (!im) return null;                      // 取れなかった（回線など）
+  try {
+    stripCtx.clearRect(0, 0, 256, 256);
+    stripCtx.drawImage(im, 0, 0);
+    // 1画素(約250m)だけだと、すぐ隣まで来ている雨を見落とす。
+    // 周り約1km四方でいちばん強い雨を採る。
+    const d = stripCtx.getImageData(0, 0, 256, 256).data;
+    return maxLevelAround(d, 256, 256, tile.px, tile.py, RAIN_SAMPLE_RADIUS);
+  } catch {
+    return null;                             // 画素を読めない（雨なしとは違う）
+  }
+}
+
+function paintStrip(levels) {
+  const box = el('radar-strip');
+  if (!box) return;
+  const pcts = offsets.percents;
+  let html = '';
+  levels.forEach((lv, i) => {
+    if (lv === null || lv < 0) return;          // 雨なし・未取得は塗らない
+    const left = pcts[i] ?? 0;
+    const right = i + 1 < pcts.length ? pcts[i + 1] : 100;
+    const w = Math.max(0.4, right - left);
+    html += `<i style="left:${left.toFixed(2)}%;width:${w.toFixed(2)}%;background:${RAIN_LEVELS[lv].css}"></i>`;
+  });
+  // 「いま」の位置に区切りを入れて、実際に降った雨と予想の境目を分かるようにする
+  const nowIdx = frames.findIndex((f) => f.isLatestObs);
+  if (nowIdx >= 0 && offsets.percents[nowIdx] != null) {
+    html += `<b class="rs-now" style="left:${offsets.percents[nowIdx].toFixed(2)}%"></b>`;
+  }
+
+  const any = levels.some((lv) => lv >= 0);
+  const readable = levels.some((lv) => lv !== null);
+  box.classList.toggle('is-dry', !any);
+  const note = any ? ''
+    : (readable
+      ? '<span class="rs-note">この場所は、この先ずっと雨なし</span>'
+      : '<span class="rs-note">この端末では雨の帯を出せませんでした</span>');
+  box.innerHTML = html + note;
+
+  // 帯の上に「どこの」「いつ降るか」を一言で
+  const cap = el('radar-strip-cap');
+  if (cap) {
+    const readableForCap = levels.some((lv) => lv !== null);
+    const when = readableForCap ? describeRainTimeline(levels.map((lv) => (lv === null ? -1 : lv)), frames) : '';
+    cap.textContent = when ? `まん中の場所：${when}` : '';
+  }
+}
+
+// 場所が変わるたびに調べ直す。一度に何本も走らないよう、古い調査は捨てる。
+async function refreshRainStrip() {
+  const box = el('radar-strip');
+  if (!box || frames.length === 0 || !map) return;
+  const token = ++stripToken;
+  const c = map.getCenter();
+  const tile = pointTile(c.lat, c.lng, RAIN_SAMPLE_ZOOM);
+  box.innerHTML = '<span class="rs-note">この場所の雨を調べています…</span>';
+  const levels = new Array(frames.length).fill(null);   // null=まだ/読めない, -1=雨なし
+  const CONCURRENCY = 6;
+  let next = 0;
+  const worker = async () => {
+    while (next < frames.length) {
+      const i = next++;
+      const lv = await levelAt(frames[i], tile);
+      if (token !== stripToken) return;          // 途中で場所が変わった
+      levels[i] = lv;
+      if (i % 8 === 0) paintStrip(levels);       // 途中経過も出す
+    }
+  };
+  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+  if (token === stripToken) paintStrip(levels);
+}
+
+let stripTimer = null;
+function refreshRainStripSoon() {
+  clearTimeout(stripTimer);
+  stripTimer = setTimeout(() => { refreshRainStrip(); refreshCenterAddress(); }, 350);
+}
+
+function renderTicks() {
+  const box = el('radar-scale');
+  if (!box) return;
+  const ticks = buildTicks(frames);
+  if (ticks.length === 0) { box.innerHTML = ''; return; }
+
+  // 線は1時間おきに全部引く。字は、隣と近すぎるものを伏せる（線だけ残す）。
+  // 端末の幅で入る数が変わるので、実際の幅から決める。
+  const width = box.getBoundingClientRect().width || 340;
+  const MIN_LABEL_PX = 34;
+  let lastLabeledPct = -Infinity;
+  const html = ticks.map((t, i) => {
+    const cls = ['tk'];
+    const px = (t.pct / 100) * width;
+    const lastPx = (lastLabeledPct / 100) * width;
+    // 「いま」と左端は必ず出す。ほかは前のラベルから離れているときだけ。
+    const must = t.kind === 'now' || i === 0;
+    if (must || px - lastPx >= MIN_LABEL_PX) {
+      lastLabeledPct = t.pct;
+    } else {
+      cls.push('mute');
+    }
+    if (t.kind === 'now') cls.push('now');
+    if (i === 0 && t.pct < 6) cls.push('edge');
+    if (i === ticks.length - 1 && t.pct > 94) cls.push('edge', 'r');
+    return `<span class="${cls.join(' ')}" style="left:${t.pct.toFixed(2)}%">${t.label}</span>`;
+  }).join('');
+  box.innerHTML = html;
+}
+
+function renderTimeUi() {
+  const f = frames[index];
+  const nowMs = (frames.find((x) => x.isLatestObs) || {}).timeMs ?? null;
+  el('radar-slider').value = String(offsets.minutes[index] ?? 0);
+  el('radar-clock').textContent = frameClock(f);
+  el('radar-rel').textContent = frameLabel(f, nowMs);
+  el('radar-kind').textContent = f.kind !== 'fcst'
+    ? '実際に降った雨'
+    : (f.product === 'rasrf' ? 'この先の予想（1時間ごと）' : 'この先の予想');
+  el('radar-kind').className = f.kind === 'fcst' ? 'kind fcst' : 'kind obs';
+}
+
+function setPlaying(on) {
+  if (playTimer) { clearInterval(playTimer); playTimer = null; }
+  el('radar-play').textContent = on ? '⏸ とめる' : '▶ 動かす';
+  if (!on) return;
+  playTimer = setInterval(() => {
+    show(index + 1 >= frames.length ? 0 : index + 1);
+  }, PLAY_INTERVAL_MS);
+}
+
+// --- まん中がどこか（住所） ------------------------------------------------
+// 「まん中の雨」と言われても、どこのことか分からないと使えない。
+// 国土地理院の逆ジオコーダで、まん中の住所（市区町村＋町名）を出す。
+let muniTable = null;
+const addrCache = new Map();     // 'lat,lon'(小数3桁) → 住所
+let addrToken = 0;
+
+async function loadMuniTable() {
+  if (muniTable) return muniTable;
+  try {
+    const r = await fetch(MUNI_TABLE_URL);
+    muniTable = r.ok ? await r.json() : {};
+  } catch { muniTable = {}; }
+  return muniTable;
+}
+
+async function centerAddress(lat, lon) {
+  const key = `${lat.toFixed(3)},${lon.toFixed(3)}`;   // 約100mで丸めて、同じ場所は聞き直さない
+  if (addrCache.has(key)) return addrCache.get(key);
+  const [table, res] = await Promise.all([
+    loadMuniTable(),
+    fetch(reverseGeocodeUrl(lat, lon)).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
+  const got = res && res.results ? res.results : null;
+  const addr = got ? formatCenterAddress(table[got.muniCd], got.lv01Nm) : '';
+  addrCache.set(key, addr);
+  return addr;
+}
+
+async function refreshCenterAddress() {
+  const label = el('radar-place-label');
+  if (!label || !map) return;
+  const token = ++addrToken;
+  const c = map.getCenter();
+  const addr = await centerAddress(c.lat, c.lng);
+  if (token !== addrToken) return;              // 途中で動いた
+  if (addr) { label.textContent = addr; label.hidden = false; }
+  else { label.hidden = true; }
+}
+
+// --- 場所えらび -----------------------------------------------------------
+let areaCoords = null;
+
+async function loadAreaCoords() {
+  if (areaCoords) return areaCoords;
+  try {
+    const res = await fetch('../js/data/area-coords.json');
+    areaCoords = res.ok ? await res.json() : {};
+  } catch { areaCoords = {}; }
+  return areaCoords;
+}
+
+function goTo(lat, lon, zoom = 12, label = '') {
+  // animate:false で即座に移動する。動かしながらだと、直後に読む中心が
+  // まだ移動前のままで、覚える場所が1つ前になってしまう(実機で確認)。
+  // 遠くへ飛ぶ操作なので、滑らせるより一気に移るほうが分かりやすい。
+  map.jumpTo({ center: [lon, lat], zoom });
+  saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
+  placePin = label ? { name: label, lat, lon } : null;
+  refreshRainStripSoon();   // 場所が変わったら、この場所の雨を調べ直す
+  closePlacePanel();
+}
+
+function renderPresets() {
+  const box = el('radar-presets');
+  box.innerHTML = '';
+  for (const p of PRESET_PLACES) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'place-chip';
+    b.textContent = p.name;
+    b.addEventListener('click', () => goTo(p.lat, p.lon, 12, p.name));
+    box.appendChild(b);
+  }
+}
+
+async function runSearch(q) {
+  const box = el('radar-results');
+  const coords = await loadAreaCoords();
+  const hits = searchPlaces(q, coords, 20);
+  box.innerHTML = '';
+  if (!q.trim()) return;
+  if (hits.length === 0) {
+    box.innerHTML = '<div class="no-hit">見つかりませんでした</div>';
+    return;
+  }
+  for (const h of hits) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'place-row';
+    b.textContent = h.name;
+    b.addEventListener('click', () => goTo(h.lat, h.lon, 13, h.name));
+    box.appendChild(b);
+  }
+}
+
+// 現在地に赤い点を置く。move=true なら地図もそこへ動かす。
+function markHere(lat, lon, move) {
+  if (!hereMarker) {
+    const dot = document.createElement('div');
+    dot.className = 'here-dot';
+    hereMarker = new maplibregl.Marker({ element: dot }).setLngLat([lon, lat]).addTo(map);
+  } else {
+    hereMarker.setLngLat([lon, lat]);
+  }
+  if (move) goTo(lat, lon, 13, 'いまの場所');
+}
+
+const GEO_OPTS = { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 };
+
+function useCurrentPosition() {
+  const status = el('radar-geo-status');
+  if (!navigator.geolocation) { status.textContent = 'この端末では現在地を使えません'; return; }
+  status.textContent = '現在地を確認中…';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      status.textContent = '';
+      try { localStorage.removeItem(GEO_DENIED_KEY); } catch { /* 無視 */ }
+      markHere(pos.coords.latitude, pos.coords.longitude, true);
+    },
+    (err) => {
+      status.textContent = err && err.code === 1
+        ? '現在地の利用が許可されていません'
+        : '現在地を取得できませんでした';
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
+    },
+    GEO_OPTS,
+  );
+}
+
+// 地図の上の「いまの場所に戻る」ボタン。
+// 地図を動かして座標が変わっても、ひと押しで自分の場所に戻れるようにする。
+// 一度断っていても、押されたときは聞き直す（本人の意思表示なので）。
+function locateNow() {
+  const btn = el('radar-locate');
+  if (!navigator.geolocation) {
+    if (btn) { btn.classList.add('is-denied'); btn.title = 'この端末では現在地を使えません'; }
+    return;
+  }
+  if (btn) { btn.classList.add('is-busy'); btn.classList.remove('is-denied'); btn.textContent = '…'; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      if (btn) { btn.classList.remove('is-busy'); btn.textContent = '◎'; btn.title = 'いまの場所に戻る'; }
+      try { localStorage.removeItem(GEO_DENIED_KEY); } catch { /* 無視 */ }
+      markHere(pos.coords.latitude, pos.coords.longitude, true);
+    },
+    (err) => {
+      if (btn) {
+        btn.classList.remove('is-busy');
+        btn.textContent = '◎';
+        btn.classList.add('is-denied');
+        btn.title = err && err.code === 1
+          ? '現在地の利用が許可されていません（端末の設定から許可してください）'
+          : '現在地を取得できませんでした';
+      }
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
+    },
+    GEO_OPTS,
+  );
+}
+
+// 開いたときに、そのまま自分の場所が分かるようにする。
+// 断られたことがある端末では、毎回きかない（ボタンからはいつでも使える）。
+function autoLocateOnStart() {
+  if (!navigator.geolocation) return;
+  try { if (localStorage.getItem(GEO_DENIED_KEY) === '1') return; } catch { /* 無視 */ }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => markHere(pos.coords.latitude, pos.coords.longitude, true),
+    (err) => {
+      if (err && err.code === 1) {
+        try { localStorage.setItem(GEO_DENIED_KEY, '1'); } catch { /* 無視 */ }
+      }
+    },
+    GEO_OPTS,
+  );
+}
+
+// いま地図の中心にある場所の呼び名。選んだ場所から離れていたら名前は使わない。
+function currentPlaceName() {
+  if (!placePin) return null;
+  const c = map.getCenter();
+  const km = distanceKm([c.lat, c.lng], [placePin.lat, placePin.lon]);
+  return km !== null && km <= PLACE_NEAR_KM ? placePin.name : null;
+}
+
+// 場所ラベルは「まん中の住所」に一本化した（refreshCenterAddress が書く）。
+function syncPlaceLabel() { /* 住所側で更新する */ }
+
+// --- 天気 -----------------------------------------------------------------
+// いま地図の真ん中に見えている場所の天気を出す。場所えらびと同じ場所を指すので、
+// 「この辺りは何時から降るか」をそのまま見られる。
+// 出どころは Open-Meteo（このアプリが日報の天気取得で既に使っている先。鍵不要）。
+const WX_TTL_MS = 15 * 60 * 1000;   // 15分は取り直さない
+const wxCache = new Map();          // 'lat,lon'(小数2桁) → { at, data }
+
+async function loadWeather(lat, lon) {
+  const key = `${lat.toFixed(2)},${lon.toFixed(2)}`;
+  const hit = wxCache.get(key);
+  if (hit && Date.now() - hit.at < WX_TTL_MS) return hit.data;
+  const res = await fetch(weatherUrl(lat, lon), { cache: 'no-store' });
+  if (!res.ok) throw new Error('weather ' + res.status);
+  const data = await res.json();
+  wxCache.set(key, { at: Date.now(), data });
+  return data;
+}
+
+function renderWeather(data, placeName) {
+  const now = new Date();
+  const hours = pickHourly(data, now, 48);
+  const days = pickDaily(data);
+  const body = el('radar-wx-body');
+  el('radar-wx-title').textContent = placeName ? `${placeName}の天気` : '天気';
+  if (hours.length === 0 && days.length === 0) {
+    body.innerHTML = '<div class="no-hit">天気を取得できませんでした</div>';
+    return;
+  }
+  const num = (v, unit = '') => (v === null || v === undefined ? '--' : v + unit);
+  const cur = hours[0];
+  let html = '';
+
+  // まず答えを1行で。表を上から読ませない。
+  const hint = rainStartHint(hours);
+  if (hint) {
+    const cls = hint.includes('降りにくい') ? 'wx-hint' : 'wx-hint rain';
+    html += `<div class="${cls}">${hint}</div>`;
+  }
+
+  if (cur) {
+    html += `<div class="wx-now">
+      <span class="emo">${weatherEmoji(cur.code)}</span>
+      <span>
+        <span class="t">${num(cur.temp, '℃')}</span>
+        <div class="sub">${weatherLabel(cur.code)} ・ 雨の降りやすさ ${num(cur.pop, '%')}</div>
+      </span>
+    </div>`;
+  }
+
+  // 時間ごと: 横に流れるグラフ。棒の高さ＝雨の降りやすさ。
+  // 3時間おきに時刻と気温を出して、目盛りが混まないようにする。
+  html += '<div class="wx-sec">これから48時間</div><div class="wx-chart" id="wx-chart">';
+  let lastDate = null;
+  hours.forEach((h, i) => {
+    if (lastDate !== null && h.date !== lastDate) {
+      html += `<div class="wx-daysep">${dayLabel(h.date, now)}</div>`;
+    }
+    lastDate = h.date;
+    const hi = typeof h.pop === 'number' && h.pop >= RAIN_POP;
+    const showTick = h.isNow || i % 3 === 0;
+    const barH = Math.max(2, Math.round(((h.pop ?? 0) / 100) * 64));
+    html += `<div class="wx-col${hi ? ' hi' : ''}${h.isNow ? ' now' : ''}">
+      <div class="ch">${h.isNow ? 'いま' : (showTick ? h.hour + '時' : '')}</div>
+      <div class="ce">${showTick ? weatherEmoji(h.code) : ''}</div>
+      <div class="cbar"><i style="height:${barH}px"></i></div>
+      <div class="cpp">${hi || showTick ? num(h.pop, '') : ''}</div>
+      <div class="ct">${showTick ? num(h.temp, '°') : ''}</div>
+    </div>`;
+  });
+  html += '</div>';
+
+  // 日ごと: 雨の降りやすさを帯で見せる
+  if (days.length) {
+    html += '<div class="wx-sec">これから7日</div>';
+    for (const d of days) {
+      html += `<div class="wx-day">
+        <span class="d">${dayLabel(d.date, now)}</span>
+        <span class="e">${weatherEmoji(d.code)}</span>
+        <span class="tp"><span class="mx">${num(d.max)}</span> / <span class="mn">${num(d.min)}</span>℃</span>
+        <span class="dbar"><i style="width:${Math.max(0, Math.min(100, d.pop ?? 0))}%"></i></span>
+        <span class="pp">${num(d.pop, '%')}</span>
+      </div>`;
+    }
+  }
+  // 予報の升目は約5km四方(実測: 緯度0.05°・経度0.0625°)。近所同士は同じ数字になるので、
+  // 「住所を変えたのに数字が同じ」を不具合と思わせないために一言添える。
+  html += '<div class="wx-src">棒と帯の高さ＝雨の降りやすさ<br>この予報は約5km四方ごと（近所同士は同じ数字）。雨雲の絵は約250mごと<br>天気の出どころ: Open-Meteo</div>';
+  body.innerHTML = html;
+}
+
+async function openWeatherPanel() {
+  el('radar-weather-panel').classList.add('open');
+  const body = el('radar-wx-body');
+  body.innerHTML = '<div class="no-hit">読み込み中…</div>';
+  const c = map.getCenter();
+  // 見出しは、地図のまん中の住所にそろえる（帯の一言と同じ場所を指す）
+  const label = el('radar-place-label');
+  const name = (label && !label.hidden && label.textContent) || currentPlaceName() || 'この場所';
+  try {
+    renderWeather(await loadWeather(c.lat, c.lng), name);
+  } catch {
+    body.innerHTML = '<div class="no-hit">天気を取得できませんでした。少し時間をおいて開き直してください。</div>';
+  }
+}
+function closeWeatherPanel() {
+  el('radar-weather-panel').classList.remove('open');
+}
+
+function openPlacePanel() {
+  el('radar-place-panel').classList.add('open');
+  el('radar-search').focus();
+}
+function closePlacePanel() {
+  el('radar-place-panel').classList.remove('open');
+}
+
+// --- 起動 -----------------------------------------------------------------
+// --- 雨雲 / 工事 の切り替え -------------------------------------------------
 const JST_MS = 9 * 3600 * 1000;
 
 // 既定は工事（タブ名「工事/雨雲β」と同じ並び・2026-09-28 本人指示）。
