@@ -39,8 +39,12 @@ const PLACE_NEAR_KM = 3;
 const layers = new Map();  // frameIndex → 雨雲ラスターの layer/source id
 let mode = 'rain';         // いま見ているほう
 let koji = null;           // 工事の層（createKojiLayer の戻り）
-let kojiOffsetMin = 0;     // 工事で見ている時刻（いまから何分後）
-let kojiNightHour = null;  // 「今夜22時」を選んだときの時（分後の指定より優先）
+// 工事の時刻は本家と同じ「いまの時から7日先まで・1時間きざみ」
+const KOJI_STEPS = 168;
+const HOUR_MS = 3600 * 1000;
+const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
+let kojiBase = Math.floor(Date.now() / HOUR_MS) * HOUR_MS;   // つまみ0＝いまの時
+let kojiPlayTimer = null;
 let syncBarSpaceFn = null; // 下のバーの高さを地図に伝える（切り替え後にも呼ぶ）
 
 // --- 地図 -----------------------------------------------------------------
@@ -54,7 +58,10 @@ function readView() {
 function saveView() {
   try {
     const c = map.getCenter();
-    localStorage.setItem(VIEW_KEY, JSON.stringify({ lat: c.lat, lon: c.lng, zoom: map.getZoom() }));
+    localStorage.setItem(VIEW_KEY, JSON.stringify({
+      lat: c.lat, lon: c.lng, zoom: map.getZoom(),
+      pitch: map.getPitch(), bearing: map.getBearing(),
+    }));
   } catch { /* 保存できなくても動作に影響なし */ }
 }
 
@@ -102,6 +109,10 @@ function createMap() {
       ],
     },
     center: [v.lon, v.lat], zoom: v.zoom,
+    // 本家と同じ「立体（斜めから見る）」を既定にする
+    pitch: Number.isFinite(v.pitch) ? v.pitch : 50,
+    bearing: Number.isFinite(v.bearing) ? v.bearing : -12,
+    maxPitch: 65,
     attributionControl: { compact: true },
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
@@ -686,28 +697,68 @@ const JST_MS = 9 * 3600 * 1000;
 
 // 既定は工事（タブ名「工事/雨雲β」と同じ並び・2026-09-28 本人指示）。
 // 前に雨雲を見ていた端末だけ雨雲から開く。
+function kojiStep() { return Number(el('koji-time')?.value || 0); }
+
 function readMode() {
   try { return localStorage.getItem(MODE_KEY) === 'rain' ? 'rain' : 'koji'; } catch { return 'koji'; }
 }
 
-/** 「今夜22時」= 次に来る22時（過ぎていれば翌日の22時） */
-function nextHourMs(hourJst) {
-  const now = Date.now();
-  const d = new Date(now + JST_MS);
-  let t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hourJst, 0, 0) - JST_MS;
-  if (t < now) t += 24 * 3600 * 1000;
-  return t;
+function kojiTimeMs() { return kojiBase + kojiStep() * HOUR_MS; }
+
+/** 時刻の見出し（大きい時計と日付）と、つまみの目盛りを描く */
+function renderKojiTimeUi() {
+  const d = new Date(kojiTimeMs() + JST_MS);
+  el('koji-clock').textContent = `${d.getUTCHours()}:00`;
+  el('koji-date').textContent = `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${WEEK[d.getUTCDay()]})`;
+  const frac = kojiStep() / (KOJI_STEPS - 1);
+  el('koji-done').style.width = `${frac * 100}%`;
+  for (const t of el('koji-ticks').querySelectorAll('.d')) {
+    t.classList.toggle('f', Number(t.dataset.i) > kojiStep());
+  }
 }
 
-function kojiTimeMs() {
-  return kojiNightHour !== null ? nextHourMs(kojiNightHour) : Date.now() + kojiOffsetMin * 60000;
+/** 目盛り: 0時に丸と日付、6時間ごとに小さな点（本家と同じ） */
+function drawKojiTicks() {
+  const box = el('koji-ticks');
+  box.replaceChildren();
+  for (let i = 0; i < KOJI_STEPS; i++) {
+    const d = new Date(kojiBase + i * HOUR_MS + JST_MS);
+    const h = d.getUTCHours();
+    const x = `${(i / (KOJI_STEPS - 1)) * 100}%`;
+    if (h === 0) {
+      const dot = document.createElement('i');
+      dot.className = 'd'; dot.dataset.i = String(i); dot.style.left = x;
+      const l = document.createElement('span');
+      l.className = 'l'; l.style.left = x;
+      l.textContent = `${d.getUTCMonth() + 1}/${d.getUTCDate()}(${WEEK[d.getUTCDay()]})`;
+      box.append(dot, l);
+    } else if (h % 6 === 0) {
+      const p = document.createElement('i');
+      p.className = 'p'; p.style.left = x;
+      box.append(p);
+    }
+  }
 }
 
-function kojiTimeLabel() {
-  const t = new Date(kojiTimeMs() + JST_MS);
-  const hm = `${t.getUTCHours()}:${String(t.getUTCMinutes()).padStart(2, '0')}`;
-  if (kojiNightHour !== null) return `${t.getUTCMonth() + 1}/${t.getUTCDate()} ${hm} の予定`;
-  return kojiOffsetMin === 0 ? 'この画面で工事中' : `${hm} 時点の予定`;
+function setKojiPlaying(on) {
+  if (kojiPlayTimer) { clearInterval(kojiPlayTimer); kojiPlayTimer = null; }
+  el('koji-play').textContent = on ? '⏸ とめる' : '▶ 動かす';
+  if (!on) return;
+  kojiPlayTimer = setInterval(() => {
+    const next = (kojiStep() + 1) % KOJI_STEPS;
+    el('koji-time').value = String(next);
+    renderKojiTimeUi();
+    koji?.setTime(kojiTimeMs());
+  }, 450);
+}
+
+function kojiNow() {
+  setKojiPlaying(false);
+  kojiBase = Math.floor(Date.now() / HOUR_MS) * HOUR_MS;
+  el('koji-time').value = '0';
+  drawKojiTicks();
+  renderKojiTimeUi();
+  koji?.setTime(kojiTimeMs());
 }
 
 function renderKojiStatus(s) {
@@ -718,7 +769,7 @@ function renderKojiStatus(s) {
   if (s.loading) { el('koji-count').textContent = '—'; el('koji-count-note').textContent = '読み込み中…'; return; }
   if (s.shown === undefined) return;
   el('koji-count').textContent = `${s.shown}件`;
-  el('koji-count-note').textContent = `${kojiTimeLabel()}${s.total !== undefined ? `（23区ぜんぶで${s.total}件）` : ''}`;
+  el('koji-count-note').textContent = `この画面で工事中${s.total !== undefined ? `（23区ぜんぶで${s.total}件）` : ''}`;
   const legend = el('koji-legend');
   legend.innerHTML = LEVELS
     .filter((l) => (s.counts?.[l.key] || 0) > 0)
@@ -731,12 +782,7 @@ function renderKojiStatus(s) {
   syncBarSpaceFn?.();
 }
 
-function setKojiTime(btn) {
-  for (const b of document.querySelectorAll('.kj-times button')) b.classList.toggle('active', b === btn);
-  kojiNightHour = btn.dataset.night ? Number(btn.dataset.night) : null;
-  kojiOffsetMin = btn.dataset.min ? Number(btn.dataset.min) : 0;
-  koji?.setTime(kojiTimeMs());
-}
+
 
 function setMode(next) {
   mode = next === 'koji' ? 'koji' : 'rain';
@@ -750,10 +796,15 @@ function setMode(next) {
   el('koji-bar').hidden = mode !== 'koji';
   if (mode === 'koji') {
     setPlaying(false);
-    if (!koji) koji = createKojiLayer(map, { onStatus: renderKojiStatus });
+    if (!koji) {
+      koji = createKojiLayer(map, { onStatus: renderKojiStatus });
+      drawKojiTicks();
+    }
+    renderKojiTimeUi();
     koji.setTime(kojiTimeMs());
     koji.setVisible(true);
   } else {
+    setKojiPlaying(false);
     koji?.setVisible(false);
     refreshRainStripSoon();
   }
@@ -786,9 +837,18 @@ async function start() {
   el('radar-locate').addEventListener('click', locateNow);
   el('mode-rain').addEventListener('click', () => setMode('rain'));
   el('mode-koji').addEventListener('click', () => setMode('koji'));
-  for (const b of document.querySelectorAll('.kj-times button')) {
-    b.addEventListener('click', () => setKojiTime(b));
-  }
+  el('koji-time').addEventListener('input', () => {
+    setKojiPlaying(false);
+    renderKojiTimeUi();
+    koji?.setTime(kojiTimeMs());
+  });
+  el('koji-play').addEventListener('click', () => setKojiPlaying(!kojiPlayTimer));
+  el('koji-now').addEventListener('click', kojiNow);
+  el('koji-roads').addEventListener('click', () => {
+    const next = !koji?.isRoadsOn();
+    koji?.setRoads(next);
+    el('koji-roads').setAttribute('aria-pressed', String(next));
+  });
   el('radar-weather-btn').addEventListener('click', openWeatherPanel);
   el('radar-weather-close').addEventListener('click', closeWeatherPanel);
   el('radar-place-close').addEventListener('click', closePlacePanel);

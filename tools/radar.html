@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v420">
+  <meta name="app-version" content="v421">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -149,14 +149,38 @@
       background:rgba(21,21,28,.92);color:#fff;border-radius:12px;padding:10px 12px 12px;
       box-shadow:0 -2px 14px rgba(0,0,0,.35);}
     #koji-bar[hidden]{display:none;}
-    .kj-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
-    #koji-count{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;}
-    #koji-count-note{font-size:13px;color:#cfd6dd;}
+    .kj-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px;}
+    .kj-clocklbl{font-size:11px;color:#9aa4ae;}
+    #koji-clock{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em;}
+    #koji-date{font-size:13px;font-weight:700;color:#cfd6dd;}
     #koji-updated{margin-left:auto;font-size:11px;color:#7b858f;}
-    .kj-times{display:flex;gap:6px;margin-bottom:8px;}
-    .kj-times button{flex:1;padding:9px 0;border-radius:9px;border:1px solid #3a3a46;background:#22222c;
+    .kj-head2{display:flex;align-items:baseline;gap:8px;margin:2px 0 6px;}
+    #koji-count{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;}
+    #koji-count-note{font-size:12.5px;color:#cfd6dd;}
+    /* 時刻のつまみ（本家と同じ形: 日付の丸・6時間ごとの点・日付ラベル） */
+    .kj-track{position:relative;height:52px;margin:2px 4px 2px;}
+    .kj-track input{position:absolute;left:0;right:0;top:6px;width:100%;margin:0;height:30px;background:transparent;
+      -webkit-appearance:none;appearance:none;z-index:2;cursor:pointer;}
+    .kj-track input::-webkit-slider-runnable-track{height:10px;background:transparent;}
+    .kj-track input::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+      background:#15151c;border:6px solid #4da3ff;margin-top:-8px;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+    .kj-track input::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#15151c;border:6px solid #4da3ff;}
+    .kj-rail{position:absolute;left:13px;right:13px;top:16px;height:9px;border-radius:5px;background:#33333f;overflow:hidden;}
+    .kj-rail .kj-done{position:absolute;left:0;top:0;bottom:0;background:#4da3ff;}
+    .kj-ticks{position:absolute;left:13px;right:13px;top:0;height:52px;pointer-events:none;}
+    .kj-ticks .d{position:absolute;top:12px;width:16px;height:16px;margin-left:-8px;border-radius:50%;
+      background:#15151c;border:3px solid #cfe6ff;}
+    .kj-ticks .d.f{border-color:#4a525b;}
+    .kj-ticks .p{position:absolute;top:19px;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:#6b7580;}
+    .kj-ticks .l{position:absolute;top:34px;transform:translateX(-50%);font-size:10px;font-weight:700;color:#9aa4ae;white-space:nowrap;}
+    .kj-ctrl{display:flex;gap:8px;margin:2px 0 6px;}
+    .kj-ctrl button{flex:1;padding:9px 0;border-radius:9px;border:1px solid #3a3a46;background:#22222c;
       color:#cfd6dd;font-size:13px;font-weight:600;cursor:pointer;}
-    .kj-times button.active{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
+    #koji-play{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
+    #koji-roads[aria-pressed="true"]{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
+    /* 区の名前（道路の色分けを出したときだけ） */
+    .ward-label{font-size:11px;font-weight:700;color:#3f3f46;background:rgba(255,255,255,.72);
+      border-radius:6px;padding:1px 5px;white-space:nowrap;}
     .kj-legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px;color:#cfd6dd;margin-bottom:6px;}
     .kj-legend span{display:flex;align-items:center;gap:5px;}
     .kj-legend i{width:14px;height:6px;border-radius:3px;display:inline-block;}
@@ -340,16 +364,23 @@
 
   <div id="koji-bar" hidden>
     <div class="kj-head">
-      <span id="koji-count">—</span>
-      <span id="koji-count-note">この画面で工事中</span>
+      <span class="kj-clocklbl">表示中の時刻</span>
+      <span id="koji-clock">—</span>
+      <span id="koji-date"></span>
       <span id="koji-updated"></span>
     </div>
-    <div class="kj-times">
-      <button type="button" data-min="0" class="active">いま</button>
-      <button type="button" data-min="60">1時間後</button>
-      <button type="button" data-min="120">2時間後</button>
-      <button type="button" data-night="22">今夜22時</button>
+    <!-- 時刻えらびは工事マップ本家と同じ「いまから7日先まで・1時間きざみのつまみ」 -->
+    <div class="kj-track">
+      <div class="kj-rail"><div class="kj-done" id="koji-done"></div></div>
+      <div class="kj-ticks" id="koji-ticks"></div>
+      <input id="koji-time" type="range" min="0" max="167" step="1" value="0" aria-label="時刻（いまから7日先まで）">
     </div>
+    <div class="kj-ctrl">
+      <button id="koji-play" type="button">▶ 動かす</button>
+      <button id="koji-now" type="button">いまの時刻</button>
+      <button id="koji-roads" type="button" aria-pressed="false">道路の色分け</button>
+    </div>
+    <div class="kj-head2"><span id="koji-count">—</span><span id="koji-count-note">この画面で工事中</span></div>
     <div class="kj-legend" id="koji-legend"></div>
     <div class="kj-note">
       予定に基づく目安。実際の通行は現地の標識・警察の指示に従ってください。<br>

@@ -53,7 +53,7 @@ test('ふさぎ具合: 通行止め・片側交互・3分の1以上・一部・�
   assert.equal(laneLevel({ restrictionType: 'lane_closure', lanesRestricted: 2, lanesTotal: 4 }), 'half');
   assert.equal(laneLevel({ restrictionType: 'lane_closure', lanesRestricted: 1, lanesTotal: 8 }), 'part');
   assert.equal(laneLevel({ restrictionType: 'lane_closure' }), 'unknown');
-  assert.equal(levelInfo('closed').label, '通行止め');
+  assert.equal(levelInfo('closed').label, '全面通行止め');
   assert.equal(levelInfo('なにこれ').key, 'unknown');
 });
 

@@ -77,12 +77,13 @@ export function windowLabel(tw) {
 
 // --- ふさぎ具合（色分け）--------------------------------------------------
 // 重い順。色だけに頼らず凡例に名前を出す。
+// 色は工事マップ本家 public/lanelevel.js と同じ（見分けがつくよう、本家の値をそのまま使う）
 export const LEVELS = [
-  { key: 'closed', label: '通行止め', color: '#b3003c' },
-  { key: 'alternating', label: '片側交互', color: '#e0301e' },
-  { key: 'half', label: '3分の1以上', color: '#f07f00' },
+  { key: 'closed', label: '全面通行止め', color: '#7a0019' },
+  { key: 'alternating', label: '片側交互通行', color: '#e0301e' },
+  { key: 'half', label: '3分の1以上ふさぐ', color: '#f07f00' },
   { key: 'part', label: '一部の車線', color: '#f5b700' },
-  { key: 'unknown', label: '車線数の記載なし', color: '#8b98a6' },
+  { key: 'unknown', label: '車線数の記載なし', color: '#6b7c93' },
 ];
 
 export function laneLevel(p) {
@@ -249,7 +250,8 @@ export function toDisplay(f, timeMs) {
   }
   return {
     type: 'Feature', geometry: g,
-    properties: { ...p, level: laneLevel(p), side, st: stateAt(p, timeMs) },
+    // isLine=1 は元から線の工事（点を線に直したものは0）。矢印の置き方を変えるのに使う
+    properties: { ...p, level: laneLevel(p), side, st: stateAt(p, timeMs), isLine: f.geometry.type === 'LineString' ? 1 : 0 },
   };
 }
 
