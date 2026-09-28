@@ -194,7 +194,13 @@ export function createKojiLayer(map, { onStatus } = {}) {
     if (!next) { popup?.remove(); setLayerVisibility(false); return; }
     onStatus?.({ loading: true });
     await load();
-    addLayers();
+    try {
+      addLayers();
+    } catch (e) {
+      loadError = `工事の地図を作れませんでした（${e.message}）`;
+      onStatus?.({ error: loadError });
+      return;
+    }
     setLayerVisibility(true);
     draw();
   }

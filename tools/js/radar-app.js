@@ -137,9 +137,17 @@ function createMap() {
   }
 }
 
-/** 地図の準備ができるまで待つ（MapLibre は style の読み込み後でないと層を足せない） */
+/** 地図の準備ができるまで待つ（MapLibre は style の読み込み後でないと層を足せない）。
+    'load' は待ち始める前に終わっていることがあるので、styledata と時間切れでも先へ進む。 */
 function mapReady() {
-  return map.isStyleLoaded() ? Promise.resolve() : new Promise((r) => map.once('load', r));
+  return new Promise((resolve) => {
+    let done = false;
+    const go = () => { if (!done) { done = true; resolve(); } };
+    if (map.isStyleLoaded()) return go();
+    map.once('load', go);
+    map.on('styledata', () => { if (map.isStyleLoaded()) go(); });
+    setTimeout(go, 4000);
+  });
 }
 
 
@@ -192,7 +200,7 @@ function layerFor(i) {
 }
 
 function show(i) {
-  if (!frames.length || !map.isStyleLoaded()) return;
+  if (!frames.length || !map.getStyle()) return;
   index = Math.max(0, Math.min(frames.length - 1, i));
   layerFor(index);
   // 工事を見ているときは雨雲を重ねない（線が読めなくなる）
