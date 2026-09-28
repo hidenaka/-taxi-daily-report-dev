@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v413">
+  <meta name="app-version" content="v414">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -33,7 +33,11 @@
     .app-tabs{flex:0 0 auto;position:relative;z-index:1200;}
     #radar-stage{flex:1 1 auto;min-height:0;position:relative;}
     /* 地図はバーのぶんだけ短くする（重ねると出典表示が隠れる） */
-    #radar-map{position:absolute;top:0;left:0;right:0;bottom:var(--bar-space, 0px);background:#eef1f4;}
+    /* 下地の色は工事マップ本家と同じ #f1f0ec（地図を薄くするので、その下が見える） */
+    #radar-map{position:absolute;top:0;left:0;right:0;bottom:var(--bar-space, 0px);background:#f1f0ec;}
+    /* 地図そのものは灰色・薄めにして、工事の線と雨雲の色を浮かせる。
+       本家(MapLibre)の 彩度-1 / 不透明度0.55 / 明るさ下限0.12 / コントラスト-0.2 を CSS で近似。 */
+    .basemap-gsi{filter:grayscale(1) contrast(.8) brightness(1.06);opacity:.62;}
     /* タブ名が長いので、狭い端末では横に流す（2段にすると地図と被る） */
     .app-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
     .app-tabs::-webkit-scrollbar{display:none;}
@@ -282,10 +286,10 @@
   <div id="radar-stage">
     <div id="radar-map"></div>
 
-    <!-- 雨雲 / 工事 の切り替え -->
+    <!-- 工事 / 雨雲 の切り替え（タブ名と同じ並び。既定は工事） -->
     <div id="map-mode" role="tablist" aria-label="地図の切り替え">
-      <button type="button" id="mode-rain" role="tab" aria-selected="true" class="active">☁ 雨雲</button>
-      <button type="button" id="mode-koji" role="tab" aria-selected="false">🚧 工事</button>
+      <button type="button" id="mode-koji" role="tab" aria-selected="true" class="active">🚧 工事</button>
+      <button type="button" id="mode-rain" role="tab" aria-selected="false">☁ 雨雲</button>
     </div>
 
     <!-- 帯が見ている場所（＝地図のまん中）を示す印 -->

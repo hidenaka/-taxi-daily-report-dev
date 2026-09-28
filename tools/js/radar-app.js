@@ -77,8 +77,12 @@ function createMap() {
   // 背景は国土地理院の淡色地図。Carto の light_all はタイルに
   // 「API KEY REQUIRED」の透かしが入るようになっていた(実機で確認)。
   // 地理院タイルは鍵不要・日本語表記で、出典表示のみが条件。
+  // 地図そのものは灰色にして薄くする（工事マップ本家と同じ見せ方 2026-09-28）。
+  // 本家(MapLibre)の指定: 彩度-1(灰色)・不透明度0.55・明るさ下限0.12・コントラスト-0.2 を
+  // CSS フィルタで近似する。実際の指定は radar.html の .basemap-gsi。
   L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
     maxZoom: 18, maxNativeZoom: 18,
+    className: 'basemap-gsi',
     attribution: '地理院タイル ｜ 雨雲：出典 気象庁',
   }).addTo(map);
   // いま動いているアプリの版を、出典表示の横に小さく出す。
@@ -631,8 +635,10 @@ function closePlacePanel() {
 // --- 雨雲 / 工事 の切り替え -------------------------------------------------
 const JST_MS = 9 * 3600 * 1000;
 
+// 既定は工事（タブ名「工事/雨雲β」と同じ並び・2026-09-28 本人指示）。
+// 前に雨雲を見ていた端末だけ雨雲から開く。
 function readMode() {
-  try { return localStorage.getItem(MODE_KEY) === 'koji' ? 'koji' : 'rain'; } catch { return 'rain'; }
+  try { return localStorage.getItem(MODE_KEY) === 'rain' ? 'rain' : 'koji'; } catch { return 'koji'; }
 }
 
 /** 「今夜22時」= 次に来る22時（過ぎていれば翌日の22時） */
