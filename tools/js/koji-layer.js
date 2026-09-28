@@ -41,7 +41,6 @@ export function createKojiLayer(map, { onStatus } = {}) {
   let timeMs = Date.now();
   let loadError = '';
   let added = false;
-  let tries = 0;
   let popup = null;
 
   async function load() {
@@ -207,23 +206,24 @@ export function createKojiLayer(map, { onStatus } = {}) {
     draw();
   }
 
-  /** 足せるまで試す。裏にいる間は待ち続け、表に戻ったらすぐ試す。 */
+  /** 足せるまで0.3秒おきに試す。
+      裏にいる間は何度でも待つ（画面が裏だと MapLibre の準備が進まないため）。
+      表にいるのに12秒たっても足せないときだけ、本当の失敗として画面に出す。 */
   async function ensureLayers() {
+    let failsWhileVisible = 0;
     while (visible && !added) {
       try {
         addLayers();
         return true;
       } catch (e) {
-        if (document.hidden) {
-          await new Promise((r) => document.addEventListener('visibilitychange', r, { once: true }));
-        } else {
-          tries += 1;
-          if (tries > 40) {          // 表にいるのに12秒たっても足せない＝本当の失敗
+        if (!document.hidden) {
+          failsWhileVisible += 1;
+          if (failsWhileVisible > 40) {
             loadError = `工事の地図を作れませんでした（${e.message}）`;
             return false;
           }
-          await sleep(300);
         }
+        await sleep(300);
       }
     }
     return added;
