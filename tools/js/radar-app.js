@@ -137,15 +137,19 @@ function createMap() {
   }
 }
 
-/** 地図の準備ができるまで待つ（MapLibre は style の読み込みが終わるまで層を足せない）。
-    'load' は待ち始める前に終わっていることがあり、待っても来ない端末があったので、
-    「読み込み終わったか」を0.1秒ごとに見る形にする（最大15秒）。 */
-function whenStyleLoaded(m, timeoutMs = 15000) {
+/** 層を足せる状態か（style の読み込みが終わったか）。
+    isStyleLoaded() はタイルの読み込み待ちでも false のままになるので、
+    「style そのものが読めたか」を見る。読めるまで0.1秒ごとに確認（最大10秒）。 */
+function canAddLayers(m) {
+  try { return m.isStyleLoaded() || !!(m.style && m.style._loaded); } catch { return false; }
+}
+
+function whenStyleLoaded(m, timeoutMs = 10000) {
   return new Promise((resolve) => {
-    if (m.isStyleLoaded()) return resolve(true);
+    if (canAddLayers(m)) return resolve(true);
     const t0 = Date.now();
     const id = setInterval(() => {
-      if (m.isStyleLoaded() || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(m.isStyleLoaded()); }
+      if (canAddLayers(m) || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(canAddLayers(m)); }
     }, 100);
   });
 }
@@ -202,7 +206,7 @@ function layerFor(i) {
 }
 
 function show(i) {
-  if (!frames.length || !map.getStyle()) return;
+  if (!frames.length || !canAddLayers(map)) return;
   index = Math.max(0, Math.min(frames.length - 1, i));
   layerFor(index);
   // 工事を見ているときは雨雲を重ねない（線が読めなくなる）

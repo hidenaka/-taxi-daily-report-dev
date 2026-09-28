@@ -14,13 +14,19 @@ import {
 
 const DATA_URL = './data/koji.json';
 
-/** 地図の style の読み込みが終わるまで待つ（終わる前に層を足すと MapLibre が例外を投げる） */
-function whenStyleLoaded(m, timeoutMs = 15000) {
+/** 層を足せる状態か（style の読み込みが終わったか）。
+    isStyleLoaded() はタイルの読み込み待ちでも false のままになるので、
+    「style そのものが読めたか」を見る。読めるまで0.1秒ごとに確認（最大10秒）。 */
+function canAddLayers(m) {
+  try { return m.isStyleLoaded() || !!(m.style && m.style._loaded); } catch { return false; }
+}
+
+function whenStyleLoaded(m, timeoutMs = 10000) {
   return new Promise((resolve) => {
-    if (m.isStyleLoaded()) return resolve(true);
+    if (canAddLayers(m)) return resolve(true);
     const t0 = Date.now();
     const id = setInterval(() => {
-      if (m.isStyleLoaded() || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(m.isStyleLoaded()); }
+      if (canAddLayers(m) || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(canAddLayers(m)); }
     }, 100);
   });
 }
@@ -62,7 +68,7 @@ export function createKojiLayer(map, { onStatus } = {}) {
 
   function addLayers() {
     if (added) return;
-    if (!map.isStyleLoaded()) throw new Error('地図の読み込みがまだ終わっていません');
+    if (!canAddLayers(map)) throw new Error('地図の読み込みがまだ終わっていません');
     const empty = { type: 'FeatureCollection', features: [] };
     map.addSource(SRC, { type: 'geojson', data: empty, attribution: '東京都建設局 路上工事情報(CC BY 4.0) / © OpenStreetMap contributors' });
     map.addSource(HEAT_SRC, { type: 'geojson', data: empty });
