@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v425">
+  <meta name="app-version" content="v426">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -153,9 +153,15 @@
     #koji-ui[hidden]{display:none;}
     #koji-ui>*{pointer-events:auto;}
     .k-card{background:var(--k-panel);border-radius:18px;box-shadow:var(--k-shadow);}
-    /* ID付きの指定は強すぎて、下のクラス指定(色・字の大きさ)を打ち消してしまう。
-       ここでは書体と指の形だけにする（色と大きさは各ボタンの指定に任せる） */
-    #koji-ui button{font-family:inherit;cursor:pointer;}
+    /* アプリ共通CSS(tools/css/style.css)のボタン既定＝黒地・白文字・高さ44px が
+       ここに流れ込むと本家の見た目が壊れる。:where() で「強さゼロ」にして打ち消す
+       ＝下のクラス指定(.k-seg button など)はそのまま効く。ID指定にすると逆に
+       クラス指定を全部潰してしまうので使わない */
+    :where(#koji-ui) button{min-height:0;padding:0;font-size:inherit;line-height:inherit;
+      background:transparent;color:var(--k-ink);border:0;border-radius:0;
+      font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    :where(#koji-ui) button:active{background:transparent;}
+    :where(#koji-ui) input{font-family:inherit;color:var(--k-ink);}
     /* 見出し */
     .k-brand{position:absolute;top:58px;left:10px;display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;}
     .k-logo{width:34px;height:34px;border-radius:50%;border:3px solid var(--k-dark);display:grid;place-items:center;font-weight:900;font-size:15px;}
