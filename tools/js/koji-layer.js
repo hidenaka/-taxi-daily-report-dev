@@ -13,6 +13,17 @@ import {
 } from './koji-data.js';
 
 const DATA_URL = './data/koji.json';
+
+/** 地図の style の読み込みが終わるまで待つ（終わる前に層を足すと MapLibre が例外を投げる） */
+function whenStyleLoaded(m, timeoutMs = 15000) {
+  return new Promise((resolve) => {
+    if (m.isStyleLoaded()) return resolve(true);
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      if (m.isStyleLoaded() || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(m.isStyleLoaded()); }
+    }, 100);
+  });
+}
 const SRC = 'koji';
 const HEAT_SRC = 'koji-heat';
 const LAYERS = ['koji-heat', 'koji-off-line', 'koji-off-pt', 'koji-casing', 'koji-line', 'koji-pt', 'koji-approx'];
@@ -51,6 +62,7 @@ export function createKojiLayer(map, { onStatus } = {}) {
 
   function addLayers() {
     if (added) return;
+    if (!map.isStyleLoaded()) throw new Error('地図の読み込みがまだ終わっていません');
     const empty = { type: 'FeatureCollection', features: [] };
     map.addSource(SRC, { type: 'geojson', data: empty, attribution: '東京都建設局 路上工事情報(CC BY 4.0) / © OpenStreetMap contributors' });
     map.addSource(HEAT_SRC, { type: 'geojson', data: empty });
@@ -194,6 +206,7 @@ export function createKojiLayer(map, { onStatus } = {}) {
     if (!next) { popup?.remove(); setLayerVisibility(false); return; }
     onStatus?.({ loading: true });
     await load();
+    await whenStyleLoaded(map);     // 層を足せるようになるまで待つ
     try {
       addLayers();
     } catch (e) {

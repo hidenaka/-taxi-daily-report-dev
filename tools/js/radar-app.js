@@ -137,18 +137,20 @@ function createMap() {
   }
 }
 
-/** 地図の準備ができるまで待つ（MapLibre は style の読み込み後でないと層を足せない）。
-    'load' は待ち始める前に終わっていることがあるので、styledata と時間切れでも先へ進む。 */
-function mapReady() {
+/** 地図の準備ができるまで待つ（MapLibre は style の読み込みが終わるまで層を足せない）。
+    'load' は待ち始める前に終わっていることがあり、待っても来ない端末があったので、
+    「読み込み終わったか」を0.1秒ごとに見る形にする（最大15秒）。 */
+function whenStyleLoaded(m, timeoutMs = 15000) {
   return new Promise((resolve) => {
-    let done = false;
-    const go = () => { if (!done) { done = true; resolve(); } };
-    if (map.isStyleLoaded()) return go();
-    map.once('load', go);
-    map.on('styledata', () => { if (map.isStyleLoaded()) go(); });
-    setTimeout(go, 4000);
+    if (m.isStyleLoaded()) return resolve(true);
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      if (m.isStyleLoaded() || Date.now() - t0 > timeoutMs) { clearInterval(id); resolve(m.isStyleLoaded()); }
+    }, 100);
   });
 }
+
+function mapReady() { return whenStyleLoaded(map); }
 
 
 // 稼働中のキャッシュ名(= 版)を出典表示の横に足す
