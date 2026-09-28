@@ -1,7 +1,10 @@
-// tools/js/radar-app.js — 雨雲レーダー画面の組み立て（DOM / Leaflet 側）
+// tools/js/radar-app.js — 工事/雨雲マップ画面の組み立て（DOM / Leaflet 側）
 //
-// 材料づくりは radar-data.js（純関数・テストあり）。ここは配線だけ。
-// 出典表示「出典：気象庁」は利用条件なので必ず地図に出す。
+// 1枚の地図を、上の切り替えで「雨雲」と「工事」で使い分ける（2026-09-28）。
+// 材料づくりは radar-data.js（雨雲）/ koji-data.js（工事）の純関数側。ここは配線だけ。
+// 出典表示「出典：気象庁」「東京都建設局・OpenStreetMap」は利用条件なので必ず出す。
+import { createKojiLayer } from './koji-layer.js';
+import { LEVELS } from './koji-data.js';
 import { weatherUrl, pickHourly, pickDaily, dayLabel, rainStartHint, RAIN_POP } from './radar-weather.js';
 import { weatherEmoji, weatherLabel } from '../../js/weather.js';
 import { distanceKm } from '../../js/area-geo.js';
@@ -15,6 +18,7 @@ import {
 } from './radar-data.js';
 
 const VIEW_KEY = 'radarLastView';
+const MODE_KEY = 'mapMode';            // 'rain' | 'koji'（次に開いたとき同じ側から）
 const GEO_DENIED_KEY = 'radarGeoDenied';   // 現在地を断られた端末では、毎回きかない      // 最後に見ていた場所（次に開いたとき同じ場所から）
 const DEFAULT_VIEW = { lat: 35.5494, lon: 139.7798, zoom: 11 }; // 羽田
 const MAX_LAYERS = 12;                 // 端末のメモリを食わないよう、持っておくコマ数の上限
@@ -33,6 +37,11 @@ let hereMarker = null;
 let placePin = null;   // { name, lat, lon }
 const PLACE_NEAR_KM = 3;
 const layers = new Map();  // frameIndex → L.tileLayer
+let mode = 'rain';         // いま見ているほう
+let koji = null;           // 工事の層（createKojiLayer の戻り）
+let kojiOffsetMin = 0;     // 工事で見ている時刻（いまから何分後）
+let kojiNightHour = null;  // 「今夜22時」を選んだときの時（分後の指定より優先）
+let syncBarSpaceFn = null; // 下のバーの高さを地図に伝える（切り替え後にも呼ぶ）
 
 // --- 地図 -----------------------------------------------------------------
 function readView() {
@@ -55,7 +64,11 @@ function saveView() {
 let saveTimer = null;
 function saveViewSoon() {
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => { saveView(); syncPlaceLabel(); refreshRainStripSoon(); }, 400);
+  saveTimer = setTimeout(() => {
+    saveView(); syncPlaceLabel();
+    if (mode === 'koji') koji?.refresh();   // 画面の中の工事だけを描き直す
+    else refreshRainStripSoon();
+  }, 400);
 }
 
 function createMap() {
@@ -75,8 +88,8 @@ function createMap() {
   // 画面に固定した下のバーのぶん、地図を短くする（バーに隠れないように）。
   // バーの高さは中身で変わるので、実測して伝える。
   const syncBarSpace = () => {
-    const bar = el('radar-bar');
-    if (!bar) return;
+    const bar = mode === 'koji' ? el('koji-bar') : el('radar-bar');
+    if (!bar || bar.hidden) return;
     const r = bar.getBoundingClientRect();
     const bottomGap = Math.max(0, (document.documentElement.clientHeight || window.innerHeight) - r.bottom);
     const space = Math.ceil(r.height + bottomGap + 8);
@@ -84,6 +97,7 @@ function createMap() {
     if (map) map.invalidateSize({ animate: false });
   };
   syncBarSpace();
+  syncBarSpaceFn = syncBarSpace;
   window.addEventListener('resize', syncBarSpace);
   window.addEventListener('orientationchange', syncBarSpace);
   window.addEventListener('load', syncBarSpace);
@@ -141,8 +155,10 @@ function show(i) {
   if (!frames.length) return;
   index = Math.max(0, Math.min(frames.length - 1, i));
   const cur = layerFor(index);
-  for (const [k, layer] of layers) layer.setOpacity(k === index ? 0.72 : 0);
-  cur.setOpacity(0.72);
+  // 工事を見ているときは雨雲を重ねない（線が読めなくなる）
+  const op = mode === 'koji' ? 0 : 0.72;
+  for (const [k, layer] of layers) layer.setOpacity(k === index ? op : 0);
+  cur.setOpacity(op);
   renderTimeUi();
   // 次のコマを先に読み込んでおく（動かしたときのカクつきを減らす）
   if (index + 1 < frames.length) layerFor(index + 1).setOpacity(0);
@@ -612,6 +628,84 @@ function closePlacePanel() {
 }
 
 // --- 起動 -----------------------------------------------------------------
+// --- 雨雲 / 工事 の切り替え -------------------------------------------------
+const JST_MS = 9 * 3600 * 1000;
+
+function readMode() {
+  try { return localStorage.getItem(MODE_KEY) === 'koji' ? 'koji' : 'rain'; } catch { return 'rain'; }
+}
+
+/** 「今夜22時」= 次に来る22時（過ぎていれば翌日の22時） */
+function nextHourMs(hourJst) {
+  const now = Date.now();
+  const d = new Date(now + JST_MS);
+  let t = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), hourJst, 0, 0) - JST_MS;
+  if (t < now) t += 24 * 3600 * 1000;
+  return t;
+}
+
+function kojiTimeMs() {
+  return kojiNightHour !== null ? nextHourMs(kojiNightHour) : Date.now() + kojiOffsetMin * 60000;
+}
+
+function kojiTimeLabel() {
+  const t = new Date(kojiTimeMs() + JST_MS);
+  const hm = `${t.getUTCHours()}:${String(t.getUTCMinutes()).padStart(2, '0')}`;
+  if (kojiNightHour !== null) return `${t.getUTCMonth() + 1}/${t.getUTCDate()} ${hm} の予定`;
+  return kojiOffsetMin === 0 ? 'この画面で工事中' : `${hm} 時点の予定`;
+}
+
+function renderKojiStatus(s) {
+  if (!s) return;
+  const err = el('koji-error');
+  err.hidden = !s.error;
+  err.textContent = s.error || '';
+  if (s.loading) { el('koji-count').textContent = '—'; el('koji-count-note').textContent = '読み込み中…'; return; }
+  if (s.shown === undefined) return;
+  el('koji-count').textContent = `${s.shown}件`;
+  el('koji-count-note').textContent = `${kojiTimeLabel()}${s.total !== undefined ? `（23区ぜんぶで${s.total}件）` : ''}`;
+  const legend = el('koji-legend');
+  legend.innerHTML = LEVELS
+    .filter((l) => (s.counts?.[l.key] || 0) > 0)
+    .map((l) => `<span><i style="background:${l.color}"></i>${l.label} ${s.counts[l.key]}</span>`)
+    .join('') || '<span>この画面には工事がありません</span>';
+  if (s.fetchedAt) {
+    const d = new Date(new Date(s.fetchedAt).getTime() + JST_MS);
+    el('koji-updated').textContent = `更新 ${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+  }
+  syncBarSpaceFn?.();
+}
+
+function setKojiTime(btn) {
+  for (const b of document.querySelectorAll('.kj-times button')) b.classList.toggle('active', b === btn);
+  kojiNightHour = btn.dataset.night ? Number(btn.dataset.night) : null;
+  kojiOffsetMin = btn.dataset.min ? Number(btn.dataset.min) : 0;
+  koji?.setTime(kojiTimeMs());
+}
+
+function setMode(next) {
+  mode = next === 'koji' ? 'koji' : 'rain';
+  try { localStorage.setItem(MODE_KEY, mode); } catch { /* 保存できなくても動く */ }
+  document.body.classList.toggle('mode-koji', mode === 'koji');
+  el('mode-rain').classList.toggle('active', mode === 'rain');
+  el('mode-koji').classList.toggle('active', mode === 'koji');
+  el('mode-rain').setAttribute('aria-selected', String(mode === 'rain'));
+  el('mode-koji').setAttribute('aria-selected', String(mode === 'koji'));
+  el('radar-bar').hidden = mode === 'koji';
+  el('koji-bar').hidden = mode !== 'koji';
+  if (mode === 'koji') {
+    setPlaying(false);
+    if (!koji) koji = createKojiLayer(map, { onStatus: renderKojiStatus });
+    koji.setTime(kojiTimeMs());
+    koji.setVisible(true);
+  } else {
+    koji?.setVisible(false);
+    refreshRainStripSoon();
+  }
+  show(index);            // 雨雲の濃さを今のモードに合わせる
+  syncBarSpaceFn?.();
+}
+
 async function loadFrames() {
   const get = (url) => fetch(url, { cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : [])).catch(() => []);
@@ -634,6 +728,11 @@ async function start() {
   });
   el('radar-place-btn').addEventListener('click', openPlacePanel);
   el('radar-locate').addEventListener('click', locateNow);
+  el('mode-rain').addEventListener('click', () => setMode('rain'));
+  el('mode-koji').addEventListener('click', () => setMode('koji'));
+  for (const b of document.querySelectorAll('.kj-times button')) {
+    b.addEventListener('click', () => setKojiTime(b));
+  }
   el('radar-weather-btn').addEventListener('click', openWeatherPanel);
   el('radar-weather-close').addEventListener('click', closeWeatherPanel);
   el('radar-place-close').addEventListener('click', closePlacePanel);
@@ -646,11 +745,18 @@ async function start() {
   });
 
   window.addEventListener('resize', () => { if (frames.length) renderTicks(); });
+
+  // 前に見ていたほう（雨雲/工事）から始める。工事は雨雲データが無くても動く。
+  setMode(readMode());
+  autoLocateOnStart();
+
   frames = await loadFrames();
   if (frames.length === 0) {
-    el('radar-error').textContent = '雨雲データを取得できませんでした。少し時間をおいて開き直してください。';
-    el('radar-error').hidden = false;
-    el('radar-bar').hidden = true;
+    if (mode === 'rain') {
+      el('radar-error').textContent = '雨雲データを取得できませんでした。少し時間をおいて開き直してください。';
+      el('radar-error').hidden = false;
+      el('radar-bar').hidden = true;
+    }
     return;
   }
   offsets = frameOffsets(frames);
@@ -660,8 +766,7 @@ async function start() {
   slider.step = '1';
   renderTicks();
 
-  refreshRainStripSoon();
-  autoLocateOnStart();
+  if (mode === 'rain') refreshRainStripSoon();
   const latest = frames.findIndex((f) => f.isLatestObs);
   show(latest >= 0 ? latest : frames.length - 1);
 }

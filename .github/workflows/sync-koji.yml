@@ -1,0 +1,44 @@
+name: Sync koji map (daily)
+
+# 工事マップ（東京23区・都道の路上工事）を1日1回取り込む。
+# 元データ側の取り込みは毎朝 06:10 JST なので、その後の 07:20 JST に取りに行く。
+# 配信元に CORS ヘッダが無く、アプリから直接 fetch できないための中継でもある。
+
+on:
+  schedule:
+    - cron: '20 22 * * *'   # 07:20 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-koji
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 工事データを取得して tools/data/koji.json を更新
+        run: node .github/scripts/sync-koji.mjs
+
+      - name: コミット
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/data/koji.json
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "chore(data): sync koji $(TZ=Asia/Tokyo date +%Y-%m-%d\ %H:%M) JST"
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "push に失敗しました"
+          exit 1

@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Cabis ｜ 雨雲レーダーβ</title>
+  <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v410">
+  <meta name="app-version" content="v413">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -117,9 +117,47 @@
     #radar-center span{position:absolute;left:7px;top:7px;width:12px;height:12px;border-radius:50%;
       border:2px solid #1f2a36;background:rgba(255,255,255,.45);}
 
-    /* いま見ている場所 */
-    #radar-place-label{position:absolute;left:8px;top:8px;z-index:1250;background:rgba(21,21,28,.88);
+    /* いま見ている場所。左上は切り替えボタンが居るので、その下に置く */
+    #radar-place-label{position:absolute;left:8px;top:54px;z-index:1250;background:rgba(21,21,28,.88);
       color:#e8edf2;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;}
+    /* 工事のときは、雨の帯が見ている点の印・雨の凡例・場所の名前は出さない（雨の話なので） */
+    body.mode-koji #radar-center,body.mode-koji #radar-legend,body.mode-koji #radar-place-label{display:none;}
+
+    /* 雨雲 / 工事 の切り替え。地図の左上 */
+    #map-mode{position:absolute;left:8px;top:8px;z-index:1260;display:flex;gap:0;
+      background:rgba(21,21,28,.9);border-radius:999px;padding:3px;}
+    #map-mode button{border:none;background:none;color:#9aa4ae;font-size:13px;font-weight:700;
+      padding:7px 14px;border-radius:999px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+    #map-mode button.active{background:#2f6fd0;color:#fff;}
+
+    /* 工事バー（下）。雨のバーと同じ位置・同じ見た目にそろえる */
+    #koji-bar{position:fixed;left:8px;right:8px;z-index:1300;
+      bottom:calc(56px + env(safe-area-inset-bottom, 0px) + 8px);
+      background:rgba(21,21,28,.92);color:#fff;border-radius:12px;padding:10px 12px 12px;
+      box-shadow:0 -2px 14px rgba(0,0,0,.35);}
+    #koji-bar[hidden]{display:none;}
+    .kj-head{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
+    #koji-count{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;}
+    #koji-count-note{font-size:13px;color:#cfd6dd;}
+    #koji-updated{margin-left:auto;font-size:11px;color:#7b858f;}
+    .kj-times{display:flex;gap:6px;margin-bottom:8px;}
+    .kj-times button{flex:1;padding:9px 0;border-radius:9px;border:1px solid #3a3a46;background:#22222c;
+      color:#cfd6dd;font-size:13px;font-weight:600;cursor:pointer;}
+    .kj-times button.active{background:#2f6fd0;border-color:#2f6fd0;color:#fff;}
+    .kj-legend{display:flex;flex-wrap:wrap;gap:8px 12px;font-size:11px;color:#cfd6dd;margin-bottom:6px;}
+    .kj-legend span{display:flex;align-items:center;gap:5px;}
+    .kj-legend i{width:14px;height:6px;border-radius:3px;display:inline-block;}
+    .kj-note{font-size:10.5px;line-height:1.5;color:#8b98a6;}
+    #koji-error{font-size:12px;color:#ffb4a8;margin-top:4px;}
+
+    /* 工事の吹き出し */
+    .kj-pop-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+    .kj-pop-lv{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;margin-bottom:4px;}
+    .kj-pop-lv i{width:12px;height:12px;border-radius:3px;display:inline-block;}
+    .kj-pop-row{font-size:13px;line-height:1.5;}
+    .kj-pop .kj-dim{color:#6b7c93;font-size:12px;}
+    .kj-warn{margin-top:4px;font-size:12px;color:#b45309;}
+    .kj-pop-note{margin-top:6px;font-size:11px;line-height:1.45;color:#6b7c93;}
 
     /* 場所えらびパネル */
     #radar-place-panel{position:fixed;left:0;right:0;bottom:0;z-index:1400;background:#15151c;color:#fff;
@@ -234,7 +272,7 @@
 
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>
-    <a href="radar.html" class="app-tab active" aria-current="page">🌧 雨雲レーダーβ</a>
+    <a href="radar.html" class="app-tab active" aria-current="page">🚧 工事/雨雲β</a>
     <a href="ic.html" class="app-tab">🛣 IC判定</a>
     <a href="arrivals.html" class="app-tab">✈ 空港ツール</a>
     <a href="stands.html" id="tab-stands" class="app-tab" style="display:none">📍 乗り場</a>
@@ -243,6 +281,12 @@
   <script type="module" src="js/stands-tab.js"></script>
   <div id="radar-stage">
     <div id="radar-map"></div>
+
+    <!-- 雨雲 / 工事 の切り替え -->
+    <div id="map-mode" role="tablist" aria-label="地図の切り替え">
+      <button type="button" id="mode-rain" role="tab" aria-selected="true" class="active">☁ 雨雲</button>
+      <button type="button" id="mode-koji" role="tab" aria-selected="false">🚧 工事</button>
+    </div>
 
     <!-- 帯が見ている場所（＝地図のまん中）を示す印 -->
     <div id="radar-center" aria-hidden="true"><span></span></div>
@@ -279,6 +323,27 @@
       <button id="radar-place-btn" type="button">📍 場所</button>
       <button id="radar-weather-btn" type="button">☁ 天気</button>
     </div>
+  </div>
+
+  <div id="koji-bar" hidden>
+    <div class="kj-head">
+      <span id="koji-count">—</span>
+      <span id="koji-count-note">この画面で工事中</span>
+      <span id="koji-updated"></span>
+    </div>
+    <div class="kj-times">
+      <button type="button" data-min="0" class="active">いま</button>
+      <button type="button" data-min="60">1時間後</button>
+      <button type="button" data-min="120">2時間後</button>
+      <button type="button" data-night="22">今夜22時</button>
+    </div>
+    <div class="kj-legend" id="koji-legend"></div>
+    <div class="kj-note">
+      予定に基づく目安。実際の通行は現地の標識・警察の指示に従ってください。<br>
+      東京23区の<b>都道のみ</b>（区道・国道・高速は含みません）。どちら側の車線かは推定。<br>
+      出典: 東京都建設局 路上工事情報（CC BY 4.0）／道路の形と名前 © OpenStreetMap contributors
+    </div>
+    <div id="koji-error" hidden></div>
   </div>
 
   <div id=radar-weather-panel aria-label=天気>
