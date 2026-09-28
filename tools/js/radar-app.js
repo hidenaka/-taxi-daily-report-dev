@@ -1,4 +1,4 @@
-// tools/js/radar-app.js — 工事/雨雲マップ画面の組み立て（DOM / Leaflet 側）
+// tools/js/radar-app.js — 工事/雨雲マップ画面の組み立て（DOM / MapLibre GL 側）
 //
 // 1枚の地図を、上の切り替えで「雨雲」と「工事」で使い分ける（2026-09-28）。
 // 材料づくりは radar-data.js（雨雲）/ koji-data.js（工事）の純関数側。ここは配線だけ。
@@ -36,7 +36,7 @@ let hereMarker = null;
 // （「羽田空港の天気」と出ているのに中心は別の街、を防ぐ）。
 let placePin = null;   // { name, lat, lon }
 const PLACE_NEAR_KM = 3;
-const layers = new Map();  // frameIndex → L.tileLayer
+const layers = new Map();  // frameIndex → 雨雲ラスターの layer/source id
 let mode = 'rain';         // いま見ているほう
 let koji = null;           // 工事の層（createKojiLayer の戻り）
 let kojiOffsetMin = 0;     // 工事で見ている時刻（いまから何分後）
@@ -59,8 +59,8 @@ function saveView() {
 }
 
 // 地図を触り終わったタイミングで保存する。
-// Leaflet の moveend / zoomend は、この画面では発火しなかった(dev実機で計測して確認)。
-// 指を離した・ホイールを止めた、という操作そのものを拾うほうが確実。
+// MapLibre の moveend に加えて、指を離した・ホイールを止めた操作そのものも拾う
+// （Leaflet のころ moveend が発火しない端末があったため、保険として残す）。
 let saveTimer = null;
 function saveViewSoon() {
   clearTimeout(saveTimer);
@@ -73,18 +73,39 @@ function saveViewSoon() {
 
 function createMap() {
   const v = readView();
-  map = L.map('radar-map', { zoomControl: true }).setView([v.lat, v.lon], v.zoom);
-  // 背景は国土地理院の淡色地図。Carto の light_all はタイルに
-  // 「API KEY REQUIRED」の透かしが入るようになっていた(実機で確認)。
+  // 地図の仕組みは工事マップ本家と同じ MapLibre GL（2026-09-28 本人指示で Leaflet から移行）。
+  // 下地は国土地理院の淡色地図を灰色・薄くして敷く（本家 public/radar.js と同じ指定）。
   // 地理院タイルは鍵不要・日本語表記で、出典表示のみが条件。
-  // 地図そのものは灰色にして薄くする（工事マップ本家と同じ見せ方 2026-09-28）。
-  // 本家(MapLibre)の指定: 彩度-1(灰色)・不透明度0.55・明るさ下限0.12・コントラスト-0.2 を
-  // CSS フィルタで近似する。実際の指定は radar.html の .basemap-gsi。
-  L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
-    maxZoom: 18, maxNativeZoom: 18,
-    className: 'basemap-gsi',
-    attribution: '地理院タイル ｜ 雨雲：出典 気象庁',
-  }).addTo(map);
+  map = new maplibregl.Map({
+    container: 'radar-map',
+    style: {
+      version: 8,
+      sources: {
+        gsi: {
+          type: 'raster',
+          tiles: ['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],
+          tileSize: 256, maxzoom: 18, attribution: '地理院タイル',
+        },
+      },
+      layers: [
+        { id: 'bg', type: 'background', paint: { 'background-color': '#f1f0ec' } },
+        {
+          id: 'gsi', type: 'raster', source: 'gsi',
+          paint: {
+            'raster-saturation': -1,        // 灰色にする
+            'raster-opacity': 0.55,         // 薄くする
+            'raster-brightness-min': 0.12,
+            'raster-brightness-max': 1,
+            'raster-contrast': -0.2,
+          },
+        },
+      ],
+    },
+    center: [v.lon, v.lat], zoom: v.zoom,
+    attributionControl: { compact: true },
+  });
+  map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+  map.on('moveend', saveViewSoon);
   // いま動いているアプリの版を、出典表示の横に小さく出す。
   // 「直したはずなのに直っていない」が、更新前の版を見ているだけなのか
   // 判別できるようにするため。
@@ -98,7 +119,7 @@ function createMap() {
     const bottomGap = Math.max(0, (document.documentElement.clientHeight || window.innerHeight) - r.bottom);
     const space = Math.ceil(r.height + bottomGap + 8);
     document.documentElement.style.setProperty('--bar-space', space + 'px');
-    if (map) map.invalidateSize({ animate: false });
+    if (map) map.resize();
   };
   syncBarSpace();
   syncBarSpaceFn = syncBarSpace;
@@ -116,6 +137,11 @@ function createMap() {
   }
 }
 
+/** 地図の準備ができるまで待つ（MapLibre は style の読み込み後でないと層を足せない） */
+function mapReady() {
+  return map.isStyleLoaded() ? Promise.resolve() : new Promise((r) => map.once('load', r));
+}
+
 
 // 稼働中のキャッシュ名(= 版)を出典表示の横に足す
 async function showRunningVersion() {
@@ -129,43 +155,54 @@ async function showRunningVersion() {
     if (!v) return;
     const slot = el('radar-ver');
     if (slot) slot.textContent = v;
-    const el2 = document.querySelector('.leaflet-control-attribution');
+    const el2 = document.querySelector('.maplibregl-ctrl-attrib-inner');
     if (el2 && !el2.textContent.includes(v)) el2.insertAdjacentHTML('beforeend', ` ｜ ${v}`);
   } catch { /* 出せなくても動作に影響なし */ }
 }
 
 // --- 雨雲のコマ -----------------------------------------------------------
+// MapLibre では「コマ＝ラスターの source と layer の組」。読み込み済みのコマは
+// そのまま残し、不透明度だけ入れ替える（切り替えたときにちらつかない）。
+const rainId = (i) => `rain-${i}`;
+
 function layerFor(i) {
   if (layers.has(i)) return layers.get(i);
   const f = frames[i];
-  const layer = L.tileLayer(tileUrl(f, '{z}', '{x}', '{y}'), {
-    opacity: 0,
-    maxZoom: 18,
-    maxNativeZoom: 10,   // 実データは約1kmメッシュ。これ以上は引き伸ばして見せる
-    zIndex: 400,
-    crossOrigin: true,
+  const id = rainId(i);
+  map.addSource(id, {
+    type: 'raster',
+    tiles: [tileUrl(f, '{z}', '{x}', '{y}')],
+    tileSize: 256,
+    maxzoom: 10,          // 実データは約1kmメッシュ。これ以上は引き伸ばして見せる
+    attribution: '雨雲：出典 気象庁',
   });
-  layer.addTo(map);
-  layers.set(i, layer);
+  map.addLayer({ id, type: 'raster', source: id, paint: { 'raster-opacity': 0, 'raster-fade-duration': 0 } });
+  layers.set(i, id);
   // 遠いコマから捨てる（端末のメモリを食わないため）
   if (layers.size > MAX_LAYERS) {
     const far = [...layers.keys()].sort((a, b) => Math.abs(b - index) - Math.abs(a - index))[0];
-    if (far !== index) { map.removeLayer(layers.get(far)); layers.delete(far); }
+    if (far !== index) {
+      const fid = layers.get(far);
+      if (map.getLayer(fid)) map.removeLayer(fid);
+      if (map.getSource(fid)) map.removeSource(fid);
+      layers.delete(far);
+    }
   }
-  return layer;
+  return id;
 }
 
 function show(i) {
-  if (!frames.length) return;
+  if (!frames.length || !map.isStyleLoaded()) return;
   index = Math.max(0, Math.min(frames.length - 1, i));
-  const cur = layerFor(index);
+  layerFor(index);
   // 工事を見ているときは雨雲を重ねない（線が読めなくなる）
   const op = mode === 'koji' ? 0 : 0.72;
-  for (const [k, layer] of layers) layer.setOpacity(k === index ? op : 0);
-  cur.setOpacity(op);
+  for (const [k, id] of layers) {
+    if (map.getLayer(id)) map.setPaintProperty(id, 'raster-opacity', k === index ? op : 0);
+  }
   renderTimeUi();
   // 次のコマを先に読み込んでおく（動かしたときのカクつきを減らす）
-  if (index + 1 < frames.length) layerFor(index + 1).setOpacity(0);
+  if (index + 1 < frames.length) layerFor(index + 1);
 }
 
 // バーの下の目盛り。3時間おきに「3時間前 / いま / 3時間後 …」を、
@@ -382,7 +419,7 @@ function goTo(lat, lon, zoom = 12, label = '') {
   // animate:false で即座に移動する。動かしながらだと、直後に読む中心が
   // まだ移動前のままで、覚える場所が1つ前になってしまう(実機で確認)。
   // 遠くへ飛ぶ操作なので、滑らせるより一気に移るほうが分かりやすい。
-  map.setView([lat, lon], zoom, { animate: false });
+  map.jumpTo({ center: [lon, lat], zoom });
   saveView(); // 選んだ場所は、その場で覚える(次に開いたときここから)
   placePin = label ? { name: label, lat, lon } : null;
   refreshRainStripSoon();   // 場所が変わったら、この場所の雨を調べ直す
@@ -424,10 +461,13 @@ async function runSearch(q) {
 
 // 現在地に赤い点を置く。move=true なら地図もそこへ動かす。
 function markHere(lat, lon, move) {
-  if (hereMarker) map.removeLayer(hereMarker);
-  hereMarker = L.circleMarker([lat, lon], {
-    radius: 7, color: '#fff', weight: 2, fillColor: '#e5443a', fillOpacity: 1,
-  }).addTo(map);
+  if (!hereMarker) {
+    const dot = document.createElement('div');
+    dot.className = 'here-dot';
+    hereMarker = new maplibregl.Marker({ element: dot }).setLngLat([lon, lat]).addTo(map);
+  } else {
+    hereMarker.setLngLat([lon, lat]);
+  }
   if (move) goTo(lat, lon, 13, 'いまの場所');
 }
 
@@ -725,6 +765,7 @@ async function loadFrames() {
 async function start() {
   createMap();
   renderPresets();
+  await mapReady();       // MapLibre は style の読み込み後でないと層を足せない
 
   el('radar-play').addEventListener('click', () => setPlaying(!playTimer));
   el('radar-slider').addEventListener('input', (e) => {

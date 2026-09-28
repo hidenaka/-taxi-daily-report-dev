@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v414">
+  <meta name="app-version" content="v415">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="../vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
   <link rel="manifest" href="../manifest.webmanifest">
@@ -35,9 +35,18 @@
     /* 地図はバーのぶんだけ短くする（重ねると出典表示が隠れる） */
     /* 下地の色は工事マップ本家と同じ #f1f0ec（地図を薄くするので、その下が見える） */
     #radar-map{position:absolute;top:0;left:0;right:0;bottom:var(--bar-space, 0px);background:#f1f0ec;}
-    /* 地図そのものは灰色・薄めにして、工事の線と雨雲の色を浮かせる。
-       本家(MapLibre)の 彩度-1 / 不透明度0.55 / 明るさ下限0.12 / コントラスト-0.2 を CSS で近似。 */
-    .basemap-gsi{filter:grayscale(1) contrast(.8) brightness(1.06);opacity:.62;}
+    /* 地図を灰色・薄くする指定は MapLibre 側（radar-app.js の style）に持たせている。
+       本家と同じ: 彩度-1 / 不透明度0.55 / 明るさ下限0.12 / コントラスト-0.2 */
+    /* 現在地の赤い点 */
+    .here-dot{width:14px;height:14px;border-radius:50%;background:#e5443a;border:2px solid #fff;
+      box-shadow:0 1px 4px rgba(0,0,0,.4);}
+    /* 出典表示・ズームボタン。下のバーや切り替えと重ならない位置・小さめに */
+    .maplibregl-ctrl-attrib{font-size:10px;}
+    .maplibregl-ctrl-bottom-right{bottom:calc(var(--bar-space, 0px) + 84px);}
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl{margin:0 0 6px 6px;}
+    .maplibregl-ctrl-top-right{top:52px;}
+    .maplibregl-popup-content{border-radius:14px;padding:12px 14px;box-shadow:0 6px 22px rgba(0,0,0,.28);}
+    .maplibregl-popup-close-button{font-size:20px;padding:2px 8px;color:#6b7c93;}
     /* タブ名が長いので、狭い端末では横に流す（2段にすると地図と被る） */
     .app-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
     .app-tabs::-webkit-scrollbar{display:none;}
@@ -272,7 +281,7 @@
     document.addEventListener('visibilitychange', () => { if (!document.hidden) fitAppHeight(); });
     if (window.visualViewport) window.visualViewport.addEventListener('resize', fitAppHeight);
   </script>
-  <script src="../vendor/leaflet/leaflet.js"></script>
+  <script src="../vendor/maplibre/maplibre-gl.js"></script>
 
   <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
     <a href="./" class="app-tab">⏱ 乗務タイマー</a>

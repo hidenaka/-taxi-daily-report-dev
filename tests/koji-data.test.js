@@ -8,6 +8,7 @@ import {
   activeAt, periodBounds, parseWindows, inWindows, windowLabel,
   laneLevel, levelInfo, remainingFraction, jamLevel, jamNote,
   periodLabel, selectActive, countByLevel, intersects,
+  sideKind, offsetSign, sideLabel, barAlong, toDisplay, stateAt, samplePoints, HEAT_WEIGHT,
 } from '../tools/js/koji-data.js';
 
 const jst = (y, m, d, h = 0, mi = 0) => Date.UTC(y, m - 1, d, h - 9, mi);
@@ -99,4 +100,45 @@ test('凡例の件数はふさぎ具合ごとに数える', () => {
   const mk = (r, t) => ({ properties: { restrictionType: 'lane_closure', lanesRestricted: r, lanesTotal: t } });
   const n = countByLevel([mk(2, 4), mk(1, 8), mk(4, 4)]);
   assert.equal(n.half, 1); assert.equal(n.part, 1); assert.equal(n.closed, 1); assert.equal(n.unknown, 0);
+});
+
+test('どちら側の車線か（推定）: 上り＝都心へ向かう車線・左側', () => {
+  // 都心(日本橋)の西で、東へ向かう線（都心へ向かう向き）→ 上りは進行方向の左(-1)
+  const mid = [139.70, 35.684];
+  assert.equal(sideKind('上'), 'up');
+  assert.equal(sideKind('内外'), 'both');
+  assert.equal(offsetSign('上', [1, 0], mid), -1);
+  assert.equal(offsetSign('下', [1, 0], mid), 1);
+  // 都心に対して横向き（南北）の道路は決めない
+  assert.equal(offsetSign('上', [0, 1], mid), 0);
+  assert.equal(sideLabel('内'), '内回り側（都心寄りの車線）');
+});
+
+test('点を道路の向きの短い線にする', () => {
+  const [a, b] = barAlong([139.7, 35.68], 90, 25);   // 東向き
+  assert.ok(b[0] > a[0]);
+  assert.ok(Math.abs(b[1] - a[1]) < 1e-6);
+});
+
+test('地図に渡す形: level/side/st が付く', () => {
+  const f = {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[139.70, 35.684], [139.72, 35.684]] },
+    properties: { ...tokyo, roadSide: '上' },
+  };
+  const night = jst(2026, 1, 10, 23, 0), day = jst(2026, 1, 10, 12, 0);
+  const on = toDisplay(f, night), off = toDisplay(f, day);
+  assert.equal(on.properties.st, 2);          // 作業中
+  assert.equal(off.properties.st, 1);         // 期間中だが時間外
+  assert.equal(on.properties.level, 'part');
+  assert.equal(on.properties.side, -1);
+  assert.equal(stateAt(f.properties, jst(2025, 9, 1, 23, 0)), 0);   // 期間外
+});
+
+test('遠目の濃淡用: 線は約150mごとの点にばらす', () => {
+  const g = { type: 'LineString', coordinates: [[139.70, 35.684], [139.71, 35.684], [139.72, 35.684]] };
+  const pts = samplePoints(g);
+  assert.ok(pts.length >= 3);
+  assert.deepEqual(samplePoints({ type: 'Point', coordinates: [139.7, 35.6] }), [[139.7, 35.6]]);
+  assert.equal(HEAT_WEIGHT.closed, 1);
 });

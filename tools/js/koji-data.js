@@ -176,3 +176,101 @@ export function countByLevel(features) {
   for (const f of features) n[laneLevel(f.properties || {})] += 1;
   return n;
 }
+
+// --- どちら側の車線か（推定）--------------------------------------------
+// 工事マップ側 public/roadside.js の移植。読み方は推定:
+// 上り＝都心(日本橋)へ向かう車線、内回り＝都心寄り。日本は左側通行なので
+// 上り車線は「都心を向いて左側」、内回り車線は「都心に近い側」。
+export const CENTER = [139.7740, 35.6840];   // 日本橋（道路元標）
+
+export function sideKind(code) {
+  const s = String(code || '');
+  const up = s.includes('上'), down = s.includes('下'), inner = s.includes('内'), outer = s.includes('外');
+  if ((up && down) || (inner && outer)) return 'both';
+  if (up) return 'up';
+  if (down) return 'down';
+  if (inner) return 'inner';
+  if (outer) return 'outer';
+  if (s.includes('中')) return 'center';
+  return 'unknown';
+}
+
+/** 線の向き d（[東, 北]）と中ほど mid から、規制側が線の進む向きの右(+1)か左(-1)か。決まらなければ 0 */
+export function offsetSign(code, d, mid) {
+  const kind = sideKind(code);
+  const k = Math.cos((mid[1] * Math.PI) / 180);
+  const toC = [(CENTER[0] - mid[0]) * k, CENTER[1] - mid[1]];
+  const dx = d[0], dy = d[1];
+  const cos = (dx * toC[0] + dy * toC[1]) / ((Math.hypot(dx, dy) * Math.hypot(toC[0], toC[1])) || 1);
+  if (kind === 'up' || kind === 'down') {
+    if (Math.abs(cos) < 0.34) return 0;         // 都心に対して横向きの道路は決めない
+    const upSign = cos > 0 ? -1 : 1;
+    return kind === 'up' ? upSign : -upSign;
+  }
+  if (kind === 'inner' || kind === 'outer') {
+    if (Math.abs(cos) > 0.94) return 0;         // 都心へまっすぐ向かう道路は決めない
+    const innerSign = dx * toC[1] - dy * toC[0] > 0 ? -1 : 1;
+    return kind === 'inner' ? innerSign : -innerSign;
+  }
+  return 0;
+}
+
+export function sideLabel(code) {
+  return {
+    up: '上り側（都心へ向かう車線）', down: '下り側（都心から離れる車線）',
+    inner: '内回り側（都心寄りの車線）', outer: '外回り側（都心から遠い側の車線）',
+    both: '両側の車線', center: '中央の車線', unknown: '記載なし',
+  }[sideKind(code)];
+}
+
+/** 点（道路の向き bearing 度）を、道路に沿った短い線（約±25m）にする */
+export function barAlong(p, bearing, halfM = 25) {
+  const r = (bearing * Math.PI) / 180;
+  const dLat = (Math.cos(r) * halfM) / 111320;
+  const dLng = (Math.sin(r) * halfM) / (111320 * Math.cos((p[1] * Math.PI) / 180));
+  return [[p[0] - dLng, p[1] - dLat], [p[0] + dLng, p[1] + dLat]];
+}
+
+/**
+ * 地図に渡す形にする（工事マップ側 toDisplay の移植）。
+ * level=ふさぎ具合 / side=線の左右どちらへ寄せるか / st=2:作業中 1:期間中だが時間外 0:期間外
+ */
+export function toDisplay(f, timeMs) {
+  const p = f.properties || {};
+  let g = f.geometry;
+  if (g.type === 'Point' && typeof p.roadBearing === 'number') {
+    g = { type: 'LineString', coordinates: barAlong(g.coordinates, p.roadBearing) };
+  }
+  let side = 0;
+  if (g.type === 'LineString') {
+    const c = g.coordinates, a = c[0], b = c[c.length - 1];
+    const k = Math.cos((a[1] * Math.PI) / 180);
+    side = offsetSign(p.roadSide, [(b[0] - a[0]) * k, b[1] - a[1]], c[Math.floor(c.length / 2)]);
+  }
+  return {
+    type: 'Feature', geometry: g,
+    properties: { ...p, level: laneLevel(p), side, st: stateAt(p, timeMs) },
+  };
+}
+
+/** 2=その時刻に作業中 / 1=期間中だが時間外 / 0=期間外 */
+export function stateAt(p, t) {
+  const { start, end } = periodBounds(p);
+  if ((start !== null && t < start) || (end !== null && t > end)) return 0;
+  return inWindows(p.timeWindow, t) ? 2 : 1;
+}
+
+/** 遠目の「雨雲」用に、線を約150mごとの点にばらす（工事マップ側 samplePoints の移植） */
+export function samplePoints(g) {
+  if (g.type === 'Point') return [g.coordinates];
+  const c = g.coordinates, out = [c[0]];
+  let acc = 0;
+  for (let i = 1; i < c.length; i++) {
+    const k = Math.cos((c[i][1] * Math.PI) / 180);
+    acc += Math.hypot((c[i][0] - c[i - 1][0]) * k, c[i][1] - c[i - 1][1]) * 111320;
+    if (acc >= 150) { out.push(c[i]); acc = 0; }
+  }
+  return out;
+}
+
+export const HEAT_WEIGHT = { closed: 1, alternating: 0.85, half: 0.6, part: 0.3, unknown: 0.25 };

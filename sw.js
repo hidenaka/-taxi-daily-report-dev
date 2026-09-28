@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v414';
+const CACHE_NAME = CACHE_PREFIX + 'v415';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -26,6 +26,8 @@ const STATIC_FILES = [
   './tools/js/radar-app.js',
   './tools/js/radar-data.js',
   './tools/js/radar-weather.js',
+  './vendor/maplibre/maplibre-gl.js',
+  './vendor/maplibre/maplibre-gl.css',
   './tools/js/koji-data.js',
   './tools/js/koji-layer.js',
   './tools/data/koji.json',
