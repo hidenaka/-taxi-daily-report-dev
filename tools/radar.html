@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v428">
+  <meta name="app-version" content="v429">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -148,7 +148,7 @@
        数値は本家のまま。変えたのは次の2つだけ。
        (1) クラス名に k- を付けた（アプリ共通CSSと名前がぶつかるため）
        (2) 左上に「工事/雨雲」の切り替えが居るので、その高さぶん
-           見出し・一覧・一覧ボタンを下げた（本家 +50px） */
+           見出し・一覧・一覧ボタンを下げた（本家 +66px） */
     /* 下タブ(高さ56px)の上までを工事マップの画面とする。こうすると本家の
        「下から16px」などの数値をそのまま使っても下タブに潜らない */
     #koji-ui{position:absolute;left:0;right:0;top:0;
@@ -171,7 +171,7 @@
     :where(#koji-ui) input{font-family:inherit;color:var(--k-ink);}
 
     /* 見出し */
-    .k-brand{position:absolute;top:66px;left:16px;display:flex;align-items:center;gap:14px;padding:12px 18px 12px 14px;z-index:3;}
+    .k-brand{position:absolute;top:76px;left:16px;display:flex;align-items:center;gap:14px;padding:12px 18px 12px 14px;z-index:3;}
     .k-logo{width:42px;height:42px;border-radius:50%;border:3.5px solid var(--k-dark);display:grid;place-items:center;font-weight:900;font-size:18px;}
     .k-brand h1{margin:0;font-size:21px;font-weight:900;letter-spacing:.04em;line-height:1.15;}
     .k-brand .k-en{font-size:10px;letter-spacing:.22em;color:var(--k-sub);font-weight:600;}
@@ -187,7 +187,7 @@
     .k-round svg{width:20px;height:20px;}
     .k-round[aria-pressed="true"]{background:var(--k-dark);color:var(--k-bg);}
     /* 左の一覧 */
-    .k-list{position:absolute;top:154px;left:16px;bottom:136px;width:344px;display:flex;flex-direction:column;z-index:2;overflow:hidden;}
+    .k-list{position:absolute;top:164px;left:16px;bottom:136px;width:344px;display:flex;flex-direction:column;z-index:2;overflow:hidden;}
     .k-list .top{padding:16px 16px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--k-line);}
     .k-search{display:flex;align-items:center;gap:8px;background:var(--k-chip);border-radius:12px;padding:10px 12px;color:var(--k-sub);}
     .k-search input{border:0;background:transparent;outline:0;font:inherit;font-size:14px;color:var(--k-ink);width:100%;}
@@ -254,17 +254,17 @@
     .k-owners[hidden]{display:none;}
     .k-owners small{color:var(--k-sub);font-size:11px;line-height:1.4;}
     .k-owners .k-legend i.bd{width:16px;height:0;border-radius:0;border-top:2px dashed var(--k-ink);}
-    /* 狭い画面（本家と同じ数値。上の3つだけ切り替えのぶん +50px） */
+    /* 狭い画面（本家と同じ数値。上の3つだけ切り替えのぶん +66px） */
     @media (max-width:760px){
-      .k-brand{top:60px;left:10px;padding:8px 12px 8px 8px;gap:10px;}
+      .k-brand{top:76px;left:10px;padding:8px 12px 8px 8px;gap:10px;}
       .k-logo{width:34px;height:34px;font-size:15px;border-width:3px;}
       .k-brand h1{font-size:17px;}
       .k-stats{display:none;}
       .k-tools{top:10px;right:10px;}
       .k-tools .k-seg{display:none;}
       .k-round{width:40px;height:40px;}
-      #listBtn{display:block;position:absolute;top:120px;left:10px;z-index:3;border:0;padding:9px 14px;font-weight:700;font-size:13px;color:var(--k-ink);}
-      .k-list{display:none;top:166px;left:10px;right:10px;width:auto;bottom:312px;}
+      #listBtn{display:block;position:absolute;top:136px;left:10px;z-index:3;border:0;padding:9px 14px;font-weight:700;font-size:13px;color:var(--k-ink);}
+      .k-list{display:none;top:182px;left:10px;right:10px;width:auto;bottom:312px;}
       .k-list.open{display:flex;}
       .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:262px;z-index:3;
         justify-content:center;gap:8px;flex-wrap:wrap;}
