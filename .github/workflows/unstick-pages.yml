@@ -1,0 +1,34 @@
+name: Unstick Pages deploys
+
+# Pages の公開が「順番待ち」のまま固まると、以後のデプロイが全部取り消され、
+# 羽田ライブのデータが古いまま止まる（2026-10-02に24時間停止）。
+# 15分おきに見張り、20分以上待たされているデプロイを打ち切って流れを戻す。
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: unstick-pages
+  cancel-in-progress: false
+
+jobs:
+  unstick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: dev（この repo）の詰まりを解除
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/unstick-pages.sh hidenaka/-taxi-daily-report-dev 20
+
+      - name: 本番 repo の詰まりを解除
+        env:
+          GH_TOKEN: ${{ secrets.PROD_DEPLOY_TOKEN }}
+        run: bash scripts/unstick-pages.sh hidenaka/taxi-daily-report 20
