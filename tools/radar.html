@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v427">
+  <meta name="app-version" content="v428">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -149,7 +149,10 @@
        (1) クラス名に k- を付けた（アプリ共通CSSと名前がぶつかるため）
        (2) 左上に「工事/雨雲」の切り替えが居るので、その高さぶん
            見出し・一覧・一覧ボタンを下げた（本家 +50px） */
-    #koji-ui{position:absolute;inset:0;pointer-events:none;z-index:1300;
+    /* 下タブ(高さ56px)の上までを工事マップの画面とする。こうすると本家の
+       「下から16px」などの数値をそのまま使っても下タブに潜らない */
+    #koji-ui{position:absolute;left:0;right:0;top:0;
+      bottom:calc(56px + env(safe-area-inset-bottom, 0px));pointer-events:none;z-index:1300;
       --k-bg:#f1f0ec;--k-panel:rgba(255,255,255,.96);--k-ink:#1d2024;--k-sub:#6b7076;--k-faint:#9aa0a6;
       --k-line:#e4e2dc;--k-chip:#f3f2ee;--k-accent:#e0452f;--k-dark:#1d2024;--k-good:#17905a;
       --k-shadow:0 6px 24px rgba(20,24,28,.10);
