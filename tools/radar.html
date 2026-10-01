@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v430">
+  <meta name="app-version" content="v431">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -263,11 +263,11 @@
       .k-round{width:38px;height:38px;}
       #listBtn{display:block;position:absolute;top:76px;left:10px;z-index:3;border:0;
         padding:7px 12px;font-weight:700;font-size:12.5px;color:var(--k-ink);}
-      .k-list{display:none;top:122px;left:10px;right:10px;width:auto;bottom:200px;}
+      .k-list{display:none;top:122px;left:10px;right:10px;width:auto;bottom:206px;}
       .k-list.open{display:flex;}
       .k-list .top{padding:12px 12px 8px;gap:8px;}
       .k-list .item{padding:8px 14px;}
-      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:156px;z-index:3;
+      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:162px;z-index:3;
         justify-content:center;gap:6px;flex-wrap:wrap;}
       .k-mseg .k-seg{padding:3px;}
       .k-mseg .k-seg button{padding:5px 9px;font-size:11.5px;}
@@ -276,6 +276,8 @@
       .k-clock small{font-size:10px;margin-bottom:0;}
       .k-clock .num{font-size:28px;}
       .k-clock .date{font-size:12px;margin-left:6px;}
+      /* 再生ボタンは時刻と同じ行に置く（1行ぶん＝40px 札が低くなる） */
+      .k-ctrl{grid-column:2 / 3;grid-row:1;}
       .k-track{grid-column:1 / 3;height:40px;}
       .k-track input{top:4px;height:28px;}
       .k-track input::-webkit-slider-thumb{width:24px;height:24px;border-width:5px;margin-top:-7px;}
