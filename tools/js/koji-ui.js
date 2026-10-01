@@ -8,7 +8,7 @@ import {
   activeAt, stateAt, toDisplay, markTwins, windowAt, windowLabel, formatPeriod,
   laneLevel, levelInfo, kindOf, kindInfo, jamLevel, jamInfo, sideKind, sideLabel,
   MODES, DIRS, LEVELS, LEVEL_ORDER, KIND_MARK, SIDE_SHORT, TYPE_LABEL, LIST_MAX,
-  HEAT_WEIGHT, samplePoints, OWNERS_DEF,
+  HEAT_WEIGHT, samplePoints, OWNERS_DEF, nextBase,
 } from './koji-data.js';
 
 const DATA_URL = './data/koji.json';
@@ -302,6 +302,14 @@ export function createKojiUi(map) {
     map.easeTo(view === '3d' ? { pitch: 50, bearing: -12, duration: 700 } : { pitch: 0, bearing: 0, duration: 700 });
   }
 
+  /** 「いま」の表示を時計に合わせる（開きっぱなしで時刻が止まらないように） */
+  function syncNow(force = false) {
+    const b = nextBase(base, Date.now(), { atNow: $('t').value === '0' && !playing, force });
+    if (b === null) return false;
+    stop(); base = b; $('t').value = '0'; drawTicks();
+    return true;
+  }
+
   function wire() {
     $('play').onclick = () => {
       if (playing) return stop();
@@ -324,6 +332,11 @@ export function createKojiUi(map) {
         render();
       };
     }
+    // 1分おきに時計を見て、次の時間になっていたら表示を進める。アプリに戻ってきたら「いま」へ
+    setInterval(() => { if (active && !document.hidden && syncNow()) render(); }, 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (active && !document.hidden && syncNow(true)) render();
+    });
     map.on('zoomend', applyRoadsUi);
     map.on('moveend', () => { if (active) applyRoadsUi(); });
   }
@@ -342,6 +355,7 @@ export function createKojiUi(map) {
       layer.setColorMode(mode);
       layer.setVisible(true);
       applyRoadsUi();
+      syncNow(true);
       render();
     },
     refresh: () => { if (active) applyRoadsUi(); },

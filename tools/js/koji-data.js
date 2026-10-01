@@ -261,6 +261,20 @@ export function toDisplay(f, timeMs) {
   };
 }
 
+/**
+ * 表示の起点（0時からの「正時」）を「いま」に合わせ直すか。合わせ直すなら新しい起点、不要なら null。
+ * アプリを開きっぱなしにすると、起点が開いた時刻のまま止まり、終わった工事が出続けていた。
+ *   atNow: 時刻つまみが「いま」（いちばん左）にある
+ *   force: アプリに戻ってきた・工事の画面に入り直した（動かしていても「いま」に戻す）
+ */
+export function nextBase(base, nowMs, { atNow, force = false }) {
+  const HOUR = 3600 * 1000;
+  const nowBase = Math.floor(nowMs / HOUR) * HOUR;
+  if (nowBase === base) return null;
+  if (!atNow && !force) return null;
+  return nowBase;
+}
+
 /** 2=その時刻に作業中 / 1=期間中だが時間外 / 0=期間外 */
 export function stateAt(p, t) {
   const { start, end } = periodBounds(p);

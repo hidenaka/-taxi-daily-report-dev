@@ -9,6 +9,7 @@ import {
   laneLevel, levelInfo, remainingFraction, jamLevel, jamNote,
   periodLabel, selectActive, countByLevel, intersects,
   sideKind, offsetSign, sideLabel, barAlong, toDisplay, stateAt, samplePoints, HEAT_WEIGHT,
+  nextBase,
 } from '../tools/js/koji-data.js';
 
 const jst = (y, m, d, h = 0, mi = 0) => Date.UTC(y, m - 1, d, h - 9, mi);
@@ -141,4 +142,33 @@ test('遠目の濃淡用: 線は約150mごとの点にばらす', () => {
   assert.ok(pts.length >= 3);
   assert.deepEqual(samplePoints({ type: 'Point', coordinates: [139.7, 35.6] }), [[139.7, 35.6]]);
   assert.equal(HEAT_WEIGHT.closed, 1);
+});
+
+// ---- 「いま」の表示が開いた時刻のまま止まる不具合（2026-10-02） ----
+// アプリを開きっぱなしにすると、表示中の時刻が開いた時刻のまま進まず、
+// 終わった工事（夜間工事は朝6時で終わる）が色付きで出続けていた。
+const H = 3600 * 1000;
+const at = (h, m = 0) => Date.UTC(2026, 9, 2, h - 9, m);   // 日本時間 2026-10-02 h:m
+
+test('nextBase: 「いま」を見ていて時計が次の時間に進んだら、表示も進める', () => {
+  assert.strictEqual(nextBase(at(3), at(7, 5), { atNow: true }), at(7));
+});
+
+test('nextBase: 同じ時間のうちは何もしない', () => {
+  assert.strictEqual(nextBase(at(7), at(7, 59), { atNow: true }), null);
+});
+
+test('nextBase: 自分で時刻を動かしているときは勝手に戻さない', () => {
+  assert.strictEqual(nextBase(at(3), at(7, 5), { atNow: false }), null);
+});
+
+test('nextBase: アプリに戻ってきたときは、動かしていても「いま」に戻す', () => {
+  assert.strictEqual(nextBase(at(3), at(7, 5), { atNow: false, force: true }), at(7));
+});
+
+test('nextBase: 3時に開いて7時に見ると、夜間工事(20:00〜翌6:00)は作業中でなくなる', () => {
+  const p = { timeWindow: '20:00-6:00', startAt: '2026-01-01', endAt: '2026-12-01', source: 'tokyo_kensetsu' };
+  const b = nextBase(at(3), at(7, 5), { atNow: true });
+  assert.strictEqual(stateAt(p, at(3)), 2);
+  assert.strictEqual(stateAt(p, b), 1);
 });
