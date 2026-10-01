@@ -6,7 +6,7 @@
 //   点は丸・位置が目安のものは白抜きの丸、期間中だが時間外のものは灰色でうっすら。
 //   高速道路は薄い帯、道の持ち主（国道・都道・区道）と区の境は押したときだけ。
 // 画面の中身（一覧・凡例・時刻）は koji-ui.js。材料づくりは koji-data.js。
-import { MODES, PLACES, OWNERS_DEF, WARDS_DEF } from './koji-data.js';
+import { MODES, OWNERS_DEF, WARDS_DEF } from './koji-data.js';
 
 const SRC = 'koji';
 const HEAT_SRC = 'koji-heat';
@@ -47,7 +47,6 @@ export function createKojiLayer(map, { onClick } = {}) {
   let modeKey = 'level';
   const ownerShown = new Set([...OWNERS_DEF.map((o) => o.key), 'bdry']);
   const wardMarkers = [];
-  const placeMarkers = [];
 
   /** 層を足せる状態か（画面が裏だと MapLibre の準備が進まないので、足してみて確かめる） */
   function canAdd() {
@@ -184,7 +183,6 @@ export function createKojiLayer(map, { onClick } = {}) {
     });
 
     addOwnerLayers();
-    addPlaceLabels();
 
     for (const id of ['koji-line', 'koji-pt', 'koji-approx', 'koji-off-line', 'koji-off-pt']) {
       map.on('click', id, (e) => {
@@ -226,17 +224,6 @@ export function createKojiLayer(map, { onClick } = {}) {
       map.setPaintProperty('koji-flow-dash--1', 'line-dasharray', DASH_STEPS[i]);
       map.setPaintProperty('koji-flow-dash-1', 'line-dasharray', DASH_STEPS[(DASH_STEPS.length - i) % DASH_STEPS.length]);
     }, 70);
-  }
-
-  /** 地名ラベル（主な駅・街） */
-  function addPlaceLabels() {
-    for (const [ja, en, lng, lat] of PLACES) {
-      const e = document.createElement('div');
-      e.className = 'koji-place';
-      e.innerHTML = `<b>${ja}</b><span>${en}</span>`;
-      e.style.display = 'none';
-      placeMarkers.push(new maplibregl.Marker({ element: e, anchor: 'bottom' }).setLngLat([lng, lat]).addTo(map));
-    }
   }
 
   /** 道の持ち主と区の境（最初は見えない） */
@@ -293,7 +280,6 @@ export function createKojiLayer(map, { onClick } = {}) {
     for (const id of MAIN_LAYERS) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', nextVisible ? 'visible' : 'none');
     }
-    for (const m of placeMarkers) m.getElement().style.display = nextVisible ? '' : 'none';
     applyRoads();
   }
 

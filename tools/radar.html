@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Cabis ｜ 工事/雨雲マップβ</title>
   <!-- 表示されている版＝いま動いているHTML。sw.js の版と一緒に上げる -->
-  <meta name="app-version" content="v429">
+  <meta name="app-version" content="v430">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="../vendor/maplibre/maplibre-gl.css">
   <link rel="icon" type="image/png" sizes="180x180" href="icon-180.png">
@@ -254,37 +254,45 @@
     .k-owners[hidden]{display:none;}
     .k-owners small{color:var(--k-sub);font-size:11px;line-height:1.4;}
     .k-owners .k-legend i.bd{width:16px;height:0;border-radius:0;border-top:2px dashed var(--k-ink);}
-    /* 狭い画面（本家と同じ数値。上の3つだけ切り替えのぶん +66px） */
+    /* 狭い画面。本家はパソコン前提で札が大きく、スマホだと地図がほとんど見えない。
+       ここだけ小さく詰める（見出しは消す＝上のタブに「工事/雨雲β」と出ているため） */
     @media (max-width:760px){
-      .k-brand{top:76px;left:10px;padding:8px 12px 8px 8px;gap:10px;}
-      .k-logo{width:34px;height:34px;font-size:15px;border-width:3px;}
-      .k-brand h1{font-size:17px;}
-      .k-stats{display:none;}
+      .k-brand{display:none;}
       .k-tools{top:10px;right:10px;}
       .k-tools .k-seg{display:none;}
-      .k-round{width:40px;height:40px;}
-      #listBtn{display:block;position:absolute;top:136px;left:10px;z-index:3;border:0;padding:9px 14px;font-weight:700;font-size:13px;color:var(--k-ink);}
-      .k-list{display:none;top:182px;left:10px;right:10px;width:auto;bottom:312px;}
+      .k-round{width:38px;height:38px;}
+      #listBtn{display:block;position:absolute;top:76px;left:10px;z-index:3;border:0;
+        padding:7px 12px;font-weight:700;font-size:12.5px;color:var(--k-ink);}
+      .k-list{display:none;top:122px;left:10px;right:10px;width:auto;bottom:200px;}
       .k-list.open{display:flex;}
-      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:262px;z-index:3;
-        justify-content:center;gap:8px;flex-wrap:wrap;}
-      .k-mseg .k-seg button{padding:6px 10px;font-size:12px;}
-      .k-time{left:10px;right:10px;bottom:10px;grid-template-columns:1fr auto;padding:12px 14px 10px;gap:4px 12px;}
-      .k-clock .num{font-size:34px;}
-      .k-track{grid-column:1 / 3;}
-      .k-summary{grid-column:1 / 3;}
-      #play{width:46px;height:46px;}
-      #now{padding:9px 14px;font-size:13px;}
-      .k-ticks .l{font-size:10px;}
-      .k-owners{top:60px;right:10px;width:200px;}
+      .k-list .top{padding:12px 12px 8px;gap:8px;}
+      .k-list .item{padding:8px 14px;}
+      .k-mseg{display:flex;position:absolute;left:10px;right:10px;bottom:156px;z-index:3;
+        justify-content:center;gap:6px;flex-wrap:wrap;}
+      .k-mseg .k-seg{padding:3px;}
+      .k-mseg .k-seg button{padding:5px 9px;font-size:11.5px;}
+      .k-time{left:10px;right:10px;bottom:10px;grid-template-columns:1fr auto;
+        padding:10px 12px 8px;gap:2px 10px;}
+      .k-clock small{font-size:10px;margin-bottom:0;}
+      .k-clock .num{font-size:28px;}
+      .k-clock .date{font-size:12px;margin-left:6px;}
+      .k-track{grid-column:1 / 3;height:40px;}
+      .k-track input{top:4px;height:28px;}
+      .k-track input::-webkit-slider-thumb{width:24px;height:24px;border-width:5px;margin-top:-7px;}
+      .k-rail{left:12px;right:12px;top:14px;height:9px;}
+      .k-ticks{left:12px;right:12px;height:40px;}
+      .k-ticks .d{top:10px;width:16px;height:16px;margin-left:-8px;}
+      .k-ticks .p{top:16px;}
+      .k-ticks .l{top:28px;font-size:9.5px;}
+      .k-summary{grid-column:1 / 3;font-size:11px;line-height:1.5;}
+      #play{width:38px;height:38px;}
+      #play svg{width:15px;height:15px;}
+      #now{padding:7px 12px;font-size:12.5px;}
+      .k-owners{top:58px;right:10px;width:186px;font-size:11.5px;padding:8px 10px;}
     }
-    /* 区の名前・地名ラベル */
+    /* 区の名前 */
     .koji-ward{font-weight:900;font-size:13px;letter-spacing:.08em;color:#1d2024;opacity:.62;pointer-events:none;
       text-shadow:0 0 3px #f1f0ec,0 0 3px #f1f0ec,0 0 6px #f1f0ec;}
-    .koji-place{background:rgba(255,255,255,.96);border-radius:8px;padding:3px 8px 2px;text-align:center;
-      box-shadow:0 1px 6px rgba(0,0,0,.14);pointer-events:none;line-height:1.1;}
-    .koji-place b{display:block;font-size:12.5px;font-weight:900;color:#1d2024;}
-    .koji-place span{font-size:8px;letter-spacing:.12em;color:#6b7076;font-weight:600;}
     /* この地図について */
     #about{border:0;border-radius:18px;max-width:560px;width:calc(100% - 32px);background:#fff;color:#1d2024;
       box-shadow:0 6px 24px rgba(20,24,28,.2);padding:22px 24px;line-height:1.7;font-size:14px;}
