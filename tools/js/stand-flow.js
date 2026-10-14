@@ -30,6 +30,8 @@ export function standModel(data) {
       hourly: Array.isArray(s.todayHourly) ? s.todayHourly : null,
       since: s.countingSince ? String(s.countingSince).slice(11, 16) : null,
       fc: Array.isArray(s.forecast30) ? s.forecast30 : null,
+      // 見込みの外れ(直近7日・30分後の見込みの平均の差)。答え合わせが30件たまってから出す
+      fcErr: (s.forecastEval && s.forecastEval['0'] && s.forecastEval['0'].n >= 30) ? s.forecastEval['0'].mae : null,
     };
   }
   return out;
@@ -111,6 +113,12 @@ function arrLine(n, list) {
   if (!list.length) return `<div class="sf-arr"><span>✈ 60分以内にロビーに出る便はありません</span></div>`;
   const nx = list[0];
   return `<div class="sf-arr" data-sf-open="${n}"><span>✈ 60分以内 <b>${list.length}便</b>・次 <b>${nx.time}</b> ${esc(nx.from)}</span><span>${state.open === n ? '閉じる▲' : '一覧›'}</span></div>`;
+}
+
+// 見込みがどれくらい外れてきたか(直近7日の答え合わせ)。2026-10-14 本人「全部推奨で」で表示。
+export function errLine(d) {
+  if (!d || typeof d.fcErr !== 'number') return '';
+  return `<div class="sf-err">見込みの外れ：30分あたり平均 ±${d.fcErr.toFixed(1)}台（直近7日）</div>`;
 }
 
 function flightList(list) {
@@ -216,7 +224,7 @@ function render(el) {
   if (state.view === 'graph') {
     for (const n of LANES) {
       const d = model.lanes[n];
-      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${arrLine(n, arr[n])}${state.open === n ? flightList(arr[n]) : ''}</div></div>`;
+      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${errLine(d)}${arrLine(n, arr[n])}${state.open === n ? flightList(arr[n]) : ''}</div></div>`;
     }
   } else {
     for (const [lab, ids] of [['T1（JAL）', [1, 2]], ['T2（ANA・国際）', [3, 4]]]) {
@@ -227,7 +235,7 @@ function render(el) {
       }
       if (ids.includes(state.open)) {
         const n = state.open, d = model.lanes[n];
-        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${arrLine(n, arr[n])}${flightList(arr[n])}</div>`;
+        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${errLine(d)}${arrLine(n, arr[n])}${flightList(arr[n])}</div>`;
       }
       html += '</div>';
     }

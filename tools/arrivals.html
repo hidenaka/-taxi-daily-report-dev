@@ -390,6 +390,7 @@
     .sf-dn { width: 50px; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
     .sf-dn small { font-size: 9px; color: var(--sub); }
     .sf-daxis { display: flex; justify-content: space-between; margin-left: 56px; font-size: 9px; color: var(--sub); }
+    .sf-err { font-size: 10px; color: var(--sub); text-align: right; margin-top: 2px; }
     .sf-arr { display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a2a30; font-size: 11px; color: var(--sub); cursor: pointer; }
     .sf-arr b { color: var(--fg); font-weight: 600; }
     .sf-fl { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #22222a; }
@@ -543,7 +544,7 @@
       <div style="margin-top:6px;">
         <p style="margin:0 0 4px;"><strong>乗り場から出た台数</strong>：乗り場のカメラ（1分に1枚）で、乗り場から出ていったタクシーを1台ずつ数えた台数です。プールではなく乗り場の数です。1割ほど少なめに出ることがあります。</p>
         <p style="margin:0 0 4px;"><strong>待機所の列移動</strong>：プールの待機所で、列が前へ進んだ回数です。計測の都合で実際より少なめに出ます。</p>
-        <p style="margin:0 0 4px;"><strong>これからの見込み</strong>：グラフの右の2本です。乗り場から出た台数は、直近1時間の出方と、その時間帯のいつもの台数（過去の日の平均・いまは4号だけ）を半分ずつ合わせた目安です。列移動は、これまでの予測をそのまま使っています。</p>
+        <p style="margin:0 0 4px;"><strong>これからの見込み</strong>：グラフの右の2本です。乗り場から出た台数は、直近の出方・その時間帯のいつもの台数・これから着く便の座席数から出した目安で、実際の台数との答え合わせから1日1回自動で出し方を直しています。「見込みの外れ」は直近7日の平均の差です。列移動は、これまでの予測をそのまま使っています。</p>
         <p style="margin:0;"><strong>乗り場の写真</strong>：乗り場のカメラの最新の画像から、タクシーの列が写る範囲を切り出しています。押すと大きく見られます。</p>
       </div>
     </details>

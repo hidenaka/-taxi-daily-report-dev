@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights } from '../tools/js/stand-flow.js';
+import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights, errLine } from '../tools/js/stand-flow.js';
 
 test('standModel: 直近30分・1時間・30分ごと・数え始めを号ごとに。数えていない号は null', async () => {
   const d = { bins30End: ['16:13', '16:43', '17:13', '17:43'], stalls: {
@@ -92,4 +92,14 @@ test('upcomingFlights: 号ごとに60分以内にロビーに出る便を早い�
   assert.deepEqual(r.map(f => f.time), ['17:10', '17:40']);
   assert.equal(r[0].from, '伊丹');
   assert.equal(r[0].seats, 369);
+});
+
+test('errLine: 答え合わせが30件以上なら見込みの外れを出す。少ないうちは出さない', async () => {
+  const m = standModel({ stalls: {
+    stall4: { lastHour: 20, forecastEval: { '0': { n: 300, mae: 2.29 } } },
+    stall1: { lastHour: 20, forecastEval: { '0': { n: 10, mae: 5 } } } } });
+  assert.equal(m.lanes[4].fcErr, 2.29);
+  assert.equal(m.lanes[1].fcErr, null);
+  assert.ok(errLine(m.lanes[4]).includes('±2.3台'));
+  assert.equal(errLine(m.lanes[1]), '');
 });
