@@ -108,7 +108,7 @@ export function chartSvg(past, ends, fut, unitLabel) {
     g += barLabel(x, w, h, base, v, 'f');
     g += `<text x="${(x + w / 2).toFixed(1)}" y="${base + 11}" class="sf-tl">${FUT_LABEL[j]}</text>`;
   });
-  return `<div class="sf-ch"><span>30分ごとの${unitLabel}</span><span class="f">これから来る座席数（席）</span></div><svg viewBox="0 0 ${W} ${base + 14}" class="sf-chart" role="img" aria-label="30分ごとの${unitLabel}とこれから来る座席数">${g}</svg>`;
+  return `<div class="sf-ch"><span>30分ごと（${unitLabel}）</span><span class="f">これからの座席数（席）</span></div><svg viewBox="0 0 ${W} ${base + 14}" class="sf-chart" role="img" aria-label="30分ごとの数とこれから来る座席数">${g}</svg>`;
 }
 
 const state = { mode: 'out', view: 'graph', open: 0, stand: null, move: null, flights: [], camAt: 0 };
@@ -166,7 +166,7 @@ function render(el) {
   if (state.view === 'graph') {
     for (const n of LANES) {
       const d = model.lanes[n];
-      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, `${label}（${u}）`) : '<div class="sf-empty">まだ数えていません</div>'}</div></div>`;
+      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, u) : '<div class="sf-empty">まだ数えていません</div>'}</div></div>`;
     }
   } else {
     for (const [lab, ids] of [['T1（JAL）', [1, 2]], ['T2（ANA・国際）', [3, 4]]]) {
@@ -177,7 +177,7 @@ function render(el) {
       }
       if (ids.includes(state.open)) {
         const n = state.open, d = model.lanes[n];
-        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, `${label}（${u}）`) : '<div class="sf-empty">まだ数えていません</div>'}</div>`;
+        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, u) : '<div class="sf-empty">まだ数えていません</div>'}</div>`;
       }
       html += '</div>';
     }

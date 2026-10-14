@@ -53,7 +53,7 @@ test('futureSeats: 0時をまたぐ便も数える', async () => {
 });
 
 test('chartSvg: 長い棒は数字を棒の中、短い棒は棒の上に置く', async () => {
-  const svg = chartSvg([10, 1, 10, 10], ['a', 'b', 'c', 'd'], [100, 0, 0, 0], '乗り場から出た台数（台）');
+  const svg = chartSvg([10, 1, 10, 10], ['a', 'b', 'c', 'd'], [100, 0, 0, 0], '台');
   assert.ok(svg.includes('class="sf-tv in ">10</text>'));
   assert.ok(svg.includes('class="sf-tv ">1</text>'));
   assert.ok(svg.includes('+60分'));
