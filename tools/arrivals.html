@@ -337,6 +337,63 @@
     .hv-cap { font-size: 12px; color: var(--sub); text-align: center; margin: 6px 0 2px; }
     .hv-close { display: block; margin: 4px auto 8px; padding: 4px 14px; background: transparent;
       color: var(--sub); border: 1px solid #333; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    /* 乗り場の動き(stand-flow.js) */
+    #stand-flow { margin: 4px 0 8px; }
+    .sf-seg { display: flex; background: #16161c; border-radius: 10px; padding: 3px; margin: 6px 0; }
+    .sf-seg button { flex: 1; border: 0; background: transparent; color: var(--sub); font-size: 13px; font-weight: 600; padding: 8px 0; border-radius: 8px; cursor: pointer; }
+    .sf-seg button.on { background: #3498db; color: #fff; }
+    .sf-view { display: flex; justify-content: flex-end; gap: 4px; margin: 0 0 4px; }
+    .sf-view button { border: 1px solid #333; background: transparent; color: var(--sub); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 999px; cursor: pointer; }
+    .sf-view button.on { border-color: #3498db; color: #fff; background: #1f3b5c; }
+    .sf-what { color: var(--sub); font-size: 11px; line-height: 1.5; margin: 2px 2px 8px; }
+    .sf-what b { color: var(--fg); }
+    .sf-empty { color: var(--sub); font-size: 12px; padding: 8px 0; }
+    .sf-lane { display: flex; gap: 8px; align-items: stretch; background: #16161c; border-radius: 12px; padding: 8px; margin-bottom: 8px; border: 1.5px solid transparent; position: relative; }
+    .sf-lane.hot, .sf-card.hot { border-color: #f39c12; }
+    .sf-badge { position: absolute; top: -8px; right: 8px; background: #f39c12; color: #000; font-size: 9px; font-weight: 700; border-radius: 5px; padding: 0 5px; z-index: 1; }
+    .sf-card .sf-badge { top: 6px; }
+    .sf-lphoto { width: 96px; flex: none; align-self: stretch; object-fit: cover; border-radius: 8px; background: #111; cursor: zoom-in; display: block; }
+    .sf-lbody { flex: 1; min-width: 0; }
+    .sf-lhead { display: flex; align-items: center; gap: 8px; }
+    .sf-lname { display: flex; flex-direction: column; line-height: 1.2; }
+    .sf-lname b { font-size: 14px; }
+    .sf-lname small { color: var(--sub); font-size: 10px; }
+    .sf-nums { display: flex; gap: 10px; margin-left: auto; }
+    .sf-nums div { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; }
+    .sf-nums span { font-size: 9px; color: var(--sub); }
+    .sf-nums b { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .sf-nums i { font-style: normal; font-size: 10px; color: var(--sub); }
+    .sf-ch { display: flex; justify-content: space-between; font-size: 9px; color: var(--sub); margin-top: 6px; }
+    .sf-ch .f { color: #e9a25f; }
+    .sf-chart { width: 100%; height: auto; display: block; }
+    .sf-chart .sf-past { fill: #4a6587; } .sf-chart .sf-now { fill: #3498db; } .sf-chart .sf-fut { fill: #e67e22; }
+    .sf-chart .sf-div { stroke: #95a5a6; stroke-dasharray: 3 3; }
+    .sf-chart .sf-tv { font-size: 11px; fill: #ecf0f1; text-anchor: middle; font-weight: 700; }
+    .sf-chart .sf-tv.f { fill: #f0b27a; font-size: 10px; }
+    .sf-chart .sf-tv.in { fill: #fff; }
+    .sf-chart .sf-tv.s { font-size: 8px; }
+    .sf-chart .sf-tl { font-size: 10px; fill: #95a5a6; text-anchor: middle; }
+    .sf-lbl { color: var(--sub); font-size: 10px; margin: 8px 2px 4px; }
+    .sf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sf-card { background: #16161c; border-radius: 12px; padding: 8px; border: 1.5px solid transparent; position: relative; cursor: pointer; }
+    .sf-cphoto { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; background: #111; display: block; margin-bottom: 6px; cursor: zoom-in; }
+    .sf-card .sf-nums { margin: 4px 0 0; justify-content: space-between; }
+    .sf-card .sf-nums div { align-items: flex-start; }
+    .sf-mini { color: var(--sub); font-size: 11px; margin-top: 4px; border-top: 1px solid #2a2a30; padding-top: 5px; }
+    .sf-mini b { color: var(--fg); }
+    .sf-detail { grid-column: 1 / -1; background: #10182a; border-radius: 10px; padding: 8px 10px; font-size: 12px; }
+    .sf-day { background: #16161c; border-radius: 12px; padding: 10px; margin: 4px 0 8px; }
+    .sf-dh { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; gap: 6px; }
+    .sf-dh span { font-size: 10px; color: var(--sub); }
+    .sf-drow { display: flex; align-items: flex-end; gap: 6px; border-top: 1px solid #2a2a30; padding-top: 4px; margin-top: 4px; }
+    .sf-dn { width: 50px; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
+    .sf-dn small { font-size: 9px; color: var(--sub); }
+    .sf-daxis { display: flex; justify-content: space-between; margin-left: 56px; font-size: 9px; color: var(--sub); }
+    .sf-zoom { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; z-index: 1000; color: #ddd; font-size: 12px; cursor: zoom-out; }
+    .sf-zoom[hidden] { display: none; }
+    .sf-zoom img { max-width: 94vw; max-height: 80vh; border-radius: 8px; }
+    #forecast-section details.fc-old { margin: 8px 0; }
+    #forecast-section details.fc-old > summary { cursor: pointer; color: var(--accent); font-size: 12px; margin-bottom: 6px; }
     #forecast-section { border-bottom: 1px solid #222; }
     #forecast-section h2 { font-size: 15px; color: var(--fg); margin: 14px 0 6px; font-weight: 600; }
     #forecast-section .fc-controls { display: flex; gap: 8px; align-items: center; margin: 4px 0 8px; flex-wrap: wrap; }
@@ -447,50 +504,50 @@
   <div id="topics" hidden></div>
 
   <section id="forecast-section">
-    <h2>🚕 タクシープール現況・列移動<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
+    <h2>🚕 乗り場の動き<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
     <div id="forecast-body">
-    <div id="pool-status-block" style="margin:8px 0 12px;">
+    <div id="pool-status-block" style="margin:8px 0 8px;">
       <div id="pool-status-source-error" role="alert" style="display:none; margin:0 0 8px; padding:8px 10px; background:#fde8e6; border:1px solid #f3c0bb; border-radius:6px; color:#b3261e; font-size:12px; line-height:1.6;"></div>
       <div class="ps-cams" style="display:flex; gap:6px;">
         <img id="pool-cam-real01" alt="プール(第1〜4)" style="width:50%; border-radius:6px; background:#111;" />
         <img id="pool-cam-real02" alt="プール(第4待機)" style="width:50%; border-radius:6px; background:#111;" />
       </div>
       <div id="pool-status-meta" style="color:var(--sub); font-size:11px; margin-top:4px;">読み込み中...</div>
-      <div id="pool-status-activity" style="margin-top:2px;">今日の流れ: —</div>
-      <div id="pool-status-stalls" style="margin-top:8px; font-size:13px; line-height:1.7;"></div>
-      <div id="pool-status-arrivals" style="margin-top:6px; font-size:12px; color:var(--sub); line-height:1.6;"></div>
     </div>
-    <div id="stall-movement-block" style="display:none; margin:4px 0 12px; padding:8px 10px; background:#14141a; border-radius:6px; font-size:13px;"></div>
-    <p class="fc-scope">※列移動回数は第1〜第4乗り場（東京車両ポール）の合計です。計測の都合で実際より少なめに出ます</p>
-    <details class="fc-about" style="margin:0 0 8px; color:var(--sub); font-size:11px; line-height:1.6;">
+    <!-- 号ごとの「乗り場から出た台数」と「待機所の列移動」(stand-flow.js)。2026-10 画面案7 -->
+    <div id="stand-flow"></div>
+    <details class="fc-old">
+      <summary>列移動の15分ごとの表と予測（これまでの表示）</summary>
+      <div id="stall-movement-block" style="display:none; margin:4px 0 12px; padding:8px 10px; background:#14141a; border-radius:6px; font-size:13px;"></div>
+      <p class="fc-scope">※列移動回数は第1〜第4乗り場（東京車両ポール）の合計です。計測の都合で実際より少なめに出ます</p>
+      <div class="fc-controls">
+        <select id="forecast-mode" class="fc-mode">
+          <option value="actuals">実績</option>
+          <option value="forecast">予測（目安）</option>
+        </select>
+        <div class="fc-scope-group" role="group" aria-label="表示範囲">
+          <button id="forecast-scope-recent" type="button" class="fc-scope-btn">直近2時間</button>
+          <button id="forecast-scope-all" type="button" class="fc-scope-btn">今日全部</button>
+        </div>
+        <div class="fc-scope-group" role="group" aria-label="単位">
+          <button id="forecast-unit-count" type="button" class="fc-scope-btn">回数</button>
+          <button id="forecast-unit-vehicles" type="button" class="fc-scope-btn">台数</button>
+        </div>
+      </div>
+      <div id="forecast-meta" class="fc-meta">読み込み中...</div>
+      <div id="forecast-table-wrap"></div>
+      <div id="forecast-sparkline" class="fc-sparkline-wrap"></div>
+    </details>
+    <details class="fc-about" style="margin:8px 0; color:var(--sub); font-size:11px; line-height:1.6;">
       <summary style="cursor:pointer; color:var(--accent);">ⓘ 仕組みと注意</summary>
       <div style="margin-top:6px;">
-        <p style="margin:0 0 4px;"><strong>今日の流れ</strong>：直近1時間の出庫数を、過去の同曜日（祝日・連休も区別）と比べて活発か・少なめかを表示。</p>
-        <p style="margin:0 0 4px;"><strong>乗り場から出た台数</strong>：乗り場のカメラで、乗り場から出ていったタクシーを1台ずつ数えた、直近1時間の台数。プールではなく乗り場の数です。</p>
-        <p style="margin:0 0 4px;"><strong>列移動回数（直近15分）</strong>：乗り場の列が前に進んだ回数の目安。実測と予測を乗り場ごとに表示。計測の都合で実際より少なめに出ます。</p>
-        <p style="margin:0 0 4px;"><strong>これからお客がロビーに出る便</strong>：航空会社の運航データから、ロビーに出る予定の便を表示。</p>
-        <p style="margin:0 0 4px;"><strong>実測／予測（列移動回数）</strong>：乗り場の列が前に進んだ回数を15分ごと・乗り場別に表示。実測＝今日の計測値、予測＝過去の同時間帯から育てた目安。計測の都合で実際より少なめに出ます。</p>
-        <p style="margin:0;">※数値は相対的な目安です。実数とズレることがあります。</p>
+        <p style="margin:0 0 4px;"><strong>乗り場から出た台数</strong>：乗り場のカメラ（1分に1枚）で、乗り場から出ていったタクシーを1台ずつ数えた台数です。プールではなく乗り場の数です。1割ほど少なめに出ることがあります。</p>
+        <p style="margin:0 0 4px;"><strong>待機所の列移動</strong>：プールの待機所で、列が前へ進んだ回数です。計測の都合で実際より少なめに出ます。</p>
+        <p style="margin:0 0 4px;"><strong>これから来る座席数</strong>：その号にお客が来るとみている便の座席数を、ロビーに出る時刻で15分ごとに足したものです。</p>
+        <p style="margin:0;"><strong>乗り場の写真</strong>：乗り場のカメラの最新の画像から、タクシーの列が写る範囲を切り出しています。押すと大きく見られます。</p>
       </div>
     </details>
-    <div class="fc-controls">
-      <select id="forecast-mode" class="fc-mode">
-        <option value="actuals">実績</option>
-        <option value="forecast">予測（目安）</option>
-      </select>
-      <div class="fc-scope-group" role="group" aria-label="表示範囲">
-        <button id="forecast-scope-recent" type="button" class="fc-scope-btn">直近2時間</button>
-        <button id="forecast-scope-all" type="button" class="fc-scope-btn">今日全部</button>
-      </div>
-      <div class="fc-scope-group" role="group" aria-label="単位">
-        <button id="forecast-unit-count" type="button" class="fc-scope-btn">回数</button>
-        <button id="forecast-unit-vehicles" type="button" class="fc-scope-btn">台数</button>
-      </div>
-    </div>
-    <div id="forecast-meta" class="fc-meta">読み込み中...</div>
-    <div id="forecast-table-wrap"></div>
-    <div id="forecast-sparkline" class="fc-sparkline-wrap"></div>
     </div>
   </section>
 

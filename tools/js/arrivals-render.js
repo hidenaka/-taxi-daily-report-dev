@@ -208,8 +208,8 @@ export function renderDelayLaneGuide(container, guide) {
     </div>`;
   };
   const laneBlocks = guide.lanes.map((L) => {
-    const oc = L.occupancy || {};
-    const occText = oc.label ? `<span class="dg-occ">待機 ${_esc(oc.vsTypical || oc.label)}</span>` : '';
+    // 待機車両は 2026-10-14 本人指示で外した(待機所の車の数は今の数え方では不十分)。
+    const occText = '';
     return `<div class="dg-lane dl-${L.lane}">
       <div class="dg-top">
         <span class="dg-no lane-${L.lane}">${L.lane}号</span>
@@ -506,12 +506,8 @@ export function renderNoribaActivity(container, activity, opts = {}) {
     const flowRow = (mv.level != null)
       ? `<span class="ns-lab">流れ</span><div class="ns-trk"><div class="fill" style="width:${fill}%"></div>${mv.normalMarkerPct != null ? `<div class="norm" style="left:${mv.normalMarkerPct}%"></div><div class="normlab" style="left:${mv.normalMarkerPct}%">通常</div>` : ''}</div><span class="ns-val">${_esc(lvl)}</span>`
       : '';
-    // 待機車両: 量(段)＋「その号のいつも」の目盛り。号ごとに普段の埋まり具合が違うので
-    // 絶対量だけでは同じ4段が別の意味になる(2号は普段より少なめ/4号は多め)。
-    const oc = a.occupancy || {};
-    const occRow = (oc.label != null)
-      ? `<span class="ns-lab">待機車両</span><div class="ns-segs${oc.typicalPct != null ? ' has-tick' : ''}">${segs(oc.segments, oc.segments >= 4)}${oc.typicalPct != null ? `<div class="tick" style="left:${oc.typicalPct}%"></div><div class="ticklab" style="left:${oc.typicalPct}%">いつも</div>` : ''}</div><span class="ns-val">${_esc(oc.vsTypical || oc.label)}</span>`
-      : '';
+    // 待機車両の行は 2026-10-14 本人指示で外した(待機所の車の数は今の数え方では不十分)。
+    const occRow = '';
     const fwd = (mv.level != null && a.movement.curve)
       ? `<div class="ns-fwd">この先 <span class="ns-spark" data-spark="${(mv.sparkFuture || []).join(',')}" data-color="#8a8f88"></span> ${_esc(fwdText(mv.activeUntil))}<span class="ns-more">詳細 ›</span></div>`
       : `<div class="ns-fwd"><span class="ns-more" style="margin-left:auto">詳細 ›</span></div>`;

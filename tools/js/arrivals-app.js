@@ -2,6 +2,7 @@ import { loadArrivals, loadPoolNotice, filterByTerminals, filterByTimeWindow, fi
 import { renderHeatmap, renderFlightList, renderUpdatedAt, renderSummary, renderLegend, renderDelayLaneGuide, renderWeatherBanner, renderPoolNotice, renderNoribaActivity, renderArrivalGap, renderCarriedOver, renderDaySummary } from './arrivals-render.js';
 import { initForecastSection, loadAdvanceForecast } from './forecast-section.js';
 import { initPoolStatusSection, initForecastSectionToggle, loadPoolStatus } from './pool-status-section.js';
+import { initStandFlow, setStandFlowFlights } from './stand-flow.js';
 
 const TAB_TERMINALS = {
   'T1': ['T1'],
@@ -173,6 +174,8 @@ function render() {
     noribaActs,
     { updatedLabel: (state.arrivals && state.arrivals.updatedAt) ? new Date(state.arrivals.updatedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '' }
   );
+  // 乗り場の動き: 号ごとの「これから来る座席数」に、号の上書き済みの便を使う。
+  setStandFlowFlights(state.arrivals.flights);
   // 到着の谷間/手薄(遅延込みのロビー出が減る時間帯)。タブ非依存・全便で判定。
   const nowD = new Date();
   renderArrivalGap(
@@ -347,8 +350,10 @@ initForecastSection().then(fn => { if (fn) refreshForecast = fn; });
 initForecastSectionToggle();
 let refreshPoolStatus = () => {};
 initPoolStatusSection().then(fn => { if (fn) refreshPoolStatus = fn; });
+let refreshStandFlow = () => {};
+initStandFlow().then(fn => { if (fn) refreshStandFlow = fn; });
 // 過去の日を見ている間は、いまの予測やプール現況を取りに行かない(画面にも出ていない)。
 setInterval(() => {
   refresh();
-  if (state.isLive) { refreshForecast(); refreshPoolStatus(); }
+  if (state.isLive) { refreshForecast(); refreshPoolStatus(); refreshStandFlow(); }
 }, 60000);

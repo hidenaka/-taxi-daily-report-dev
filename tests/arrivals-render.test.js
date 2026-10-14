@@ -72,7 +72,8 @@ test('renderDelayLaneGuide: 号を見出しに、通常時・遅れた日・今�
   assert.match(c.innerHTML, /遅れた日<\/span><span class="v is-diff">4号<\/span><span class="n">\(過去2回とも\)/);
   assert.match(c.innerHTML, /今夜<\/span><span class="v is-diff">4号に確定/);
   assert.match(c.innerHTML, /103分遅れ/);
-  assert.match(c.innerHTML, /待機 いつもより多い/);
+  // 待機車両は 2026-10-14 に外した(本人指示)
+  assert.doesNotMatch(c.innerHTML, /待機 いつもより多い/);
 });
 
 test('renderDelayLaneGuide: 実績は回数を添え、推定は推定と明示する', () => {
