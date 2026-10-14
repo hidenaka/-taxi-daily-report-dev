@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals, formatActivityLine, formatStallLineV2, formatArrivalsList, getCollapsed, setCollapsed, recentHourVehiclesByStall } from '../tools/js/pool-status-section.js';
+import { levelText, levelDots, activityText, isStale, waitText, trendText, formatStallLine, formatTerminalArrivals, formatActivityLine, formatStallLineV2, formatArrivalsList, getCollapsed, setCollapsed, recentHourVehiclesByStall, standOutByStall, formatStandOutLine } from '../tools/js/pool-status-section.js';
 
 test('pool-status-section pure helpers', async () => {
   assert.equal(levelText('empty'), '空き');
@@ -235,4 +235,29 @@ test('setCollapsed/getCollapsed: ストレージ例外時はfalseに fallback', 
   // クラッシュしないことを確認
   setCollapsed(true, storage);
   assert.equal(getCollapsed(storage), false);
+});
+
+test('standOutByStall: 乗り場カメラの直近1時間の台数を乗り場別に。停止中は null', async () => {
+  const d = { stalls: { stall1: { lastHour: 12 }, stall2: { lastHour: null }, stall3: { lastHour: 0 }, stall4: { lastHour: 18 } } };
+  assert.deepEqual(standOutByStall(d), { stall1: 12, stall2: null, stall3: 0, stall4: 18 });
+});
+
+test('standOutByStall: データ無し・全部停止中は null(列移動の推定に戻す)', async () => {
+  assert.equal(standOutByStall(null), null);
+  assert.equal(standOutByStall({}), null);
+  assert.equal(standOutByStall({ stalls: { stall1: { lastHour: null } } }), null);
+});
+
+test('formatStandOutLine: 数えた台数は「約」なし・停止中は —', async () => {
+  assert.equal(formatStandOutLine('第4乗り場', 18), '第4乗り場  ●●○○○  18台');
+  assert.equal(formatStandOutLine('第2乗り場', 0), '第2乗り場  ○○○○○  0台');
+  assert.equal(formatStandOutLine('第1乗り場', null), '第1乗り場  —（カメラ停止中）');
+});
+
+test('standOutByStall/formatStandOutLine: 数え方を試験中の乗り場は「準備中」', async () => {
+  const d = { stalls: { stall1: { lastHour: null, status: 'preparing' }, stall4: { lastHour: 15, status: 'ok' } } };
+  const v = standOutByStall(d);
+  assert.equal(v.stall1, 'preparing');
+  assert.equal(v.stall4, 15);
+  assert.equal(formatStandOutLine('第1乗り場', v.stall1), '第1乗り場  —（準備中）');
 });

@@ -98,6 +98,29 @@ export function formatStallLineV2(stall) {
   return `${stall.label}  ${bar}  約${stall.vehicles}台`;
 }
 
+/** stand-out.json(乗り場カメラで1台ずつ数えた「乗り場から出た台数」)を乗り場別に取り出す。
+ *  使えるのは lastHour が数のもの(カメラが止まっている乗り場は null、数え方を試験中の乗り場は 'preparing')。1つも無ければ null を返し、
+ *  呼び出し側は従来の列移動ベースの推定に戻す。 */
+export function standOutByStall(standData) {
+  const st = standData && standData.stalls;
+  if (!st) return null;
+  const out = {};
+  let any = false;
+  for (const s of STALL_KEYS_V2) {
+    const v = st[s] && st[s].lastHour;
+    if (typeof v === 'number' && v >= 0) { out[s] = v; any = true; }
+    else out[s] = (st[s] && st[s].status === 'preparing') ? 'preparing' : null;
+  }
+  return any ? out : null;
+}
+
+/** 乗り場1行（乗り場カメラで数えた台数）。数えた数なので「約」は付けない。null はカメラ停止中。 */
+export function formatStandOutLine(label, count) {
+  if (count === 'preparing') return `${label}  —（準備中）`;
+  if (typeof count !== 'number') return `${label}  —（カメラ停止中）`;
+  return `${label}  ${activityBar(count)}  ${count}台`;
+}
+
 const TERMINAL_HEAD = { T1: 'T1ターミナル', T2: 'T2ターミナル' };
 const NORIBA_HEAD = { 1: '1号（T1 南）', 2: '2号（T1 北）', 3: '3号（T2 北）', 4: '4号（T2 南・国際）' };
 
@@ -223,6 +246,17 @@ export async function loadPoolStatus(fetchFn = fetch) {
   }
 }
 
+// 乗り場カメラで数えた「乗り場から出た台数」を読む(stand-out.json)。失敗は {data:null}。
+export async function loadStandOut(fetchFn = fetch) {
+  try {
+    const res = await fetchFn('data/stand-out.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return { data: await res.json(), error: null };
+  } catch (e) {
+    return { data: null, error: e.message };
+  }
+}
+
 // 乗り場の動きバー用に列移動ベースの出庫台数を読む(advance-forecast.json)。失敗は {data:null}。
 export async function loadAdvanceForecastForBar(fetchFn = fetch) {
   try {
@@ -261,11 +295,19 @@ export async function initPoolStatusSection() {
       actEl.innerHTML = `<strong>今日の流れ</strong> ${formatActivityLine(data.activity || {})}`;
     }
     if (stallsEl) {
-      // 乗り場の動き = 列移動ベースの直近1時間出庫台数(advance-forecast.json)を段階バーで。
-      const { data: advData } = await loadAdvanceForecastForBar();
-      if (advData) {
+      // 乗り場の動き = 乗り場カメラで1台ずつ数えた「乗り場から出た台数」(stand-out.json)。
+      // 取れないときだけ従来の列移動ベースの推定(advance-forecast.json)に戻す。
+      const order = ['stall1', 'stall2', 'stall3', 'stall4'];
+      const { data: standData } = await loadStandOut();
+      const stand = standOutByStall(standData);
+      const { data: advData } = stand ? { data: null } : await loadAdvanceForecastForBar();
+      if (stand) {
+        const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場から出た台数（直近1時間）</div>';
+        const lines = order.map(k => `<div>${formatStandOutLine(STALL_LABEL[k], stand[k])}</div>`).join('');
+        const note = '<div style="color:var(--sub); font-size:10px; margin-top:6px;">※乗り場のカメラで1台ずつ数えた台数です。1割ほど少なめに出ることがあります。</div>';
+        stallsEl.innerHTML = head + lines + note;
+      } else if (advData) {
         const veh = recentHourVehiclesByStall(advData);
-        const order = ['stall1', 'stall2', 'stall3', 'stall4'];
         const head = '<div style="color:var(--sub); font-size:11px; margin-bottom:4px;">乗り場の動き（バー＝直近1時間の出庫台数の目安）</div>';
         const lines = order.map(k => `<div>${formatStallLineV2({ label: STALL_LABEL[k], vehicles: veh[k] })}</div>`).join('');
         const note = '<div style="color:var(--sub); font-size:10px; margin-top:6px;">※列移動の検出をもとにした推定です。実数とずれることがあります。</div>';
