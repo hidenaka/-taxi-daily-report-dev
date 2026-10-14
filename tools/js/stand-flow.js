@@ -110,7 +110,7 @@ export function upcomingFlights(flights, lane, nowMin, win = 60) {
 function arrLine(n, list) {
   if (!list.length) return `<div class="sf-arr"><span>✈ 60分以内にロビーに出る便はありません</span></div>`;
   const nx = list[0];
-  return `<div class="sf-arr" data-sf-open="${n}"><span>✈ 60分以内 <b>${list.length}便</b>・次 <b>${nx.time}</b> ${esc(nx.from)}から</span><span>${state.open === n ? '閉じる ▲' : '便を見る ›'}</span></div>`;
+  return `<div class="sf-arr" data-sf-open="${n}"><span>✈ 60分以内 <b>${list.length}便</b>・次 <b>${nx.time}</b> ${esc(nx.from)}</span><span>${state.open === n ? '閉じる▲' : '一覧›'}</span></div>`;
 }
 
 function flightList(list) {
@@ -211,7 +211,7 @@ function render(el) {
   const top = Math.max(...vals);
   const hot = top > 0 ? LANES[vals.indexOf(top)] : 0;
   const arr = Object.fromEntries(LANES.map(n => [n, upcomingFlights(state.flights, n, nowMin)]));
-  const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}" loading="lazy">`;
+  const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}">`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
     for (const n of LANES) {
