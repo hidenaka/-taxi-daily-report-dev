@@ -350,6 +350,8 @@
     .sf-empty { color: var(--sub); font-size: 12px; padding: 8px 0; }
     .sf-lane { display: flex; gap: 8px; align-items: stretch; background: #16161c; border-radius: 12px; padding: 8px; margin-bottom: 8px; border: 1.5px solid transparent; position: relative; }
     .sf-lane.hot, .sf-card.hot { border-color: #f39c12; }
+    /* 横幅に余裕があるとき(iPad 横など)は 1・2号 / 3・4号 の 2×2 に並べる */
+    @media (min-width: 760px) { .sf-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; } .sf-lanes .sf-lane { margin-bottom: 0; } }
     .sf-badge { position: absolute; top: -8px; right: 8px; background: #f39c12; color: #000; font-size: 9px; font-weight: 700; border-radius: 5px; padding: 0 5px; z-index: 1; }
     .sf-card .sf-badge { top: 6px; }
     .sf-lphoto { width: 96px; flex: none; align-self: stretch; object-fit: cover; border-radius: 8px; background: #111; cursor: zoom-in; display: block; }

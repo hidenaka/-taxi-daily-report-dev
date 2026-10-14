@@ -222,10 +222,12 @@ function render(el) {
   const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}">`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
+    html += '<div class="sf-lanes">';
     for (const n of LANES) {
       const d = model.lanes[n];
       html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${errLine(d)}${arrLine(n, arr[n])}${state.open === n ? flightList(arr[n]) : ''}</div></div>`;
     }
+    html += '</div>';
   } else {
     for (const [lab, ids] of [['T1（JAL）', [1, 2]], ['T2（ANA・国際）', [3, 4]]]) {
       html += `<div class="sf-lbl">${lab}</div><div class="sf-grid">`;
