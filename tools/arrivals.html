@@ -390,6 +390,10 @@
     .sf-dn { width: 50px; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
     .sf-dn small { font-size: 9px; color: var(--sub); }
     .sf-daxis { display: flex; justify-content: space-between; margin-left: 56px; font-size: 9px; color: var(--sub); }
+    .sf-arr { display: flex; justify-content: space-between; gap: 6px; margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a2a30; font-size: 11px; color: var(--sub); cursor: pointer; }
+    .sf-arr b { color: var(--fg); font-weight: 600; }
+    .sf-fl { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #22222a; }
+    .sf-fl span:last-child { color: var(--sub); }
     .sf-zoom { position: fixed; inset: 0; background: rgba(0,0,0,.9); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; z-index: 1000; color: #ddd; font-size: 12px; cursor: zoom-out; }
     .sf-zoom[hidden] { display: none; }
     .sf-zoom img { max-width: 94vw; max-height: 80vh; border-radius: 8px; }
@@ -496,14 +500,8 @@
   <!-- 深夜: 前日から持ち越した便。0時過ぎの乗務中に一番要るので最上部 -->
   <div id="carried-over" class="carried-over" hidden></div>
 
-  <section id="noriba-cards-section" class="noriba-section"></section>
 
-  <!-- 到着の谷間/手薄: 遅延込みで「ロビー客がぐっと減る時間帯」を予告 -->
-  <div id="arrival-gap" class="arrival-gap" hidden></div>
-
-  <!-- 大幅遅延便情報: 乗り場別到着見込みの下・プール現況/列移動の上(ドライバーに重要な情報のため上部に配置) -->
-  <div id="topics" hidden></div>
-
+  <!-- 乗り場の動き: 2026-10-14 号別「乗り場の状況」カードをここへ統合(本人指示) -->
   <section id="forecast-section">
     <h2>🚕 乗り場の動き<button id="forecast-section-toggle" type="button" aria-expanded="true" aria-controls="forecast-body" style="background:transparent; border:none; color:var(--sub); cursor:pointer; font-size:13px; margin-left:8px;">▼ 折りたたみ</button><button class="help-video-btn" data-help-video="arrivals" type="button">▶ 使い方（15秒）</button></h2>
     <div class="help-video" id="help-video-arrivals"></div>
@@ -551,6 +549,13 @@
     </details>
     </div>
   </section>
+
+  <!-- 到着の谷間/手薄: 遅延込みで「ロビー客がぐっと減る時間帯」を予告 -->
+  <div id="arrival-gap" class="arrival-gap" hidden></div>
+
+  <!-- 大幅遅延便情報: 乗り場別到着見込みの下・プール現況/列移動の上(ドライバーに重要な情報のため上部に配置) -->
+  <div id="topics" hidden></div>
+
 
   <div id="legend"></div>
 

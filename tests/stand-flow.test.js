@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { standModel, moveModel, futureSeats, chartSvg } from '../tools/js/stand-flow.js';
+import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights } from '../tools/js/stand-flow.js';
 
 test('standModel: 直近30分・1時間・30分ごと・数え始めを号ごとに。数えていない号は null', async () => {
   const d = { bins30End: ['16:13', '16:43', '17:13', '17:43'], stalls: {
@@ -77,4 +77,19 @@ test('moveModel: 列移動の見込みは予測(15分ごと)をいまから30分
     slots: [{ time: '17:30', stalls: { stall1: 0.6 } }, { time: '17:45', stalls: { stall1: 0.6 } }, { time: '18:00', stalls: { stall1: 1.4 } }, { time: '18:15', stalls: { stall1: 1.0 } }] };
   const m = moveModel(adv, 17 * 60 + 30);
   assert.deepEqual(m.lanes[1].fc, [1, 2]);
+});
+
+test('upcomingFlights: 号ごとに60分以内にロビーに出る便を早い順。欠航・別の号・過去は除く', async () => {
+  const fl = [
+    { poolLane: 2, lobbyExitTime: '17:40', fromName: '福岡', seatCount: 270 },
+    { poolLane: 2, lobbyExitTime: '17:10', fromName: '伊丹', seatCount: 369 },
+    { poolLane: 2, lobbyExitTime: '18:30', fromName: '千歳' },
+    { poolLane: 2, lobbyExitTime: '16:50', fromName: '那覇' },
+    { poolLane: 2, lobbyExitTime: '17:20', fromName: '高知', status: '欠航' },
+    { poolLane: 3, lobbyExitTime: '17:15', fromName: '広島' },
+  ];
+  const r = upcomingFlights(fl, 2, 17 * 60);
+  assert.deepEqual(r.map(f => f.time), ['17:10', '17:40']);
+  assert.equal(r[0].from, '伊丹');
+  assert.equal(r[0].seats, 369);
 });

@@ -92,6 +92,33 @@ export function futureSeats(flights, lane, nowMin) {
   return { bins, next30: { flights: n30, seats: s30 } };
 }
 
+/** 号ごとに、これから win 分以内にロビーに出る便(早い順)。乗り場の状況カードを統合した分(2026-10-14)。 */
+export function upcomingFlights(flights, lane, nowMin, win = 60) {
+  const out = [];
+  for (const f of flights || []) {
+    if (f?.poolLane !== lane || f?.status === '欠航') continue;
+    const tStr = f.lobbyExitTime ?? f.estimatedTime ?? f.scheduledTime;
+    const t = hm2min(tStr);
+    if (t == null) continue;
+    const d = ((t - nowMin) % 1440 + 1440) % 1440;
+    if (d >= win) continue;
+    out.push({ d, time: min2hm(t), from: f.fromName ?? f.from ?? '', seats: typeof f.seatCount === 'number' ? f.seatCount : null });
+  }
+  return out.sort((a, b) => a.d - b.d);
+}
+
+function arrLine(n, list) {
+  if (!list.length) return `<div class="sf-arr"><span>✈ 60分以内にロビーに出る便はありません</span></div>`;
+  const nx = list[0];
+  return `<div class="sf-arr" data-sf-open="${n}"><span>✈ 60分以内 <b>${list.length}便</b>・次 <b>${nx.time}</b> ${esc(nx.from)}から</span><span>${state.open === n ? '閉じる ▲' : '便を見る ›'}</span></div>`;
+}
+
+function flightList(list) {
+  return list.map(f => `<div class="sf-fl"><span>${f.time} ${esc(f.from)}から</span><span>${f.seats != null ? `${f.seats}席` : '席数不明'}</span></div>`).join('');
+}
+
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
 // 棒の数字: 棒が数字より高ければ棒の真ん中、低ければ棒の上。
 function barLabel(x, w, h, base, v, cls) {
   const c = (x + w / 2).toFixed(1);
@@ -183,23 +210,24 @@ function render(el) {
   const vals = LANES.map(n => model.lanes[n]?.lastHour ?? -1);
   const top = Math.max(...vals);
   const hot = top > 0 ? LANES[vals.indexOf(top)] : 0;
+  const arr = Object.fromEntries(LANES.map(n => [n, upcomingFlights(state.flights, n, nowMin)]));
   const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}" loading="lazy">`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
     for (const n of LANES) {
       const d = model.lanes[n];
-      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}</div></div>`;
+      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${arrLine(n, arr[n])}${state.open === n ? flightList(arr[n]) : ''}</div></div>`;
     }
   } else {
     for (const [lab, ids] of [['T1（JAL）', [1, 2]], ['T2（ANA・国際）', [3, 4]]]) {
       html += `<div class="sf-lbl">${lab}</div><div class="sf-grid">`;
       for (const n of ids) {
         const d = model.lanes[n];
-        html += `<div class="sf-card${n === hot ? ' hot' : ''}" data-sf-open="${n}">${photo(n, 'sf-cphoto')}${badge(n)}<div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}<div class="sf-mini">これから30分の見込み <b>${d?.fc ? d.fc[0] : '—'}${u}</b></div></div>`;
+        html += `<div class="sf-card${n === hot ? ' hot' : ''}" data-sf-open="${n}">${photo(n, 'sf-cphoto')}${badge(n)}<div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}<div class="sf-mini">これから30分の見込み <b>${d?.fc ? d.fc[0] : '—'}${u}</b><br>✈ 60分以内 <b>${arr[n].length}便</b>${arr[n][0] ? `・次 ${arr[n][0].time}` : ''}</div></div>`;
       }
       if (ids.includes(state.open)) {
         const n = state.open, d = model.lanes[n];
-        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}</div>`;
+        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}${arrLine(n, arr[n])}${flightList(arr[n])}</div>`;
       }
       html += '</div>';
     }
