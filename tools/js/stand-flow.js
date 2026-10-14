@@ -5,7 +5,6 @@
 const LANES = [1, 2, 3, 4];
 const NAME = { 1: '1号', 2: '2号', 3: '3号', 4: '4号' };
 const SUB = { 1: 'T1 南', 2: 'T1 北', 3: 'T2 北', 4: 'T2 南・国際' };
-const FUT_LABEL = ['+15', '+30', '+45', '+60分'];
 const MODE_KEY = 'stand-flow-mode';
 const VIEW_KEY = 'stand-flow-view';
 
@@ -30,13 +29,14 @@ export function standModel(data) {
       bins: Array.isArray(s.bins30) ? s.bins30 : null,
       hourly: Array.isArray(s.todayHourly) ? s.todayHourly : null,
       since: s.countingSince ? String(s.countingSince).slice(11, 16) : null,
+      fc: Array.isArray(s.forecast30) ? s.forecast30 : null,
     };
   }
   return out;
 }
 
 /** advance-forecast.json の actualsToday(15分ごとの列移動回数)→ 号ごとの {last30, lastHour, bins, hourly}。 */
-export function moveModel(adv) {
+export function moveModel(adv, nowMin = null) {
   const bins = Array.isArray(adv?.actualsToday) ? adv.actualsToday.filter(b => hm2min(b?.time) != null) : [];
   const out = { ends: null, lanes: {} };
   if (!bins.length) { for (const n of LANES) out.lanes[n] = null; return out; }
@@ -57,9 +57,22 @@ export function moveModel(adv) {
       bins: series,
       hourly,
       since: null,
+      fc: nowMin == null ? null : moveForecast(adv, k, nowMin),
     };
   }
   return out;
+}
+
+// 列移動の見込み: advance-forecast の予測(15分ごと)を、いま〜30分後・30分後〜60分後に足す。
+function moveForecast(adv, k, nowMin) {
+  const slots = Array.isArray(adv?.slots) ? adv.slots : [];
+  if (!slots.length) return null;
+  const sum = (a, b) => slots.reduce((acc, sl) => {
+    const t = hm2min(sl?.time);
+    const d = t == null ? -1 : ((t - nowMin) % 1440 + 1440) % 1440;
+    return (d >= a && d < b && typeof sl?.stalls?.[k] === 'number') ? acc + sl.stalls[k] : acc;
+  }, 0);
+  return [Math.round(sum(0, 30)), Math.round(sum(30, 60))];
 }
 
 /** 号ごとに、これから60分にロビーに出る便の座席数(15分ごと4本)と、30分以内の便数・座席数。 */
@@ -87,28 +100,38 @@ function barLabel(x, w, h, base, v, cls) {
     : `<text x="${c}" y="${(base - h - 3).toFixed(1)}" class="sf-tv ${cls}">${v}</text>`;
 }
 
-/** 過去2時間(30分ごと)＋これから1時間(15分ごとの座席数)の棒グラフ SVG。 */
-export function chartSvg(past, ends, fut, unitLabel) {
-  const W = 230, pw = 112, top = 14, bh = 58, base = top + bh;
-  let g = '';
+/** 過去2時間(30分ごと)＋これから1時間の見込み(30分ごと2本)の棒グラフ SVG。
+ *  2026-10-14 本人指摘: 右側に座席数を並べると「タクシーが出た数」に見える → 右側は出る台数の見込みにした。 */
+export function chartSvg(past, ends, fc, unitLabel) {
+  const W = 230, top = 14, bh = 58, base = top + bh;
   const p = past && past.length ? past : [];
-  const mx = Math.max(1, ...p);
-  const bw = p.length ? pw / p.length : pw;
+  const f = Array.isArray(fc) ? fc : [];
+  const all = p.length + f.length;
+  const mx = Math.max(1, ...p, ...f);
+  const gap = f.length ? 8 : 0;
+  const bw = all ? (W - gap) / all : W;
+  let g = '';
   p.forEach((v, j) => {
-    const h = Math.max(1.5, (v / mx) * bh), x = j * bw + 2, w = bw - 4;
+    const h = Math.max(1.5, (v / mx) * bh), x = j * bw + 3, w = bw - 6;
     g += `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" class="${j === p.length - 1 ? 'sf-now' : 'sf-past'}"/>`;
     g += barLabel(x, w, h, base, v, '');
-    g += `<text x="${(x + w / 2).toFixed(1)}" y="${base + 11}" class="sf-tl">${ends?.[j] ?? ''}</text>`;
+    g += `<text x="${(x + w / 2).toFixed(1)}" y="${base + 11}" class="sf-tl">${j === p.length - 1 ? 'いま' : (ends?.[j] ?? '')}</text>`;
   });
-  const fx = pw + 10, fw = (W - fx) / 4, fm = Math.max(1, ...fut);
-  g += `<line x1="${pw + 5}" y1="2" x2="${pw + 5}" y2="${base + 13}" class="sf-div"/>`;
-  fut.forEach((v, j) => {
-    const h = Math.max(1.5, (v / fm) * bh), x = fx + j * fw + 2, w = fw - 4;
-    g += `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" class="sf-fut"/>`;
-    g += barLabel(x, w, h, base, v, 'f');
-    g += `<text x="${(x + w / 2).toFixed(1)}" y="${base + 11}" class="sf-tl">${FUT_LABEL[j]}</text>`;
-  });
-  return `<div class="sf-ch"><span>30分ごと（${unitLabel}）</span><span class="f">これからの座席数（席）</span></div><svg viewBox="0 0 ${W} ${base + 14}" class="sf-chart" role="img" aria-label="30分ごとの数とこれから来る座席数">${g}</svg>`;
+  if (f.length) {
+    const x0 = p.length * bw + gap / 2;
+    g += `<line x1="${x0.toFixed(1)}" y1="2" x2="${x0.toFixed(1)}" y2="${base + 13}" class="sf-div"/>`;
+    const lab = ['+30分', '+60分'];
+    f.forEach((v, j) => {
+      const h = Math.max(1.5, (v / mx) * bh), x = x0 + gap / 2 + j * bw + 3, w = bw - 6;
+      g += `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="2" class="sf-fc"/>`;
+      g += barLabel(x, w, h, base, v, 'fc');
+      g += `<text x="${(x + w / 2).toFixed(1)}" y="${base + 11}" class="sf-tl">${lab[j] ?? ''}</text>`;
+    });
+  }
+  const head = f.length
+    ? `<div class="sf-ch"><span>30分ごと（${unitLabel}）</span><span class="f">右の2本＝これからの見込み</span></div>`
+    : `<div class="sf-ch"><span>30分ごと（${unitLabel}）</span></div>`;
+  return `${head}<svg viewBox="0 0 ${W} ${base + 14}" class="sf-chart" role="img" aria-label="30分ごとの数とこれからの見込み">${g}</svg>`;
 }
 
 const state = { mode: 'out', view: 'graph', open: 0, stand: null, move: null, flights: [], camAt: 0 };
@@ -155,29 +178,28 @@ function render(el) {
   const cb = state.camAt;
   let html = `<div class="sf-seg" role="tablist"><button type="button" data-sf-mode="out" class="${out ? 'on' : ''}">乗り場から出た台数</button><button type="button" data-sf-mode="mv" class="${out ? '' : 'on'}">待機所の列移動</button></div>
     <div class="sf-view"><button type="button" data-sf-view="graph" class="${state.view === 'graph' ? 'on' : ''}">グラフ</button><button type="button" data-sf-view="card" class="${state.view === 'card' ? 'on' : ''}">カード</button></div>
-    <div class="sf-what">${out ? '数字は、その号の<b>乗り場から出ていったタクシーの台数</b>です。乗り場のカメラで1台ずつ数えています（1割ほど少なめに出ることがあります）。' : '数字は、その号の<b>待機所の列が前へ進んだ回数</b>です（実際より少なめに出ます）。'}</div>`;
+    <div class="sf-what">${out ? '数字は、その号の<b>乗り場から出ていったタクシーの台数</b>です。乗り場のカメラで1台ずつ数えています（1割ほど少なめに出ることがあります）。グラフの右の2本は、これから出る台数の見込みです（直近の出方といつもの台数から出した目安）。' : '数字は、その号の<b>待機所の列が前へ進んだ回数</b>です（実際より少なめに出ます）。グラフの右の2本は、これからの回数の見込みです。'}</div>`;
   if (!model) { el.innerHTML = html + '<div class="sf-empty">読み込み中...</div>'; return; }
   const vals = LANES.map(n => model.lanes[n]?.lastHour ?? -1);
   const top = Math.max(...vals);
   const hot = top > 0 ? LANES[vals.indexOf(top)] : 0;
-  const fut = Object.fromEntries(LANES.map(n => [n, futureSeats(state.flights, n, nowMin)]));
   const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}" loading="lazy">`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
     for (const n of LANES) {
       const d = model.lanes[n];
-      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, u) : '<div class="sf-empty">まだ数えていません</div>'}</div></div>`;
+      html += `<div class="sf-lane${n === hot ? ' hot' : ''}">${badge(n)}${photo(n, 'sf-lphoto')}<div class="sf-lbody"><div class="sf-lhead"><div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}</div>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}</div></div>`;
     }
   } else {
     for (const [lab, ids] of [['T1（JAL）', [1, 2]], ['T2（ANA・国際）', [3, 4]]]) {
       html += `<div class="sf-lbl">${lab}</div><div class="sf-grid">`;
       for (const n of ids) {
-        const d = model.lanes[n], f = fut[n].next30;
-        html += `<div class="sf-card${n === hot ? ' hot' : ''}" data-sf-open="${n}">${photo(n, 'sf-cphoto')}${badge(n)}<div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}<div class="sf-mini">これから30分 <b>${f.flights}便・${f.seats}席</b></div></div>`;
+        const d = model.lanes[n];
+        html += `<div class="sf-card${n === hot ? ' hot' : ''}" data-sf-open="${n}">${photo(n, 'sf-cphoto')}${badge(n)}<div class="sf-lname"><b>${NAME[n]}</b><small>${SUB[n]}</small></div>${nums(d, u)}<div class="sf-mini">これから30分の見込み <b>${d?.fc ? d.fc[0] : '—'}${u}</b></div></div>`;
       }
       if (ids.includes(state.open)) {
         const n = state.open, d = model.lanes[n];
-        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, fut[n].bins, u) : '<div class="sf-empty">まだ数えていません</div>'}</div>`;
+        html += `<div class="sf-detail"><b>${NAME[n]}の詳しいこと</b>${d ? chartSvg(d.bins || [], model.ends, d.fc, u) : '<div class="sf-empty">まだ数えていません</div>'}</div>`;
       }
       html += '</div>';
     }
@@ -232,7 +254,8 @@ export async function initStandFlow() {
   async function refresh() {
     const [stand, adv] = await Promise.all([loadJson('data/stand-out.json'), loadJson('data/advance-forecast.json')]);
     state.stand = standModel(stand);
-    state.move = moveModel(adv);
+    const nd = new Date();
+    state.move = moveModel(adv, nd.getHours() * 60 + nd.getMinutes());
     state.camAt = Date.now();
     render(rootEl);
   }

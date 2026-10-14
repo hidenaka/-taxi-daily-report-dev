@@ -52,9 +52,29 @@ test('futureSeats: 0時をまたぐ便も数える', async () => {
   assert.deepEqual(r.bins, [0, 150, 0, 0]);
 });
 
-test('chartSvg: 長い棒は数字を棒の中、短い棒は棒の上に置く', async () => {
-  const svg = chartSvg([10, 1, 10, 10], ['a', 'b', 'c', 'd'], [100, 0, 0, 0], '台');
+test('chartSvg: 出た数の4本＋右に見込み2本。数字は長い棒は中、短い棒は上', async () => {
+  const svg = chartSvg([10, 1, 10, 10], ['a', 'b', 'c', 'd'], [9, 8], '台');
   assert.ok(svg.includes('class="sf-tv in ">10</text>'));
   assert.ok(svg.includes('class="sf-tv ">1</text>'));
+  assert.ok(svg.includes('>いま</text>'));
+  assert.ok(svg.includes('class="sf-fc"'));
   assert.ok(svg.includes('+60分'));
+  assert.ok(!svg.includes('座席'));
+});
+
+test('chartSvg: 見込みが無ければ出た数だけ', async () => {
+  const svg = chartSvg([3, 4], ['a', 'b'], null, '台');
+  assert.ok(!svg.includes('sf-fc'));
+});
+
+test('standModel: forecast30 を見込みとして持つ', async () => {
+  const m = standModel({ stalls: { stall1: { lastHour: 20, last30: 10, bins30: [1, 2, 3, 10], forecast30: [9, 8] } } });
+  assert.deepEqual(m.lanes[1].fc, [9, 8]);
+});
+
+test('moveModel: 列移動の見込みは予測(15分ごと)をいまから30分ずつ足す', async () => {
+  const adv = { actualsToday: [{ time: '17:00', stalls: { stall1: 1 } }, { time: '17:15', stalls: { stall1: 1 } }],
+    slots: [{ time: '17:30', stalls: { stall1: 0.6 } }, { time: '17:45', stalls: { stall1: 0.6 } }, { time: '18:00', stalls: { stall1: 1.4 } }, { time: '18:15', stalls: { stall1: 1.0 } }] };
+  const m = moveModel(adv, 17 * 60 + 30);
+  assert.deepEqual(m.lanes[1].fc, [1, 2]);
 });
