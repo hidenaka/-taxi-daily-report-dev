@@ -198,9 +198,10 @@ function dayCard(model, u, label, nowH) {
     });
     const tot = a.reduce((p, q) => p + q, 0);
     const since = d?.since && d.since > '00:59' ? `<small>${d.since}から</small>` : '';
-    rows += `<div class="sf-drow"><div class="sf-dn"><b>${NAME[n]}</b><small>計${d ? tot : '—'}${u}</small>${since}</div><svg viewBox="0 0 ${W} ${bh + 14}" class="sf-chart">${g}</svg></div>`;
+    // 時刻の目盛りは号ごとに持たせる(狭い画面では最後の号だけ見せる・広い画面の2×2では全部見せる)
+    rows += `<div class="sf-dcell"><div class="sf-drow"><div class="sf-dn"><b>${NAME[n]}</b><small>計${d ? tot : '—'}${u}</small>${since}</div><svg viewBox="0 0 ${W} ${bh + 14}" class="sf-chart">${g}</svg></div><div class="sf-daxis"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div></div>`;
   }
-  return `<div class="sf-day"><div class="sf-dh"><b>今日1日の${label}</b><span>1時間ごと（${u}）・0時〜いま</span></div>${rows}<div class="sf-daxis"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div></div>`;
+  return `<div class="sf-day"><div class="sf-dh"><b>今日1日の${label}</b><span>1時間ごと（${u}）・0時〜いま</span></div><div class="sf-dgrid">${rows}</div></div>`;
 }
 
 function render(el) {

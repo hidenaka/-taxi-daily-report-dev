@@ -392,6 +392,8 @@
     .sf-dn { width: 50px; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
     .sf-dn small { font-size: 9px; color: var(--sub); }
     .sf-daxis { display: flex; justify-content: space-between; margin-left: 56px; font-size: 9px; color: var(--sub); }
+    .sf-dcell:not(:last-child) .sf-daxis { display: none; }
+    @media (min-width: 760px) { .sf-dgrid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; } .sf-dcell:not(:last-child) .sf-daxis { display: flex; } }
     .sf-err { font-size: 10px; color: var(--sub); text-align: right; margin-top: 2px; }
     .sf-arr { display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; margin-top: 6px; padding-top: 6px; border-top: 1px solid #2a2a30; font-size: 11px; color: var(--sub); cursor: pointer; }
     .sf-arr b { color: var(--fg); font-weight: 600; }
