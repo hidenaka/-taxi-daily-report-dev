@@ -64,3 +64,20 @@ export function clearDataCaches(storage) {
   clearByPrefix(storage, CONFIG_CACHE_PREFIX);   // 名前空間化された config キー
   try { storage.removeItem(LEGACY_CONFIG_CACHE_KEY); } catch (e) { /* 握る */ }
 }
+
+// ── 通信が切れていたときの「0件」を本物の0件と見分ける ──
+// Firestore は通信が切れていると、サーバーに聞かずに手元の分(何も無ければ0件)を返す
+// (snap.metadata.fromCache === true)。これを日報0件として描くと、月の全日が「公休」に見え、
+// しかも上の TTL キャッシュに0件が5分残る(2026-10-16 本番で発生)。
+// サーバーから来た結果だけを日報として受け取り、手元の分しか無いときは投げる(キャッシュもしない)。
+export class DrivesOfflineError extends Error {
+  constructor() {
+    super('日報を読み込めませんでした（通信が切れていた可能性があります）');
+    this.name = 'DrivesOfflineError';
+  }
+}
+
+export function drivesFromServerSnapshot(snap) {
+  if (snap?.metadata?.fromCache) throw new DrivesOfflineError();
+  return snap.docs.map(d => d.data());
+}

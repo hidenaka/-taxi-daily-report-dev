@@ -194,6 +194,7 @@ import { getPlannedVehicle, pruneOrphanVehicles, countMonthlyShifts, isRosterDay
 import { checkInviteAndWarn, fetchCompanyExists, loadInviteSlug, loadReferrer, shouldRedirectInviteToSignup, buildSignupRedirectUrl } from './js/invite-url.js';
 import { shouldShowFirstRunCard, shouldMarkHasDrive, isExistingLocalRealUser } from './js/first-run.js';
 import './js/help-video.js';
+import { showLoadError } from './js/load-error-banner.js';
 
 // 暗号化招待リンク処理は GitHub 版専用のためスキップ（Firebase 版）
 const inviteProcessed = false;
@@ -819,8 +820,8 @@ async function render(drivesPromise) {
   }
 
   document.getElementById('summaryCard').innerHTML = summaryHtml;
-  document.getElementById('prevBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, -1); render(); };
-  document.getElementById('nextBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, 1); render(); };
+  document.getElementById('prevBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, -1); render().catch(showLoadError); };
+  document.getElementById('nextBtn').onclick = () => { viewPeriod = shiftBillingPeriod(viewPeriod, 1); render().catch(showLoadError); };
 
   // 目標
   const targetCard = document.getElementById('targetCard');
@@ -1530,7 +1531,7 @@ function pickWeatherIcon(w) {
   return '☀';
 }
 
-load();
+load().catch(showLoadError);
 </script>
 <script type="module">
 import { isCoachEnabled } from './js/coach/coach-flag.js';

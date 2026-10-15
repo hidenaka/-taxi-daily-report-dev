@@ -11,7 +11,7 @@ import {
   Timestamp, serverTimestamp, deleteField, getCountFromServer
 } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import {
-  readFresh, writeCache, clearByPrefix, userScopedKey,
+  readFresh, writeCache, clearByPrefix, userScopedKey, drivesFromServerSnapshot,
   DRIVES_CACHE_PREFIX, CONFIG_CACHE_PREFIX,
 } from './drive-cache.js';
 
@@ -121,7 +121,8 @@ export async function getDrivesForMonth(period) {
   );
 
   const snap = await getDocs(q);
-  const drives = snap.docs.map(d => d.data());
+  // 通信が切れていて手元の分しか無いときは投げる(0件として描かない・キャッシュしない)
+  const drives = drivesFromServerSnapshot(snap);
   // クライアント側でソート
   drives.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   if (s) writeCache(s, _drivesKey(period), drives, Date.now());

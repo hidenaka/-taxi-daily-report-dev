@@ -117,3 +117,19 @@ test('clearDataCaches: 全ユーザーの drives/config キャッシュ + 旧キ
   assert.equal(s.getItem(LEGACY_CONFIG_CACHE_KEY), null, '旧 config キーも消す');
   assert.equal(s.getItem('taxi_user_id'), 'mm', '無関係キーは残す');
 });
+
+import { drivesFromServerSnapshot, DrivesOfflineError } from '../js/drive-cache.js';
+
+function fakeSnap(rows, fromCache) {
+  return { metadata: { fromCache }, docs: rows.map(r => ({ data: () => r })) };
+}
+
+test('drivesFromServerSnapshot: サーバーから来た結果はそのまま日報として返す(0件も本物の0件)', () => {
+  assert.deepStrictEqual(drivesFromServerSnapshot(fakeSnap([{ date: '2026-10-15' }], false)), [{ date: '2026-10-15' }]);
+  assert.deepStrictEqual(drivesFromServerSnapshot(fakeSnap([], false)), []);
+});
+
+test('drivesFromServerSnapshot: 通信が切れて手元の分しか無いときは0件にせず投げる', () => {
+  assert.throws(() => drivesFromServerSnapshot(fakeSnap([], true)), DrivesOfflineError);
+  assert.throws(() => drivesFromServerSnapshot(fakeSnap([{ date: '2026-10-15' }], true)), DrivesOfflineError);
+});

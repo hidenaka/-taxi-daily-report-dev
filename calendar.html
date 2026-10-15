@@ -91,6 +91,7 @@ import {
 import { renderLegalFooter } from './js/legal-footer.js';
 import { enforceAccess } from './js/access-control.js';
 import './js/help-video.js';
+import { showLoadError } from './js/load-error-banner.js';
 
 if (!(await enforceAccess('core'))) {
   throw new Error('access-denied: redirected');
@@ -264,14 +265,14 @@ function renderSummary() {
 
 document.getElementById('prevBtn').onclick = () => {
   viewPeriod = shiftBillingPeriod(viewPeriod, -1);
-  render();
+  render().catch(showLoadError);
 };
 document.getElementById('nextBtn').onclick = () => {
   viewPeriod = shiftBillingPeriod(viewPeriod, 1);
-  render();
+  render().catch(showLoadError);
 };
 
-load();
+load().catch(showLoadError);
 </script>
 </body>
 </html>
