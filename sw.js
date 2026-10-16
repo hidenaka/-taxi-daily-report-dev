@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v443';
+const CACHE_NAME = CACHE_PREFIX + 'v444';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -190,7 +190,7 @@ self.addEventListener('fetch', e => {
   // データJSON（arrivals 等、デプロイ外で随時更新される）はネットワーク優先で即反映。
   // ただし js/data/ はアプリに同梱した静的データ（町の代表座標など）で、デプロイでしか
   // 変わらない。下のアプリ本体と同じキャッシュ優先に任せる（毎回200KB取りに行かせない）。
-  if (/\.json$/i.test(url.pathname) && !url.pathname.includes('/js/data/')) {
+  if (/\.(geo)?json$/i.test(url.pathname) && !url.pathname.includes('/js/data/')) {
     e.respondWith(
       fetch(e.request).then(async res => {
         if (res && res.ok) {
