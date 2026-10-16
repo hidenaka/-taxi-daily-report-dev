@@ -30,13 +30,12 @@
     <div class="row"><span class="sw" style="background:#fdae61"></span>4車線</div>
     <div class="row"><span class="sw" style="background:#e6550d"></span>5〜6車線</div>
     <div class="row"><span class="sw" style="background:#a50f15"></span>7車線以上</div>
-    <div class="row"><span class="sw" style="background:repeating-linear-gradient(90deg,#c51b8a 0 4px,transparent 4px 7px)"></span>分からない</div>
     <div class="src" style="margin-top:6px">
       <label><input type="checkbox" id="s-o" checked> 地図の登録</label>
       <label><input type="checkbox" id="s-p" checked> 写真で数えた</label>
-      <label><input type="checkbox" id="s-u" checked> 分からない</label>
+      <label><input type="checkbox" id="s-u" checked> つながる道から</label>
     </div>
-    <div class="note">数は両方向の合計。一方通行の道は、その向きの数です。「写真で数えた」は細い線で表示しています。数がすでに分かっている24本で試したところ、ぴったり合ったのは約半分、1本違い以内は約9割でした。</div>
+    <div class="note">数は両方向の合計。一方通行の道は、その向きの数です。「写真で数えた」と「つながる道から」は細い線、「つながる道から」は点線です。「つながる道から」は、トンネルの中など写真で見えない道に、つながる同じ道の数を当てたものです。写真で数えた数は、登録済みの24本で試したところ、ぴったり合ったのは約半分、1本違い以内は約9割でした。</div>
   </div>
   <button id="toggle">説明</button>
   <script src="../vendor/maplibre/maplibre-gl.js"></script>
@@ -49,24 +48,24 @@
         attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視'}},
         layers:[{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-0.6,'raster-opacity':0.85}}]}});
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
-    const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o');if(document.getElementById('s-p').checked)s.push('p');if(document.getElementById('s-u').checked)s.push('u');return ['in',['get','s'],['literal',s]];};
+    const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o');if(document.getElementById('s-p').checked)s.push('p','e');if(document.getElementById('s-u').checked)s.push('n');return ['in',['get','s'],['literal',s]];};
     const init=()=>{
       if(map.getSource('lanes'))return;
       map.addSource('lanes',{type:'geojson',data:'lanes/lanes23.geojson'});
-      map.addLayer({id:'lanes-solid',type:'line',source:'lanes',filter:['all',filt(),['!=',['get','s'],'u']],
+      map.addLayer({id:'lanes-solid',type:'line',source:'lanes',filter:['all',filt(),['!=',['get','s'],'n']],
         layout:{'line-cap':'round','line-join':'round'},
-        paint:{'line-color':color,'line-width':['interpolate',['linear'],['zoom'],10,['case',['==',['get','s'],'p'],1,1.6],15,['case',['==',['get','s'],'p'],3,5]]}});
-      map.addLayer({id:'lanes-unk',type:'line',source:'lanes',filter:['all',filt(),['==',['get','s'],'u']],
-        paint:{'line-color':'#c51b8a','line-width':['interpolate',['linear'],['zoom'],10,1,15,3],'line-dasharray':[2,1.5]}});
-      const src={o:'地図の登録（OpenStreetMap）',p:'航空写真で目で数えた',u:'分からない'};
+        paint:{'line-color':color,'line-width':['interpolate',['linear'],['zoom'],10,['case',['==',['get','s'],'o'],1.6,1],15,['case',['==',['get','s'],'o'],5,3]]}});
+      map.addLayer({id:'lanes-unk',type:'line',source:'lanes',filter:['all',filt(),['==',['get','s'],'n']],
+        paint:{'line-color':color,'line-width':['interpolate',['linear'],['zoom'],10,1,15,3],'line-dasharray':[2,1.5]}});
+      const src={o:'地図の登録（OpenStreetMap）',p:'航空写真で目で数えた',e:'航空写真で見えにくく、目で見て推定',n:'つながる同じ道の数を当てた'};
       for(const id of ['lanes-solid','lanes-unk']){
         map.on('click',id,e=>{const p=e.features[0].properties;
-          new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.n||'（名前なし）'}</b><br>車線の数：${p.l==null||p.l==='null'?'分からない':p.l}${p.o==1?'（一方通行）':''}<br>出どころ：${src[p.s]}`).addTo(map);});
+          new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.n||'（名前なし）'}</b><br>車線の数：${p.l}${p.o==1?'（一方通行）':''}<br>出どころ：${src[p.s]}`).addTo(map);});
         map.on('mouseenter',id,()=>map.getCanvas().style.cursor='pointer');
         map.on('mouseleave',id,()=>map.getCanvas().style.cursor='');
       }
       for(const k of ['s-o','s-p','s-u']) document.getElementById(k).addEventListener('change',()=>{
-        map.setFilter('lanes-solid',['all',filt(),['!=',['get','s'],'u']]);map.setFilter('lanes-unk',['all',filt(),['==',['get','s'],'u']]);});
+        map.setFilter('lanes-solid',['all',filt(),['!=',['get','s'],'n']]);map.setFilter('lanes-unk',['all',filt(),['==',['get','s'],'n']]);});
     };
     if(map.isStyleLoaded())init();else map.on('style.load',init);
     map.on('load',init);
