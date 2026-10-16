@@ -24,12 +24,12 @@
   <div id="map"></div>
   <div class="panel" id="panel">
     <h1>23区の車線の数（試作）</h1>
-    <div class="row"><span class="sw" style="background:#b4bcc5;height:2px"></span>中央線のない道（近づくと出ます）</div>
-    <div class="row"><span class="sw" style="background:#7fb3d5;height:3px"></span>1車線</div>
-    <div class="row"><span class="sw" style="background:#2e6fb7;height:4px"></span>2車線</div>
-    <div class="row"><span class="sw" style="background:#6a3d9a;height:5px"></span>3車線</div>
-    <div class="row"><span class="sw" style="background:#d0367f;height:6px"></span>4車線</div>
-    <div class="row"><span class="sw" style="background:#f26b1d;height:7px"></span>5車線以上</div>
+    <div class="row"><span class="sw" style="background:#9a7b3c;height:2px"></span>中央線のない道（近づくと出ます）</div>
+    <div class="row"><span class="sw" style="background:#f0a020;height:3px"></span>1車線</div>
+    <div class="row"><span class="sw" style="background:#e8452c;height:4px"></span>2車線</div>
+    <div class="row"><span class="sw" style="background:#c0136e;height:5px"></span>3車線</div>
+    <div class="row"><span class="sw" style="background:#7a1fa0;height:6px"></span>4車線</div>
+    <div class="row"><span class="sw" style="background:#2b1670;height:7px"></span>5車線以上</div>
     <div class="src" style="margin-top:6px">
       <label><input type="checkbox" id="s-o" checked> 地図の登録</label>
       <label><input type="checkbox" id="s-p" checked> 写真で数えた</label>
@@ -41,8 +41,8 @@
   <button id="toggle">説明</button>
   <script src="../vendor/maplibre/maplibre-gl.js"></script>
   <script>
-    const color=['step',['coalesce',['get','l'],1],'#7fb3d5',2,'#2e6fb7',3,'#6a3d9a',4,'#d0367f',5,'#f26b1d'];
-    const GREY='#b4bcc5';
+    const color=['step',['coalesce',['get','l'],1],'#f0a020',2,'#e8452c',3,'#c0136e',4,'#7a1fa0',5,'#2b1670'];
+    const GREY='#9a7b3c';
     const thin=['in',['get','s'],['literal',['r','v','g']]];
     const minorColor=['case',['all',thin,['==',['coalesce',['get','l'],1],1]],GREY,color];
     // 車線が多いほど太く
@@ -51,7 +51,7 @@
       attributionControl:{compact:true},
       style:{version:8,sources:{pale:{type:'raster',tiles:['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],tileSize:256,maxzoom:18,
         attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視'}},
-        layers:[{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-0.6,'raster-opacity':0.85}}]}});
+        layers:[{id:'bg',type:'background',paint:{'background-color':'#ffffff'}},{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-1,'raster-opacity':0.55,'raster-contrast':-0.2}}]}});
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
     const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o');if(document.getElementById('s-p').checked)s.push('p','e');if(document.getElementById('s-u').checked)s.push('n');return ['in',['get','s'],['literal',s]];};
     const init=()=>{
@@ -65,6 +65,9 @@
         layout:{'line-cap':'round','line-join':'round'},
         paint:{'line-color':minorColor,'line-width':['interpolate',['linear'],['zoom'],13,0.8,16,2.6]}});
       map.addSource('lanes',{type:'geojson',data:'lanes/lanes23.geojson'});
+      map.addLayer({id:'lanes-case',type:'line',source:'lanes',filter:filt(),
+        layout:{'line-cap':'round','line-join':'round'},
+        paint:{'line-color':'#ffffff','line-width':['+',wid(0.55,1.6),2]}});
       map.addLayer({id:'lanes-solid',type:'line',source:'lanes',filter:['all',filt(),['!=',['get','s'],'n']],
         layout:{'line-cap':'round','line-join':'round'},
         paint:{'line-color':color,'line-width':wid(0.55,1.6)}});
@@ -79,7 +82,7 @@
       }
       document.getElementById('s-r').addEventListener('change',e=>{for(const l of ['narrow','minor'])map.setLayoutProperty(l,'visibility',e.target.checked?'visible':'none');});
       for(const k of ['s-o','s-p','s-u']) document.getElementById(k).addEventListener('change',()=>{
-        map.setFilter('lanes-solid',['all',filt(),['!=',['get','s'],'n']]);map.setFilter('lanes-unk',['all',filt(),['==',['get','s'],'n']]);});
+        map.setFilter('lanes-case',filt());map.setFilter('lanes-solid',['all',filt(),['!=',['get','s'],'n']]);map.setFilter('lanes-unk',['all',filt(),['==',['get','s'],'n']]);});
     };
     if(map.isStyleLoaded())init();else map.on('style.load',init);
     map.on('load',init);
