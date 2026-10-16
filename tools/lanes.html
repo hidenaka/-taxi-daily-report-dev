@@ -50,7 +50,8 @@
         layers:[{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-0.6,'raster-opacity':0.85}}]}});
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
     const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o');if(document.getElementById('s-p').checked)s.push('p');if(document.getElementById('s-u').checked)s.push('u');return ['in',['get','s'],['literal',s]];};
-    map.on('load',()=>{
+    const init=()=>{
+      if(map.getSource('lanes'))return;
       map.addSource('lanes',{type:'geojson',data:'lanes/lanes23.geojson'});
       map.addLayer({id:'lanes-solid',type:'line',source:'lanes',filter:['all',filt(),['!=',['get','s'],'u']],
         layout:{'line-cap':'round','line-join':'round'},
@@ -66,7 +67,9 @@
       }
       for(const k of ['s-o','s-p','s-u']) document.getElementById(k).addEventListener('change',()=>{
         map.setFilter('lanes-solid',['all',filt(),['!=',['get','s'],'u']]);map.setFilter('lanes-unk',['all',filt(),['==',['get','s'],'u']]);});
-    });
+    };
+    if(map.isStyleLoaded())init();else map.on('style.load',init);
+    map.on('load',init);
     document.getElementById('toggle').onclick=()=>{const p=document.getElementById('panel');p.hidden=!p.hidden;};
   </script>
 </body>
