@@ -51,7 +51,7 @@
     const map=new maplibregl.Map({container:'map',center:[139.75,35.69],zoom:12,maxZoom:18,minZoom:9,
       attributionControl:{compact:true},
       style:{version:8,sources:{pale:{type:'raster',tiles:['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],tileSize:256,maxzoom:18,
-        attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視 ／ 「令和3年度全国道路・街路交通情勢調査」（国土交通省）を加工して作成'}},
+        attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視 ／ 一部: 東京都デジタルツイン 区部点群データ（CC BY）を目視 ／ 「令和3年度全国道路・街路交通情勢調査」（国土交通省）を加工して作成'}},
         layers:[{id:'bg',type:'background',paint:{'background-color':'#ffffff'}},{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-1,'raster-opacity':0.55,'raster-contrast':-0.2}}]}});
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
     const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o','k');if(document.getElementById('s-p').checked)s.push('p','e');if(document.getElementById('s-u').checked)s.push('n');return ['in',['get','s'],['literal',s]];};
