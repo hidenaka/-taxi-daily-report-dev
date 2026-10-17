@@ -190,7 +190,7 @@ self.addEventListener('fetch', e => {
   // データJSON（arrivals 等、デプロイ外で随時更新される）はネットワーク優先で即反映。
   // ただし js/data/ はアプリに同梱した静的データ（町の代表座標など）で、デプロイでしか
   // 変わらない。下のアプリ本体と同じキャッシュ優先に任せる（毎回200KB取りに行かせない）。
-  if (/\.(geo)?json$/i.test(url.pathname) && !url.pathname.includes('/js/data/')) {
+  if (/\.json$/i.test(url.pathname) && !url.pathname.includes('/js/data/')) {
     e.respondWith(
       fetch(e.request).then(async res => {
         if (res && res.ok) {
