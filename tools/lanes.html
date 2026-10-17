@@ -32,12 +32,12 @@
     <div class="row"><span class="sw" style="background:#7a1fa0;height:6px"></span>4車線</div>
     <div class="row"><span class="sw" style="background:#2b1670;height:7px"></span>5車線以上</div>
     <div class="src" style="margin-top:6px">
-      <label><input type="checkbox" id="s-o" checked> 地図の登録</label>
+      <label><input type="checkbox" id="s-o" checked> 地図の登録・国の調べ</label>
       <label><input type="checkbox" id="s-p" checked> 写真で数えた</label>
       <label><input type="checkbox" id="s-u" checked> つながる道から</label>
       <label><input type="checkbox" id="s-r" checked> 細い道・路地</label>
     </div>
-    <div class="note">数は両方向の合計。一方通行の道は、その向きの数です。線は車線が多いほど太くなります。「つながる道から」は点線です。「つながる道から」は、トンネルの中など写真で見えない道に、つながる同じ道の数を当てたものです。写真で数えた数は、登録済みの24本で試したところ、ぴったり合ったのは約半分、1本違い以内は約9割でした。細い道は、地図に数が登録されていなければ、中央線のない道として1車線にしています。細い道を100本選んで写真で見たところ、中央線が見えたのは数本でした。路地・私道・駐車場の通路も同じく1車線で、さらに近づくと出ます。地図に無く国土地理院の地図にだけある道（約6,900か所）も足しました。この中には、商店街のアーケードなど車が通れない道も混ざっています。</div>
+    <div class="note">数は両方向の合計。大きな道の多くは、国の交通量の調べ（2021年）の数です。曲がる車のための車線や停車帯は数えていません。一方通行の道は、その向きの数です。線は車線が多いほど太くなります。「つながる道から」は点線です。「つながる道から」は、トンネルの中など写真で見えない道に、つながる同じ道の数を当てたものです。写真で数えた数は、登録済みの24本で試したところ、ぴったり合ったのは約半分、1本違い以内は約9割でした。細い道は、地図に数が登録されていなければ、中央線のない道として1車線にしています。細い道を100本選んで写真で見たところ、中央線が見えたのは数本でした。路地・私道・駐車場の通路も同じく1車線で、さらに近づくと出ます。地図に無く国土地理院の地図にだけある道（約6,900か所）も足しました。この中には、商店街のアーケードなど車が通れない道も混ざっています。</div>
   </div>
   <button id="toggle">説明</button>
   <script src="../vendor/maplibre/maplibre-gl.js"></script>
@@ -51,10 +51,10 @@
     const map=new maplibregl.Map({container:'map',center:[139.75,35.69],zoom:12,maxZoom:18,minZoom:9,
       attributionControl:{compact:true},
       style:{version:8,sources:{pale:{type:'raster',tiles:['https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png'],tileSize:256,maxzoom:18,
-        attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視'}},
+        attribution:'地理院タイル ／ 道路: © OpenStreetMap contributors (ODbL) ／ 車線数の一部: 地理院タイル（全国最新写真）を目視 ／ 「令和3年度全国道路・街路交通情勢調査」（国土交通省）を加工して作成'}},
         layers:[{id:'bg',type:'background',paint:{'background-color':'#ffffff'}},{id:'pale',type:'raster',source:'pale',paint:{'raster-saturation':-1,'raster-opacity':0.55,'raster-contrast':-0.2}}]}});
     map.addControl(new maplibregl.NavigationControl({showCompass:false}),'bottom-right');
-    const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o');if(document.getElementById('s-p').checked)s.push('p','e');if(document.getElementById('s-u').checked)s.push('n');return ['in',['get','s'],['literal',s]];};
+    const filt=()=>{const s=[];if(document.getElementById('s-o').checked)s.push('o','k');if(document.getElementById('s-p').checked)s.push('p','e');if(document.getElementById('s-u').checked)s.push('n');return ['in',['get','s'],['literal',s]];};
     const init=()=>{
       if(map.getSource('lanes'))return;
       map.addSource('minor',{type:'geojson',data:'lanes/minor23.geojson'});
@@ -74,7 +74,7 @@
         paint:{'line-color':color,'line-width':wid(0.55,1.6)}});
       map.addLayer({id:'lanes-unk',type:'line',source:'lanes',filter:['all',filt(),['==',['get','s'],'n']],
         paint:{'line-color':color,'line-width':wid(0.55,1.6),'line-dasharray':[2,1.5]}});
-      const src={o:'地図の登録（OpenStreetMap）',p:'航空写真で目で数えた',e:'航空写真で見えにくく、目で見て推定',n:'つながる同じ道の数を当てた',r:'中央線のない細い道として1車線',v:'路地・私道など。中央線のない道として1車線',g:'国土地理院の地図にだけある道。中央線のない道として1車線'};
+      const src={k:'国の交通量の調べ（2021年）の数',o:'地図の登録（OpenStreetMap）',p:'航空写真で目で数えた',e:'航空写真で見えにくく、目で見て推定',n:'つながる同じ道の数を当てた',r:'中央線のない細い道として1車線',v:'路地・私道など。中央線のない道として1車線',g:'国土地理院の地図にだけある道。中央線のない道として1車線'};
       for(const id of ['lanes-solid','lanes-unk','narrow','minor']){
         map.on('click',id,e=>{const p=e.features[0].properties;
           new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.n||'（名前なし）'}</b><br>車線の数：${['r','v','g'].includes(p.s)&&p.l==1?'1（中央線なし）':p.l}${p.d?'（片側'+p.d.split('+')[0]+'車線）':''}${p.o==1?'（一方通行）':''}<br>出どころ：${src[p.s]}`).addTo(map);});
