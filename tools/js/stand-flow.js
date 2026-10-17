@@ -205,11 +205,11 @@ function dayCard(model, u, label, nowH, nowMin) {
     const d = model.lanes[n];
     const a = d?.hourly ? d.hourly.slice(0, nowH + 1) : [];
     const W = 300, bw = W / 24, bh = 34;
-    let g = '';
+    let g = '', tv = '';
     a.forEach((v, j) => {
       const h = Math.max(1, (v / mx) * bh), x = j * bw + 1, w = bw - 2;
       g += `<rect x="${x.toFixed(1)}" y="${(bh + 12 - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="${j === a.length - 1 ? 'sf-now' : 'sf-past'}"/>`;
-      if (v) g += h >= 13
+      if (v) tv += h >= 13
         ? `<text x="${(x + w / 2).toFixed(1)}" y="${(bh + 12 - h / 2 + 3.5).toFixed(1)}" class="sf-tv in s">${v}</text>`
         : `<text x="${(x + w / 2).toFixed(1)}" y="${(bh + 12 - h - 2).toFixed(1)}" class="sf-tv s">${v}</text>`;
     });
@@ -219,6 +219,7 @@ function dayCard(model, u, label, nowH, nowMin) {
       d.typ.forEach((v, j) => { const y = (bh + 12 - (v / mx) * bh).toFixed(1); pts += `${(j * bw).toFixed(1)},${y} ${((j + 1) * bw).toFixed(1)},${y} `; });
       g += `<polyline points="${pts.trim()}" class="sf-typ"/>`;
     }
+    g += tv; // 数字は線の上に描く(線で数字が隠れないように)
     const tot = a.reduce((p, q) => p + q, 0);
     const rest = d?.typ ? restOfDay(d.typ, nowMin) : null;
     const since = (d?.since && d.since > '00:59' ? `<small>${d.since}から</small>` : '') + (rest != null ? `<small class="sf-rest">あと約${rest}${u}</small>` : '');
