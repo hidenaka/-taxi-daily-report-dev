@@ -77,7 +77,7 @@
       const src={k:'国の交通量の調べ（2021年）の数',o:'地図の登録（OpenStreetMap）',p:'航空写真で目で数えた',e:'航空写真で見えにくく、目で見て推定',n:'つながる同じ道の数を当てた',r:'中央線のない細い道として1車線',v:'路地・私道など。中央線のない道として1車線',g:'国土地理院の地図にだけある道。中央線のない道として1車線'};
       for(const id of ['lanes-solid','lanes-unk','narrow','minor']){
         map.on('click',id,e=>{const p=e.features[0].properties;
-          new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.n||'（名前なし）'}</b><br>車線の数：${['r','v','g'].includes(p.s)&&p.l==1?'1（中央線なし）':p.l}${p.d?'（片側'+p.d.split('+')[0]+'車線）':''}${p.o==1?'（一方通行）':''}<br>出どころ：${src[p.s]}`).addTo(map);});
+          new maplibregl.Popup().setLngLat(e.lngLat).setHTML(`<b>${p.n||'（名前なし）'}</b><br>車線の数：${['r','v','g'].includes(p.s)&&p.l==1?'1（中央線なし）':p.l}${p.d?(p.d.split('+')[0]===p.d.split('+')[1]?'（片側'+p.d.split('+')[0]+'車線）':'（向きごとに'+p.d.split('+').join('車線と')+'車線）'):''}${p.o==1?'（一方通行）':''}<br>出どころ：${src[p.s]}`).addTo(map);});
         map.on('mouseenter',id,()=>map.getCanvas().style.cursor='pointer');
         map.on('mouseleave',id,()=>map.getCanvas().style.cursor='');
       }
