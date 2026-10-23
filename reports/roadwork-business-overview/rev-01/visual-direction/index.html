@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>道路変化データ事業 Rev.1 — ビジュアル方向</title>
+  <style>
+    :root{--navy:#10263a;--teal:#13858a;--amber:#efa63c;--paper:#f6f2e8;--ink:#18232b;--muted:#66737b}
+    *{box-sizing:border-box} body{margin:0;background:#e9ecec;color:var(--ink);font-family:"Hiragino Sans","Yu Gothic",sans-serif}
+    header{padding:38px 5vw 26px;background:var(--navy);color:white} h1{margin:0 0 10px;font-size:clamp(26px,4vw,46px)} header p{margin:0;max-width:900px;line-height:1.7;color:#d9e6eb}
+    main{padding:34px 4vw 48px;max-width:1500px;margin:auto}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+    article{background:white;border-radius:18px;overflow:hidden;box-shadow:0 12px 35px #23313b22;border:3px solid transparent} article.recommended{border-color:var(--teal)}
+    .visual{height:310px;position:relative;overflow:hidden}.visual svg{width:100%;height:100%;display:block}
+    .copy{padding:24px 24px 28px}.tag{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--teal)} h2{font-size:23px;margin:7px 0 12px}.desc{min-height:88px;color:#46545c;line-height:1.7;font-size:15px}.pros{padding-left:20px;color:#4f5d65;line-height:1.8;font-size:14px}.pick{display:block;margin-top:18px;padding:12px;text-align:center;background:var(--navy);color:white;text-decoration:none;border-radius:9px;font-weight:700}.recommended .pick{background:var(--teal)}
+    footer{margin-top:28px;background:#fff9e9;border-left:5px solid var(--amber);padding:18px 22px;line-height:1.7}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}.visual{height:240px}.desc{min-height:0}}
+  </style>
+</head>
+<body>
+  <header><h1>Rev.1の見た目を決める</h1><p>行政・道路管理者が初見で理解でき、研究者にも相談できる資料。どの世界観なら、あなた自身の原点と「道路変化データを流通させる事業」の両方が伝わるか。</p></header>
+  <main>
+    <div class="grid">
+      <article>
+        <div class="visual">
+          <svg viewBox="0 0 500 310" role="img" aria-label="行政白書風の地図とデータ図解">
+            <rect width="500" height="310" fill="#f7f8f8"/><path d="M-20 250 C120 190 160 80 300 100 S450 50 530 15" fill="none" stroke="#d1d9dc" stroke-width="44"/><path d="M-20 250 C120 190 160 80 300 100 S450 50 530 15" fill="none" stroke="#fff" stroke-width="36"/><path d="M-20 250 C120 190 160 80 300 100 S450 50 530 15" fill="none" stroke="#efa63c" stroke-width="8" stroke-dasharray="18 10"/>
+            <rect x="38" y="38" width="186" height="104" rx="8" fill="#fff" stroke="#cbd4d8"/><rect x="54" y="55" width="98" height="10" fill="#10263a"/><rect x="54" y="79" width="144" height="7" fill="#c9d1d5"/><rect x="54" y="99" width="124" height="7" fill="#c9d1d5"/><circle cx="364" cy="192" r="48" fill="#13858a" opacity=".9"/><path d="M341 194h46M364 171v46" stroke="white" stroke-width="8"/>
+          </svg>
+        </div>
+        <div class="copy"><div class="tag">A｜行政白書型</div><h2>信頼と整理を最優先</h2><div class="desc">白地、地図、統計、制度年表を中心にした堅実な構成。説明会資料として違和感が少ない一方、創業者の原体験はやや薄くなります。</div><ul class="pros"><li>行政に渡しやすい</li><li>数字と根拠が読みやすい</li><li>印象は控えめ</li></ul></div>
+      </article>
+      <article class="recommended">
+        <div class="visual">
+          <svg viewBox="0 0 500 310" role="img" aria-label="現場の道路とデータレイヤーを組み合わせた編集イラスト">
+            <rect width="500" height="310" fill="#10263a"/><circle cx="390" cy="54" r="86" fill="#efa63c" opacity=".24"/><path d="M70 330 L205 92 L295 92 L430 330" fill="#223d50"/><path d="M246 98v220" stroke="#f6f2e8" stroke-width="5" stroke-dasharray="18 16"/>
+            <path d="M112 218 C165 180 205 202 247 165 S338 139 398 99" fill="none" stroke="#41c3bf" stroke-width="8"/><circle cx="112" cy="218" r="11" fill="#41c3bf"/><circle cx="247" cy="165" r="11" fill="#efa63c"/><circle cx="398" cy="99" r="11" fill="#41c3bf"/>
+            <path d="M209 232h78l-13 38h-52z" fill="#efa63c"/><rect x="228" y="207" width="40" height="30" rx="8" fill="#f6f2e8"/><circle cx="224" cy="273" r="13" fill="#0d1922"/><circle cx="275" cy="273" r="13" fill="#0d1922"/>
+            <rect x="34" y="34" width="150" height="80" rx="10" fill="#f6f2e8"/><rect x="49" y="50" width="82" height="9" fill="#10263a"/><rect x="49" y="73" width="112" height="7" fill="#91a1aa"/><rect x="49" y="91" width="88" height="7" fill="#91a1aa"/>
+          </svg>
+        </div>
+        <div class="copy"><div class="tag">B｜現場×データ編集型　おすすめ</div><h2>原体験と事業構造を両立</h2><div class="desc">道路現場のイラストと、地図・データの流れを一つの物語として構成。タクシー乗務員としての視点から、行政・ナビへつながる未来を伝えます。</div><ul class="pros"><li>あなたにしかない動機が残る</li><li>行政にも研究者にも説明可能</li><li>ImageGenの効果が最も高い</li></ul></div>
+      </article>
+      <article>
+        <div class="visual">
+          <svg viewBox="0 0 500 310" role="img" aria-label="未来都市とデータネットワーク">
+            <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#152f48"/><stop offset="1" stop-color="#196c77"/></linearGradient></defs><rect width="500" height="310" fill="url(#g)"/>
+            <g fill="#d7ecec" opacity=".85"><rect x="40" y="68" width="62" height="160"/><rect x="116" y="110" width="74" height="118"/><rect x="321" y="56" width="63" height="172"/><rect x="398" y="98" width="67" height="130"/></g><path d="M0 255h500" stroke="#f6f2e8" stroke-width="42"/><path d="M0 255h500" stroke="#efa63c" stroke-width="4" stroke-dasharray="20 14"/>
+            <g fill="none" stroke="#56d8d3" stroke-width="3"><path d="M70 62Q245 4 430 83"/><path d="M90 146Q254 205 410 129"/></g><g fill="#efa63c"><circle cx="70" cy="62" r="8"/><circle cx="245" cy="31" r="8"/><circle cx="430" cy="83" r="8"/><circle cx="90" cy="146" r="8"/><circle cx="253" cy="173" r="8"/><circle cx="410" cy="129" r="8"/></g>
+          </svg>
+        </div>
+        <div class="copy"><div class="tag">C｜未来インフラ型</div><h2>全国展開と将来像を強調</h2><div class="desc">データネットワーク、信号制御、ナビ連携などの将来像を大胆に見せる構成。夢は伝わりますが、現在地との距離が大きく見える可能性があります。</div><ul class="pros"><li>スケール感が強い</li><li>企業との協業説明に向く</li><li>初期実証が小さく見えやすい</li></ul></div>
+      </article>
+    </div>
+    <footer><strong>おすすめ：</strong> Bを基調にし、Aの信頼感ある数字・年表を組み込み、終盤だけCの将来像へ広げます。これなら「なぜ自分がやるのか」「今何があるのか」「どこまで育つのか」を一続きにできます。</footer>
+  </main>
+</body>
+</html>
