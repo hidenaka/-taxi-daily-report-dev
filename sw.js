@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'taxi-daily-'; // このアプリ専用のキャッシュ接頭辞
-const CACHE_NAME = CACHE_PREFIX + 'v461';
+const CACHE_NAME = CACHE_PREFIX + 'v462';
 // アプリ本体（同一オリジン）。install 時に原子的にプリキャッシュする。
 const STATIC_FILES = [
   './',
@@ -31,6 +31,21 @@ const STATIC_FILES = [
   './tools/js/koji-data.js',
   './tools/js/koji-layer.js',
   './tools/js/koji-ui.js',
+  './tools/js/koji-lane-scene.js',
+  './tools/js/koji-lane-anim.js',
+  './tools/img/koji/car-taxi-black.png',
+  './tools/img/koji/car-white.png',
+  './tools/img/koji/car-blue.png',
+  './tools/img/koji/car-silver.png',
+  './tools/img/koji/car-truck.png',
+  './tools/img/koji/car-red.png',
+  './tools/img/koji/car-taxi-yellow.png',
+  './tools/img/koji/car-gray.png',
+  './tools/img/koji/cone.png',
+  './tools/img/koji/barrier.png',
+  './tools/img/koji/worker.png',
+  './tools/js/traffic-count-data.js',
+  './tools/js/traffic-count-layer.js',
   './tools/data/koji.json',
   './tools/data/expressways.geojson',
   './tools/data/muni.json',

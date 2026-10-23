@@ -1,0 +1,378 @@
+{
+ "meta": {
+  "about": "航空写真（国土地理院 シームレス空中写真 z18）で目で確かめた結果。locate-keishicho-points.mjs が自動照合より優先して使う",
+  "how": "地点の座標を中心に約100m四方を切り出し、交差点の中心に十字があるか、交差道路名の2本の道路が交わっているかを見た"
+ },
+ "points": {
+  "201": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「外堀通り」「第一京浜」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "202": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 外堀通りと桜田通りの交差点の中心"
+  },
+  "203": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「外堀通り」「環状2号線」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "204": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 外堀通りと青山通りの交差点の中心"
+  },
+  "205": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 外堀通りと新宿通りの交差点の中心"
+  },
+  "206": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 外堀通りと靖国通りの交差点の中心"
+  },
+  "207": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 外堀通りと目白通りの交差点の中心"
+  },
+  "208": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 交差点の中心"
+  },
+  "209": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "航空写真では候補の点が橋のたもとで、交差点の中心か決められない"
+  },
+  "210": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 昭和通りと靖国通りの交差点の中心"
+  },
+  "211": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "航空写真では候補の点が交差点から外れて見える"
+  },
+  "212": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 昭和通りと永代通りの交差点の中心（首都高は東へ約100m。OSMの道路の線でも2本とも6m以内）"
+  },
+  "213": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 晴海通りと昭和通りの交差点の中心"
+  },
+  "504": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "首都高の高架の下で、交差点を航空写真で見られない"
+  },
+  "505": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと四谷角筈線の交差点の中心"
+  },
+  "506": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 交差点の中心"
+  },
+  "507": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと靖国通りの交差点の中心"
+  },
+  "508": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと新目白通りの交差点の中心"
+  },
+  "509": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "首都高の高架の下で、交差点を航空写真で見られない"
+  },
+  "510": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと中山道の交差点の中心"
+  },
+  "511": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "飛鳥山と溝田橋で候補の点が同じ所になり、どちらの交差点か決められない"
+  },
+  "512": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "飛鳥山と溝田橋で候補の点が同じ所になり、どちらの交差点か決められない"
+  },
+  "513": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと尾久橋通りの交差点の中心"
+  },
+  "514": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと尾竹橋通りの交差点の中心"
+  },
+  "515": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと日光街道の交差点の中心"
+  },
+  "516": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと水戸街道の交差点の中心"
+  },
+  "517": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと蔵前橋通りの交差点の中心"
+  },
+  "518": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点は駅前の広場で、交差点ではない"
+  },
+  "519": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りと葛西橋通りの交差点の中心"
+  },
+  "520": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 明治通りが東京湾岸道路に入る夢の島の交差点（湾岸道路は幅約100mで、十字は湾岸道路の中ほど）"
+  },
+  "702": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと第一京浜の交差点の中心"
+  },
+  "703": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 環七通りと第二京浜の立体交差の交差点（ループ状の道路あり）"
+  },
+  "704": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 中原街道（北西〜南東の広い道）と環七通り（北東〜南西）の交差点の中心。OSMの「南千束」の点4つも交差点内"
+  },
+  "705": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点は陸橋の上で、下の交差点を確かめられない"
+  },
+  "706": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと玉川通りの交差点の中心"
+  },
+  "707": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと世田谷通りの交差点の中心"
+  },
+  "708": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと甲州街道の交差点の中心"
+  },
+  "709": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 環七の陸橋の下の交差点"
+  },
+  "711": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 陸橋の下の交差点。OSMの同名の点も交差点内（道路の線は立体交差のため交わらない）"
+  },
+  "712": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと川越街道の交差点の中心"
+  },
+  "713": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと中仙道の交差点の中心"
+  },
+  "714": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと北本通りの交差点の中心"
+  },
+  "715": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと尾久橋通りの交差点の中心"
+  },
+  "716": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点が交差点の中心か決められない"
+  },
+  "717": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと水戸街道の交差点の中心"
+  },
+  "718": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 陸橋の下の交差点。OSMの同名の点も交差点内（道路の線は立体交差のため交わらない）"
+  },
+  "719": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと京葉道路の交差点の中心"
+  },
+  "720": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「環七通り」「新大橋通り」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "721": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環七通りと葛西橋通りの交差点の中心"
+  },
+  "801": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点は出入口の道路の上で、交差点ではない"
+  },
+  "802": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと産業道路の交差点の中心"
+  },
+  "803": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「環八通り」「第一京浜」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "805": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと中原街道の交差点の中心"
+  },
+  "806": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 交差点の中心"
+  },
+  "807": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと玉川通りの交差点の中心"
+  },
+  "808": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 陸橋の下の交差点。OSMの同名の点も交差点内（道路の線は立体交差のため交わらない）"
+  },
+  "809": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと甲州街道の交差点の中心"
+  },
+  "812": {
+   "status": "candidate-roads",
+   "checkedAt": "2026-10-22",
+   "note": "航空写真では点が交差点の中心から少しずれて見える"
+  },
+  "813": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと青梅街道の交差点の中心"
+  },
+  "814": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと目白通りの交差点の中心"
+  },
+  "816": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと川越街道の交差点の中心"
+  },
+  "817": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「環八通り」「中山道」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "818": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環八通りと北本通りの交差点の中心"
+  },
+  "4001": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 歩道橋のある交差点の中心"
+  },
+  "6001": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "OSMの道路「環状2号線」「第一京浜」が交わる唯一の所を、航空写真（国土地理院）で交差点と目視"
+  },
+  "6002": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 環状二号線と桜田通りの交差点の中心"
+  },
+  "6003": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 本郷通りと春日通りの交差点の中心"
+  },
+  "6004": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 昭和通りと浅草通りの交差点の中心"
+  },
+  "6005": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真（国土地理院）で目視: 交差点の中心"
+  },
+  "6006": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 靖国通りと江戸通りの交差点の中心"
+  },
+  "6007": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 晴海通りと新大橋通りの交差点の中心"
+  },
+  "6010": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点が新宿4（506）と同じ所で、新宿4東を区別できない"
+  },
+  "6011": {
+   "status": "mismatch",
+   "checkedAt": "2026-10-22",
+   "note": "候補の点が新宿5（507）と同じ所で、新宿5東を区別できない"
+  },
+  "6016": {
+   "status": "verified-visual",
+   "checkedAt": "2026-10-22",
+   "source": "航空写真と地理院地図（国土地理院）で目視: 千葉街道と蔵前橋通りの交差点の中心"
+  }
+ }
+}

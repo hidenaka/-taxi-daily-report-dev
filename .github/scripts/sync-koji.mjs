@@ -6,8 +6,9 @@
 //
 // 出典（画面に必ず出す）: 東京都建設局 路上工事情報 (CC BY 4.0) / 道路の形と名前 © OpenStreetMap contributors (ODbL)
 // 対象は東京23区の都道のみ。区道・国道・高速は含まれない。
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { addRoadShape } from './lib/koji-road-shape.mjs';   // 工事のまわりの信号・カーブ・坂（工事の絵に使う）
 
 const SRC = 'https://osanpo-safety.haqei64384.workers.dev/api/restrictions/geojson';
 const OUT = new URL('../../tools/data/koji.json', import.meta.url).pathname;
@@ -37,12 +38,31 @@ function slim(fc) {
   return features;
 }
 
+// 道の形を足す。失敗しても工事のデータは出す
+async function withRoadShape(features) {
+  try {
+    const r = await addRoadShape(features);
+    console.log(`道の形: 信号 ${r.signals}件・カーブ ${r.curves}件・道の形 ${r.profiles}件・坂 ${r.slopes}件（標高タイル ${r.tiles}枚・失敗 ${r.failedTiles}）`);
+  } catch (e) {
+    console.warn('道の形を足せませんでした（工事のデータはそのまま出す）', e.message);
+  }
+}
+
 async function main() {
+  // --local: 取りに行かず、いまの koji.json に道の形だけ足し直す（手で試すとき）
+  if (process.argv.includes('--local')) {
+    const doc = JSON.parse(readFileSync(OUT, 'utf8'));
+    for (const f of doc.features) for (const k of ['sigAt', 'curveDeg', 'roadU', 'slopePct']) delete f.properties[k];
+    await withRoadShape(doc.features);
+    writeFileSync(OUT, JSON.stringify(doc));
+    return;
+  }
   const res = await fetch(SRC, { headers: { 'user-agent': 'cabis-koji-sync' } });
   if (!res.ok) throw new Error(`取得できませんでした: ${res.status}`);
   const fc = await res.json();
   const features = slim(fc);
   if (features.length < 50) throw new Error(`件数が少なすぎます(${features.length})。元データの異常の可能性`);
+  await withRoadShape(features);
 
   let status = null;
   try {
@@ -58,6 +78,7 @@ async function main() {
       name: '東京都建設局 路上工事情報',
       license: 'CC BY 4.0',
       roads: '© OpenStreetMap contributors (ODbL)',
+      elevation: '国土地理院 標高タイル（坂）',
       via: 'osanpo-safety.haqei64384.workers.dev',
       dataset: status?.tokyo?.sourceLabel || null,
       importedAt: status?.tokyo?.importedAt || null,

@@ -254,6 +254,57 @@
     .k-owners[hidden]{display:none;}
     .k-owners small{color:var(--k-sub);font-size:11px;line-height:1.4;}
     .k-owners .k-legend i.bd{width:16px;height:0;border-radius:0;border-top:2px dashed var(--k-ink);}
+    /* 交通量調査（警視庁の定期調査地点・工事とは別の層） */
+    #tcBtn:focus-visible,#tcNote button:focus-visible{outline:3px solid #1f5fa8;outline-offset:2px;}
+    .k-tcnote{position:absolute;top:76px;right:16px;z-index:2;padding:8px 32px 8px 12px;width:248px;font-size:12px;line-height:1.5;color:var(--k-ink);}
+    .k-tcnote .tc-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;margin-top:5px;color:var(--k-sub);font-size:11.5px;}
+    .k-tcnote .tc-legend > span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+    .k-tcnote .tc-lg-mark{display:inline-block;width:6px;height:6px;background:#1f5fa8;transform:rotate(45deg);box-shadow:7px -2px 0 2px #1f5fa8;margin:0 9px 0 2px;}
+    .k-tcnote .tc-lg-arrow{display:inline-block;width:22px;height:8px;background:#1f5fa8;opacity:.75;clip-path:polygon(0 50%,35% 0,35% 25%,100% 25%,100% 75%,35% 75%,35% 100%);}
+    .k-tcnote[hidden]{display:none;}
+    .k-tcnote.err{border:2px solid var(--k-accent);}
+    .k-tcnote::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;background:#1f5fa8;transform:rotate(45deg);border:1.5px solid #fff;box-shadow:0 0 0 1px #1f5fa8;}
+    :where(#koji-ui) .k-tcnote button{position:absolute;top:6px;right:8px;width:24px;height:24px;font-size:16px;color:var(--k-sub);}
+    #owners:not([hidden]) ~ .k-tcnote{top:250px;}
+    .k-list.open ~ .k-tcnote{display:none;}
+    #tcDetail{border:0;border-radius:18px;max-width:640px;width:calc(100% - 24px);max-height:calc(100% - 40px);background:#fff;color:#1d2024;padding:18px 18px 14px;}
+    #tcDetail::backdrop{background:rgba(0,0,0,.3);}
+    #tcDetail h2{margin:0;font-size:20px;}
+    #tcDetail h2 small{font-size:12px;color:#6b7076;font-weight:600;margin-left:6px;}
+    #tcDetail h3{font-size:14px;margin:14px 0 6px;}
+    #tcDetail .tc-kicker{margin:0 0 4px;font-size:12px;font-weight:800;color:#1f5fa8;letter-spacing:.04em;}
+    #tcDetail .tc-roads{margin:2px 0 8px;color:#3c4248;font-weight:700;}
+    #tcDetail .tc-warn{margin:4px 0 8px;padding:6px 10px;background:#fff6e5;border-radius:8px;font-size:12px;font-weight:700;line-height:1.5;}
+    #tcDetail .tc-big{margin:8px 0 2px;font-size:13px;color:#3c4248;}
+    #tcDetail .tc-big b{font-size:30px;color:#1d2024;font-variant-numeric:tabular-nums;letter-spacing:.01em;}
+    #tcDetail .tc-big span{display:block;font-size:12px;color:#6b7076;}
+    #tcDetail h3 small{display:block;font-weight:600;font-size:12px;color:#6b7076;margin-top:2px;}
+    #tcDetail .tc-cross{width:100%;max-width:360px;height:auto;display:block;margin:0 auto;}
+    #tcDetail .tc-x-road{stroke:#e3e1dc;stroke-width:22;stroke-linecap:round;}
+    #tcDetail .tc-x-arrow{stroke:#1f5fa8;stroke-opacity:.85;stroke-linecap:butt;}
+    #tcDetail .tc-x-lab{font-size:12px;fill:#1d2024;}
+    #tcDetail .tc-x-place{font-weight:600;fill:#3c4248;}
+    #tcDetail .tc-x-num{font-weight:800;font-size:13px;}
+    #tcDetail .tc-x-north{font-size:11px;fill:#6b7076;font-weight:700;}
+    #tcDetail .tc-sum{margin:0;display:grid;gap:4px;font-size:13.5px;}
+    #tcDetail .tc-sum div{display:grid;grid-template-columns:7.5em 1fr;gap:8px;}
+    #tcDetail .tc-sum dt{color:#6b7076;}
+    #tcDetail .tc-sum dd{margin:0;}
+    #tcDetail .tc-bars{width:100%;max-width:420px;height:auto;display:block;}
+    #tcDetail .tc-bars text{font-size:9px;fill:#6b7076;}
+    #tcDetail .tc-dirs{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13.5px;}
+    #tcDetail .tc-dirs li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid #eee;padding:3px 0;}
+    #tcDetail details{margin-top:10px;font-size:13px;}
+    #tcDetail summary{cursor:pointer;font-weight:700;padding:6px 0;}
+    #tcDetail .tc-scroll{overflow-x:auto;}
+    #tcDetail table{border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+    #tcDetail th,#tcDetail td{border-bottom:1px solid #eee;padding:4px 6px;text-align:right;}
+    #tcDetail tbody th{text-align:left;}
+    #tcDetail .tc-small{font-size:12px;color:#3c4248;margin:8px 0 4px;}
+    #tcDetail .tc-note{font-size:12.5px;background:#f3f2ee;border-radius:8px;padding:6px 10px;}
+    #tcDetail .tc-src{font-size:11.5px;color:#6b7076;margin:12px 0 8px;}
+    #tcDetail a{color:inherit;}
+    #tcDetail .close{border:0;background:#1d2024;color:#f1f0ec;border-radius:999px;padding:10px 20px;font-weight:700;}
     /* 狭い画面。本家はパソコン前提で札が大きく、スマホだと地図がほとんど見えない。
        ここだけ小さく詰める（見出しは消す＝上のタブに「工事/雨雲β」と出ているため） */
     @media (max-width:760px){
@@ -261,6 +312,9 @@
       .k-tools{top:10px;right:10px;}
       .k-tools .k-seg{display:none;}
       .k-round{width:38px;height:38px;}
+      /* 下は「ふさぎ具合…」「立体/平面」の2段が来るので、上の「工事一覧」の下に置く */
+      .k-tcnote{top:122px;bottom:auto;right:auto;left:10px;width:min(270px,calc(100% - 20px));}
+      #owners:not([hidden]) ~ .k-tcnote{top:166px;}
       #listBtn{display:block;position:absolute;top:76px;left:10px;z-index:3;border:0;
         padding:7px 12px;font-weight:700;font-size:12.5px;color:var(--k-ink);}
       .k-list{display:none;top:122px;left:10px;right:10px;width:auto;bottom:206px;}
@@ -317,6 +371,15 @@
     .koji-pop .small{font-size:12px;}
     .koji-pop .b{font-weight:700;}
     .koji-pop .warn{border-left:3px solid #e0452f;padding-left:8px;margin:4px 0;}
+    /* 「いつも」と「工事中」の車線の絵 */
+    .koji-pop .koji-anim{margin:6px 0 4px;width:268px;max-width:100%;}
+    .lane-anim canvas{display:block;border-radius:8px;width:100%;}
+    .lane-anim .la-tabs{display:flex;gap:4px;margin-bottom:5px;}
+    .lane-anim .la-tabs button{flex:1;border:0;border-radius:999px;padding:5px 6px;font:700 12px/1.2 system-ui,sans-serif;
+      background:#eceef0;color:#4b5058;cursor:pointer;}
+    .lane-anim .la-tabs button[aria-selected="true"]{background:#1d2024;color:#fff;}
+    .lane-anim .la-tabs button[data-w="1"][aria-selected="true"]{background:#e0452f;}
+    .lane-anim .la-chips{margin-top:5px;font-size:12px;font-weight:700;color:#4b5058;}
 
     /* 場所えらびパネル */
     #radar-place-panel{position:fixed;left:0;right:0;bottom:0;z-index:1400;background:#15151c;color:#fff;
@@ -485,6 +548,7 @@
         <button data-view="2d" aria-pressed="false">平面</button>
       </div>
       <button class="k-round k-card" id="roads" aria-label="道の持ち主（国道・都道・区道）と区の境を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 9 4M20 20 15 4M12 6v2M12 11v2M12 16v2"/></svg></button>
+      <button class="k-round k-card" id="tcBtn" aria-label="交通量調査（警視庁・2024年の調査日の実績）を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 21 12 12 21 3 12z"/><path d="M9 14v-2M12 15v-5M15 14v-3"/></svg></button>
       <button class="k-round k-card" id="info" aria-label="この地図について"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     </div>
 
@@ -495,6 +559,7 @@
       <div class="k-legend" id="ownerLegend"></div>
       <small id="ownerHint">区道は拡大すると出ます</small>
     </div>
+
 
     <aside class="k-list k-card" id="list" aria-label="この時間の工事">
       <div class="top">
@@ -508,6 +573,8 @@
       </div>
       <div class="items" id="items"></div>
     </aside>
+
+    <div class="k-tcnote k-card" id="tcNote" role="status" aria-live="polite" hidden></div>
 
     <div class="k-cloud k-card" aria-label="見方">
       <span>もや＝車線をふさぐ工事の集まり</span><i></i><span class="ends"><b>少</b><b>多</b></span>
@@ -541,7 +608,13 @@
       <p><b>道の持ち主</b>（右上の道のボタン）: 国道＝青、都道＝緑、区道など＝紫。点線は区の境です。国土地理院の地図データの「道路の種類」で色分けしているので、管理者とは少しずれます。区道の工事情報はまだ地図に入っていません。</p>
       <p><b>位置</b>: 都のデータの住所（丁目）と道路名から、その名前の道路の上に置いています（道路の形と名前: © OpenStreetMap contributors）。その名前の道路が住所の近くに無い工事は、道路には置かず<b>白抜きの丸</b>（位置は目安）で出します。</p>
       <p><b>時間帯</b>は各工事の予定で、毎日同じ時間帯として表示しています（曜日・休工日は元データに無い）。工事はすべて下道（都道）で、高速道路そのものの規制は含みません。実際の通行可否は現地の標識・警察・道路管理者の情報を確認してください。</p>
+      <p><b>交通量調査</b>（右上の菱形のボタン・最初は消えています）: 警視庁の定期交通量調査「令和6年 主要交差点交通量（区部）」の地点を、菱形の印で重ねます（印が大きいほど、交差点を通った車が多い）。地図を寄せると、交差点に入ってきた方向ごとの台数を矢印で描きます（矢印が太いほど多い）。<span id="tcAboutCount">対象は区部の主要交差点91地点のうち、位置を確かめた61地点です（2026-10-22 に取り込み。残り30地点は位置を確かめられないため出していません）</span>。位置は、OpenStreetMapの交差点名と道路名で候補を出し、国土地理院の航空写真で目で確かめました（地点の詳細に書いてあります）。値は2024年11月の調査日に、7時〜19時に交差点へ入った車を数えた実績です。<b>現在の交通量・通常日の代表値・渋滞予測ではありません</b>。毎日更新されるものではなく、警視庁が次の調査結果を公表したときに取り込み直します。工事の「混みやすさ」の計算には使っていません。出典: 警視庁「交通量統計表」（加工して作成）。</p>
       <p class="src">出典: 東京都建設局 路上工事情報（CC BY 4.0）／ 地図: 国土地理院 ／ 道路の形と名前: © OpenStreetMap contributors（ODbL）</p>
+      <form method="dialog"><button class="close">閉じる</button></form>
+    </dialog>
+
+    <dialog id="tcDetail" aria-label="交通量調査の地点">
+      <div id="tcBody"></div>
       <form method="dialog"><button class="close">閉じる</button></form>
     </dialog>
   </div>

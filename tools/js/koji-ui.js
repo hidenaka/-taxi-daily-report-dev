@@ -4,10 +4,13 @@
 // ボタン・並び・文言は本家と同じにする（勝手に足したり減らしたりしない）。
 // 地図の層は koji-layer.js、材料づくりは koji-data.js。
 import { createKojiLayer } from './koji-layer.js';
+import { createTrafficCountLayer } from './traffic-count-layer.js';   // 警視庁の交通量調査（別の層・既定はオフ）
+import { laneScene } from './koji-lane-scene.js';      // 「いつも」と「工事中」の車線の並び
+import { mountLaneAnim } from './koji-lane-anim.js';   // 車が動く絵
 import {
   activeAt, stateAt, toDisplay, markTwins, windowAt, windowLabel, formatPeriod,
-  laneLevel, levelInfo, kindOf, kindInfo, jamLevel, jamInfo, sideKind, sideLabel,
-  MODES, DIRS, LEVELS, LEVEL_ORDER, KIND_MARK, SIDE_SHORT, TYPE_LABEL, LIST_MAX,
+  laneLevel, levelInfo, kindOf, kindInfo, jamLevel, jamInfo, sideKind,
+  MODES, DIRS, LEVELS, LEVEL_ORDER, KIND_MARK, SIDE_SHORT, LIST_MAX,
   HEAT_WEIGHT, samplePoints, OWNERS_DEF, nextBase,
 } from './koji-data.js';
 
@@ -37,6 +40,7 @@ export function createKojiUi(map) {
   let popup = null;
 
   const layer = createKojiLayer(map, { onClick: (f, lngLat) => openPopup(f.properties, lngLat) });
+  let traffic = null;
 
   // ---- データ ----
   async function load() {
@@ -200,24 +204,41 @@ export function createKojiUi(map) {
     let h = '<div class="koji-pop">';
     h += `${pill({ key: 'road', label: '下道（都道）', color: '#4b5563' })}${pill(levelInfo(p.level))}${pill(kindInfo(p.kind))}`;
     h += `<div class="ttl">${esc(p.title)}</div>`;
+    h += '<div class="koji-anim"></div>';
+    if (laneScene(p).guessed) h += '<div class="sub small">絵の車線の数・ふさぐ車線は目安です</div>';
     if (/高速|首都高/.test(p.title)) h += '<div class="sub">高速道路の工事ですが、規制されるのは下道の車線です。</div>';
-    if (p.roadSide) h += `<div>規制する側: <b>${esc(sideLabel(p.roadSide))}</b><span class="sub">（推定）</span></div>`;
-    if (Number(p.side)) h += '<div class="sub small">地図の矢印＝ふさがれる車線を走る車の向き（拡大すると出ます）</div>';
     if (p.placement === 'approx') {
       h += `<div class="warn">位置は目安です。都のデータの道路名「${esc(p.road)}」の道路が、住所の近くに見つかりません（元データの道路名か住所が違う可能性）。`
         + (p.twinRoad ? `<br>すぐ近くに、道路名だけが違う同じ内容の工事（<b>${esc(p.twinRoad)}</b>）があります。道路名の書き間違いかもしれません。` : '') + '</div>';
     }
-    if (p.laneSummary) h += `<div class="b">${esc(p.laneSummary)}</div>`;
     if (Number(p.st) === 2 && p.jam) h += `<div>この時刻の混みやすさ: <b style="color:${jamInfo(p.jam).color}">${esc(jamInfo(p.jam).label)}</b><span class="sub">（目安）</span></div>`;
-    else h += `<div>${esc(TYPE_LABEL[p.restrictionType] || p.restrictionType)}</div>`;
     h += `<div>作業時間: <b>${esc(windowLabel(p.timeWindow))}</b>${Number(p.st) === 1 ? '（この時刻は作業なし）' : ''}</div>`;
     h += `<div class="sub">${esc(formatPeriod(p))}</div>`;
     return `${h}</div>`;
   }
 
+  let anim = null;
   function openPopup(p, lngLat) {
     popup?.remove();
+    anim?.destroy();
     popup = new maplibregl.Popup({ offset: 12, maxWidth: '300px' }).setLngLat(lngLat).setHTML(popupHtml(p)).addTo(map);
+    const box = popup.getElement()?.querySelector('.koji-anim');
+    if (box) {
+      try { anim = mountLaneAnim(box, laneScene(p)); } catch (e) { console.warn('[工事] 車線の絵を出せませんでした', e); box.remove(); }
+    }
+    popup.on('close', () => { anim?.destroy(); anim = null; });
+    // 絵が入って吹き出しが大きくなったので、はみ出したら地図を動かして画面に収める
+    requestAnimationFrame(() => {
+      const r = popup?.getElement()?.getBoundingClientRect();
+      const c = map.getContainer().getBoundingClientRect();
+      if (!r) return;
+      const top = c.top + (innerWidth <= 760 ? 150 : 60);      // 上のボタン（工事一覧など）をよける
+      const bottom = c.bottom - (innerWidth <= 760 ? 290 : 170); // 下の時刻の欄・色分けのボタンをよける
+      let dy = 0;
+      if (r.top < top) dy = r.top - top;
+      else if (r.bottom > bottom) dy = Math.min(r.bottom - bottom, r.top - top);
+      if (dy) map.panBy([0, dy], { duration: 350 });
+    });
   }
 
   // ---- 下の時刻の目盛り ----
@@ -348,8 +369,10 @@ export function createKojiUi(map) {
     async setActive(next) {
       active = next;
       document.body.classList.toggle('koji-on', next);
+      traffic?.setScreenActive(next);
       if (!next) { stop(); popup?.remove(); layer.setVisible(false); return; }
       if (!wired) { wire(); buildLegend(); buildOwnerLegend(); drawTicks(); wired = true; }
+      if (!traffic) { traffic = createTrafficCountLayer(map, { closeOtherPopups: () => popup?.remove() }); traffic.setScreenActive(true); }
       if (!(await load())) return;
       if (!(await ensureLayers())) return;
       layer.setColorMode(mode);
