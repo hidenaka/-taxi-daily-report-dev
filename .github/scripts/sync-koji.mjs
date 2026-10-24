@@ -52,7 +52,7 @@ async function main() {
   // --local: 取りに行かず、いまの koji.json に道の形だけ足し直す（手で試すとき）
   if (process.argv.includes('--local')) {
     const doc = JSON.parse(readFileSync(OUT, 'utf8'));
-    for (const f of doc.features) for (const k of ['sigAt', 'curveDeg', 'roadU', 'slopePct']) delete f.properties[k];
+    for (const f of doc.features) for (const k of ['axisDeg', 'axisTo', 'axisFrom', 'sigAt', 'curveDeg', 'roadU', 'slopePct']) delete f.properties[k];
     await withRoadShape(doc.features);
     writeFileSync(OUT, JSON.stringify(doc));
     return;

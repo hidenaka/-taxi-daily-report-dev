@@ -99,6 +99,7 @@ function halfLabels(kind, nTop) {
  *   curve: → の車から見て、+ は右へ曲がる（度）
  *   slope: → の車から見て、+ は上り（%）
  *   road:  道の形 [{t, u}]（m）。t は → の車の行く先が +、u は → の車から見て右が +。無ければ null
+ *   dirs:  { right, left }。→ の車・← の車が向かう方角と街 { compass: '北東', place: '新宿' | '' }。道の向きが無ければ null
  */
 export function roadShape(p = {}) {
   const flip = Number(p.side) === 1 ? -1 : 1;
@@ -112,5 +113,26 @@ export function roadShape(p = {}) {
       .filter((q) => q.u != null).sort((a, b) => a.t - b.t);
     if (road.length < 2) road = null;
   }
-  return { sig: sig.sort((a, b) => a - b), curve: curve == null ? null : curve * flip, slope: slope == null ? null : slope * flip, road };
+  let dirs = null;
+  const axis = num(p.axisDeg);
+  if (axis != null) {
+    const fwd = { compass: compass8(axis), place: p.axisTo || '' };
+    const back = { compass: compass8(axis + 180), place: p.axisFrom || '' };
+    dirs = flip === 1 ? { right: fwd, left: back } : { right: back, left: fwd };
+  }
+  return { sig: sig.sort((a, b) => a - b), curve: curve == null ? null : curve * flip, slope: slope == null ? null : slope * flip, road, dirs };
+}
+
+/** 方角（度・北が0の時計回り）→ 「北」「北東」… */
+export function compass8(deg) {
+  return ['北', '北東', '東', '南東', '南', '南西', '西', '北西'][Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+}
+
+/**
+ * 「新宿方面」。街が無ければ「北東へ」。
+ * 絵の → は画面の右で、地図の東とは限らないので、街があるときは方角を書かない（→ に「西へ」と並ぶと迷う）
+ */
+export function dirText(d) {
+  if (!d) return '';
+  return d.place ? `${d.place}方面` : `${d.compass}へ`;
 }

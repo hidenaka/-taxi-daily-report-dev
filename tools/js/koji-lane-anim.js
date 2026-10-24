@@ -6,6 +6,9 @@
 // 道の形（scene.shape）があれば、信号で止まる・道が曲がる（先が見えにくい）・坂で動き出しが遅い、も描く。
 //   曲がった道は、まっすぐな道の絵（別の canvas）を縦の細い帯に切り、帯ごとに上下へずらして写す。
 // 絵は画面から外れたら止まる（popup を閉じると canvas が外れる）。
+// 歩道の文字と下の説明で、→ ・← の車がどの方面へ向かう車線かを出す（どちらの車線の工事か分かるように）。
+import { dirText } from './koji-lane-scene.js';
+
 const SPRITES = ['car-taxi-black', 'car-white', 'car-blue', 'car-silver', 'car-truck', 'car-red', 'car-taxi-yellow', 'car-gray'];
 const IMG_BASE = './img/koji/';
 const imgCache = new Map();
@@ -40,7 +43,7 @@ export function mountLaneAnim(el, scene, { auto = true } = {}) {
   const W = Math.max(220, Math.round(el.clientWidth || 268));
   const N = scene.lanes.length;
   const laneH = Math.max(16, Math.min(32, Math.floor(150 / N)));
-  const walk = 10;                        // 歩道の幅
+  const walk = 14;                        // 歩道の幅（方面の札がのる）
   const Hs = N * laneH + walk * 2;        // まっすぐな道の絵の高さ
   const shape = scene.shape || {};
   const curve = Math.max(-70, Math.min(70, Number(shape.curve) || 0));
@@ -97,6 +100,12 @@ export function mountLaneAnim(el, scene, { auto = true } = {}) {
   const LIGHT = [['G', 5], ['Y', 1], ['R', 4.5]];
   let light = 0; let lightT = Math.random() * 3;
   const chips = [];
+  // どちらの車線の話か: → ・← の車が向かう方面を、歩道の文字と下の説明に出す
+  const dirs = shape.dirs || null;
+  const sideText = (d) => (dirs ? dirText(dirs[d === 1 ? 'right' : 'left']) : '');
+  const closedDirs = [...new Set(scene.lanes.filter((l) => l.closed).map((l) => l.dir))];
+  if (dirs && scene.type === 'lane' && closedDirs.length === 1) chips.push(`ふさぐのは ${sideText(closedDirs[0])}${sideText(closedDirs[0]).endsWith('へ') ? '' : 'へ'}向かう車線（絵の ${closedDirs[0] === 1 ? '→' : '←'}）`);
+  else if (dirs && scene.type === 'lane' && closedDirs.length === 2) chips.push('ふさぐのは両方向の車線');
   if (sigX.length) chips.push(`信号 ${sigX.length}か所`);
   if (curved) chips.push(`${curve > 0 ? '右' : '左'}カーブ${Math.abs(curve) >= 25 ? '（先が見えにくい）' : ''}`);
   if (hill) chips.push(`→ の向きは${hill > 0 ? '上り' : '下り'}坂 ${Math.abs(slope)}%`);
@@ -274,8 +283,21 @@ export function mountLaneAnim(el, scene, { auto = true } = {}) {
     g.font = `700 10px system-ui,sans-serif`; g.textBaseline = 'middle'; g.textAlign = 'left';
     g.fillStyle = '#6b665a';
     const text = (t, x, y) => { g.save(); anchor(x, y); g.fillText(t, x, y); g.restore(); };
-    if (scene.topLabel) text(scene.topLabel, 4, walk / 2 + 0.5);
-    if (scene.bottomLabel) text(scene.bottomLabel, 4, Hs - walk / 2 + 0.5);
+    // 方面の文字は、白い札にのせて歩道の上に出す（信号の灯りなどと重なっても読めるように）
+    const tag = (t, x, y) => {
+      g.save(); anchor(x, y);
+      g.font = '800 10.5px system-ui,sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'left';
+      const w = g.measureText(t).width + 10;
+      g.fillStyle = 'rgba(255,255,255,.94)'; roundRect(x - 2, y - 7, w, 14, 7); g.fill();
+      g.fillStyle = '#1d2024'; g.fillText(t, x + 3, y + 0.5);
+      g.restore();
+    };
+    const hasDir = (d) => scene.lanes.some((l) => l.dir === d);
+    const topText = dirs ? (hasDir(-1) ? `← ${sideText(-1)}` : '') : scene.topLabel;
+    const bottomText = dirs ? (hasDir(1) ? `→ ${sideText(1)}` : '') : scene.bottomLabel;
+    const put = dirs ? tag : text;
+    if (topText) put(topText, 4, walk / 2 + 0.5);
+    if (bottomText) put(bottomText, 4, Hs - walk / 2 + 0.5);
     // 向きの矢印（左右の端）
     g.fillStyle = 'rgba(255,255,255,.55)'; g.font = `700 ${Math.round(laneH * 0.55)}px system-ui,sans-serif`;
     g.textBaseline = 'middle';

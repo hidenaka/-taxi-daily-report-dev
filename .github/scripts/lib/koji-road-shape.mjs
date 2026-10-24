@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { readPng } from './read-png.mjs';
 import {
-  localFrame, axisOf, signalsAlong, curveFromPoints, roadPointsNear, roadProfile, curveFromProfile, slopeFromProfile, onStructure, demValue, demTileOf,
+  localFrame, axisOf, signalsAlong, curveFromPoints, roadPointsNear, roadProfile, curveFromProfile, towardPlace, slopeFromProfile, onStructure, demValue, demTileOf,
 } from './road-shape.mjs';
 
 const ROOT = new URL('../../../', import.meta.url).pathname;
@@ -36,7 +36,7 @@ async function defaultFetchTile(z, x, y) {
 }
 
 /**
- * features の properties に sigAt / curveDeg / roadU / slopePct を足す（その場で書き換える）。
+ * features の properties に axisDeg / axisTo / axisFrom / sigAt / curveDeg / roadU / slopePct を足す（その場で書き換える）。
  * @returns 足せた件数
  */
 export async function addRoadShape(features, { data = loadRoadData(), fetchTile = defaultFetchTile, concurrency = 6 } = {}) {
@@ -46,6 +46,11 @@ export async function addRoadShape(features, { data = loadRoadData(), fetchTile 
     if (!ax) continue;
     const frame = localFrame(ax.mid, ax.bearing);
     const p = f.properties;
+    // 道の向き（線の始点→終点・点は roadBearing）と、その先・反対の先にある主な街（絵で「◯◯方面」と出す）
+    p.axisDeg = Math.round(ax.bearing) % 360;
+    const to = towardPlace(ax.mid, ax.bearing); const from = towardPlace(ax.mid, ax.bearing + 180);
+    if (to) p.axisTo = to; else delete p.axisTo;
+    if (from) p.axisFrom = from; else delete p.axisFrom;
     const sig = signalsAlong(frame, data.signals);
     if (sig.length) p.sigAt = sig.join(',');
     const road = String(p.title || '').split(' ')[0];

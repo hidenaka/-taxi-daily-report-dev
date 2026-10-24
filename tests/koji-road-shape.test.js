@@ -85,9 +85,9 @@ test('工事に信号・カーブ・坂を足す（標高タイルが取れな�
 });
 
 test('絵の向き: ふさぐ側が線の右なら、→ の車は線と逆向きに走るので値を裏返す', () => {
-  assert.deepEqual(roadShape({ sigAt: '-80,45', curveDeg: 30, slopePct: 4, side: -1 }), { sig: [-80, 45], curve: 30, slope: 4, road: null });
-  assert.deepEqual(roadShape({ sigAt: '-80,45', curveDeg: 30, slopePct: 4, side: 1 }), { sig: [-45, 80], curve: -30, slope: -4, road: null });
-  assert.deepEqual(roadShape({}), { sig: [], curve: null, slope: null, road: null });
+  assert.deepEqual(roadShape({ sigAt: '-80,45', curveDeg: 30, slopePct: 4, side: -1 }), { sig: [-80, 45], curve: 30, slope: 4, road: null, dirs: null });
+  assert.deepEqual(roadShape({ sigAt: '-80,45', curveDeg: 30, slopePct: 4, side: 1 }), { sig: [-45, 80], curve: -30, slope: -4, road: null, dirs: null });
+  assert.deepEqual(roadShape({}), { sig: [], curve: null, slope: null, road: null, dirs: null });
 });
 
 test('koji.json: 道の形の値が範囲に収まっている', async () => {
@@ -123,4 +123,22 @@ test('道の形は、→ の車が線と逆向きなら前後と左右を入れ�
   const u = Array.from({ length: 31 }, (_, i) => (i === 30 ? 9 : 0)).join(',');
   assert.deepEqual(roadShape({ roadU: u, side: -1 }).road.at(-1), { t: 150, u: 9 });
   assert.deepEqual(roadShape({ roadU: u, side: 1 }).road[0], { t: -150, u: -9 });
+});
+
+test('方面: 道の向きの先 600m〜6km にある街。向きが合わない・遠すぎる街は使わない', async () => {
+  const { towardPlace } = await import('../.github/scripts/lib/road-shape.mjs');
+  const P = [['近い北', 139.7, 35.69], ['遠い北', 139.7, 35.78], ['東', 139.72, 35.68], ['すぐそこ', 139.7, 35.682]];
+  assert.equal(towardPlace([139.7, 35.68], 0, P), '近い北');
+  assert.equal(towardPlace([139.7, 35.68], 90, P), '東');
+  assert.equal(towardPlace([139.7, 35.68], 180, P), '');
+});
+
+test('絵の → ・← の車が向かう方面（→ の車が線と逆向きなら入れかえる）', async () => {
+  const { compass8, dirText } = await import('../tools/js/koji-lane-scene.js');
+  assert.equal(compass8(0), '北'); assert.equal(compass8(44), '北東'); assert.equal(compass8(-90), '西'); assert.equal(compass8(359), '北');
+  const a = roadShape({ axisDeg: 30, axisTo: '新宿', axisFrom: '品川', side: -1 });
+  assert.deepEqual(a.dirs, { right: { compass: '北東', place: '新宿' }, left: { compass: '南西', place: '品川' } });
+  const b = roadShape({ axisDeg: 30, axisTo: '新宿', side: 1 });
+  assert.equal(dirText(b.dirs.right), '南西へ');
+  assert.equal(dirText(b.dirs.left), '新宿方面');
 });
