@@ -141,7 +141,9 @@ test('方面は道をたどって選ぶ: 曲がる道は曲がった先の街・
   const tr = makeRoadTracer(lines);
   assert.equal(tr.placeAlong([139.7, 35.681], 0, ['L通り'], P), '東の街');
   assert.equal(tr.placeAlong([139.7, 35.681], 180, ['L通り'], P), '');      // 南は道がすぐ終わる
-  assert.equal(tr.placeAlong([139.7, 35.681], 0, ['別の通り'], P), '');     // 線に無い名前の道はたどらない
+  // 名前が線に無いときは、工事の 40m 以内でいちばん近い道をたどる。40m より遠ければ出さない
+  assert.equal(tr.placeAlong([139.7, 35.681], 0, ['別の通り'], P), '東の街');
+  assert.equal(tr.placeAlong([139.701, 35.681], 0, ['別の通り'], P), '');
   assert.equal(tr.placeAlong([139.7, 35.681], 0, ['別の通り', 'L通り'], P), '東の街');   // 「A・B」はどちらでも
 });
 
