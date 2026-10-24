@@ -17,11 +17,19 @@ const SRC_NAME = 'tc-names';
 const ARROW = 'tc-arrow';
 const ARROW_EDGE = 'tc-arrow-edge';
 const ARROW_LABEL = 'tc-arrow-label';
+const SRC_ICON = 'tc-arrow-icons';
+const ARROW_ICON = 'tc-arrow-icon';
+const ARROW_ICON_LABEL = 'tc-arrow-icon-label';
 const MARK = 'tc-mark';
 const LABEL_NUM = 'tc-label-num';
 const LABEL = 'tc-label';
-const LAYERS = [ARROW, ARROW_EDGE, MARK, LABEL_NUM, LABEL, ARROW_LABEL];
-const CLICKABLE = [MARK, LABEL_NUM, LABEL, ARROW, ARROW_LABEL];
+const LAYERS = [ARROW, ARROW_EDGE, ARROW_ICON, ARROW_ICON_LABEL, MARK, LABEL_NUM, LABEL, ARROW_LABEL];
+const CLICKABLE = [MARK, LABEL_NUM, LABEL, ARROW, ARROW_LABEL, ARROW_ICON, ARROW_ICON_LABEL];
+// 引いた地図でも、入ってきた方向を矢印の印で出す（寄ると、長さが道に合った矢印に替わる）
+const ICON_FROM_ZOOM = 10.5;
+const ICON_LABEL_ZOOM = 12.8;
+const ICON_LEN = 34;       // 矢印の印の長さ（画面の px・大きさ1のとき）
+const ICON_GAP = 5;        // 交差点の真ん中から矢印の先までのすき間（px）
 const COLOR = '#1f5fa8';
 const ARROW_FROM_M = 26;   // 矢印の先（交差点の中心からの距離）
 const ARROW_TO_M = 150;    // 矢印の根元
@@ -30,6 +38,9 @@ const ARROW_LABEL_ZOOM = 15.5;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (id) => document.getElementById(id);
+
+/** 矢印の印の大きさ（四輪の12時間計。多いほど大きい） */
+const iconSize = (v) => Math.max(0.55, Math.min(1.25, 0.45 + 0.8 * Math.sqrt(v / 30000)));
 
 export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
   let doc = null;          // 読み込んだ JSON
@@ -74,6 +85,21 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
     map.addImage('tc-diamond', g.getImageData(0, 0, s, s), { pixelRatio: 2 });
   }
 
+  /** 矢印の印（上向き・先が上）。地図では入ってくる向きに回す */
+  function addArrowImage() {
+    if (map.hasImage('tc-arrow-up')) return;
+    const w = 30; const h = ICON_LEN * 2; const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d');
+    const path = () => {
+      g.beginPath(); g.moveTo(w / 2, 2); g.lineTo(w - 2, 24); g.lineTo(w / 2 + 6, 24); g.lineTo(w / 2 + 6, h - 2);
+      g.lineTo(w / 2 - 6, h - 2); g.lineTo(w / 2 - 6, 24); g.lineTo(2, 24); g.closePath();
+    };
+    g.lineJoin = 'round';
+    path(); g.lineWidth = 4; g.strokeStyle = '#ffffff'; g.stroke();
+    path(); g.fillStyle = COLOR; g.fill();
+    map.addImage('tc-arrow-up', g.getImageData(0, 0, w, h), { pixelRatio: 2 });
+  }
+
   /** 文字の札（地図にフォント設定が無いので、文字を画像にして出す）。lines[0] が太字 */
   function addLabelImage(name, lines, { size = 26, border = COLOR, bg = 'rgba(255,255,255,0.95)' } = {}) {
     if (map.hasImage(name)) return;
@@ -99,7 +125,8 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       features: doc.points.map((p) => ({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
-        properties: { id: p.pointId, name: p.name, v: p.total12h?.fourWheel ?? 0 },
+        // 矢印を出せる地点（腕の向きが分かる）は菱形を出さない（矢印そのものを押す）
+        properties: { id: p.pointId, name: p.name, v: p.total12h?.fourWheel ?? 0, arms: !!p.armBearings },
       })),
     };
   }
@@ -118,24 +145,43 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
         labels.push({ type: 'Feature', geometry: { type: 'Point', coordinates: offsetPoint([p.lon, p.lat], b, ARROW_TO_M + 14) }, properties: { id: p.pointId, img: `tc-a-${p.pointId}-${a.code}` } });
       }
     }
+    // 引いた地図の矢印の印（向き＝入ってくる向き・大きさ＝台数）と、その根元の札
+    const icons = []; const iconLabels = [];
+    for (const p of doc.points) {
+      if (!p.armBearings) continue;
+      for (const a of p.approaches) {
+        const b = p.armBearings[a.code];
+        const v = a.total12h?.fourWheel;
+        if (!Number.isFinite(b) || !(v > 0)) continue;
+        const size = iconSize(v);
+        icons.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { id: p.pointId, rot: (b + 180) % 360, size } });
+        const d = ICON_GAP + ICON_LEN * size + 13;
+        const r = (b * Math.PI) / 180;
+        iconLabels.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { id: p.pointId, img: `tc-s-${p.pointId}-${a.code}`, off: [Math.round(Math.sin(r) * d), Math.round(-Math.cos(r) * d)] } });
+      }
+    }
     // 地点名の札は、矢印の無い向き（腕のあいだのいちばん広い所）へ少し離して置く
     const names = doc.points.map((p) => {
       const has = !!p.armBearings;
       const b = widestGap(has ? Object.values(p.armBearings) : []);
       return { type: 'Feature', geometry: { type: 'Point', coordinates: has ? offsetPoint([p.lon, p.lat], b, 75) : [p.lon, p.lat] }, properties: { id: p.pointId, has } };
     });
-    return { arrows: { type: 'FeatureCollection', features: arrows }, labels: { type: 'FeatureCollection', features: labels }, names: { type: 'FeatureCollection', features: names } };
+    return { icons: { type: 'FeatureCollection', features: icons }, iconLabels: { type: 'FeatureCollection', features: iconLabels }, arrows: { type: 'FeatureCollection', features: arrows }, labels: { type: 'FeatureCollection', features: labels }, names: { type: 'FeatureCollection', features: names } };
   }
 
   function addLayers() {
     if (added) return true;
     try {
       addMarkImage();
+      addArrowImage();
       for (const p of doc.points) {
         addLabelImage(`tc-n-${p.pointId}`, [`${shortCount(p.total12h?.fourWheel)}台`], { size: 24 });
         addLabelImage(`tc-l-${p.pointId}`, [p.name, `${shortCount(p.total12h?.fourWheel)}台／12時間`], { size: 26 });
         if (p.armBearings) {
-          for (const a of p.approaches) addLabelImage(`tc-a-${p.pointId}-${a.code}`, [`${a.label} ${shortCount(a.total12h?.fourWheel)}`], { size: 22, border: 'rgba(31,95,168,0.55)' });
+          for (const a of p.approaches) {
+            addLabelImage(`tc-a-${p.pointId}-${a.code}`, [`${a.label} ${shortCount(a.total12h?.fourWheel)}`], { size: 22, border: 'rgba(31,95,168,0.55)' });
+            addLabelImage(`tc-s-${p.pointId}-${a.code}`, [shortCount(a.total12h?.fourWheel)], { size: 20, border: 'rgba(31,95,168,0.55)' });
+          }
         }
       }
       const ag = arrowGeojson();
@@ -143,6 +189,8 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       map.addSource(SRC_ARROW, { type: 'geojson', data: ag.arrows });
       map.addSource(SRC_ARROW_LABEL, { type: 'geojson', data: ag.labels });
       map.addSource(SRC_NAME, { type: 'geojson', data: ag.names });
+      map.addSource(SRC_ICON, { type: 'geojson', data: ag.icons });
+      map.addSource(`${SRC_ICON}-labels`, { type: 'geojson', data: ag.iconLabels });
       const vis = 'none';
       // 札と矢印は工事の層より下に入れる（工事の矢印などの置き場所を先に取らないように）。印は一番上
       const firstKoji = (map.getStyle()?.layers || []).find((l) => l.id.startsWith('koji-'))?.id;
@@ -157,7 +205,24 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
         paint: { 'line-color': '#ffffff', 'line-width': 1.5, 'line-opacity': 0.9 },
       }, firstKoji);
       map.addLayer({
-        id: MARK, type: 'symbol', source: SRC,
+        id: ARROW_ICON, type: 'symbol', source: SRC_ICON, minzoom: ICON_FROM_ZOOM, maxzoom: ARROW_ZOOM,
+        layout: {
+          visibility: vis, 'icon-image': 'tc-arrow-up', 'icon-anchor': 'top', 'icon-offset': [0, ICON_GAP],
+          'icon-rotate': ['get', 'rot'], 'icon-rotation-alignment': 'map',
+          // 引いた地図では小さく（交差点どうしが重ならないように）。台数の札が出る所から元の大きさ
+          'icon-size': ['interpolate', ['linear'], ['zoom'], ICON_FROM_ZOOM, ['*', 0.55, ['get', 'size']], ICON_LABEL_ZOOM, ['get', 'size']],
+          'icon-allow-overlap': true, 'icon-ignore-placement': true,
+        },
+      });
+      map.addLayer({
+        id: ARROW_ICON_LABEL, type: 'symbol', source: `${SRC_ICON}-labels`, minzoom: ICON_LABEL_ZOOM, maxzoom: ARROW_ZOOM,
+        layout: {
+          visibility: vis, 'icon-image': ['get', 'img'], 'icon-offset': ['array', 'number', 2, ['get', 'off']],
+          'icon-allow-overlap': false,
+        },
+      });
+      map.addLayer({
+        id: MARK, type: 'symbol', source: SRC, filter: ['!', ['get', 'arms']],
         layout: {
           visibility: vis, 'icon-image': 'tc-diamond', 'icon-allow-overlap': true, 'icon-ignore-placement': true,
           // 印の大きさ＝交差点を通った四輪の12時間計（多いほど大きい）
@@ -168,7 +233,7 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
         },
       });
       map.addLayer({
-        id: LABEL_NUM, type: 'symbol', source: SRC, minzoom: 12, maxzoom: 14,
+        id: LABEL_NUM, type: 'symbol', source: SRC, minzoom: 12, maxzoom: 14, filter: ['!', ['get', 'arms']],
         layout: { visibility: vis, 'icon-image': ['concat', 'tc-n-', ['to-string', ['get', 'id']]], 'icon-anchor': 'top', 'icon-offset': [0, 14], 'icon-allow-overlap': false },
       }, firstKoji);
       // 寄ったときの札は工事の線より上に出す（線に隠れて読めないため）。工事の札の置き場所は取らない
@@ -199,7 +264,7 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       console.warn('[交通量調査] 地図に重ねられませんでした', e);
       // 途中まで足したものを消して、次にオンにしたときに最初からやり直せるようにする
       for (const id of LAYERS) if (map.getLayer(id)) map.removeLayer(id);
-      for (const id of [SRC, SRC_ARROW, SRC_ARROW_LABEL, SRC_NAME]) if (map.getSource(id)) map.removeSource(id);
+      for (const id of [SRC, SRC_ARROW, SRC_ARROW_LABEL, SRC_NAME, SRC_ICON, `${SRC_ICON}-labels`]) if (map.getSource(id)) map.removeSource(id);
       return false;
     }
   }
@@ -225,8 +290,7 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
     const c = doc.meta.counts;
     const months = doc.meta.surveyYearMonths.map((x) => surveyMonthLabel({ surveyYearMonth: x }).replace(/（.*?）/, '')).join('・');
     return `<b>交通量調査（警視庁）${esc(c.shown)}地点</b><br>${esc(months)}の調査日（7〜19時）。<b>いまの交通量ではありません。</b>`
-      + '<span class="tc-legend"><span><span class="tc-lg-mark" aria-hidden="true"></span>大きいほど車が多い</span>'
-      + '<span><span class="tc-lg-arrow" aria-hidden="true"></span>寄ると、入ってきた方向と台数</span></span>'
+      + '<span class="tc-legend"><span><span class="tc-lg-arrow" aria-hidden="true"></span>入ってきた向き（大きいほど多い）</span></span>'
       + '<button type="button" id="tcNoteClose" aria-label="この説明を閉じる">×</button>';
   }
 
