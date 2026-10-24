@@ -192,3 +192,13 @@ test('isAccountActive: lastActivityAt が Firestore Timestamp 風オブジェク
   const ts = { toMillis: () => last91Ms };
   assert.equal(isAccountActive({ active: true, lastActivityAt: ts }, now), false);
 });
+
+test('課金の凍結: dev と手元では確かめず、本番は確かめる', async () => {
+  const { isBillingFrozen } = await import('../js/access-control.js');
+  assert.equal(isBillingFrozen('hidenaka.github.io', '/-taxi-daily-report-dev/tools/radar.html'), true);
+  assert.equal(isBillingFrozen('localhost', '/'), true);
+  assert.equal(isBillingFrozen('127.0.0.1', '/tools/radar.html'), true);
+  assert.equal(isBillingFrozen('app.taxicabis.com', '/tools/radar.html'), false);
+  assert.equal(isBillingFrozen('hidenaka.github.io', '/taxi-daily-report/'), false);
+  assert.equal(isBillingFrozen(undefined, undefined), false);
+});

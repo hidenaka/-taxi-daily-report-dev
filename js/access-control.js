@@ -3,6 +3,24 @@
 import { readSubCache, clearSubCache, isSubCacheFresh } from './sub-cache.js';
 
 export const FEATURES = ['core', 'analysis', 'export'];
+
+// ============================================================
+// 課金の凍結（2026-10-24〜）
+// 課金で使える機能を分ける仕組みは、いまは凍結している。dev（開発用の公開先）と手元の確認用サーバーでは、
+// 課金の確かめをせず、誰でもすべての機能を使える（作業がログイン・課金の壁で止まらないように）。
+// 本番（app.taxicabis.com）は、これまでどおり確かめる。凍結をやめるときは BILLING_FROZEN_HOSTS を空にする。
+// 下の canAccess / enforceAccess の中身はそのまま残してある。
+// ============================================================
+const BILLING_FROZEN_HOSTS = [
+  { host: 'hidenaka.github.io', path: '/-taxi-daily-report-dev' },
+  { host: 'localhost' }, { host: '127.0.0.1' }, { host: '[::1]' },
+];
+
+/** この場所では課金の確かめをしないか（純関数。テスト用に host と path を渡せる） */
+export function isBillingFrozen(host = globalThis.location?.hostname, path = globalThis.location?.pathname) {
+  if (!host) return false;
+  return BILLING_FROZEN_HOSTS.some((h) => h.host === host && (!h.path || String(path || '').startsWith(h.path)));
+}
 // プラン階層（営業日報明細が紙で出ない会社向け 700円シンプルプラン）
 // - 'full': 既存挙動・全機能（営業サポート/分析/エクスポート）。通常1,000円
 // - 'simple': core のみ。analysis/export は利用不可（700円プラン）
@@ -22,6 +40,7 @@ export function getPlanTier(sub) {
 // sub: subscriptions/{userId} ドキュメントの値、または未申込時は null
 export function canAccess(feature, sub) {
   if (!isValidFeature(feature)) return false;
+  if (isBillingFrozen()) return true;   // 課金の凍結中（dev・手元）は誰でも使える
   if (!sub) return false;
 
   // 課金状態の判定
@@ -173,6 +192,8 @@ export function buildRedirectUrl(baseUrl, reason) {
 // セッションキャッシュがあれば Firebase に触れず即座に表示し（楽観表示）、
 // バックグラウンドで再検証する。ツール間の切り替えが高速になる。
 export async function enforceAccess(feature, options = {}) {
+  // 課金の凍結中（dev・手元）は、確かめずにそのまま見せる（subscribe.html へ飛ばさない）
+  if (isBillingFrozen()) { revealAfterCheck(); return true; }
   const baseRedirectUrl = options.redirect || 'subscribe.html';
   hideUntilCheck();
 

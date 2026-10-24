@@ -187,6 +187,7 @@ import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZ
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
 import { getSubscription, requiresOnboarding, isCanceledOrUnpaid, formatStatus } from './js/subscription-state.js';
+import { isBillingFrozen } from './js/access-control.js';
 import { isEmailAuth, waitForAuth, getUserId } from './js/firebase-auth.js';
 import { auth } from './js/firebase-init.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
@@ -290,6 +291,7 @@ renderLegalFooter();
 
 // 利用案内バナー: subscription state に応じて表示制御
 async function initOnboardBanner() {
+  if (isBillingFrozen()) return;   // 課金の凍結中（dev・手元）は申し込みの案内を出さない
   try {
     const sub = await getSubscription();
     const banner = document.getElementById('onboardBanner');
