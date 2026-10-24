@@ -27,14 +27,14 @@ const LAYERS = [ARROW, ARROW_EDGE, ARROW_ICON, ARROW_ICON_LABEL, MARK, LABEL_NUM
 const CLICKABLE = [MARK, LABEL_NUM, LABEL, ARROW, ARROW_LABEL, ARROW_ICON, ARROW_ICON_LABEL];
 // 引いた地図でも、入ってきた方向を矢印の印で出す（寄ると、長さが道に合った矢印に替わる）
 const ICON_FROM_ZOOM = 10.5;
-const ICON_LABEL_ZOOM = 12.8;
+const ICON_LABEL_ZOOM = 13.2;
 const ICON_LEN = 34;       // 矢印の印の長さ（画面の px・大きさ1のとき）
 const ICON_GAP = 5;        // 交差点の真ん中から矢印の先までのすき間（px）
 const COLOR = '#1f5fa8';
 const ARROW_FROM_M = 26;   // 矢印の先（交差点の中心からの距離）
 const ARROW_TO_M = 150;    // 矢印の根元
 const ARROW_ZOOM = 14.5;   // ここから矢印（入ってきた方向と台数）を描く
-const ARROW_LABEL_ZOOM = 15.5;
+const ARROW_LABEL_ZOOM = ARROW_ZOOM;
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const $ = (id) => document.getElementById(id);
@@ -155,7 +155,7 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
         if (!Number.isFinite(b) || !(v > 0)) continue;
         const size = iconSize(v);
         icons.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { id: p.pointId, rot: (b + 180) % 360, size } });
-        const d = ICON_GAP + ICON_LEN * size + 13;
+        const d = ICON_GAP + ICON_LEN * size + 26;   // 札（2行）の真ん中まで
         const r = (b * Math.PI) / 180;
         iconLabels.push({ type: 'Feature', geometry: { type: 'Point', coordinates: [p.lon, p.lat] }, properties: { id: p.pointId, img: `tc-s-${p.pointId}-${a.code}`, off: [Math.round(Math.sin(r) * d), Math.round(-Math.cos(r) * d)] } });
       }
@@ -176,11 +176,13 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       addArrowImage();
       for (const p of doc.points) {
         addLabelImage(`tc-n-${p.pointId}`, [`${shortCount(p.total12h?.fourWheel)}台`], { size: 24 });
-        addLabelImage(`tc-l-${p.pointId}`, [p.name, `${shortCount(p.total12h?.fourWheel)}台／12時間`], { size: 26 });
+        addLabelImage(`tc-l-${p.pointId}`, [p.name, `全方向 ${Number(p.total12h?.fourWheel || 0).toLocaleString('ja-JP')}台（7〜19時）`], { size: 26 });
         if (p.armBearings) {
           for (const a of p.approaches) {
-            addLabelImage(`tc-a-${p.pointId}-${a.code}`, [`${a.label} ${shortCount(a.total12h?.fourWheel)}`], { size: 22, border: 'rgba(31,95,168,0.55)' });
-            addLabelImage(`tc-s-${p.pointId}-${a.code}`, [shortCount(a.total12h?.fourWheel)], { size: 20, border: 'rgba(31,95,168,0.55)' });
+            // 地点の詳細の十字の図と同じ「どこから・何台」を、矢印の根元に出す
+            const from = [`${Number(a.total12h?.fourWheel || 0).toLocaleString('ja-JP')}台`, `${a.label}から`];
+            addLabelImage(`tc-a-${p.pointId}-${a.code}`, from, { size: 22, border: 'rgba(31,95,168,0.55)' });
+            addLabelImage(`tc-s-${p.pointId}-${a.code}`, from, { size: 20, border: 'rgba(31,95,168,0.55)' });
           }
         }
       }
@@ -238,7 +240,7 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       }, firstKoji);
       // 寄ったときの札は工事の線より上に出す（線に隠れて読めないため）。工事の札の置き場所は取らない
       map.addLayer({
-        id: LABEL, type: 'symbol', source: SRC_NAME, minzoom: 14,
+        id: LABEL, type: 'symbol', source: SRC_NAME, minzoom: ARROW_ZOOM,
         layout: {
           visibility: vis, 'icon-image': ['concat', 'tc-l-', ['to-string', ['get', 'id']]],
           'icon-anchor': ['case', ['get', 'has'], 'center', 'top'], 'icon-offset': ['case', ['get', 'has'], ['literal', [0, 0]], ['literal', [0, 18]]],
@@ -366,7 +368,8 @@ export function createTrafficCountLayer(map, { closeOtherPopups } = {}) {
       return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke-width="${sw.toFixed(1)}" class="tc-x-arrow" marker-end="url(#tcHead)"></line>`
         + `<text x="${lx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" class="tc-x-lab"><tspan class="tc-x-place">${esc(a.label)}から</tspan><tspan x="${lx.toFixed(1)}" dy="15" class="tc-x-num">${fmtCount(v)}台</tspan></text>`;
     }).join('');
-    return `<svg class="tc-cross" viewBox="0 0 ${S} ${S}" role="img" aria-label="交差点に入ってきた方向ごとの四輪の12時間計（上が北）">`
+    // 左右の札（例「丸子橋から 11,406台」）が図の端で切れないよう、まわりに余白を取る（切れて 1,406 に見えていた）
+    return `<svg class="tc-cross" viewBox="-60 -8 ${S + 120} ${S + 16}" role="img" aria-label="交差点に入ってきた方向ごとの四輪の12時間計（上が北）">`
       + `<defs><marker id="tcHead" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="1.6" markerHeight="1.6" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="${COLOR}"></path></marker></defs>`
       + `${roads}<circle cx="${cx}" cy="${cy}" r="9" fill="#fff" stroke="${COLOR}" stroke-width="3"></circle>${arrows}`
       + `<text x="${S - 8}" y="16" text-anchor="end" class="tc-x-north">↑北</text></svg>`;
