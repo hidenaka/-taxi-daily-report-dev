@@ -4,7 +4,7 @@
 
 ## データ
 
-- 取り込み: `.github/workflows/sync-jartic.yml`（毎時40分）→ `.github/scripts/sync-jartic.mjs` → `tools/data/jartic-traffic.json`
+- 取り込み: `.github/workflows/sync-jartic.yml`（毎時40分の定時と、dev の公開のたび。前の取り込みから55分たっていなければ何もしない。GitHub の定時実行は遅れたり飛んだりするため）→ `.github/scripts/sync-jartic.mjs` → `tools/data/jartic-traffic.json`
 - 取りに行くのは1回に2件（常設 `t_travospublic_measure_1h` と CCTV `t_travospublic_measure_1h_img`、6時間前〜前の時間、道路種別=3、四角 139.56–139.92 / 35.52–35.82）。間は3秒空ける。データが無いときだけ8日分を1日ずつ取る（16件）
 - 値は1〜2時間遅れて入る（2026-10-24 10:11 に 8時台まで）
 - 8日分（192時間）を持つ。形は `tools/js/jartic-data.js` の先頭に書いた

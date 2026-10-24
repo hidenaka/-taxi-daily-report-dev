@@ -4,9 +4,14 @@ name: Sync jartic traffic (hourly)
 # 値はだいたい1〜2時間遅れて入るので、毎時40分に、前の時間までを取る。1回に取りに行くのは2回だけ。
 # 取りに行った記録は .github/scripts/data/jartic-access-log.tsv（規約 第8条）。
 
+# GitHub の定時実行は遅れたり飛んだりする（このリポジトリでは毎日1.5〜2.5時間遅れる）。
+# そのため、dev の公開（数分おきに動く）のあとにも起こし、前の取り込みから55分たっていなければ何もしない。
 on:
   schedule:
     - cron: '40 * * * *'
+  workflow_run:
+    workflows: ['Deploy GitHub Pages']
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -23,10 +28,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 前の取り込みから55分たったか
+        id: due
+        run: |
+          set -euo pipefail
+          mins=$(node -e "const d=require('./tools/data/jartic-traffic.json');console.log(Math.floor((Date.now()-Date.parse(d.meta.updatedAt))/60000))")
+          echo "前の取り込みから ${mins} 分"
+          if [ "$mins" -ge 55 ]; then echo "due=1" >> "$GITHUB_OUTPUT"; else echo "due=0" >> "$GITHUB_OUTPUT"; fi
+
       - name: 交通量を取得して tools/data/jartic-traffic.json を更新
+        if: steps.due.outputs.due == '1' || github.event_name == 'workflow_dispatch'
         run: node .github/scripts/sync-jartic.mjs
 
       - name: コミット
+        if: steps.due.outputs.due == '1' || github.event_name == 'workflow_dispatch'
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
