@@ -133,6 +133,18 @@ test('方面: 道の向きの先 600m〜6km にある街。向きが合わない
   assert.equal(towardPlace([139.7, 35.68], 180, P), '');
 });
 
+test('方面は道をたどって選ぶ: 曲がる道は曲がった先の街・道が終わる先の街は出さない', async () => {
+  const { makeRoadTracer } = await import('../.github/scripts/lib/road-shape.mjs');
+  // 北へ 2km 行って、ゆるく東へ曲がる道。まっすぐ北の先には「北の街」、曲がった先に「東の街」
+  const lines = [{ n: 'L通り', main: true, c: [[139.7, 35.68], [139.7, 35.695], [139.701, 35.697], [139.703, 35.698], [139.74, 35.698]] }];
+  const P = [['北の街', 139.7, 35.715], ['東の街', 139.735, 35.699], ['南の街', 139.7, 35.66]];
+  const tr = makeRoadTracer(lines);
+  assert.equal(tr.placeAlong([139.7, 35.681], 0, ['L通り'], P), '東の街');
+  assert.equal(tr.placeAlong([139.7, 35.681], 180, ['L通り'], P), '');      // 南は道がすぐ終わる
+  assert.equal(tr.placeAlong([139.7, 35.681], 0, ['別の通り'], P), '');     // 線に無い名前の道はたどらない
+  assert.equal(tr.placeAlong([139.7, 35.681], 0, ['別の通り', 'L通り'], P), '東の街');   // 「A・B」はどちらでも
+});
+
 test('絵の → ・← の車が向かう方面（→ の車が線と逆向きなら入れかえる）', async () => {
   const { compass8, dirText } = await import('../tools/js/koji-lane-scene.js');
   assert.equal(compass8(0), '北'); assert.equal(compass8(44), '北東'); assert.equal(compass8(-90), '西'); assert.equal(compass8(359), '北');
