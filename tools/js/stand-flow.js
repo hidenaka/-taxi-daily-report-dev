@@ -32,6 +32,9 @@ export function standModel(data) {
       fc: Array.isArray(s.forecast30) ? s.forecast30 : null,
       // 見込みの外れ(直近7日・30分後の見込みの平均の差)。答え合わせが30件たまってから出す
       fcErr: (s.forecastEval && s.forecastEval['0'] && s.forecastEval['0'].n >= 30) ? s.forecastEval['0'].mae : null,
+      // いつもの日の1時間ごとの台数(丸1日数えた日の平均)と、その日数。7日たまるまでは null
+      typ: Array.isArray(s.typicalHourly) && s.typicalHourly.length === 24 ? s.typicalHourly : null,
+      typDays: typeof s.typicalDays === 'number' ? s.typicalDays : null,
     };
   }
   return out;
@@ -180,28 +183,53 @@ function nums(d, u) {
   return `<div class="sf-nums"><div><span>直近30分</span><b>${f(d?.last30)}</b><i>${u}</i></div><div><span>直近1時間</span><b>${f(d?.lastHour)}</b><i>${u}</i></div></div>`;
 }
 
-function dayCard(model, u, label, nowH) {
+/** いつもの日の台数から、いま(nowMin・0時からの分)から24時までに出る台数の目安。いまの1時間は残りの分だけ数える。 */
+export function restOfDay(typ, nowMin) {
+  if (!Array.isArray(typ) || typ.length !== 24) return null;
+  const h = Math.floor(nowMin / 60);
+  let r = (typ[h] || 0) * (1 - (nowMin % 60) / 60);
+  for (let j = h + 1; j < 24; j++) r += typ[j] || 0;
+  return Math.round(r);
+}
+
+function dayCard(model, u, label, nowH, nowMin) {
   let mx = 1;
-  for (const n of LANES) { const h = model.lanes[n]?.hourly; if (h) mx = Math.max(mx, ...h.slice(0, nowH + 1)); }
+  for (const n of LANES) {
+    const d = model.lanes[n];
+    if (d?.hourly) mx = Math.max(mx, ...d.hourly.slice(0, nowH + 1));
+    if (d?.typ) mx = Math.max(mx, ...d.typ);
+  }
+  const typDays = LANES.map(n => model.lanes[n]?.typ ? `${NAME[n]}は${model.lanes[n].typDays}日` : null).filter(Boolean);
   let rows = '';
   for (const n of LANES) {
     const d = model.lanes[n];
     const a = d?.hourly ? d.hourly.slice(0, nowH + 1) : [];
     const W = 300, bw = W / 24, bh = 34;
-    let g = '';
+    let g = '', tv = '';
     a.forEach((v, j) => {
       const h = Math.max(1, (v / mx) * bh), x = j * bw + 1, w = bw - 2;
       g += `<rect x="${x.toFixed(1)}" y="${(bh + 12 - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="1.5" class="${j === a.length - 1 ? 'sf-now' : 'sf-past'}"/>`;
-      if (v) g += h >= 13
+      if (v) tv += h >= 13
         ? `<text x="${(x + w / 2).toFixed(1)}" y="${(bh + 12 - h / 2 + 3.5).toFixed(1)}" class="sf-tv in s">${v}</text>`
         : `<text x="${(x + w / 2).toFixed(1)}" y="${(bh + 12 - h - 2).toFixed(1)}" class="sf-tv s">${v}</text>`;
     });
+    // いつもの日の線(24時間ぶん・階段の形)。棒は今の時刻まで、線はその先も続く
+    if (d?.typ) {
+      let pts = '';
+      d.typ.forEach((v, j) => { const y = (bh + 12 - (v / mx) * bh).toFixed(1); pts += `${(j * bw).toFixed(1)},${y} ${((j + 1) * bw).toFixed(1)},${y} `; });
+      g += `<polyline points="${pts.trim()}" class="sf-typ"/>`;
+    }
+    g += tv; // 数字は線の上に描く(線で数字が隠れないように)
     const tot = a.reduce((p, q) => p + q, 0);
-    const since = d?.since && d.since > '00:59' ? `<small>${d.since}から</small>` : '';
+    const rest = d?.typ ? restOfDay(d.typ, nowMin) : null;
+    const since = (d?.since && d.since > '00:59' ? `<small>${d.since}から</small>` : '') + (rest != null ? `<small class="sf-rest">あと約${rest}${u}</small>` : '');
     // 時刻の目盛りは号ごとに持たせる(狭い画面では最後の号だけ見せる・広い画面の2×2では全部見せる)
     rows += `<div class="sf-dcell"><div class="sf-drow"><div class="sf-dn"><b>${NAME[n]}</b><small>計${d ? tot : '—'}${u}</small>${since}</div><svg viewBox="0 0 ${W} ${bh + 14}" class="sf-chart">${g}</svg></div><div class="sf-daxis"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div></div>`;
   }
-  return `<div class="sf-day"><div class="sf-dh"><b>今日1日の${label}</b><span>1時間ごと（${u}）・0時〜いま</span></div><div class="sf-dgrid">${rows}</div></div>`;
+  const note = typDays.length
+    ? `<div class="sf-dnote"><i class="sf-lg"></i>線＝いつもの日の台数（${typDays.join('・')}の平均）。「あと約」は、いまから24時までにいつもの日なら出る台数です。${typDays.length < LANES.length ? '線の無い号は、丸1日数えた日が7日たまると出ます。' : ''}</div>`
+    : '';
+  return `<div class="sf-day"><div class="sf-dh"><b>今日1日の${label}</b><span>1時間ごと（${u}）・0時〜いま</span></div><div class="sf-dgrid">${rows}</div>${note}</div>`;
 }
 
 function render(el) {
@@ -243,7 +271,7 @@ function render(el) {
       html += '</div>';
     }
   }
-  html += dayCard(model, u, label, now.getHours());
+  html += dayCard(model, u, label, now.getHours(), nowMin);
   el.innerHTML = html;
 }
 

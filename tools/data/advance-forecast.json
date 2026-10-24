@@ -1,32 +1,32 @@
 {
   "schema_version": 4,
-  "generatedAt": "2026-10-16T07:33:00+09:00",
+  "generatedAt": "2026-10-25T06:20:00+09:00",
   "note": "15分あたりの列移動回数(相対指標)。計測の都合で実際より少なめに出る。出庫台数=列移動回数×横台数(rowWidth)。",
-  "trainedRows": 13125,
+  "trainedRows": 13984,
   "flightApplied": true,
   "learnedLag": {
     "stall1": {
       "lag": 0,
-      "corr": 0.023,
-      "n": 2302,
+      "corr": 0.033,
+      "n": 2496,
       "applied": false
     },
     "stall2": {
       "lag": 0,
-      "corr": 0.037,
-      "n": 2882,
+      "corr": 0.048,
+      "n": 3057,
       "applied": false
     },
     "stall3": {
       "lag": 0,
-      "corr": 0.001,
-      "n": 4377,
+      "corr": 0.004,
+      "n": 4672,
       "applied": false
     },
     "stall4": {
       "lag": 0,
-      "corr": 0.081,
-      "n": 2529,
+      "corr": 0.092,
+      "n": 2726,
       "applied": false
     }
   },
@@ -37,11 +37,11 @@
     "stall4": 8
   },
   "current": {
-    "time": "07:33",
+    "time": "06:20",
     "stalls": {
       "stall1": {
         "actual": 0,
-        "departure": 0,
+        "departure": 1,
         "forecast": 0
       },
       "stall2": {
@@ -51,13 +51,13 @@
       },
       "stall3": {
         "actual": 0,
-        "departure": 1,
+        "departure": 0,
         "forecast": 0
       },
       "stall4": {
         "actual": 0,
-        "departure": 0,
-        "forecast": 0
+        "departure": 1,
+        "forecast": 0.1
       }
     }
   },
@@ -77,9 +77,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2538,
+        "sampleRows": 2791,
         "rainRate": 0.134,
-        "nightRate": 0.309,
+        "nightRate": 0.278,
         "imageQcLowRate": 1
       }
     },
@@ -98,9 +98,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2496,
+        "sampleRows": 2744,
         "rainRate": 0.154,
-        "nightRate": 0.313,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
@@ -119,9 +119,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2512,
+        "sampleRows": 2759,
         "rainRate": 0.148,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -140,9 +140,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2490,
+        "sampleRows": 2738,
         "rainRate": 0.163,
-        "nightRate": 0.313,
+        "nightRate": 0.281,
         "imageQcLowRate": 1
       }
     },
@@ -161,9 +161,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2510,
+        "sampleRows": 2761,
         "rainRate": 0.14,
-        "nightRate": 0.313,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
@@ -182,9 +182,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2500,
+        "sampleRows": 2746,
         "rainRate": 0.147,
-        "nightRate": 0.312,
+        "nightRate": 0.281,
         "imageQcLowRate": 1
       }
     },
@@ -203,9 +203,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2515,
+        "sampleRows": 2764,
         "rainRate": 0.14,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -224,9 +224,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2480,
+        "sampleRows": 2728,
         "rainRate": 0.137,
-        "nightRate": 0.307,
+        "nightRate": 0.276,
         "imageQcLowRate": 1
       }
     },
@@ -245,9 +245,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2511,
+        "sampleRows": 2758,
         "rainRate": 0.125,
-        "nightRate": 0.314,
+        "nightRate": 0.283,
         "imageQcLowRate": 1
       }
     },
@@ -256,7 +256,7 @@
       "stalls": {
         "stall1": 0,
         "stall2": 0,
-        "stall3": 1,
+        "stall3": 0,
         "stall4": 0
       },
       "quality": {
@@ -266,9 +266,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2507,
+        "sampleRows": 2756,
         "rainRate": 0.163,
-        "nightRate": 0.314,
+        "nightRate": 0.283,
         "imageQcLowRate": 1
       }
     },
@@ -287,9 +287,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2502,
+        "sampleRows": 2751,
         "rainRate": 0.163,
-        "nightRate": 0.309,
+        "nightRate": 0.278,
         "imageQcLowRate": 1
       }
     },
@@ -308,9 +308,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2514,
+        "sampleRows": 2762,
         "rainRate": 0.16,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -329,9 +329,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2510,
+        "sampleRows": 2757,
         "rainRate": 0.171,
-        "nightRate": 0.312,
+        "nightRate": 0.281,
         "imageQcLowRate": 1
       }
     },
@@ -350,9 +350,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2511,
+        "sampleRows": 2759,
         "rainRate": 0.151,
-        "nightRate": 0.316,
+        "nightRate": 0.285,
         "imageQcLowRate": 1
       }
     },
@@ -371,9 +371,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2514,
+        "sampleRows": 2760,
         "rainRate": 0.178,
-        "nightRate": 0.312,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
@@ -392,9 +392,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2517,
+        "sampleRows": 2767,
         "rainRate": 0.16,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -413,9 +413,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2488,
+        "sampleRows": 2735,
         "rainRate": 0.155,
-        "nightRate": 0.28,
+        "nightRate": 0.252,
         "imageQcLowRate": 0.934
       }
     },
@@ -434,9 +434,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2502,
+        "sampleRows": 2749,
         "rainRate": 0.193,
-        "nightRate": 0.085,
+        "nightRate": 0.077,
         "imageQcLowRate": 0.51
       }
     },
@@ -454,9 +454,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2482,
+        "sampleRows": 2727,
         "rainRate": 0.178,
-        "nightRate": 0.022,
+        "nightRate": 0.02,
         "imageQcLowRate": 0.175
       }
     },
@@ -474,9 +474,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2494,
+        "sampleRows": 2742,
         "rainRate": 0.195,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.034
       }
     },
@@ -494,9 +494,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2491,
+        "sampleRows": 2738,
         "rainRate": 0.192,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
@@ -514,9 +514,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2476,
+        "sampleRows": 2726,
         "rainRate": 0.162,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -526,15 +526,15 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 2
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2476,
+        "sampleRows": 2722,
         "rainRate": 0.144,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.008
       }
     },
@@ -550,9 +550,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2489,
+        "sampleRows": 2738,
         "rainRate": 0.154,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
@@ -568,99 +568,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2476,
+        "sampleRows": 2723,
         "rainRate": 0.154,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.012
-      }
-    },
-    {
-      "time": "06:15",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2466,
-        "rainRate": 0.096,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.012
-      }
-    },
-    {
-      "time": "06:30",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2478,
-        "rainRate": 0.094,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.012
-      }
-    },
-    {
-      "time": "06:45",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2473,
-        "rainRate": 0.115,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.008
-      }
-    },
-    {
-      "time": "07:00",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2474,
-        "rainRate": 0.109,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.012
-      }
-    },
-    {
-      "time": "07:15",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2489,
-        "rainRate": 0.16,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     }
@@ -669,93 +579,9 @@
     {
       "time": "00:00",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.1,
-        "stall3": 1.2,
-        "stall4": 0.2
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2538,
-        "rainRate": 0.134,
-        "nightRate": 0.309,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "00:15",
-      "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.2,
-        "stall3": 0.5,
-        "stall4": 0.2
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2496,
-        "rainRate": 0.154,
-        "nightRate": 0.313,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "00:30",
-      "stalls": {
         "stall1": 0.2,
         "stall2": 0.1,
-        "stall3": 0.3,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2512,
-        "rainRate": 0.148,
-        "nightRate": 0.315,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "00:45",
-      "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.2,
-        "stall3": 0.6,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2490,
-        "rainRate": 0.163,
-        "nightRate": 0.313,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "01:00",
-      "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.2,
-        "stall3": 0.3,
+        "stall3": 0.9,
         "stall4": 0.1
       },
       "quality": {
@@ -765,9 +591,93 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2510,
+        "sampleRows": 2791,
+        "rainRate": 0.134,
+        "nightRate": 0.278,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "00:15",
+      "stalls": {
+        "stall1": 0.1,
+        "stall2": 0.1,
+        "stall3": 0.4,
+        "stall4": 0.1
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2744,
+        "rainRate": 0.154,
+        "nightRate": 0.282,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "00:30",
+      "stalls": {
+        "stall1": 0.1,
+        "stall2": 0,
+        "stall3": 0.2,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2759,
+        "rainRate": 0.148,
+        "nightRate": 0.284,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "00:45",
+      "stalls": {
+        "stall1": 0.1,
+        "stall2": 0.1,
+        "stall3": 0.3,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2738,
+        "rainRate": 0.163,
+        "nightRate": 0.281,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "01:00",
+      "stalls": {
+        "stall1": 0.1,
+        "stall2": 0.1,
+        "stall3": 0.2,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2761,
         "rainRate": 0.14,
-        "nightRate": 0.313,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
@@ -775,7 +685,28 @@
       "time": "01:15",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.2,
+        "stall2": 0.1,
+        "stall3": 0.2,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2746,
+        "rainRate": 0.147,
+        "nightRate": 0.281,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "01:30",
+      "stalls": {
+        "stall1": 0.1,
+        "stall2": 0,
         "stall3": 0.1,
         "stall4": 0
       },
@@ -786,30 +717,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2500,
-        "rainRate": 0.147,
-        "nightRate": 0.312,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "01:30",
-      "stalls": {
-        "stall1": 0.2,
-        "stall2": 0,
-        "stall3": 0.2,
-        "stall4": 0
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2515,
+        "sampleRows": 2764,
         "rainRate": 0.14,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -817,8 +727,8 @@
       "time": "01:45",
       "stalls": {
         "stall1": 0,
-        "stall2": 0.2,
-        "stall3": 0.2,
+        "stall2": 0.1,
+        "stall3": 0.1,
         "stall4": 0
       },
       "quality": {
@@ -828,9 +738,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2480,
+        "sampleRows": 2728,
         "rainRate": 0.137,
-        "nightRate": 0.307,
+        "nightRate": 0.276,
         "imageQcLowRate": 1
       }
     },
@@ -849,35 +759,14 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2511,
+        "sampleRows": 2758,
         "rainRate": 0.125,
-        "nightRate": 0.314,
+        "nightRate": 0.283,
         "imageQcLowRate": 1
       }
     },
     {
       "time": "02:15",
-      "stalls": {
-        "stall1": 0.1,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0.1
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "early",
-        "reasons": [
-          "early",
-          "image_qc"
-        ],
-        "sampleRows": 2507,
-        "rainRate": 0.163,
-        "nightRate": 0.314,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "02:30",
       "stalls": {
         "stall1": 0,
         "stall2": 0,
@@ -891,16 +780,37 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2502,
+        "sampleRows": 2756,
         "rainRate": 0.163,
-        "nightRate": 0.309,
+        "nightRate": 0.283,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "02:30",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0.1
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early",
+          "image_qc"
+        ],
+        "sampleRows": 2751,
+        "rainRate": 0.163,
+        "nightRate": 0.278,
         "imageQcLowRate": 1
       }
     },
     {
       "time": "02:45",
       "stalls": {
-        "stall1": 0.1,
+        "stall1": 0,
         "stall2": 0,
         "stall3": 0,
         "stall4": 0
@@ -912,9 +822,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2514,
+        "sampleRows": 2762,
         "rainRate": 0.16,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -933,9 +843,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2510,
+        "sampleRows": 2757,
         "rainRate": 0.171,
-        "nightRate": 0.312,
+        "nightRate": 0.281,
         "imageQcLowRate": 1
       }
     },
@@ -954,9 +864,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2511,
+        "sampleRows": 2759,
         "rainRate": 0.151,
-        "nightRate": 0.316,
+        "nightRate": 0.285,
         "imageQcLowRate": 1
       }
     },
@@ -975,9 +885,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2514,
+        "sampleRows": 2760,
         "rainRate": 0.178,
-        "nightRate": 0.312,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
@@ -996,9 +906,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2517,
+        "sampleRows": 2767,
         "rainRate": 0.16,
-        "nightRate": 0.315,
+        "nightRate": 0.284,
         "imageQcLowRate": 1
       }
     },
@@ -1017,9 +927,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2488,
+        "sampleRows": 2735,
         "rainRate": 0.155,
-        "nightRate": 0.28,
+        "nightRate": 0.252,
         "imageQcLowRate": 0.934
       }
     },
@@ -1038,9 +948,9 @@
           "early",
           "image_qc"
         ],
-        "sampleRows": 2502,
+        "sampleRows": 2749,
         "rainRate": 0.193,
-        "nightRate": 0.085,
+        "nightRate": 0.077,
         "imageQcLowRate": 0.51
       }
     },
@@ -1058,9 +968,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2482,
+        "sampleRows": 2727,
         "rainRate": 0.178,
-        "nightRate": 0.022,
+        "nightRate": 0.02,
         "imageQcLowRate": 0.175
       }
     },
@@ -1078,9 +988,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2494,
+        "sampleRows": 2742,
         "rainRate": 0.195,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.034
       }
     },
@@ -1098,9 +1008,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2491,
+        "sampleRows": 2738,
         "rainRate": 0.192,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
@@ -1110,7 +1020,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.3
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "reference",
@@ -1118,9 +1028,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 2476,
+        "sampleRows": 2726,
         "rainRate": 0.162,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1130,38 +1040,20 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.2
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2476,
+        "sampleRows": 2722,
         "rainRate": 0.144,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.008
       }
     },
     {
       "time": "05:45",
-      "stalls": {
-        "stall1": 0,
-        "stall2": 0,
-        "stall3": 0,
-        "stall4": 0.2
-      },
-      "quality": {
-        "confidence": "normal",
-        "condition": "day",
-        "reasons": [],
-        "sampleRows": 2489,
-        "rainRate": 0.154,
-        "nightRate": 0.013,
-        "imageQcLowRate": 0.011
-      }
-    },
-    {
-      "time": "06:00",
       "stalls": {
         "stall1": 0,
         "stall2": 0,
@@ -1172,9 +1064,27 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2476,
+        "sampleRows": 2738,
         "rainRate": 0.154,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
+        "imageQcLowRate": 0.011
+      }
+    },
+    {
+      "time": "06:00",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "normal",
+        "condition": "day",
+        "reasons": [],
+        "sampleRows": 2723,
+        "rainRate": 0.154,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1190,9 +1100,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2466,
+        "sampleRows": 2697,
         "rainRate": 0.096,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1208,9 +1118,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2478,
+        "sampleRows": 2699,
         "rainRate": 0.094,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.012
       }
     },
@@ -1226,9 +1136,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2473,
+        "sampleRows": 2692,
         "rainRate": 0.115,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.008
       }
     },
@@ -1244,9 +1154,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2474,
+        "sampleRows": 2697,
         "rainRate": 0.109,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1262,9 +1172,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2489,
+        "sampleRows": 2710,
         "rainRate": 0.16,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1274,15 +1184,15 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.1
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2473,
+        "sampleRows": 2715,
         "rainRate": 0.173,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1292,15 +1202,15 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.2
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2453,
+        "sampleRows": 2701,
         "rainRate": 0.171,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.012
       }
     },
@@ -1308,7 +1218,7 @@
       "time": "08:00",
       "stalls": {
         "stall1": 0,
-        "stall2": 0.1,
+        "stall2": 0.2,
         "stall3": 0.1,
         "stall4": 0
       },
@@ -1316,9 +1226,9 @@
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2450,
+        "sampleRows": 2701,
         "rainRate": 0.179,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.008
       }
     },
@@ -1327,16 +1237,16 @@
       "stalls": {
         "stall1": 0,
         "stall2": 0,
-        "stall3": 0.1,
+        "stall3": 0,
         "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2446,
+        "sampleRows": 2691,
         "rainRate": 0.142,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1344,17 +1254,17 @@
       "time": "08:30",
       "stalls": {
         "stall1": 0,
-        "stall2": 0.1,
-        "stall3": 0.2,
+        "stall2": 0,
+        "stall3": 0.5,
         "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2455,
+        "sampleRows": 2705,
         "rainRate": 0.139,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1364,15 +1274,15 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0.2,
-        "stall4": 0
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2473,
+        "sampleRows": 2723,
         "rainRate": 0.147,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.012
       }
     },
@@ -1380,17 +1290,17 @@
       "time": "09:00",
       "stalls": {
         "stall1": 0.2,
-        "stall2": 0.2,
-        "stall3": 0.3,
+        "stall2": 0.4,
+        "stall3": 0.2,
         "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2494,
+        "sampleRows": 2742,
         "rainRate": 0.144,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
@@ -1399,16 +1309,16 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 0.1,
-        "stall3": 0.6,
-        "stall4": 0
+        "stall3": 0.5,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2474,
+        "sampleRows": 2723,
         "rainRate": 0.086,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1416,35 +1326,35 @@
       "time": "09:30",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.5,
-        "stall3": 0.6,
-        "stall4": 0.2
+        "stall2": 0.4,
+        "stall3": 0.4,
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2484,
+        "sampleRows": 2732,
         "rainRate": 0.09,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
     {
       "time": "09:45",
       "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.4,
-        "stall3": 0.2,
-        "stall4": 0
+        "stall1": 0.1,
+        "stall2": 0.2,
+        "stall3": 0.3,
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2473,
+        "sampleRows": 2723,
         "rainRate": 0.088,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
@@ -1453,16 +1363,16 @@
       "stalls": {
         "stall1": 0.1,
         "stall2": 0,
-        "stall3": 0.2,
-        "stall4": 0.3
+        "stall3": 0.1,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2479,
+        "sampleRows": 2726,
         "rainRate": 0.092,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.012
       }
     },
@@ -1472,123 +1382,123 @@
         "stall1": 0.1,
         "stall2": 0.2,
         "stall3": 0.7,
-        "stall4": 0.3
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2500,
+        "sampleRows": 2750,
         "rainRate": 0.091,
-        "nightRate": 0.01,
+        "nightRate": 0.009,
         "imageQcLowRate": 0.011
       }
     },
     {
       "time": "10:30",
       "stalls": {
-        "stall1": 0.2,
+        "stall1": 0.3,
         "stall2": 0.3,
         "stall3": 0.2,
-        "stall4": 0.1
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2482,
+        "sampleRows": 2733,
         "rainRate": 0.073,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.008
       }
     },
     {
       "time": "10:45",
       "stalls": {
-        "stall1": 0.2,
-        "stall2": 1,
-        "stall3": 0.3,
-        "stall4": 0.1
+        "stall1": 0.4,
+        "stall2": 0.5,
+        "stall3": 0.4,
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2486,
+        "sampleRows": 2731,
         "rainRate": 0.073,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
     {
       "time": "11:00",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.3,
+        "stall1": 0.2,
+        "stall2": 0.8,
         "stall3": 0.4,
-        "stall4": 0.2
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2490,
+        "sampleRows": 2740,
         "rainRate": 0.079,
-        "nightRate": 0.013,
+        "nightRate": 0.011,
         "imageQcLowRate": 0.011
       }
     },
     {
       "time": "11:15",
       "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.4,
-        "stall3": 1.3,
+        "stall1": 0.3,
+        "stall2": 0.5,
+        "stall3": 0.9,
         "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2499,
+        "sampleRows": 2746,
         "rainRate": 0.097,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.011
       }
     },
     {
       "time": "11:30",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.2,
-        "stall3": 0.4,
+        "stall1": 0.2,
+        "stall2": 0.3,
+        "stall3": 0.3,
         "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2488,
+        "sampleRows": 2738,
         "rainRate": 0.096,
-        "nightRate": 0.013,
+        "nightRate": 0.012,
         "imageQcLowRate": 0.012
       }
     },
     {
       "time": "11:45",
       "stalls": {
-        "stall1": 0.1,
-        "stall2": 0.6,
+        "stall1": 0.3,
+        "stall2": 0.3,
         "stall3": 0.3,
-        "stall4": 0.1
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2468,
+        "sampleRows": 2714,
         "rainRate": 0.102,
-        "nightRate": 0.011,
+        "nightRate": 0.01,
         "imageQcLowRate": 0.008
       }
     },
@@ -1596,15 +1506,15 @@
       "time": "12:00",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.5,
+        "stall2": 0.3,
         "stall3": 0.4,
-        "stall4": 0.2
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2457,
+        "sampleRows": 2707,
         "rainRate": 0.107,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1614,15 +1524,15 @@
       "time": "12:15",
       "stalls": {
         "stall1": 0.2,
-        "stall2": 0.2,
-        "stall3": 1,
+        "stall2": 0.3,
+        "stall3": 0.9,
         "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2494,
+        "sampleRows": 2738,
         "rainRate": 0.089,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1633,14 +1543,14 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 0.5,
-        "stall3": 0.6,
+        "stall3": 0.4,
         "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2500,
+        "sampleRows": 2751,
         "rainRate": 0.09,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1649,16 +1559,16 @@
     {
       "time": "12:45",
       "stalls": {
-        "stall1": 0.5,
-        "stall2": 0.8,
-        "stall3": 0.5,
-        "stall4": 0.1
+        "stall1": 0.9,
+        "stall2": 0.5,
+        "stall3": 0.6,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2484,
+        "sampleRows": 2732,
         "rainRate": 0.099,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1668,15 +1578,15 @@
       "time": "13:00",
       "stalls": {
         "stall1": 0.4,
-        "stall2": 0.8,
+        "stall2": 0.5,
         "stall3": 0.7,
-        "stall4": 0.3
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2478,
+        "sampleRows": 2724,
         "rainRate": 0.087,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1685,16 +1595,16 @@
     {
       "time": "13:15",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.5,
-        "stall3": 1.6,
+        "stall1": 0.5,
+        "stall2": 0.3,
+        "stall3": 1.5,
         "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2486,
+        "sampleRows": 2736,
         "rainRate": 0.1,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1703,16 +1613,16 @@
     {
       "time": "13:30",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 1.4,
-        "stall3": 0.8,
+        "stall1": 1.1,
+        "stall2": 1.6,
+        "stall3": 0.4,
         "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2489,
+        "sampleRows": 2737,
         "rainRate": 0.086,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1722,15 +1632,15 @@
       "time": "13:45",
       "stalls": {
         "stall1": 0.5,
-        "stall2": 1.7,
-        "stall3": 1.4,
-        "stall4": 0.3
+        "stall2": 1.3,
+        "stall3": 0.7,
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2485,
+        "sampleRows": 2732,
         "rainRate": 0.088,
         "nightRate": 0,
         "imageQcLowRate": 0.008
@@ -1739,16 +1649,16 @@
     {
       "time": "14:00",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.8,
-        "stall3": 0.5,
-        "stall4": 0.3
+        "stall1": 0.2,
+        "stall2": 1.3,
+        "stall3": 0.4,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2469,
+        "sampleRows": 2716,
         "rainRate": 0.093,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1757,16 +1667,16 @@
     {
       "time": "14:15",
       "stalls": {
-        "stall1": 0.7,
-        "stall2": 0.9,
-        "stall3": 1.2,
-        "stall4": 0.1
+        "stall1": 0.2,
+        "stall2": 0.5,
+        "stall3": 1.4,
+        "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2487,
+        "sampleRows": 2735,
         "rainRate": 0.102,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1775,16 +1685,16 @@
     {
       "time": "14:30",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 0.8,
-        "stall3": 0.9,
-        "stall4": 0.2
+        "stall1": 0.2,
+        "stall2": 0.6,
+        "stall3": 0.7,
+        "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2485,
+        "sampleRows": 2735,
         "rainRate": 0.081,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1793,16 +1703,16 @@
     {
       "time": "14:45",
       "stalls": {
-        "stall1": 1.4,
+        "stall1": 1,
         "stall2": 1.2,
-        "stall3": 1.5,
-        "stall4": 0.5
+        "stall3": 0.7,
+        "stall4": 0.6
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2498,
+        "sampleRows": 2745,
         "rainRate": 0.104,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1811,16 +1721,16 @@
     {
       "time": "15:00",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 1.5,
-        "stall3": 2.4,
-        "stall4": 0.6
+        "stall1": 0.4,
+        "stall2": 0.6,
+        "stall3": 1.3,
+        "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2488,
+        "sampleRows": 2736,
         "rainRate": 0.102,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1829,16 +1739,16 @@
     {
       "time": "15:15",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 1.1,
-        "stall3": 1.1,
-        "stall4": 0.2
+        "stall1": 0.7,
+        "stall2": 0.4,
+        "stall3": 1.6,
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2506,
+        "sampleRows": 2753,
         "rainRate": 0.085,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1847,16 +1757,16 @@
     {
       "time": "15:30",
       "stalls": {
-        "stall1": 0.1,
-        "stall2": 1,
-        "stall3": 1.9,
-        "stall4": 0.9
+        "stall1": 0.3,
+        "stall2": 0.8,
+        "stall3": 0.9,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2485,
+        "sampleRows": 2733,
         "rainRate": 0.088,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1865,16 +1775,16 @@
     {
       "time": "15:45",
       "stalls": {
-        "stall1": 0.5,
-        "stall2": 1.5,
-        "stall3": 0.6,
-        "stall4": 0.7
+        "stall1": 0.6,
+        "stall2": 0.5,
+        "stall3": 1.1,
+        "stall4": 1.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2504,
+        "sampleRows": 2753,
         "rainRate": 0.113,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1883,16 +1793,16 @@
     {
       "time": "16:00",
       "stalls": {
-        "stall1": 1.3,
-        "stall2": 1,
-        "stall3": 0.6,
-        "stall4": 0.7
+        "stall1": 1.1,
+        "stall2": 1.2,
+        "stall3": 1.3,
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2489,
+        "sampleRows": 2736,
         "rainRate": 0.103,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1901,16 +1811,16 @@
     {
       "time": "16:15",
       "stalls": {
-        "stall1": 0.7,
-        "stall2": 0.4,
-        "stall3": 1.5,
-        "stall4": 0.4
+        "stall1": 0.3,
+        "stall2": 0.7,
+        "stall3": 1.2,
+        "stall4": 0.6
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2480,
+        "sampleRows": 2728,
         "rainRate": 0.125,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1919,16 +1829,16 @@
     {
       "time": "16:30",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 0.8,
-        "stall3": 0.4,
-        "stall4": 0.8
+        "stall1": 0.7,
+        "stall2": 0.5,
+        "stall3": 1,
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2492,
+        "sampleRows": 2738,
         "rainRate": 0.121,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1937,16 +1847,16 @@
     {
       "time": "16:45",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 1.3,
+        "stall1": 0.2,
+        "stall2": 1.4,
         "stall3": 1.2,
-        "stall4": 0.8
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2468,
+        "sampleRows": 2714,
         "rainRate": 0.126,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1955,16 +1865,16 @@
     {
       "time": "17:00",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.3,
-        "stall3": 0.6,
-        "stall4": 2.1
+        "stall1": 0.3,
+        "stall2": 0.9,
+        "stall3": 0.4,
+        "stall4": 2.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2495,
+        "sampleRows": 2743,
         "rainRate": 0.112,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1973,16 +1883,16 @@
     {
       "time": "17:15",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 1.7,
-        "stall3": 2.1,
-        "stall4": 0.5
+        "stall1": 0.4,
+        "stall2": 0.5,
+        "stall3": 1.6,
+        "stall4": 1.8
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2479,
+        "sampleRows": 2728,
         "rainRate": 0.146,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -1991,16 +1901,16 @@
     {
       "time": "17:30",
       "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.5,
-        "stall3": 1.5,
-        "stall4": 2.2
+        "stall1": 1,
+        "stall2": 0.3,
+        "stall3": 2.1,
+        "stall4": 2.6
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2480,
+        "sampleRows": 2727,
         "rainRate": 0.128,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -2010,15 +1920,15 @@
       "time": "17:45",
       "stalls": {
         "stall1": 0.6,
-        "stall2": 0.5,
-        "stall3": 2.5,
-        "stall4": 0.6
+        "stall2": 0.2,
+        "stall3": 0.5,
+        "stall4": 2.1
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2482,
+        "sampleRows": 2732,
         "rainRate": 0.14,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -2027,16 +1937,16 @@
     {
       "time": "18:00",
       "stalls": {
-        "stall1": 1.2,
-        "stall2": 1.5,
-        "stall3": 1.1,
-        "stall4": 1.4
+        "stall1": 0.9,
+        "stall2": 0.6,
+        "stall3": 0.7,
+        "stall4": 1.6
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2504,
+        "sampleRows": 2750,
         "rainRate": 0.143,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -2045,16 +1955,16 @@
     {
       "time": "18:15",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 1.1,
-        "stall3": 2,
-        "stall4": 0.7
+        "stall1": 1.1,
+        "stall2": 0.8,
+        "stall3": 1.8,
+        "stall4": 1.8
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2502,
+        "sampleRows": 2751,
         "rainRate": 0.139,
         "nightRate": 0,
         "imageQcLowRate": 0
@@ -2063,16 +1973,16 @@
     {
       "time": "18:30",
       "stalls": {
-        "stall1": 1.2,
-        "stall2": 0.6,
-        "stall3": 2,
-        "stall4": 0.6
+        "stall1": 0.3,
+        "stall2": 0.4,
+        "stall3": 1.4,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2483,
+        "sampleRows": 2732,
         "rainRate": 0.14,
         "nightRate": 0,
         "imageQcLowRate": 0.015
@@ -2081,27 +1991,167 @@
     {
       "time": "18:45",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.3,
-        "stall3": 0.9,
-        "stall4": 0.8
+        "stall1": 0.2,
+        "stall2": 0.2,
+        "stall3": 0.8,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "normal",
         "condition": "day",
         "reasons": [],
-        "sampleRows": 2487,
+        "sampleRows": 2734,
         "rainRate": 0.139,
-        "nightRate": 0.031,
+        "nightRate": 0.028,
         "imageQcLowRate": 0.179
       }
     },
     {
       "time": "19:00",
       "stalls": {
-        "stall1": 1.1,
-        "stall2": 0.7,
+        "stall1": 0.4,
+        "stall2": 0.5,
+        "stall3": 0.9,
+        "stall4": 0.5
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2765,
+        "rainRate": 0.138,
+        "nightRate": 0.191,
+        "imageQcLowRate": 0.597
+      }
+    },
+    {
+      "time": "19:15",
+      "stalls": {
+        "stall1": 0.8,
+        "stall2": 0.3,
         "stall3": 0.7,
+        "stall4": 0.7
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2769,
+        "rainRate": 0.135,
+        "nightRate": 0.284,
+        "imageQcLowRate": 0.992
+      }
+    },
+    {
+      "time": "19:30",
+      "stalls": {
+        "stall1": 0.2,
+        "stall2": 0.4,
+        "stall3": 1.1,
+        "stall4": 0.5
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2727,
+        "rainRate": 0.113,
+        "nightRate": 0.278,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "19:45",
+      "stalls": {
+        "stall1": 0.3,
+        "stall2": 0.9,
+        "stall3": 0.9,
+        "stall4": 0.3
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2770,
+        "rainRate": 0.129,
+        "nightRate": 0.281,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "20:00",
+      "stalls": {
+        "stall1": 0.2,
+        "stall2": 0.6,
+        "stall3": 0.7,
+        "stall4": 0.3
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2732,
+        "rainRate": 0.141,
+        "nightRate": 0.285,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "20:15",
+      "stalls": {
+        "stall1": 0.3,
+        "stall2": 0.8,
+        "stall3": 1.5,
+        "stall4": 0.6
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2752,
+        "rainRate": 0.115,
+        "nightRate": 0.284,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "20:30",
+      "stalls": {
+        "stall1": 0.3,
+        "stall2": 1.6,
+        "stall3": 0.6,
+        "stall4": 0.9
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "day",
+        "reasons": [
+          "image_qc"
+        ],
+        "sampleRows": 2747,
+        "rainRate": 0.13,
+        "nightRate": 0.281,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "20:45",
+      "stalls": {
+        "stall1": 0.8,
+        "stall2": 0.7,
+        "stall3": 1.1,
         "stall4": 1.3
       },
       "quality": {
@@ -2110,242 +2160,18 @@
         "reasons": [
           "image_qc"
         ],
-        "sampleRows": 2518,
-        "rainRate": 0.138,
-        "nightRate": 0.212,
-        "imageQcLowRate": 0.597
-      }
-    },
-    {
-      "time": "19:15",
-      "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.5,
-        "stall3": 1.1,
-        "stall4": 1.7
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2519,
-        "rainRate": 0.135,
-        "nightRate": 0.316,
-        "imageQcLowRate": 0.992
-      }
-    },
-    {
-      "time": "19:30",
-      "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.5,
-        "stall3": 0.9,
-        "stall4": 0.6
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2482,
-        "rainRate": 0.113,
-        "nightRate": 0.309,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "19:45",
-      "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.4,
-        "stall3": 1.5,
-        "stall4": 0.2
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2520,
-        "rainRate": 0.129,
-        "nightRate": 0.313,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "20:00",
-      "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.5,
-        "stall3": 0.6,
-        "stall4": 0.2
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2487,
-        "rainRate": 0.141,
-        "nightRate": 0.316,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "20:15",
-      "stalls": {
-        "stall1": 0.6,
-        "stall2": 0.5,
-        "stall3": 0.8,
-        "stall4": 0.6
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2504,
-        "rainRate": 0.115,
-        "nightRate": 0.315,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "20:30",
-      "stalls": {
-        "stall1": 0.3,
-        "stall2": 1.1,
-        "stall3": 1.4,
-        "stall4": 0.5
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2500,
-        "rainRate": 0.13,
-        "nightRate": 0.312,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "20:45",
-      "stalls": {
-        "stall1": 0.5,
-        "stall2": 0.8,
-        "stall3": 0.6,
-        "stall4": 1.7
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "day",
-        "reasons": [
-          "image_qc"
-        ],
-        "sampleRows": 2491,
+        "sampleRows": 2739,
         "rainRate": 0.131,
-        "nightRate": 0.31,
+        "nightRate": 0.279,
         "imageQcLowRate": 1
       }
     },
     {
       "time": "21:00",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.5,
-        "stall3": 0.6,
-        "stall4": 1.4
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2459,
-        "rainRate": 0.122,
-        "nightRate": 0.307,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "21:15",
-      "stalls": {
-        "stall1": 0.1,
-        "stall2": 0.4,
-        "stall3": 2,
-        "stall4": 0.7
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2501,
-        "rainRate": 0.114,
-        "nightRate": 0.311,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "21:30",
-      "stalls": {
-        "stall1": 0.8,
-        "stall2": 0.6,
-        "stall3": 4.5,
-        "stall4": 3
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2499,
-        "rainRate": 0.12,
-        "nightRate": 0.314,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "21:45",
-      "stalls": {
-        "stall1": 0.4,
-        "stall2": 1.3,
-        "stall3": 3.9,
-        "stall4": 0.4
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2478,
-        "rainRate": 0.118,
-        "nightRate": 0.308,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "22:00",
-      "stalls": {
-        "stall1": 0.6,
-        "stall2": 1.2,
-        "stall3": 0.8,
+        "stall1": 0.2,
+        "stall2": 0.8,
+        "stall3": 0.9,
         "stall4": 0.8
       },
       "quality": {
@@ -2355,19 +2181,19 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2507,
-        "rainRate": 0.13,
-        "nightRate": 0.316,
+        "sampleRows": 2705,
+        "rainRate": 0.122,
+        "nightRate": 0.276,
         "imageQcLowRate": 1
       }
     },
     {
-      "time": "22:15",
+      "time": "21:15",
       "stalls": {
-        "stall1": 1.6,
-        "stall2": 2.7,
-        "stall3": 1.8,
-        "stall4": 2.1
+        "stall1": 0.2,
+        "stall2": 0.6,
+        "stall3": 1,
+        "stall4": 1.3
       },
       "quality": {
         "confidence": "reference",
@@ -2376,19 +2202,19 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2503,
-        "rainRate": 0.141,
-        "nightRate": 0.314,
+        "sampleRows": 2748,
+        "rainRate": 0.114,
+        "nightRate": 0.28,
         "imageQcLowRate": 1
       }
     },
     {
-      "time": "22:30",
+      "time": "21:30",
       "stalls": {
-        "stall1": 0.9,
-        "stall2": 0.7,
-        "stall3": 1.9,
-        "stall4": 0.5
+        "stall1": 0.6,
+        "stall2": 1.3,
+        "stall3": 4.4,
+        "stall4": 0.8
       },
       "quality": {
         "confidence": "reference",
@@ -2397,39 +2223,18 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2501,
-        "rainRate": 0.153,
-        "nightRate": 0.317,
+        "sampleRows": 2746,
+        "rainRate": 0.12,
+        "nightRate": 0.282,
         "imageQcLowRate": 1
       }
     },
     {
-      "time": "22:45",
+      "time": "21:45",
       "stalls": {
-        "stall1": 1.6,
-        "stall2": 0.3,
-        "stall3": 1.7,
-        "stall4": 0.9
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2500,
-        "rainRate": 0.156,
-        "nightRate": 0.314,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "23:00",
-      "stalls": {
-        "stall1": 1.2,
-        "stall2": 0.1,
-        "stall3": 1.4,
+        "stall1": 0.8,
+        "stall2": 1,
+        "stall3": 3.3,
         "stall4": 1.1
       },
       "quality": {
@@ -2439,19 +2244,19 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2494,
-        "rainRate": 0.132,
-        "nightRate": 0.316,
+        "sampleRows": 2726,
+        "rainRate": 0.118,
+        "nightRate": 0.277,
         "imageQcLowRate": 1
       }
     },
     {
-      "time": "23:15",
+      "time": "22:00",
       "stalls": {
-        "stall1": 0.5,
-        "stall2": 0.7,
-        "stall3": 2.6,
-        "stall4": 0.2
+        "stall1": 1.3,
+        "stall2": 1.8,
+        "stall3": 1.2,
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "reference",
@@ -2460,39 +2265,60 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2513,
-        "rainRate": 0.142,
-        "nightRate": 0.315,
+        "sampleRows": 2751,
+        "rainRate": 0.13,
+        "nightRate": 0.285,
         "imageQcLowRate": 1
       }
     },
     {
-      "time": "23:30",
+      "time": "22:15",
       "stalls": {
-        "stall1": 0.7,
-        "stall2": 0.3,
-        "stall3": 1.5,
-        "stall4": 0.5
-      },
-      "quality": {
-        "confidence": "reference",
-        "condition": "night",
-        "reasons": [
-          "night",
-          "image_qc"
-        ],
-        "sampleRows": 2501,
-        "rainRate": 0.132,
-        "nightRate": 0.314,
-        "imageQcLowRate": 1
-      }
-    },
-    {
-      "time": "23:45",
-      "stalls": {
-        "stall1": 0.4,
-        "stall2": 0.2,
+        "stall1": 1.3,
+        "stall2": 0.6,
         "stall3": 0.7,
+        "stall4": 1.5
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2751,
+        "rainRate": 0.141,
+        "nightRate": 0.283,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "22:30",
+      "stalls": {
+        "stall1": 0.9,
+        "stall2": 0.9,
+        "stall3": 1.9,
+        "stall4": 1.6
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2747,
+        "rainRate": 0.153,
+        "nightRate": 0.285,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "22:45",
+      "stalls": {
+        "stall1": 1.2,
+        "stall2": 0.7,
+        "stall3": 2.1,
         "stall4": 0.3
       },
       "quality": {
@@ -2502,9 +2328,93 @@
           "night",
           "image_qc"
         ],
-        "sampleRows": 2487,
+        "sampleRows": 2749,
+        "rainRate": 0.156,
+        "nightRate": 0.283,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "23:00",
+      "stalls": {
+        "stall1": 0.5,
+        "stall2": 0,
+        "stall3": 0.6,
+        "stall4": 1.3
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2739,
+        "rainRate": 0.132,
+        "nightRate": 0.285,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "23:15",
+      "stalls": {
+        "stall1": 0.6,
+        "stall2": 0.2,
+        "stall3": 1.2,
+        "stall4": 0.3
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2760,
+        "rainRate": 0.142,
+        "nightRate": 0.284,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "23:30",
+      "stalls": {
+        "stall1": 0.5,
+        "stall2": 0.2,
+        "stall3": 1.1,
+        "stall4": 0.2
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2748,
+        "rainRate": 0.132,
+        "nightRate": 0.283,
+        "imageQcLowRate": 1
+      }
+    },
+    {
+      "time": "23:45",
+      "stalls": {
+        "stall1": 0.3,
+        "stall2": 0.1,
+        "stall3": 0.8,
+        "stall4": 0.8
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "night",
+        "reasons": [
+          "night",
+          "image_qc"
+        ],
+        "sampleRows": 2734,
         "rainRate": 0.145,
-        "nightRate": 0.312,
+        "nightRate": 0.281,
         "imageQcLowRate": 1
       }
     }

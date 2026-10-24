@@ -391,6 +391,11 @@
     .sf-drow { display: flex; align-items: flex-end; gap: 6px; border-top: 1px solid #2a2a30; padding-top: 4px; margin-top: 4px; }
     .sf-dn { width: 50px; flex: none; display: flex; flex-direction: column; line-height: 1.2; }
     .sf-dn small { font-size: 9px; color: var(--sub); }
+    /* いつもの日の線(今日1日のグラフ) */
+    .sf-chart .sf-typ { fill: none; stroke: #f0b27a; stroke-width: 1.5; opacity: .9; }
+    .sf-dn small.sf-rest { color: #f0b27a; }
+    .sf-dnote { font-size: 10px; color: var(--sub); margin-top: 6px; line-height: 1.5; }
+    .sf-lg { display: inline-block; width: 14px; height: 0; border-top: 2px solid #f0b27a; vertical-align: middle; margin-right: 4px; }
     .sf-daxis { display: flex; justify-content: space-between; margin-left: 56px; font-size: 9px; color: var(--sub); }
     .sf-dcell:not(:last-child) .sf-daxis { display: none; }
     @media (min-width: 760px) { .sf-dgrid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; } .sf-dcell:not(:last-child) .sf-daxis { display: flex; } }

@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights, errLine } from '../tools/js/stand-flow.js';
+import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights, errLine, restOfDay } from '../tools/js/stand-flow.js';
 
 test('standModel: 直近30分・1時間・30分ごと・数え始めを号ごとに。数えていない号は null', async () => {
   const d = { bins30End: ['16:13', '16:43', '17:13', '17:43'], stalls: {
@@ -102,4 +102,20 @@ test('errLine: 答え合わせが30件以上なら見込みの外れを出す。
   assert.equal(m.lanes[1].fcErr, null);
   assert.ok(errLine(m.lanes[4]).includes('±2.3台'));
   assert.equal(errLine(m.lanes[1]), '');
+});
+
+test('standModel: いつもの日の1時間ごとの台数と日数を読む(無い号は null)', () => {
+  const typ = Array.from({ length: 24 }, (_, h) => h);
+  const m = standModel({ stalls: { stall4: { lastHour: 3, typicalHourly: typ, typicalDays: 42 }, stall1: { lastHour: 2 } } });
+  assert.deepEqual(m.lanes[4].typ, typ);
+  assert.equal(m.lanes[4].typDays, 42);
+  assert.equal(m.lanes[1].typ, null);
+});
+
+test('restOfDay: いまの1時間は残りの分だけ、その先は全部足す', () => {
+  const typ = Array(24).fill(10);
+  assert.equal(restOfDay(typ, 23 * 60), 10);        // 23:00 → 23時台まるごと
+  assert.equal(restOfDay(typ, 23 * 60 + 30), 5);    // 23:30 → 半分
+  assert.equal(restOfDay(typ, 22 * 60 + 45), 13);   // 2.5 + 10 = 12.5 → 13
+  assert.equal(restOfDay(null, 600), null);
 });
