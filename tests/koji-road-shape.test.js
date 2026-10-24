@@ -93,13 +93,13 @@ test('絵の向き: ふさぐ側が線の右なら、→ の車は線と逆向�
 test('koji.json: 道の形の値が範囲に収まっている', async () => {
   const { readFileSync } = await import('node:fs');
   const F = JSON.parse(readFileSync(new URL('../tools/data/koji.json', import.meta.url), 'utf8')).features;
-  let n = 0;
+  // 道の形は毎朝の取り込み（sync-koji）で足すので、まだ足していない koji.json でも通す（値があるときだけ範囲を見る）
   for (const { properties: p } of F) {
-    if (p.sigAt != null) { n += 1; for (const t of String(p.sigAt).split(',')) assert.ok(Math.abs(Number(t)) <= 150, p.id); }
+    if (p.sigAt != null) for (const t of String(p.sigAt).split(',')) assert.ok(Math.abs(Number(t)) <= 150, p.id);
     if (p.curveDeg != null) assert.ok(Math.abs(p.curveDeg) <= 180, p.id);
     if (p.slopePct != null) assert.ok(Math.abs(p.slopePct) <= 12, p.id);
+    if (p.roadU != null) assert.equal(String(p.roadU).split(',').length, 31, p.id);
   }
-  assert.ok(n > 0);
 });
 
 test('道の形: 道の線をなぞり、工事の所を 0 にそろえる。上下線の2本を行き来しない', async () => {

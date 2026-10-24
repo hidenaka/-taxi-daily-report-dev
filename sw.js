@@ -33,6 +33,8 @@ const STATIC_FILES = [
   './tools/js/koji-ui.js',
   './tools/js/koji-lane-scene.js',
   './tools/js/koji-lane-anim.js',
+  './tools/js/jartic-data.js',
+  './tools/js/jartic-layer.js',
   './tools/img/koji/car-taxi-black.png',
   './tools/img/koji/car-white.png',
   './tools/img/koji/car-blue.png',

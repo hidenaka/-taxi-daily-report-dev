@@ -1,0 +1,45 @@
+name: Sync jartic traffic (hourly)
+
+# 国土交通省「交通量API」から、23区とそのまわりの国道の観測点の1時間値を取り込む（tools/data/jartic-traffic.json）。
+# 値はだいたい1〜2時間遅れて入るので、毎時40分に、前の時間までを取る。1回に取りに行くのは2回だけ。
+# 取りに行った記録は .github/scripts/data/jartic-access-log.tsv（規約 第8条）。
+
+on:
+  schedule:
+    - cron: '40 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-jartic
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 交通量を取得して tools/data/jartic-traffic.json を更新
+        run: node .github/scripts/sync-jartic.mjs
+
+      - name: コミット
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/data/jartic-traffic.json .github/scripts/data/jartic-access-log.tsv
+          if git diff --cached --quiet; then
+            echo "変更なし"
+            exit 0
+          fi
+          git commit -m "chore(data): sync jartic $(TZ=Asia/Tokyo date +%Y-%m-%d\ %H:%M) JST"
+          for i in 1 2 3 4 5; do
+            git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0
+            sleep $((i * 5))
+          done
+          echo "push に失敗しました"
+          exit 1

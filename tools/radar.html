@@ -254,6 +254,30 @@
     .k-owners[hidden]{display:none;}
     .k-owners small{color:var(--k-sub);font-size:11px;line-height:1.4;}
     .k-owners .k-legend i.bd{width:16px;height:0;border-radius:0;border-top:2px dashed var(--k-ink);}
+    /* 国道の交通量（国の交通量API・1時間ごと） */
+    #jtBtn:focus-visible,#jtNote button:focus-visible{outline:3px solid #1f5fa8;outline-offset:2px;}
+    .k-jtnote{position:absolute;top:76px;right:16px;z-index:2;padding:8px 32px 8px 12px;width:248px;font-size:12px;line-height:1.5;color:var(--k-ink);}
+    .k-jtnote[hidden]{display:none;}
+    .k-jtnote.small{padding:5px 10px;width:220px;}
+    .k-jtnote.small .jt-notice{margin:0;}
+    .k-jtnote.err{border:2px solid var(--k-accent);}
+    .k-jtnote .jt-legend{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;color:var(--k-sub);font-size:11.5px;}
+    .k-jtnote .jt-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.15);}
+    .k-jtnote .jt-notice{display:block;margin-top:5px;color:var(--k-sub);font-size:10.5px;line-height:1.45;}
+    :where(#koji-ui) .k-jtnote button{position:absolute;top:6px;right:8px;width:24px;height:24px;font-size:16px;color:var(--k-sub);}
+    .k-list.open ~ .k-jtnote{display:none;}
+    .jt-pop{font-size:13px;line-height:1.55;color:#1d2024;max-width:280px;}
+    .jt-pop .jt-kicker{font-size:11.5px;font-weight:800;color:#1f5fa8;}
+    .jt-pop .ttl{font-size:15px;font-weight:900;margin:1px 0 4px;}
+    .jt-pop .jt-when{color:#6b7076;font-size:12px;}
+    .jt-pop .jt-big{font-size:22px;line-height:1.3;font-weight:900;font-variant-numeric:tabular-nums;}
+    .jt-pop .jt-big small{font-size:13px;margin-left:2px;}
+    .jt-pop .jt-cmp{font-size:12px;font-weight:800;padding:2px 7px;border-radius:999px;color:#fff;vertical-align:4px;margin-left:4px;}
+    .jt-pop .jt-more{background:#d9480f;}.jt-pop .jt-less{background:#1f6fd1;}.jt-pop .jt-same{background:#4f5862;}.jt-pop .jt-none{background:#9aa0a6;}
+    .jt-pop .jt-dirs{display:flex;flex-wrap:wrap;gap:0 12px;font-size:12.5px;font-variant-numeric:tabular-nums;margin:2px 0 4px;}
+    .jt-pop .jt-cap{font-size:11px;color:#6b7076;margin-top:4px;}
+    .jt-pop .jt-note{font-size:11px;color:#6b7076;margin:6px 0 0;}
+    .jt-pop .jt-src{font-size:10.5px;color:#6b7076;margin:4px 0 0;border-top:1px solid #e3e5e8;padding-top:4px;}
     /* 交通量調査（警視庁の定期調査地点・工事とは別の層） */
     #tcBtn:focus-visible,#tcNote button:focus-visible{outline:3px solid #1f5fa8;outline-offset:2px;}
     .k-tcnote{position:absolute;top:76px;right:16px;z-index:2;padding:8px 32px 8px 12px;width:248px;font-size:12px;line-height:1.5;color:var(--k-ink);}
@@ -549,6 +573,7 @@
       </div>
       <button class="k-round k-card" id="roads" aria-label="道の持ち主（国道・都道・区道）と区の境を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20 9 4M20 20 15 4M12 6v2M12 11v2M12 16v2"/></svg></button>
       <button class="k-round k-card" id="tcBtn" aria-label="交通量調査（警視庁・2024年の調査日の実績）を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 21 12 12 21 3 12z"/><path d="M9 14v-2M12 15v-5M15 14v-3"/></svg></button>
+      <button class="k-round k-card" id="jtBtn" aria-label="国道の交通量（国の交通量API・1時間ごと）を重ねる" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M8 15v-3M12 15V8M16 15v-5"/></svg></button>
       <button class="k-round k-card" id="info" aria-label="この地図について"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
     </div>
 
@@ -575,6 +600,7 @@
     </aside>
 
     <div class="k-tcnote k-card" id="tcNote" role="status" aria-live="polite" hidden></div>
+    <div class="k-jtnote k-card" id="jtNote" role="status" aria-live="polite" hidden></div>
 
     <div class="k-cloud k-card" aria-label="見方">
       <span>もや＝車線をふさぐ工事の集まり</span><i></i><span class="ends"><b>少</b><b>多</b></span>
@@ -608,6 +634,7 @@
       <p><b>道の持ち主</b>（右上の道のボタン）: 国道＝青、都道＝緑、区道など＝紫。点線は区の境です。国土地理院の地図データの「道路の種類」で色分けしているので、管理者とは少しずれます。区道の工事情報はまだ地図に入っていません。</p>
       <p><b>位置</b>: 都のデータの住所（丁目）と道路名から、その名前の道路の上に置いています（道路の形と名前: © OpenStreetMap contributors）。その名前の道路が住所の近くに無い工事は、道路には置かず<b>白抜きの丸</b>（位置は目安）で出します。</p>
       <p><b>時間帯</b>は各工事の予定で、毎日同じ時間帯として表示しています（曜日・休工日は元データに無い）。工事はすべて下道（都道）で、高速道路そのものの規制は含みません。実際の通行可否は現地の標識・警察・道路管理者の情報を確認してください。</p>
+      <p><b>国道の交通量</b>（右上の丸いボタン・最初は消えています）: 国土交通省の「交通量API」から、23区とそのまわりの国道の観測点（道路の機械で数える地点と、カメラで数える地点）の1時間ごとの台数を1時間に1回取り込み、地図に丸で重ねます。丸の色は、いちばん新しい時間の台数を7日前の同じ時間と比べたもので、10%以上多いと赤、10%以上少ないと青です。値は1〜2時間遅れて届きます。国の参考値で、正式な交通量調査の結果ではありません。都道（環七・中原街道など）は入っていません。このサービスは、交通量API機能を使用していますが、サービスの内容は国土交通省によって保証されたものではありません。出典: 国土交通省 交通量API機能による交通量（参考値）を加工して作成。</p>
       <p><b>交通量調査</b>（右上の菱形のボタン・最初は消えています）: 警視庁の定期交通量調査「令和6年 主要交差点交通量（区部）」の地点を、菱形の印で重ねます（印が大きいほど、交差点を通った車が多い）。地図を寄せると、交差点に入ってきた方向ごとの台数を矢印で描きます（矢印が太いほど多い）。<span id="tcAboutCount">対象は区部の主要交差点91地点のうち、位置を確かめた61地点です（2026-10-22 に取り込み。残り30地点は位置を確かめられないため出していません）</span>。位置は、OpenStreetMapの交差点名と道路名で候補を出し、国土地理院の航空写真で目で確かめました（地点の詳細に書いてあります）。値は2024年11月の調査日に、7時〜19時に交差点へ入った車を数えた実績です。<b>現在の交通量・通常日の代表値・渋滞予測ではありません</b>。毎日更新されるものではなく、警視庁が次の調査結果を公表したときに取り込み直します。工事の「混みやすさ」の計算には使っていません。出典: 警視庁「交通量統計表」（加工して作成）。</p>
       <p class="src">出典: 東京都建設局 路上工事情報（CC BY 4.0）／ 地図: 国土地理院 ／ 道路の形と名前: © OpenStreetMap contributors（ODbL）</p>
       <form method="dialog"><button class="close">閉じる</button></form>

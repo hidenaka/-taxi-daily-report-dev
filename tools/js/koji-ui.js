@@ -5,6 +5,7 @@
 // 地図の層は koji-layer.js、材料づくりは koji-data.js。
 import { createKojiLayer } from './koji-layer.js';
 import { createTrafficCountLayer } from './traffic-count-layer.js';   // 警視庁の交通量調査（別の層・既定はオフ）
+import { createJarticLayer } from './jartic-layer.js';   // 国道の交通量（国の交通量API・1時間ごと・既定はオフ）
 import { laneScene } from './koji-lane-scene.js';      // 「いつも」と「工事中」の車線の並び
 import { mountLaneAnim } from './koji-lane-anim.js';   // 車が動く絵
 import {
@@ -41,6 +42,7 @@ export function createKojiUi(map) {
 
   const layer = createKojiLayer(map, { onClick: (f, lngLat) => openPopup(f.properties, lngLat) });
   let traffic = null;
+  let jartic = null;
 
   // ---- データ ----
   async function load() {
@@ -370,9 +372,11 @@ export function createKojiUi(map) {
       active = next;
       document.body.classList.toggle('koji-on', next);
       traffic?.setScreenActive(next);
+      jartic?.setScreenActive(next);
       if (!next) { stop(); popup?.remove(); layer.setVisible(false); return; }
       if (!wired) { wire(); buildLegend(); buildOwnerLegend(); drawTicks(); wired = true; }
       if (!traffic) { traffic = createTrafficCountLayer(map, { closeOtherPopups: () => popup?.remove() }); traffic.setScreenActive(true); }
+      if (!jartic) { jartic = createJarticLayer(map, { closeOtherPopups: () => popup?.remove() }); jartic.setScreenActive(true); }
       if (!(await load())) return;
       if (!(await ensureLayers())) return;
       layer.setColorMode(mode);
