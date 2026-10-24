@@ -1,19 +1,19 @@
 {
- "generatedAt": "2026-10-25T01:41:41+09:00",
+ "generatedAt": "2026-10-25T01:53:48+09:00",
  "unit": "台",
  "bins30End": [
-  "00:11",
-  "00:41",
-  "01:11",
-  "01:41"
+  "00:23",
+  "00:53",
+  "01:23",
+  "01:53"
  ],
  "stalls": {
   "stall1": {
    "lastHour": 1,
    "last30": 0,
    "bins30": [
-    4,
     1,
+    0,
     1,
     0
    ],
@@ -82,7 +82,7 @@
    ],
    "typicalDays": 10,
    "inQueue": 0,
-   "lastFrameAt": "2026-10-25T01:41:33+09:00",
+   "lastFrameAt": "2026-10-25T01:53:43+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -99,8 +99,8 @@
    "lastHour": 0,
    "last30": 0,
    "bins30": [
-    6,
-    3,
+    5,
+    1,
     0,
     0
    ],
@@ -169,12 +169,12 @@
    ],
    "typicalDays": 10,
    "inQueue": 0,
-   "lastFrameAt": "2026-10-25T01:41:33+09:00",
+   "lastFrameAt": "2026-10-25T01:53:43+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
      "n": 1675,
-     "mae": 2.15
+     "mae": 2.16
     },
     "1": {
      "n": 1670,
@@ -183,13 +183,13 @@
    }
   },
   "stall3": {
-   "lastHour": 9,
-   "last30": 5,
+   "lastHour": 10,
+   "last30": 6,
    "bins30": [
     8,
-    7,
+    3,
     4,
-    5
+    6
    ],
    "countingSince": "2026-10-25T00:04:09+09:00",
    "forecast30": [
@@ -204,7 +204,7 @@
    "forecastBase": "own",
    "todayHourly": [
     10,
-    8,
+    10,
     0,
     0,
     0,
@@ -255,8 +255,8 @@
     24.9
    ],
    "typicalDays": 10,
-   "inQueue": 2,
-   "lastFrameAt": "2026-10-25T01:41:33+09:00",
+   "inQueue": 1,
+   "lastFrameAt": "2026-10-25T01:53:43+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -270,12 +270,12 @@
    }
   },
   "stall4": {
-   "lastHour": 1,
+   "lastHour": 0,
    "last30": 0,
    "bins30": [
-    10,
-    5,
-    1,
+    8,
+    2,
+    0,
     0
    ],
    "countingSince": "2026-10-25T00:01:06+09:00",
@@ -342,13 +342,13 @@
     18.5
    ],
    "typicalDays": 42,
-   "inQueue": 0,
-   "lastFrameAt": "2026-10-25T01:41:33+09:00",
+   "inQueue": 1,
+   "lastFrameAt": "2026-10-25T01:53:43+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
      "n": 1675,
-     "mae": 2.26
+     "mae": 2.25
     },
     "1": {
      "n": 1670,
