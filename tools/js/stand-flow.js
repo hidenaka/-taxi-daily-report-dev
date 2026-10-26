@@ -248,7 +248,8 @@ function render(el) {
   const top = Math.max(...vals);
   const hot = top > 0 ? LANES[vals.indexOf(top)] : 0;
   const arr = Object.fromEntries(LANES.map(n => [n, upcomingFlights(state.flights, n, nowMin)]));
-  const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}.jpg?t=${cb}" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}">`;
+  // 写真は左側の歩道(待っている乗客)が写る切り抜き。まだ届いていなければ従来の列の切り抜きに戻す。
+  const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}-wait.jpg?t=${cb}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${cb}'" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}">`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
     html += '<div class="sf-lanes">';
@@ -284,7 +285,8 @@ function zoom(n) {
     z.addEventListener('click', () => { z.hidden = true; });
     document.body.appendChild(z);
   }
-  z.innerHTML = `<img src="data/stand-cam-${n}.jpg?t=${state.camAt}" alt="${NAME[n]}の乗り場の写真"><div>${NAME[n]}の乗り場・押すと閉じます</div>`;
+  // 押したときは切り抜く前のカメラ画像の全体を出す。
+  z.innerHTML = `<img src="data/stand-cam-${n}-full.jpg?t=${state.camAt}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${state.camAt}'" alt="${NAME[n]}の乗り場の写真(全体)"><div>${NAME[n]}の乗り場・押すと閉じます</div>`;
   z.hidden = false;
 }
 
