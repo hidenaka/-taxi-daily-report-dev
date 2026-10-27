@@ -65,13 +65,22 @@
     .trend-lanes { display:grid; gap:9px; padding:8px 0 2px; background:#111218; border:1px solid #222631; border-radius:8px; }
     .trend-lane { display:grid; grid-template-columns:36px 28px 1fr; gap:7px; align-items:stretch; border-left:3px solid #555; padding-left:7px; }
     .trend-lane-label { color:var(--fg); font-weight:800; font-size:12px; }
-    .trend-y-axis { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; height:42px; padding-right:2px; color:#7f8794; font-size:9px; font-variant-numeric:tabular-nums; line-height:1; }
+    .trend-y-axis { display:flex; flex-direction:column; justify-content:space-between; align-items:flex-end; height:48px; padding-right:2px; color:#7f8794; font-size:9px; font-variant-numeric:tabular-nums; line-height:1; }
     .trend-bars-wrap { position:relative; min-height:42px; padding-right:1px; }
     .trend-hour-lines { position:absolute; inset:0 0 1px 0; pointer-events:none; }
     .trend-hour-line { position:absolute; top:0; bottom:0; width:1px; background:rgba(232,232,232,.075); }
     .trend-hour-line:nth-child(6n+1) { background:rgba(232,232,232,.14); }
     .trend-bars { position:relative; z-index:1; display:grid; grid-template-columns:repeat(96, minmax(2px, 1fr)); gap:1px; align-items:end; min-height:42px; border-bottom:1px solid #2d3340; }
     .trend-bars span { display:block; background:var(--tone); border-radius:1px 1px 0 0; opacity:.92; min-height:3px; }
+    .trend-bars-24 { grid-template-columns:repeat(24, minmax(4px, 1fr)); gap:2px; min-height:48px; }
+    .trend-hour { position:relative; height:48px; }
+    .trend-hour i, .trend-hour b { position:absolute; left:0; right:0; bottom:0; border-radius:2px 2px 0 0; }
+    .trend-hour i { background:var(--tone); opacity:.28; }
+    .trend-hour b { left:22%; right:22%; background:var(--tone); }
+    .trend-cmp { margin-top:7px; font-size:11.5px; font-weight:800; }
+    .trend-cmp.is-more { color:#7ee0b2; } .trend-cmp.is-less { color:#ffb38a; } .trend-cmp.is-same { color:var(--sub); }
+    .trend-today { color:var(--sub); font-size:11px; }
+    .trend-table tr.is-now td { background:rgba(78,161,255,.12); }
     .trend-now-line { position:absolute; top:-3px; bottom:-3px; width:2px; background:#f2f4f8; box-shadow:0 0 0 1px rgba(14,14,16,.7), 0 0 8px rgba(242,244,248,.38); pointer-events:none; }
     .trend-time-axis { position:relative; height:18px; margin:6px 0 0 79px; color:var(--sub); font-size:10px; font-variant-numeric:tabular-nums; }
     .trend-time-axis span { position:absolute; top:0; transform:translateX(-50%); white-space:nowrap; }

@@ -1,33 +1,20 @@
-import { loadAdvanceForecast } from './forecast-section.js';
+// 乗り場傾向: 号ごとに「乗り場から出ていったタクシーの台数」(乗り場カメラで1台ずつ数えたもの)の
+// いつもの日(過去の平均)と今日を並べる。データは data/stand-out.json(Mac mini の stand-out-tick.py)。
+// 2026-10-27 本人「最新のカウントに合わせたページに」で、待機所の列移動の回数から作り替えた。
 
 export const STALLS = [
-  { key: 'stall1', label: '1号', tone: 'orange' },
-  { key: 'stall2', label: '2号', tone: 'yellow' },
-  { key: 'stall3', label: '3号', tone: 'teal' },
-  { key: 'stall4', label: '4号', tone: 'violet' },
+  { key: 'stall1', label: '1号', sub: 'T1 南', tone: 'orange' },
+  { key: 'stall2', label: '2号', sub: 'T1 北', tone: 'yellow' },
+  { key: 'stall3', label: '3号', sub: 'T2 北', tone: 'teal' },
+  { key: 'stall4', label: '4号', sub: 'T2 南・国際', tone: 'violet' },
 ];
 
 const DAYPARTS = [
-  { key: 'morning', label: '朝', range: '5-11時', start: 5 * 60, end: 11 * 60 },
-  { key: 'day', label: '昼', range: '11-16時', start: 11 * 60, end: 16 * 60 },
-  { key: 'evening', label: '夕方', range: '16-21時', start: 16 * 60, end: 21 * 60 },
-  { key: 'night', label: '夜', range: '21-5時', start: 21 * 60, end: 5 * 60 },
+  { key: 'morning', label: '朝', range: '5-11時', hours: [5, 6, 7, 8, 9, 10] },
+  { key: 'day', label: '昼', range: '11-16時', hours: [11, 12, 13, 14, 15] },
+  { key: 'evening', label: '夕方', range: '16-21時', hours: [16, 17, 18, 19, 20] },
+  { key: 'night', label: '夜', range: '21-5時', hours: [21, 22, 23, 0, 1, 2, 3, 4] },
 ];
-
-const UNIT_STORAGE_KEY = 'noribaTrendsUnit';
-const REFERENCE_END_MINUTES = 5 * 60 + 30;
-
-function toMinutes(hhmm) {
-  const [h, m] = String(hhmm || '').split(':').map(Number);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-  return h * 60 + m;
-}
-
-function toHHMM(minutes) {
-  const h = Math.floor(minutes / 60) % 24;
-  const m = minutes % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
 
 function round1(value) {
   const n = Number(value) || 0;
@@ -35,175 +22,92 @@ function round1(value) {
 }
 
 function fmt(value) {
-  const n = round1(value);
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  return String(Math.round(Number(value) || 0));
 }
 
-function daypartFor(minutes) {
-  return DAYPARTS.find((part) => {
-    if (part.start < part.end) return minutes >= part.start && minutes < part.end;
-    return minutes >= part.start || minutes < part.end;
-  }) || DAYPARTS[0];
+function hourLabel(h) {
+  return `${h}時台`;
 }
 
-function confidenceFromQuality(quality) {
-  if (!quality || typeof quality !== 'object') return null;
-  const condition = quality.condition || '';
-  const confidence = quality.confidence || '';
-  const isReference = confidence === 'reference' || confidence === 'low' ||
-    condition === 'night' || condition === 'rain_night' || condition === 'early';
-  const isNormal = confidence === 'normal' || condition === 'day' || condition === 'rain_day';
-  if (!isReference && !isNormal) return null;
-  const labels = {
-    day: '昼',
-    rain_day: '雨昼',
-    night: '夜',
-    rain_night: '雨夜',
-    early: '早朝',
-  };
-  if (isReference) {
-    return {
-      key: 'reference',
-      label: '列移動の回数（参考）',
-      shortLabel: '参考',
-      note: labels[condition] ? `${labels[condition]}は参考扱い` : '画像/天候条件により参考扱い',
-    };
-  }
-  return {
-    key: 'normal',
-    label: '列移動の回数',
-    shortLabel: '通常',
-    note: labels[condition] ? `${labels[condition]}は通常扱い` : '通常扱い',
-  };
+function hours24(arr) {
+  return Array.from({ length: 24 }, (_, h) => Number(arr?.[h]) || 0);
 }
 
-export function movementConfidenceForTime(timeLabel, quality = null) {
-  const qualityConfidence = confidenceFromQuality(quality);
-  if (qualityConfidence) return qualityConfidence;
-
-  const startLabel = String(timeLabel || '').split('-')[0];
-  const minutes = toMinutes(startLabel);
-  if (minutes === null) {
-    return {
-      key: 'normal',
-      label: '列移動の回数',
-      shortLabel: '通常',
-      note: '通常扱い',
-    };
-  }
-  const isReference = minutes >= 21 * 60 || minutes < REFERENCE_END_MINUTES;
-  if (isReference) {
-    return {
-      key: 'reference',
-      label: '列移動の回数（参考）',
-      shortLabel: '参考',
-      note: '夜・雨夜・早朝はライト/反射/明るさ変化で精度が落ちる',
-    };
-  }
-  return {
-    key: 'normal',
-    label: '列移動の回数',
-    shortLabel: '通常',
-    note: '昼・雨昼は通常の列移動回数として扱う',
-  };
-}
-
-export function toTrendBins(slots) {
-  return (slots || []).map((slot) => {
-    const start = toMinutes(slot.time);
-    const label = start === null ? String(slot.time || '') : `${toHHMM(start)}-${toHHMM(start + 15)}`;
-    const stalls = slot.stalls || {};
-    const row = { time: slot.time, label, quality: slot.quality || null };
-    for (const stall of STALLS) row[stall.key] = Number(stalls[stall.key] ?? 0);
-    row.total = round1(STALLS.reduce((sum, stall) => sum + row[stall.key], 0));
-    return row;
-  });
-}
-
-export function toVehicleTrendBins(bins, rowWidth) {
-  if (!rowWidth || !Array.isArray(bins)) return bins || [];
-  return bins.map((bin) => {
-    const row = { time: bin.time, label: bin.label, quality: bin.quality || null };
-    for (const stall of STALLS) {
-      const width = typeof rowWidth[stall.key] === 'number' ? rowWidth[stall.key] : 1;
-      row[stall.key] = Math.round((bin[stall.key] || 0) * width);
-    }
-    row.total = STALLS.reduce((sum, stall) => sum + row[stall.key], 0);
-    return row;
-  });
-}
-
-export function summarizeStallTrends(bins) {
-  const rows = Array.isArray(bins) ? bins : [];
+/** stand-out.json → 号ごとの 24 時間(いつもの日・今日)。いつもの日がまだ無い号は typical=null。 */
+export function toHourRows(stand) {
+  const stalls = stand?.stalls || {};
   return STALLS.map((stall) => {
-    let total = 0;
-    let peak = null;
-    let quiet = null;
-    for (const bin of rows) {
-      const value = Number(bin[stall.key] || 0);
-      total += value;
-      if (!peak || value > peak.value) peak = { label: bin.label, value };
-      if (!quiet || value < quiet.value) quiet = { label: bin.label, value };
-    }
-    const hours = rows.length > 0 ? rows.length / 4 : 0;
+    const s = stalls[stall.key] || {};
     return {
-      key: stall.key,
-      label: stall.label,
-      tone: stall.tone,
-      total: round1(total),
-      averagePerHour: hours ? round1(total / hours) : 0,
-      peakLabel: peak ? peak.label : '—',
-      peakValue: peak ? round1(peak.value) : 0,
-      quietLabel: quiet ? quiet.label : '—',
-      quietValue: quiet ? round1(quiet.value) : 0,
+      ...stall,
+      typical: Array.isArray(s.typicalHourly) ? hours24(s.typicalHourly) : null,
+      typicalDays: Number(s.typicalDays) || 0,
+      today: hours24(s.todayHourly),
     };
   });
 }
 
-export function buildDaypartSummaries(bins) {
-  const rows = DAYPARTS.map((part) => ({
-    key: part.key,
-    label: part.label,
-    range: part.range,
-    stall1: 0,
-    stall2: 0,
-    stall3: 0,
-    stall4: 0,
-    total: 0,
-    normalRows: 0,
-    referenceRows: 0,
-    confidenceKey: 'normal',
-  }));
-  const byKey = new Map(rows.map(row => [row.key, row]));
-  for (const bin of bins || []) {
-    const startLabel = String(bin.label || '').split('-')[0];
-    const minutes = toMinutes(startLabel);
-    if (minutes === null) continue;
-    const row = byKey.get(daypartFor(minutes).key);
-    for (const stall of STALLS) row[stall.key] += Number(bin[stall.key] || 0);
-    row.total += Number(bin.total || 0);
-    const confidence = movementConfidenceForTime(bin.label, bin.quality);
-    if (confidence.key === 'reference') row.referenceRows += 1;
-    else row.normalRows += 1;
+/** 今日ここまでの台数と、いつもの日のこの時刻までの台数(いまの時間は経った分だけ足す)。 */
+export function soFar(row, now = new Date()) {
+  const h = now.getHours();
+  const frac = now.getMinutes() / 60;
+  let today = 0;
+  let typical = 0;
+  for (let i = 0; i <= h; i += 1) {
+    today += row.today[i];
+    if (row.typical) typical += i < h ? row.typical[i] : row.typical[i] * frac;
   }
-  for (const row of rows) {
-    for (const stall of STALLS) row[stall.key] = round1(row[stall.key]);
-    row.total = round1(row.total);
-    if (row.referenceRows > 0 && row.normalRows > 0) row.confidenceKey = 'mixed';
-    else if (row.referenceRows > 0) row.confidenceKey = 'reference';
-    else row.confidenceKey = 'normal';
-  }
-  return rows;
+  return { today, typical: row.typical ? round1(typical) : null };
 }
 
-export function buildTimelineHourMarkers(bins) {
-  const rows = Array.isArray(bins) ? bins : [];
-  const count = rows.length || 96;
+export function summarizeRow(row, now = new Date()) {
+  const base = row.typical;
+  let peak = null;
+  let quiet = null;
+  if (base) {
+    // 多い・少ない時間は 5〜24時で見る(深夜はどの号も少ないので、比べても役に立たない)
+    for (let h = 5; h < 24; h += 1) {
+      if (peak === null || base[h] > base[peak]) peak = h;
+      if (quiet === null || base[h] < base[quiet]) quiet = h;
+    }
+  }
+  let rest = null;
+  if (base) {
+    const h = now.getHours();
+    rest = base[h] * (1 - now.getMinutes() / 60);
+    for (let i = h + 1; i < 24; i += 1) rest += base[i];
+  }
+  const sf = soFar(row, now);
+  return {
+    key: row.key,
+    total: base ? round1(base.reduce((a, b) => a + b, 0)) : null,
+    peakHour: peak,
+    peakValue: peak === null ? null : base[peak],
+    quietHour: quiet,
+    quietValue: quiet === null ? null : base[quiet],
+    todaySoFar: sf.today,
+    typicalSoFar: sf.typical,
+    restOfDay: rest === null ? null : Math.round(rest),
+  };
+}
+
+export function buildDaypartRows(rows) {
+  return DAYPARTS.map((part) => {
+    const out = { key: part.key, label: part.label, range: part.range, total: 0 };
+    for (const row of rows) {
+      const v = row.typical ? part.hours.reduce((a, h) => a + row.typical[h], 0) : null;
+      out[row.key] = v;
+      out.total += v || 0;
+    }
+    return out;
+  });
+}
+
+export function buildTimelineHourMarkers() {
   return [0, 3, 6, 9, 12, 15, 18, 21, 24].map((hour) => ({
     hour,
     label: `${hour}時`,
     position: Math.round((hour / 24) * 1000) / 10,
-    gridColumn: Math.min(count + 1, Math.round((hour / 24) * count) + 1),
   }));
 }
 
@@ -224,30 +128,36 @@ export function buildNowMarker(now = new Date()) {
   };
 }
 
-function renderUnitControls(unit) {
-  return `<div class="trend-segment" role="group" aria-label="単位">
-    <button type="button" class="trend-segment-btn ${unit === 'count' ? 'is-active' : ''}" data-unit="count">回数</button>
-    <button type="button" class="trend-segment-btn ${unit === 'vehicles' ? 'is-active' : ''}" data-unit="vehicles">台数</button>
-  </div>`;
+/** 今日ここまでといつもの日の差。差が 3台未満か 1割未満なら「いつもくらい」。 */
+export function compareLabel(today, typical) {
+  if (typical === null || typical < 1) return null;
+  const diff = Math.round(today - typical);
+  if (Math.abs(diff) < Math.max(3, typical * 0.1)) return { key: 'same', text: 'いつもくらい' };
+  return diff > 0
+    ? { key: 'more', text: `いつもより ${diff}台 多い` }
+    : { key: 'less', text: `いつもより ${-diff}台 少ない` };
 }
 
-function renderStallCards(summaries, todaySummaries, unitLabel) {
-  const maxTotal = Math.max(1, ...summaries.map(row => row.total));
-  const todayByKey = new Map((todaySummaries || []).map(row => [row.key, row]));
-  return `<div class="trend-cards">${summaries.map((row) => {
-    const today = todayByKey.get(row.key);
-    const pct = Math.max(4, Math.round((row.total / maxTotal) * 100));
-    const todayText = today ? `${fmt(today.total)}${unitLabel}` : '—';
+function renderStallCards(rows, now) {
+  const sums = rows.map(row => summarizeRow(row, now));
+  const maxTotal = Math.max(1, ...sums.map(s => s.total || 0));
+  return `<div class="trend-cards">${rows.map((row, i) => {
+    const s = sums[i];
+    const pct = s.total ? Math.max(4, Math.round((s.total / maxTotal) * 100)) : 0;
+    const cmp = compareLabel(s.todaySoFar, s.typicalSoFar);
     return `<article class="trend-card tone-${row.tone}">
-      <div class="trend-card-head"><span class="trend-stall">${row.label}</span><span class="trend-muted">平均</span></div>
-      <div class="trend-main">${fmt(row.total)}<span>${unitLabel}/日</span></div>
+      <div class="trend-card-head"><span class="trend-stall">${row.label}</span><span class="trend-muted">${row.sub}</span></div>
+      <div class="trend-main">${s.total === null ? '—' : fmt(s.total)}<span>台/日</span></div>
+      <div class="trend-muted">いつもの日の1日の台数</div>
       <div class="trend-meter" aria-hidden="true"><span style="width:${pct}%"></span></div>
       <dl class="trend-kv">
-        <div><dt>ピーク</dt><dd>${row.peakLabel} ${fmt(row.peakValue)}${unitLabel}</dd></div>
-        <div><dt>静か</dt><dd>${row.quietLabel} ${fmt(row.quietValue)}${unitLabel}</dd></div>
-        <div><dt>1時間平均</dt><dd>${fmt(row.averagePerHour)}${unitLabel}</dd></div>
-        <div><dt>今日実測</dt><dd>${todayText}</dd></div>
+        <div><dt>今日ここまで</dt><dd>${fmt(s.todaySoFar)}台</dd></div>
+        <div><dt>いつもはここまで</dt><dd>${s.typicalSoFar === null ? '—' : `${fmt(s.typicalSoFar)}台`}</dd></div>
+        <div><dt>24時まで</dt><dd>${s.restOfDay === null ? '—' : `あと約${s.restOfDay}台`}</dd></div>
+        <div><dt>多い時間</dt><dd>${s.peakHour === null ? '—' : `${hourLabel(s.peakHour)} ${fmt(s.peakValue)}台`}</dd></div>
+        <div><dt>少ない時間</dt><dd>${s.quietHour === null ? '—' : `${hourLabel(s.quietHour)} ${fmt(s.quietValue)}台`}</dd></div>
       </dl>
+      ${cmp ? `<div class="trend-cmp is-${cmp.key}">${cmp.text}</div>` : ''}
     </article>`;
   }).join('')}</div>`;
 }
@@ -266,33 +176,37 @@ function renderPoolCameras(now = new Date()) {
   </section>`;
 }
 
-function renderTimeline(bins, unitLabel, now = new Date()) {
-  const max = Math.max(1, ...bins.map(row => Math.max(...STALLS.map(stall => row[stall.key] || 0))));
-  const markers = buildTimelineHourMarkers(bins);
+function renderTimeline(rows, now = new Date()) {
+  const max = Math.max(1, ...rows.flatMap(row => [...(row.typical || []), ...row.today]));
+  const markers = buildTimelineHourMarkers();
   const dividers = buildTimelineHourDividers();
   const nowMarker = buildNowMarker(now);
-  const midLabel = fmt(max / 2);
-  const maxLabel = fmt(max);
+  const h = now.getHours();
+  const H = 46;
   return `<section class="trend-section">
     <div class="trend-section-head">
-      <h2>24時間の平均パターン</h2>
-      <span>${nowMarker.label} / 縦軸 ${unitLabel}</span>
+      <h2>1日の流れ（1時間ごと）</h2>
+      <span>${nowMarker.label} / 縦軸 台</span>
     </div>
-    <div class="trend-axis-note">棒1本は15分平均。縦軸は各棒の${unitLabel}、薄い縦線は1時間ごと。夜・雨夜・早朝と画像QCが弱い昼枠も参考扱い。</div>
-    <div class="trend-lanes">${STALLS.map((stall) => `<div class="trend-lane tone-${stall.tone}">
-      <div class="trend-lane-label">${stall.label}</div>
+    <div class="trend-axis-note">薄い棒がいつもの日、濃い棒が今日です。白い縦線が今の時刻です。</div>
+    <div class="trend-lanes">${rows.map((row) => `<div class="trend-lane tone-${row.tone}">
+      <div class="trend-lane-label">${row.label}</div>
       <div class="trend-y-axis" aria-label="縦軸">
-        <span>${maxLabel}</span>
-        <span>${midLabel}</span>
+        <span>${fmt(max)}</span>
+        <span>${fmt(max / 2)}</span>
         <span>0</span>
       </div>
       <div class="trend-bars-wrap">
         <div class="trend-hour-lines" aria-hidden="true">
           ${dividers.map(divider => `<span class="trend-hour-line" style="left:${divider.position}%"></span>`).join('')}
         </div>
-        <div class="trend-bars">${bins.map((bin) => {
-          const height = Math.max(3, Math.round(((bin[stall.key] || 0) / max) * 32));
-          return `<span title="${bin.label} ${fmt(bin[stall.key] || 0)}${unitLabel}" style="height:${height}px"></span>`;
+        <div class="trend-bars trend-bars-24">${Array.from({ length: 24 }, (_, i) => {
+          const t = row.typical ? row.typical[i] : 0;
+          const a = i <= h ? row.today[i] : null;
+          const th = row.typical ? Math.max(2, Math.round((t / max) * H)) : 0;
+          const ah = a === null ? 0 : Math.max(a > 0 ? 2 : 0, Math.round((a / max) * H));
+          const tip = `${hourLabel(i)} いつも${row.typical ? fmt(t) : '—'}台${a === null ? '' : `・今日${a}台`}`;
+          return `<span class="trend-hour" title="${tip}"><i style="height:${th}px"></i>${a === null ? '' : `<b style="height:${ah}px"></b>`}</span>`;
         }).join('')}</div>
         <span class="trend-now-line" style="left:${nowMarker.position}%" title="${nowMarker.label}"></span>
       </div>
@@ -303,50 +217,38 @@ function renderTimeline(bins, unitLabel, now = new Date()) {
   </section>`;
 }
 
-function renderDaypartTable(rows, unitLabel) {
-  const confidenceByKey = {
-    normal: '<span class="trend-confidence is-normal">通常</span>',
-    reference: '<span class="trend-confidence is-reference">参考</span>',
-    mixed: '<span class="trend-confidence is-mixed">一部参考</span>',
-  };
+function renderDaypartTable(parts) {
+  const cell = v => (v === null ? '—' : fmt(v));
   return `<section class="trend-section">
     <div class="trend-section-head">
-      <h2>時間帯別の合計</h2>
-      <span>${unitLabel}</span>
+      <h2>時間帯ごとの台数（いつもの日）</h2>
+      <span>台</span>
     </div>
     <table class="trend-table">
-      <thead><tr><th>時間帯</th><th>扱い</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
-      <tbody>${rows.map(row => `<tr>
+      <thead><tr><th>時間帯</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
+      <tbody>${parts.map(row => `<tr>
         <td><span class="trend-daypart-name">${row.label}</span><span class="trend-daypart-range">${row.range}</span></td>
-        <td>${confidenceByKey[row.confidenceKey] || ''}</td>
-        <td>${fmt(row.stall1)}</td>
-        <td>${fmt(row.stall2)}</td>
-        <td>${fmt(row.stall3)}</td>
-        <td>${fmt(row.stall4)}</td>
+        <td>${cell(row.stall1)}</td>
+        <td>${cell(row.stall2)}</td>
+        <td>${cell(row.stall3)}</td>
+        <td>${cell(row.stall4)}</td>
         <td class="trend-total">${fmt(row.total)}</td>
       </tr>`).join('')}</tbody>
     </table>
   </section>`;
 }
 
-function renderDetailTable(bins, unitLabel) {
+function renderDetailTable(rows, now) {
+  const h = now.getHours();
   return `<details class="trend-detail">
-    <summary>15分ごとの元データ</summary>
+    <summary>1時間ごとの表（いつもの日 / 今日）</summary>
     <div class="trend-table-scroll">
       <table class="trend-table">
-        <thead><tr><th>時間帯</th><th>扱い</th><th>1号</th><th>2号</th><th>3号</th><th>4号</th><th>計</th></tr></thead>
-        <tbody>${bins.map(row => {
-          const confidence = movementConfidenceForTime(row.label, row.quality);
-          return `<tr>
-          <td>${row.label}</td>
-          <td><span class="trend-confidence ${confidence.key === 'reference' ? 'is-reference' : 'is-normal'}" title="${confidence.note}">${confidence.shortLabel}</span></td>
-          <td>${fmt(row.stall1)}</td>
-          <td>${fmt(row.stall2)}</td>
-          <td>${fmt(row.stall3)}</td>
-          <td>${fmt(row.stall4)}</td>
-          <td class="trend-total">${fmt(row.total)}</td>
-        </tr>`;
-        }).join('')}</tbody>
+        <thead><tr><th>時間</th>${rows.map(r => `<th>${r.label}</th>`).join('')}</tr></thead>
+        <tbody>${Array.from({ length: 24 }, (_, i) => `<tr${i === h ? ' class="is-now"' : ''}>
+          <td>${hourLabel(i)}</td>
+          ${rows.map(r => `<td>${r.typical ? fmt(r.typical[i]) : '—'}<span class="trend-today"> / ${i <= h ? r.today[i] : '—'}</span></td>`).join('')}
+        </tr>`).join('')}</tbody>
       </table>
     </div>
   </details>`;
@@ -357,39 +259,26 @@ function formatGeneratedAt(value) {
   return String(value).slice(0, 16).replace('T', ' ');
 }
 
-function renderPage(root, data, unit, now = new Date()) {
-  const unitLabel = unit === 'vehicles' ? '台' : '回';
-  const typicalBins = unit === 'vehicles'
-    ? toVehicleTrendBins(toTrendBins(data.slots || []), data.rowWidth)
-    : toTrendBins(data.slots || []);
-  const todayBins = unit === 'vehicles'
-    ? toVehicleTrendBins(toTrendBins(data.actualsToday || []), data.rowWidth)
-    : toTrendBins(data.actualsToday || []);
-  const summaries = summarizeStallTrends(typicalBins);
-  const todaySummaries = todayBins.length ? summarizeStallTrends(todayBins) : [];
-  const dayparts = buildDaypartSummaries(typicalBins);
-  const trainedRows = typeof data.trainedRows === 'number' ? data.trainedRows.toLocaleString('ja-JP') : '—';
-
+function renderPage(root, stand, now = new Date()) {
+  const rows = toHourRows(stand);
+  const days = rows.filter(r => r.typical).map(r => `${r.label}は${r.typicalDays}日`).join('・');
   root.innerHTML = `
     <section class="trend-hero">
       <div>
-        <p class="trend-eyebrow">羽田空港 タクシープール</p>
+        <p class="trend-eyebrow">羽田空港 タクシー乗り場</p>
         <h1>乗り場傾向</h1>
       </div>
-      ${renderUnitControls(unit)}
     </section>
     <div class="trend-meta">
-      <span>更新 ${formatGeneratedAt(data.generatedAt)}</span>
-      <span>学習 ${trainedRows} 行</span>
-      <span>昼・雨昼は列移動の回数</span>
-      <span>夜・雨夜・早朝・画像QC弱は列移動の回数（参考）</span>
-      <span>平均は画像計測由来の列移動履歴から算出</span>
+      <span>更新 ${formatGeneratedAt(stand.generatedAt)}</span>
+      <span>数字は乗り場から出ていったタクシーの台数（乗り場のカメラで1台ずつ数えたもの・1割ほど少なめに出ることがあります）</span>
+      ${days ? `<span>いつもの日 = ${days}の平均</span>` : ''}
     </div>
-    ${renderStallCards(summaries, todaySummaries, unitLabel)}
-    ${renderTimeline(typicalBins, unitLabel, now)}
+    ${renderStallCards(rows, now)}
+    ${renderTimeline(rows, now)}
     ${renderPoolCameras(now)}
-    ${renderDaypartTable(dayparts, unitLabel)}
-    ${renderDetailTable(typicalBins, unitLabel)}
+    ${renderDaypartTable(buildDaypartRows(rows))}
+    ${renderDetailTable(rows, now)}
   `;
 }
 
@@ -400,28 +289,20 @@ export async function initNoribaTrendsPage({
   now = new Date(),
 } = {}) {
   if (!root) return;
-  let unit = localStorage.getItem(UNIT_STORAGE_KEY) || 'count';
-  const result = await loadAdvanceForecast(fetchFn);
-  if (result.error || !result.data) {
+  let stand = null;
+  try {
+    const res = await fetchFn(`data/stand-out.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) stand = await res.json();
+  } catch { /* 下でエラー表示 */ }
+  if (!stand?.stalls) {
     if (error) {
       error.hidden = false;
-      error.textContent = '乗り場傾向データを取得できていません。空港ツールの列移動データ更新を確認してください。';
+      error.textContent = '乗り場の台数データを取得できていません。少し待ってから開き直してください。';
     }
     root.innerHTML = '';
     return;
   }
-
-  const redraw = () => {
-    renderPage(root, result.data, unit, now);
-    root.querySelectorAll('[data-unit]').forEach((button) => {
-      button.addEventListener('click', () => {
-        unit = button.dataset.unit === 'vehicles' ? 'vehicles' : 'count';
-        localStorage.setItem(UNIT_STORAGE_KEY, unit);
-        redraw();
-      });
-    });
-  };
-  redraw();
+  renderPage(root, stand, now);
 }
 
 if (typeof document !== 'undefined') {
