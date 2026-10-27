@@ -172,7 +172,7 @@ export function chartSvg(past, ends, fc, unitLabel) {
   return `${head}<svg viewBox="0 0 ${W} ${base + 14}" class="sf-chart" role="img" aria-label="30分ごとの数とこれからの見込み">${g}</svg>`;
 }
 
-const state = { mode: 'out', view: 'graph', open: 0, stand: null, move: null, flights: [], camAt: 0 };
+const state = { mode: 'out', view: 'graph', open: 0, stand: null, move: null, flights: [], camAt: 0, shotAt: {} };
 try {
   const m = localStorage.getItem(MODE_KEY); if (m === 'out' || m === 'mv') state.mode = m;
   const v = localStorage.getItem(VIEW_KEY); if (v === 'graph' || v === 'card') state.view = v;
@@ -249,7 +249,8 @@ function render(el) {
   const hot = top > 0 ? LANES[vals.indexOf(top)] : 0;
   const arr = Object.fromEntries(LANES.map(n => [n, upcomingFlights(state.flights, n, nowMin)]));
   // 写真は左側の歩道(待っている乗客)が写る切り抜き。まだ届いていなければ従来の列の切り抜きに戻す。
-  const photo = (n, cls) => `<img class="${cls}" src="data/stand-cam-${n}-wait.jpg?t=${cb}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${cb}'" alt="${NAME[n]}の乗り場の写真" data-sf-zoom="${n}">`;
+  // 写真の左下に撮った時刻。10分より古ければ赤で「◯分前」を足す(カメラや配信が止まっている)。
+  const photo = (n, cls) => `<span class="${cls} sf-ph" data-sf-zoom="${n}"><img src="data/stand-cam-${n}-wait.jpg?t=${cb}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${cb}'" alt="${NAME[n]}の乗り場の写真">${shotLabel(n)}</span>`;
   const badge = n => (n === hot ? '<span class="sf-badge">いちばん多い</span>' : '');
   if (state.view === 'graph') {
     html += '<div class="sf-lanes">';
@@ -276,6 +277,22 @@ function render(el) {
   el.innerHTML = html;
 }
 
+function shotText(n) {
+  const t = state.shotAt?.[n];
+  if (!t) return '';
+  const d = new Date(t);
+  if (isNaN(d)) return '';
+  const hm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  const ago = Math.round((Date.now() - d) / 60000);
+  return ago > 10 ? `${hm}（${ago < 120 ? `${ago}分前` : `${Math.round(ago / 60)}時間前`}）` : hm;
+}
+
+function shotLabel(n) {
+  const txt = shotText(n);
+  if (!txt) return '';
+  return `<span class="sf-pht${txt.includes('前') ? ' old' : ''}">${txt}</span>`;
+}
+
 function zoom(n) {
   let z = document.getElementById('sf-zoom');
   if (!z) {
@@ -286,7 +303,7 @@ function zoom(n) {
     document.body.appendChild(z);
   }
   // 押したときは切り抜く前のカメラ画像の全体を出す。
-  z.innerHTML = `<img src="data/stand-cam-${n}-full.jpg?t=${state.camAt}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${state.camAt}'" alt="${NAME[n]}の乗り場の写真(全体)"><div>${NAME[n]}の乗り場・押すと閉じます</div>`;
+  z.innerHTML = `<img src="data/stand-cam-${n}-full.jpg?t=${state.camAt}" onerror="this.onerror=null;this.src='data/stand-cam-${n}.jpg?t=${state.camAt}'" alt="${NAME[n]}の乗り場の写真(全体)"><div>${NAME[n]}の乗り場${shotText(n) ? `・${shotText(n)}の画像` : ''}・押すと閉じます</div>`;
   z.hidden = false;
 }
 
@@ -321,7 +338,8 @@ export async function initStandFlow() {
     if (o) { const n = Number(o.dataset.sfOpen); state.open = state.open === n ? 0 : n; render(rootEl); }
   });
   async function refresh() {
-    const [stand, adv] = await Promise.all([loadJson('data/stand-out.json'), loadJson('data/advance-forecast.json')]);
+    const [stand, adv, cam] = await Promise.all([loadJson('data/stand-out.json'), loadJson('data/advance-forecast.json'), loadJson('data/stand-cam.json')]);
+    state.shotAt = cam?.shotAt || {};
     state.stand = standModel(stand);
     const nd = new Date();
     state.move = moveModel(adv, nd.getHours() * 60 + nd.getMinutes());
