@@ -6,6 +6,8 @@
 import { createKojiLayer } from './koji-layer.js';
 import { createTrafficCountLayer } from './traffic-count-layer.js';   // 警視庁の交通量調査（別の層・既定はオフ）
 import { createJarticLayer } from './jartic-layer.js';   // 国道の交通量（国の交通量API・1時間ごと・既定はオフ）
+// 国の交通量API は公開してよいかが確かめられていないので、dev と手元だけで出す（本番では出さない・2026-11-01 本人決定）
+const JARTIC_ON = location.pathname.includes('-dev') || ['localhost', '127.0.0.1'].includes(location.hostname);
 import { laneScene } from './koji-lane-scene.js';      // 「いつも」と「工事中」の車線の並び
 import { mountLaneAnim } from './koji-lane-anim.js';   // 車が動く絵
 import {
@@ -376,7 +378,8 @@ export function createKojiUi(map) {
       if (!next) { stop(); popup?.remove(); layer.setVisible(false); return; }
       if (!wired) { wire(); buildLegend(); buildOwnerLegend(); drawTicks(); wired = true; }
       if (!traffic) { traffic = createTrafficCountLayer(map, { closeOtherPopups: () => popup?.remove() }); traffic.setScreenActive(true); }
-      if (!jartic) { jartic = createJarticLayer(map, { closeOtherPopups: () => popup?.remove() }); jartic.setScreenActive(true); }
+      if (!JARTIC_ON) { document.getElementById('jtBtn')?.remove(); document.getElementById('jtAbout')?.remove(); }
+      if (JARTIC_ON && !jartic) { jartic = createJarticLayer(map, { closeOtherPopups: () => popup?.remove() }); jartic.setScreenActive(true); }
       if (!(await load())) return;
       if (!(await ensureLayers())) return;
       layer.setColorMode(mode);
