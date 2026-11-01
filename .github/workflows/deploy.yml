@@ -34,6 +34,8 @@ jobs:
             --exclude='CNAME' \
             --exclude='tools/data/jartic-traffic.json' \
             dev/ prod/
+          # 交通量API の国道の交通量は本番に出さない。前の本番反映で写った分も消す
+          rm -f prod/tools/data/jartic-traffic.json
 
       - name: Cache-bust local JS (prevent stale-import skew)
         # Prevent stale ESM imports when HTML updates before cached JS expires.
