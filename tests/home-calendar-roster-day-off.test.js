@@ -76,10 +76,10 @@ test('home calendar renders automatic roster days off without changing existing 
   const dayOffIndex = calendar.indexOf("cls.push('roster-day-off')");
   assert.ok(actualIndex < paidIndex && paidIndex < plannedIndex && plannedIndex < dayOffIndex, 'keeps actual, paid, planned, then day-off precedence');
   assert.match(calendar, /else if \(isPlanned\) \{\s*cls\.push\('planned'\);/, 'uses the planned UI predicate for classes');
-  assert.match(calendar, /else if \(isPlanned\) \{\s*inner = `<div class="day">\$\{day\}<\/div><div class="tag">予定<\/div>`;/, 'uses the planned UI predicate for labels');
+  assert.match(calendar, /else if \(isPlanned\) \{\s*inner = `<div class="\$\{dayCls\}">\$\{day\}<\/div><div class="tag">予定<\/div>`;/, 'uses the planned UI predicate for labels');
   assert.doesNotMatch(calendar, /isPlanned && iso >= today/, 'does not apply a redundant future check after defining isPlanned');
   assert.match(calendar, /else if \(isDayOff\) \{\s*cls\.push\('roster-day-off'\);/, 'applies roster-day-off class');
-  assert.match(calendar, /else if \(isDayOff\) \{\s*inner = `<div class="day">\$\{day\}<\/div><div class="tag">公休<\/div>`;/, 'renders the 公休 label');
+  assert.match(calendar, /else if \(isDayOff\) \{\s*inner = `<div class="\$\{dayCls\}">\$\{day\}<\/div><div class="tag">公休<\/div>`;/, 'renders the 公休 label');
 
   assert.match(html, /\.cal-cell\.roster-day-off\s*\{[^}]*background:\s*#fff1f1;[^}]*border-color:\s*#e6a7a7;/s, 'has the thin red public-holiday cell style');
   assert.match(html, /\.cal-cell\.roster-day-off \.tag\s*\{[^}]*color:\s*#8f3434;/s, 'has the thin red public-holiday tag style');
