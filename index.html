@@ -64,6 +64,7 @@
 .sum-table tr.total td { border-top: 2px solid #ddd; }
 .sum-table .dow-sun { color: #d32f2f; font-weight: 600; }
 .sum-table .dow-sat { color: #1976d2; font-weight: 600; }
+.sum-table .hol-mark { font-size: 9px; padding: 0 3px; margin-left: 3px; border-radius: 2px; background: #ffebee; color: #c62828; }
 .sum-table .memo { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #555; }
 .period-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 4px; min-width: 480px; }
 .period-table th, .period-table td { padding: 8px 4px; text-align: right; border-bottom: 1px solid #eee; white-space: nowrap; }
@@ -183,6 +184,7 @@ import { getConfig, getDrivesForMonth, flushPendingQueue, saveConfig } from './j
 import { DEFAULT_CONFIG } from './js/default-config.js';
 import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly, tierBasisDrives, tierBasisSalesExcl } from './js/payroll.js';
 import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
+import { isHoliday } from './js/jp-holidays.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
 import { processInvite } from './js/invite-crypto.js';
 import { renderLegalFooter } from './js/legal-footer.js';
@@ -1260,7 +1262,7 @@ function renderSummaryTable(drives) {
   function dowClass(iso) {
     const d = new Date(iso + 'T00:00:00+09:00');
     const dow = d.getDay();
-    return dow === 0 ? 'dow-sun' : dow === 6 ? 'dow-sat' : '';
+    return (dow === 0 || isHoliday(iso)) ? 'dow-sun' : dow === 6 ? 'dow-sat' : '';
   }
 
   let totalIncl = 0, totalExcl = 0, totalKm = 0;
@@ -1292,7 +1294,7 @@ function renderSummaryTable(drives) {
     const inclStyle = !summary ? inclBg(sales.inclTax) : '';
     const hourlyStyle = !summary ? hourlyBg(hourly) : '';
     return `<tr onclick="location.href='detail.html?date=${d.date}'" style="cursor:pointer;${summary ? 'background:#fafafa;' : ''}">
-      <td class="date ${dowClass(d.date)}">${formatDate(d.date)}${summary ? '<span class="badge" style="font-size:9px;padding:0 4px;background:#ddd;color:#666;margin-left:3px;">概</span>' : ''}</td>
+      <td class="date ${dowClass(d.date)}">${formatDate(d.date)}${isHoliday(d.date) ? '<span class="hol-mark">祝</span>' : ''}${summary ? '<span class="badge" style="font-size:9px;padding:0 4px;background:#ddd;color:#666;margin-left:3px;">概</span>' : ''}</td>
       <td>${summary ? dash : count}</td>
       <td style="${inclStyle}"><strong>${formatYen(sales.inclTax)}</strong></td>
       <td>${formatYen(sales.exclTax)}</td>
