@@ -185,7 +185,7 @@ if (location.hostname.includes('-dev')) {
 import { renderBottomNav, formatYen, formatDate, currentBillingPeriod, formatBillingPeriod, shiftBillingPeriod, getBillingPeriodRange, todayIso, toLocalIso } from './js/app.js';
 import { getConfig, getDrivesForMonth, flushPendingQueue, saveConfig } from './js/storage.js';
 import { DEFAULT_CONFIG } from './js/default-config.js';
-import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly, simulateMonthlyWithAvg, tierBasisDrives, tierBasisSalesExcl } from './js/payroll.js';
+import { calcTotalPay, calcDailySales, isApproxSales, calcMonthlySales, findTierIdx, findNextHigherRateTier, findNextLowerRateTier, requiredUniformSales, predictMonthly, simulateMonthlySplit, tierBasisDrives, tierBasisSalesExcl } from './js/payroll.js';
 import { METRIC_CATALOG, METRIC_GROUPS, resolveMetrics } from './js/home-metrics.js';
 import { isHoliday } from './js/jp-holidays.js';
 import { calcTimeBreakdown, formatMin, isSummaryOnly, calcPeriodBreakdown, calcZoneBreakdown, getShiftZones, PERIOD_LABELS, dowOf, DOW_LABELS } from './js/chart-helpers.js';
@@ -366,16 +366,22 @@ async function load() {
 // 歩率と着地予測の「残り出番の平均を動かして試す」バー。描画ごとに文脈を差し替える。
 let rateSimCtx = null;
 function bindRateSim() {
-  const range = document.getElementById('rateSimRange');
-  if (!range || !rateSimCtx) return;
+  const bars = [...document.querySelectorAll('.rate-sim-range')];
+  if (!bars.length || !rateSimCtx) return;
   const c = rateSimCtx;
-  const base = simulateMonthlyWithAvg(c.drives, c.remaining, c.config, c.start, c.end, Number(range.defaultValue));
+  const to11 = document.getElementById('rateSimTo11');
+  const after = document.getElementById('rateSimAfter');
+  const calc = (useDefault) => {
+    const v = (el) => el ? Number(useDefault ? el.defaultValue : el.value) : 0;
+    return simulateMonthlySplit(c.drives, c.remaining, c.config, c.start, c.end, v(to11), v(after));
+  };
+  const base = calc(true);
   const update = () => {
-    const avg = Number(range.value);
-    const r = simulateMonthlyWithAvg(c.drives, c.remaining, c.config, c.start, c.end, avg);
+    const r = calc(false);
     const net = r.total * c.takeHomeRate;
     const diff = r.total - base.total;
-    document.getElementById('rateSimAvg').textContent = formatYen(avg);
+    if (to11) document.getElementById('rateSimTo11Avg').textContent = formatYen(Number(to11.value));
+    if (after) document.getElementById('rateSimAfterAvg').textContent = formatYen(Number(after.value));
     document.getElementById('rateSimRate').textContent = (r.rate * 100).toFixed(1) + '%';
     document.getElementById('rateSimGross').textContent = formatYen(r.total);
     document.getElementById('rateSimNet').textContent = formatYen(net);
@@ -383,7 +389,7 @@ function bindRateSim() {
       ? 'いまのペースのまま'
       : `いまのペースより 月給 ${diff > 0 ? '+' : '−'}${formatYen(Math.abs(diff))}・手取り ${diff > 0 ? '+' : '−'}${formatYen(Math.abs(diff * c.takeHomeRate))}`;
   };
-  range.addEventListener('input', update);
+  bars.forEach(el => el.addEventListener('input', update));
   update();
 }
 
@@ -787,29 +793,6 @@ async function render(drivesPromise) {
           };
           targetComparisonHtml = targets.map(renderTargetCard).join('');
 
-          // 4.5) 残り乗務の平均で月給・手取りを試せるバー
-          const simAvgNow = drivenAvgExcl * 1.1; // いまの1出番平均(税込)
-          const simMax = Math.max(120000, Math.ceil(simAvgNow * 1.6 / 5000) * 5000);
-          const simStart = Math.round(simAvgNow / 1000) * 1000;
-          rateSimCtx = { drives: rawDrives, remaining: remainingShiftList, config, start: range.start, end: range.end, takeHomeRate };
-          rateSimHtml = `
-            <div id="rateSim" style="margin-top:14px;padding:12px;background:#fff;border:1px solid #c5e1a5;border-radius:8px;">
-              <div style="font-size:10px;color:#1b5e20;letter-spacing:.05em;margin-bottom:6px;font-weight:600;">残り${remainingShifts}出番の平均を動かして試す</div>
-              <div style="display:flex;justify-content:space-between;align-items:baseline;">
-                <span style="font-size:10px;color:#666;">1出番あたり営収(税込)</span>
-                <strong id="rateSimAvg" style="font-size:16px;color:#1b5e20;"></strong>
-              </div>
-              <input id="rateSimRange" type="range" min="0" max="${simMax}" step="1000" value="${simStart}" style="width:100%;margin:8px 0 2px;accent-color:#558b2f;">
-              <div style="display:flex;justify-content:space-between;font-size:9px;color:#9e9e9e;"><span>0円</span><span>いま ${formatYen(simAvgNow)}</span><span>${formatYen(simMax)}</span></div>
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;text-align:center;">
-                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">歩率</div><div id="rateSimRate" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
-                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">月給(総支給)</div><div id="rateSimGross" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
-                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">手取り</div><div id="rateSimNet" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
-              </div>
-              <div id="rateSimDiff" style="font-size:9.5px;color:#558b2f;margin-top:6px;text-align:center;"></div>
-            </div>
-          `;
-
           // 5) 次の歩率段カード(中立表現・「上げる」「達成時手取り」は不使用)
           const upTier = findNextHigherRateTier(projectionTiers, currentTierIdx);
           if (upTier) {
@@ -853,6 +836,44 @@ async function render(drivesPromise) {
               </div>
             `;
           }
+        }
+
+        // 4.5) 残り乗務の平均で歩率・月給・手取りを試せるバー。
+        // 11出番目まで(歩率の段が決まる分)と12出番目以降(固定率で足される分)を別々に動かす。
+        // 12・13出番目のバーは11出番目を走った後(歩率確定後)も出す。
+        if (!isPast && remainingShifts > 0) {
+          const _pc = rawDrives.filter(d => d.vehicleType === 'premium').length;
+          const _pr = Math.round(remainingShifts * (_pc / rawDrives.length));
+          const simRemaining = Array.from({ length: remainingShifts }, (_, i) => ({ vehicleType: i < _pr ? 'premium' : 'japantaxi' }));
+          const nTo11 = Math.min(remainingShifts, Math.max(0, 11 - rawDrives.length));
+          const nAfter = remainingShifts - nTo11;
+          const round1k = (v) => Math.round(v / 1000) * 1000;
+          const avgTierIncl = drivenAvgExcl * 1.1; // 11出番目までの1出番平均(税込)
+          const avgAllIncl = monthly.inclTax / rawDrives.length; // 今月の1出番平均(税込)
+          const simMax = Math.max(120000, Math.ceil(Math.max(avgTierIncl, avgAllIncl) * 1.6 / 5000) * 5000);
+          rateSimCtx = { drives: rawDrives, remaining: simRemaining, config, start: range.start, end: range.end, takeHomeRate };
+          const bar = (key, title, now) => `
+              <div style="margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;">
+                  <span style="font-size:10px;color:#666;">${title}</span>
+                  <strong id="rateSim${key}Avg" style="font-size:16px;color:#1b5e20;"></strong>
+                </div>
+                <input id="rateSim${key}" class="rate-sim-range" type="range" min="0" max="${simMax}" step="1000" value="${round1k(now)}" style="width:100%;margin:6px 0 2px;accent-color:#558b2f;">
+                <div style="display:flex;justify-content:space-between;font-size:9px;color:#9e9e9e;"><span>0円</span><span>いま ${formatYen(now)}</span><span>${formatYen(simMax)}</span></div>
+              </div>`;
+          rateSimHtml = `
+            <div id="rateSim" style="margin-top:14px;padding:12px;background:#fff;border:1px solid #c5e1a5;border-radius:8px;">
+              <div style="font-size:10px;color:#1b5e20;letter-spacing:.05em;font-weight:600;">残りの出番の平均を動かして試す（税込）</div>
+              ${nTo11 > 0 ? bar('To11', `${rawDrives.length + 1}〜11出番目（${nTo11}出番・歩率が決まる）`, avgTierIncl) : ''}
+              ${nAfter > 0 ? bar('After', `${Math.max(12, rawDrives.length + 1)}〜${rawDrives.length + remainingShifts}出番目（${nAfter}出番・${(((rateTable && rateTable['12_13rate']) || 0.62) * 100).toFixed(0)}%で足される）`, avgAllIncl) : ''}
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px;text-align:center;">
+                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">歩率</div><div id="rateSimRate" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
+                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">月給(総支給)</div><div id="rateSimGross" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
+                <div style="padding:6px 2px;background:#f9fbf3;border-radius:5px;"><div style="font-size:9px;color:#666;">手取り</div><div id="rateSimNet" style="font-size:14px;font-weight:700;color:#1b5e20;"></div></div>
+              </div>
+              <div id="rateSimDiff" style="font-size:9.5px;color:#558b2f;margin-top:6px;text-align:center;"></div>
+            </div>
+          `;
         }
 
         // 6) いまの歩率の範囲(中立的な事実情報)

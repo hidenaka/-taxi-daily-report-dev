@@ -360,8 +360,15 @@ export function predictMonthly(drives, config, periodStart, periodEnd, targetShi
 // 歩率判定のシミュレーション用。段階歩率・公出・インセンティブは calcTotalPay の正式計算に任せる。
 //   remainingShifts: 残り乗務の車種リスト [{ vehicleType }]
 export function simulateMonthlyWithAvg(actualDrives, remainingShifts, config, periodStart, periodEnd, avgInclPerShift) {
+  return simulateMonthlySplit(actualDrives, remainingShifts, config, periodStart, periodEnd, avgInclPerShift, avgInclPerShift);
+}
+
+// 残りの乗務のうち、11出番目までを avgTo11、12出番目以降を avgAfter11 (どちらも税込)で走ったと仮定した月度の給与。
+// 11出番目までは歩率の段を決め、12出番目以降は固定率で足される(calcBasePay の規則)ので、別々に試せるようにする。
+export function simulateMonthlySplit(actualDrives, remainingShifts, config, periodStart, periodEnd, avgTo11, avgAfter11) {
+  const done = (actualDrives || []).length;
   const sim = (Array.isArray(remainingShifts) ? remainingShifts : []).map((s, i) => ({
-    trips: [{ amount: Math.max(0, Number(avgInclPerShift) || 0), isCancel: false }],
+    trips: [{ amount: Math.max(0, Number(done + i < 11 ? avgTo11 : avgAfter11) || 0), isCancel: false }],
     vehicleType: (s && s.vehicleType) ? s.vehicleType : 'japantaxi',
     date: '_sim_' + i
   }));
