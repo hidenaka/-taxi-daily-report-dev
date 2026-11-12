@@ -704,7 +704,7 @@
 
 <script type="module">
 import { computeRemainingMs, fmtCountdown, crossedZero, normalizeTimerState, fmtClockShort, overtimeNote, distanceMeters, normalizeCountdownPresets } from './js/countdown.js';
-import { newRecordId, ensureRecordIds, mergeSyncDocs, pickSettings } from './js/timer-sync.js';
+import { newRecordId, ensureRecordIds, mergeSyncDocs, pickSettings, tombstoneOlderThan } from './js/timer-sync.js';
 import { pullTimerState, pushTimerState } from './js/timer-cloud.js';
 import { waitForAuth } from '../js/firebase-auth.js';
 // ============================================================
@@ -794,12 +794,13 @@ function applyMerged(merged) {
 
 let cloudPushTimer = null;
 // 変更をデバウンス(4秒)でクラウドへ。オンライン＆ログイン時のみ・失敗は握りつぶす。
+// 書き込みはドキュメントの丸ごと上書きなので、必ず取得→マージしてから書く
+// （そのまま書くと、この端末が知らない別端末の休憩をクラウドから消してしまう）。
 function scheduleCloudPush() {
   if (cloudPushTimer) clearTimeout(cloudPushTimer);
   cloudPushTimer = setTimeout(() => {
     cloudPushTimer = null;
-    if (!navigator.onLine) return;
-    pushTimerState(toSyncDoc()).catch(() => {});
+    syncWithCloud();
   }, 4000);
 }
 
@@ -1660,9 +1661,10 @@ setInterval(() => {
   if (state.shiftStartAt && Date.now() - state.shiftStartAt > MAX_SHIFT_MS) {
     state.lastResetSnapshot = captureResetSnapshot();
     state.shiftStartAt = null;
-    // 20時間自動リセットも墓石化（クラウドで復活させない）
+    // 20時間自動リセットは、20時間より前に終わった休憩だけを墓石化（クラウドで復活させない）。
+    // 全部を消すと、古いまま開いた別の端末が今の乗務の休憩まで消してしまう。
     const _anow = Date.now();
-    state.records = state.records.map(r => r.deleted ? r : ({ ...r, deleted: true, updatedAt: _anow }));
+    state.records = tombstoneOlderThan(state.records, _anow - MAX_SHIFT_MS, _anow);
     state.stopwatch.running = false;
     state.stopwatch.startedAt = null;
     state.stopwatch.elapsedMs = 0;

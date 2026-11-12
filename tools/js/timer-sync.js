@@ -64,3 +64,13 @@ export function mergeSyncDocs(local, cloud) {
     settingsUpdatedAt: Math.max(lU, cU),
   };
 }
+
+// 自動リセット用: cutoffMs より前に終わった休憩だけを墓石にする。純粋。
+// 別の端末から入ってきた今の乗務の休憩まで消さないため、全部は消さない。
+export function tombstoneOlderThan(records, cutoffMs, now) {
+  return (Array.isArray(records) ? records : []).map((r) => {
+    if (r.deleted) return r;
+    const t = Date.parse(r.recordedAt);
+    return Number.isFinite(t) && t < cutoffMs ? { ...r, deleted: true, updatedAt: now } : r;
+  });
+}

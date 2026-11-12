@@ -71,3 +71,28 @@ test('mergeSyncDocs: cloudがnullならlocalそのまま', () => {
   const local = { records: [], settings: { mode: 'up' }, settingsUpdatedAt: 100 };
   assert.deepEqual(mergeSyncDocs(local, null), local);
 });
+
+test('tombstoneOlderThan: 自動リセットは古い休憩だけ消し、別端末から来た今の乗務の休憩は残す', async () => {
+  const { tombstoneOlderThan } = await import('../tools/js/timer-sync.js');
+  const now = Date.parse('2026-11-13T02:12:00+09:00');
+  const cutoff = now - 20 * 3600e3;
+  const recs = [
+    { id: 'old', recordedAt: '2026-11-07T07:18:28+09:00', durationSec: 600, updatedAt: 1, deleted: false },
+    { id: 'cur', recordedAt: '2026-11-12T23:40:00+09:00', durationSec: 900, updatedAt: 1, deleted: false },
+    { id: 'gone', recordedAt: '2026-11-01T10:00:00+09:00', durationSec: 600, updatedAt: 5, deleted: true },
+  ];
+  const out = tombstoneOlderThan(recs, cutoff, now);
+  assert.equal(out.find(r => r.id === 'old').deleted, true);
+  assert.equal(out.find(r => r.id === 'old').updatedAt, now);
+  assert.equal(out.find(r => r.id === 'cur').deleted, false);
+  assert.equal(out.find(r => r.id === 'gone').updatedAt, 5);
+});
+
+test('タイマー画面: 自動リセットは全消しせず、クラウドへは取得→マージしてから書く', async () => {
+  const { readFileSync } = await import('node:fs');
+  const html = readFileSync(new URL('../tools/index.html', import.meta.url), 'utf8');
+  assert.match(html, /state\.records = tombstoneOlderThan\(state\.records, _anow - MAX_SHIFT_MS, _anow\);/);
+  const push = html.slice(html.indexOf('function scheduleCloudPush()'), html.indexOf('let lastCloudSync'));
+  assert.match(push, /syncWithCloud\(\);/);
+  assert.doesNotMatch(push, /pushTimerState\(/);
+});
