@@ -355,3 +355,15 @@ export function predictMonthly(drives, config, periodStart, periodEnd, targetShi
   }
   return calcTotalPay(simulated, config, periodStart, periodEnd);
 }
+
+// 残りの乗務を一律 avgInclPerShift 円(税込)で走ったと仮定した月度の給与。
+// 歩率判定のシミュレーション用。段階歩率・公出・インセンティブは calcTotalPay の正式計算に任せる。
+//   remainingShifts: 残り乗務の車種リスト [{ vehicleType }]
+export function simulateMonthlyWithAvg(actualDrives, remainingShifts, config, periodStart, periodEnd, avgInclPerShift) {
+  const sim = (Array.isArray(remainingShifts) ? remainingShifts : []).map((s, i) => ({
+    trips: [{ amount: Math.max(0, Number(avgInclPerShift) || 0), isCancel: false }],
+    vehicleType: (s && s.vehicleType) ? s.vehicleType : 'japantaxi',
+    date: '_sim_' + i
+  }));
+  return calcTotalPay([...(actualDrives || []), ...sim], config, periodStart, periodEnd);
+}
