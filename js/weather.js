@@ -33,7 +33,11 @@ export function weatherEmoji(code) {
 
 // date と date+1 の2日分を時間別で取得 → 4区分に集計
 // 「深夜」が日付をまたぐタクシー乗務に対応するため翌日0-5時も含める
-export async function fetchWeatherForDate(date, location) {
+// 天気は無くても保存できるので、返事が来なければ待ち時間の上限で打ち切る。
+// 上限が無いと、電波の悪い所で保存ボタンが「天候取得中…」のまま止まる。
+export const WEATHER_TIMEOUT_MS = 8000;
+
+export async function fetchWeatherForDate(date, location, { timeoutMs = WEATHER_TIMEOUT_MS, fetchImpl = fetch } = {}) {
   const nextDate = addOneDay(date);
   const today = new Date().toISOString().slice(0, 10);
   // 翌日が未来になる場合は forecast を使う(archiveは過去のみ)
@@ -46,11 +50,16 @@ export async function fetchWeatherForDate(date, location) {
   url.searchParams.set('hourly', 'weather_code,temperature_2m,precipitation');
   url.searchParams.set('timezone', 'Asia/Tokyo');
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
-  const data = await res.json();
-
-  return aggregateByPeriod(data.hourly);
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), timeoutMs);
+  try {
+    const res = await fetchImpl(url.toString(), { signal: ctl.signal });
+    if (!res.ok) throw new Error(`Weather API error: ${res.status}`);
+    const data = await res.json();
+    return aggregateByPeriod(data.hourly);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function addOneDay(iso) {
