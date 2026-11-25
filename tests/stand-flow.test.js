@@ -1,5 +1,5 @@
 import { test, assert } from './run.js';
-import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights, errLine, restOfDay } from '../tools/js/stand-flow.js';
+import { standModel, moveModel, futureSeats, chartSvg, upcomingFlights, errLine, restOfDay, withDelayBoost } from '../tools/js/stand-flow.js';
 
 test('standModel: 直近30分・1時間・30分ごと・数え始めを号ごとに。数えていない号は null', async () => {
   const d = { bins30End: ['16:13', '16:43', '17:13', '17:43'], stalls: {
@@ -118,4 +118,18 @@ test('restOfDay: いまの1時間は残りの分だけ、その先は全部足�
   assert.equal(restOfDay(typ, 23 * 60 + 30), 5);    // 23:30 → 半分
   assert.equal(restOfDay(typ, 22 * 60 + 45), 13);   // 2.5 + 10 = 12.5 → 13
   assert.equal(restOfDay(null, 600), null);
+});
+
+test('withDelayBoost: 遅れ便が多い夜は上乗せを足す・無ければそのまま', () => {
+  const typ = Array(24).fill(10);
+  const hourly = Array(24).fill(0); hourly[0] = 5.6; hourly[23] = 1.4;
+  const b = withDelayBoost(typ, { seats: 12000, hourly });
+  assert.equal(b[0], 15.6);
+  assert.equal(b[23], 11.4);
+  assert.equal(b[12], 10);
+  assert.deepEqual(withDelayBoost(typ, null), typ);
+  assert.equal(withDelayBoost(null, { hourly }), null);
+  const m = standModel({ stalls: { stall4: { lastHour: 3, typicalHourly: typ, typicalDays: 42, delayBoost: { seats: 12000, hourly } } } });
+  assert.equal(m.lanes[4].typ[0], 15.6);
+  assert.equal(m.lanes[4].boostSeats, 12000);
 });

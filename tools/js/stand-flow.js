@@ -33,8 +33,10 @@ export function standModel(data) {
       // 見込みの外れ(直近7日・30分後の見込みの平均の差)。答え合わせが30件たまってから出す
       fcErr: (s.forecastEval && s.forecastEval['0'] && s.forecastEval['0'].n >= 30) ? s.forecastEval['0'].mae : null,
       // いつもの日の1時間ごとの台数(丸1日数えた日の平均)と、その日数。7日たまるまでは null
-      typ: Array.isArray(s.typicalHourly) && s.typicalHourly.length === 24 ? s.typicalHourly : null,
+      typ: withDelayBoost(s.typicalHourly, s.delayBoost),
       typDays: typeof s.typicalDays === 'number' ? s.typicalDays : null,
+      // 遅れ便が多い夜は 23時・0〜2時を上乗せしている。そのときの遅れた座席数(上乗せなしは null)
+      boostSeats: (s.delayBoost && typeof s.delayBoost.seats === 'number' && Array.isArray(s.typicalHourly)) ? s.delayBoost.seats : null,
     };
   }
   return out;
@@ -184,6 +186,13 @@ function nums(d, u) {
 }
 
 /** いつもの日の台数から、いま(nowMin・0時からの分)から24時までに出る台数の目安。いまの1時間は残りの分だけ数える。 */
+/** いつもの日の線に、遅れ便が多い夜の上乗せ(Mac mini が出す delayBoost.hourly)を足す。 */
+export function withDelayBoost(typ, boost) {
+  if (!Array.isArray(typ) || typ.length !== 24) return null;
+  const add = Array.isArray(boost?.hourly) && boost.hourly.length === 24 ? boost.hourly : null;
+  return add ? typ.map((v, h) => Math.round(((v || 0) + (add[h] || 0)) * 10) / 10) : typ;
+}
+
 export function restOfDay(typ, nowMin) {
   if (!Array.isArray(typ) || typ.length !== 24) return null;
   const h = Math.floor(nowMin / 60);
@@ -226,8 +235,10 @@ function dayCard(model, u, label, nowH, nowMin) {
     // 時刻の目盛りは号ごとに持たせる(狭い画面では最後の号だけ見せる・広い画面の2×2では全部見せる)
     rows += `<div class="sf-dcell"><div class="sf-drow"><div class="sf-dn"><b>${NAME[n]}</b><small>計${d ? tot : '—'}${u}</small>${since}</div><svg viewBox="0 0 ${W} ${bh + 14}" class="sf-chart">${g}</svg></div><div class="sf-daxis"><span>0時</span><span>6時</span><span>12時</span><span>18時</span><span>24時</span></div></div>`;
   }
+  const boostSeats = LANES.map(n => model.lanes[n]?.boostSeats).find(v => v != null);
+  const boostNote = boostSeats != null ? `今夜は遅れ便が多い（1時間以上遅れた座席 約${Math.round(boostSeats / 100) * 100}席）ので、23時と0〜2時の線を、遅れた夜のふだんの増え方だけ上げています。` : '';
   const note = typDays.length
-    ? `<div class="sf-dnote"><i class="sf-lg"></i>線＝いつもの日の台数（${typDays.join('・')}の平均）。「あと約」は、いまから24時までにいつもの日なら出る台数です。${typDays.length < LANES.length ? '線の無い号は、丸1日数えた日が7日たまると出ます。' : ''}</div>`
+    ? `<div class="sf-dnote"><i class="sf-lg"></i>線＝いつもの日の台数（${typDays.join('・')}の平均）。「あと約」は、いまから24時までにいつもの日なら出る台数です。${boostNote}${typDays.length < LANES.length ? '線の無い号は、丸1日数えた日が7日たまると出ます。' : ''}</div>`
     : '';
   return `<div class="sf-day"><div class="sf-dh"><b>今日1日の${label}</b><span>1時間ごと（${u}）・0時〜いま</span></div><div class="sf-dgrid">${rows}</div>${note}</div>`;
 }
