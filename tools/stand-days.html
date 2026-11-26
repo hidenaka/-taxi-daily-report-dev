@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cabis ｜ 日ごとの台数</title>
+  <link rel="icon" type="image/png" sizes="180x180" href="./icon-180.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <style>
+    :root { --bg:#0e0e10; --fg:#e8e8e8; --sub:#8d929a; --line:#252832; --panel:#15161b; --accent:#4ea1ff; --orange:#f97316; --yellow:#eab308; --teal:#14b8a6; --violet:#a78bfa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--fg); font-family:-apple-system, system-ui, sans-serif; font-size:15px; padding-bottom:64px; }
+    [hidden] { display:none !important; }
+    .app-tabs { display:flex; position:sticky; top:0; z-index:10; background:#0a0a0f; border-bottom:1px solid #222; padding-top:env(safe-area-inset-top);
+      overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .app-tabs::-webkit-scrollbar { display:none; }
+    .app-tab { flex:1 0 auto; white-space:nowrap; padding:14px 10px; text-align:center; text-decoration:none; color:var(--sub); font-size:15px; font-weight:600; border-bottom:3px solid transparent; }
+    @media (max-width:430px) { .app-tab { font-size:13px; padding:13px 6px; } }
+    .app-tab.active { color:var(--fg); border-bottom-color:var(--accent); background:rgba(78,161,255,.08); }
+    .terminal-tabs { display:flex; gap:6px; padding:8px 12px; border-bottom:1px solid #222; flex-wrap:wrap; align-items:center; }
+    .terminal-tab { background:#1a1a1d; color:var(--sub); padding:6px 10px; border-radius:6px; border:0; text-decoration:none; font-size:13px; }
+    .terminal-tab.is-active { background:var(--accent); color:#000; font-weight:700; }
+    .terminal-tab.push { margin-left:auto; }
+    .dev-badge { display:none; margin:8px 12px 0; color:#111; background:#ffb84d; border-radius:6px; padding:5px 8px; font-size:12px; font-weight:800; width:max-content; }
+    body.is-dev .dev-badge { display:block; }
+    :root { --muted:var(--sub); --card:var(--panel); --chip:#1a1a1d; --wd:#7fae99; --sat:#6ea6ec; --sun:#ec7f75; --hl:#f3b65a; }
+
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:grid;gap:16px}
+h1{font-size:20px;margin:0;text-wrap:balance}
+h2{font-size:15px;margin:0 0 6px}
+p{margin:0}.muted{color:var(--muted);font-size:12.5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.filters{display:grid;gap:10px}
+.frow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.frow>b{width:5.5em;font-size:12.5px;color:var(--muted);font-weight:600}
+.chip{border:1px solid var(--line);background:var(--chip);color:var(--fg);border-radius:999px;padding:4px 11px;font:inherit;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}
+.chip:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--hl);outline-offset:2px}
+select,input[type=date]{font:inherit;font-size:13px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 22px}
+.stat b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.scroll{overflow-x:auto}
+svg text{fill:var(--muted);font-size:10px;font-family:-apple-system,system-ui,sans-serif}
+.bar{cursor:pointer}
+.bar:hover{opacity:.75}
+.lg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+table{border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{color:var(--muted);font-weight:600;cursor:pointer;position:sticky;top:0;background:var(--card)}
+td:first-child,th:first-child,td:nth-child(2),th:nth-child(2){text-align:left}
+tr.sel td{background:color-mix(in srgb,var(--hl) 25%,transparent)}
+tbody tr{cursor:pointer}
+.tbl{max-height:420px;overflow:auto}
+.two{display:grid;gap:16px;grid-template-columns:1fr 1fr}
+@media (max-width:760px){.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  </style>
+  <style>body{visibility:hidden;pointer-events:none;}</style>
+</head>
+<body>
+  <script type="module">
+    import { enforceAccess } from '../js/access-control.js';
+    if (!(await enforceAccess('core', { redirect: '../subscribe.html' }))) {
+      throw new Error('access-denied: redirected');
+    }
+    if (location.hostname.includes('-dev')) document.body.classList.add('is-dev');
+  </script>
+
+  <nav class="app-tabs" role="tablist" aria-label="アプリ切替">
+    <a href="./" class="app-tab">⏱ 乗務タイマー</a>
+    <a href="radar.html" class="app-tab">🚧 工事/雨雲β</a>
+    <a href="ic.html" class="app-tab">🛣 IC判定</a>
+    <a href="arrivals.html" class="app-tab active" aria-current="page">✈ 空港ツール</a>
+    <a href="stands.html" id="tab-stands" class="app-tab" style="display:none">📍 乗り場</a>
+  </nav>
+  <script type="module" src="js/stands-tab.js"></script>
+
+  <div class="terminal-tabs">
+    <a href="arrivals.html" class="terminal-tab">到着便</a>
+    <a href="noriba-trends.html" class="terminal-tab">📊 乗り場傾向</a>
+    <a href="stand-days.html" class="terminal-tab is-active" aria-current="page">📅 日ごと</a>
+    <a href="airport-fare.html" id="tab-airport-fare" class="terminal-tab push">💴 空港定額</a>
+  </div>
+
+  <div class="dev-badge">開発環境</div>
+  <main id="sd-root">
+<div class="wrap">
+<header style="display:grid;gap:4px">
+<h1>乗り場から出た台数の日ごと</h1>
+<p class="muted" id="span">読みこみ中…</p>
+<p id="sd-error" class="muted" hidden></p>
+</header>
+
+<section class="card filters" aria-label="絞り込み">
+<div class="frow"><b>号</b><span id="f-lane"></span></div>
+<div class="frow"><b>曜日</b><span id="f-dow"></span><button class="chip" id="dow-all" type="button">全部</button><button class="chip" id="dow-wd" type="button">平日だけ</button><button class="chip" id="dow-we" type="button">土日祝だけ</button></div>
+<div class="frow"><b>遅れ便</b><span id="f-delay"></span></div>
+<div class="frow"><b>期間</b><input type="date" id="f-from" aria-label="いつから"><span class="muted">〜</span><input type="date" id="f-to" aria-label="いつまで"></div>
+<div class="frow"><b>並べ方</b><select id="f-sort" aria-label="並べ方"><option value="date">日付の順</option><option value="desc">多い順</option><option value="asc">少ない順</option><option value="dow">曜日の順</option></select></div>
+</section>
+
+<section class="card">
+<div class="stats" id="stats"></div>
+</section>
+
+<section class="card">
+<h2>日ごとの台数</h2>
+<div class="lg"><span><i style="background:var(--wd)"></i>平日</span><span><i style="background:var(--sat)"></i>土曜</span><span><i style="background:var(--sun)"></i>日曜・祝日</span><span><i style="background:var(--hl)"></i>選んだ日</span><span>点線＝選んだ日の平均</span></div>
+<div class="scroll"><svg id="c-days" role="img" aria-label="日ごとの台数の棒グラフ"></svg></div>
+<p class="muted">棒を押すと、下の「1日の中身」にその日の1時間ごとが出ます。</p>
+</section>
+
+<div class="two">
+<section class="card">
+<h2>曜日ごとの平均</h2>
+<svg id="c-dow" role="img" aria-label="曜日ごとの平均"></svg>
+<p class="muted">棒＝平均。点＝1日ずつ。</p>
+</section>
+<section class="card">
+<h2 id="d-title">1日の中身</h2>
+<svg id="c-hour" role="img" aria-label="1時間ごとの台数"></svg>
+<p class="muted" id="d-note">棒＝その日。線＝選んだ日の平均。</p>
+</section>
+</div>
+
+<section class="card">
+<h2>表</h2>
+<p class="muted" style="margin-bottom:6px">見出しを押すと並べ替えます。行を押すと「1日の中身」に出ます。遅れ席＝その日に1時間以上遅れた国内線の座席の合計。</p>
+<div class="tbl"><table><thead><tr id="t-head"></tr></thead><tbody id="t-body"></tbody></table></div>
+</section>
+<p class="muted">数え方: Mac mini がカメラの画像から、乗り場を出た車を1台ずつ数えた数です。0時台から23時台まで丸1日数えた日だけ載せています。4号は8/21から、1〜3号は10/14からです。</p>
+</div>
+  </main>
+
+  <script type="module" src="./js/stand-days.js"></script>
+  <div id="navHost"></div>
+  <script type="module">
+    import { renderBottomNav } from '../js/app.js';
+    import { showGpsPrivacyBanner } from '../js/gps-privacy-banner.js';
+    document.getElementById('navHost').innerHTML = renderBottomNav('tools', '../');
+    showGpsPrivacyBanner();
+  </script>
+</body>
+</html>
