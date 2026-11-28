@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-11-29T01:24:44+09:00",
+  "generatedAt": "2026-11-29T01:30:44+09:00",
   "total": {
-    "occ": 126,
+    "occ": 128,
     "level": "普通"
   },
   "activity": {
-    "recent1hDepartures": 4,
+    "recent1hDepartures": 2,
     "typical1h": null,
     "ratio": null,
     "level": "low",
@@ -27,12 +27,12 @@
     "stall2": {
       "label": "第2乗り場",
       "terminal": "T1",
-      "occ": 69,
-      "recent1hDep": 2,
+      "occ": 71,
+      "recent1hDep": 1,
       "waitMin": null,
       "trend": "down",
-      "fillRate": 0.7931,
-      "rankHint": "most-active",
+      "fillRate": 0.8161,
+      "rankHint": null,
       "fillMethod": "lantern"
     },
     "stall3": {
@@ -50,7 +50,7 @@
       "label": "第4乗り場",
       "terminal": "T2",
       "occ": 25,
-      "recent1hDep": 1,
+      "recent1hDep": 0,
       "waitMin": null,
       "trend": "down",
       "fillRate": 0.3846,
@@ -80,5 +80,5 @@
   },
   "sourceStale": false,
   "countSource": "lantern",
-  "cameraLiveAt": "2026-11-29T01:24:48+09:00"
+  "cameraLiveAt": "2026-11-29T01:30:52+09:00"
 }
