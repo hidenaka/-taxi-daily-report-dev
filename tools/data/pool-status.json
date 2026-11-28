@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-11-29T00:12:21+09:00",
+  "generatedAt": "2026-11-29T00:18:24+09:00",
   "total": {
-    "occ": 97,
+    "occ": 83,
     "level": "普通"
   },
   "activity": {
-    "recent1hDepartures": 16,
+    "recent1hDepartures": 9,
     "typical1h": null,
     "ratio": null,
-    "level": "high",
-    "arrow": "up",
+    "level": "mid",
+    "arrow": "down",
     "sameConditionCompare": null
   },
   "stalls": {
@@ -17,9 +17,9 @@
       "label": "第1乗り場",
       "terminal": "T1",
       "occ": 0,
-      "recent1hDep": 3,
+      "recent1hDep": 2,
       "waitMin": 0,
-      "trend": "up",
+      "trend": "flat",
       "fillRate": 0,
       "rankHint": null,
       "fillMethod": "lantern"
@@ -28,9 +28,9 @@
       "label": "第2乗り場",
       "terminal": "T1",
       "occ": 31,
-      "recent1hDep": 4,
+      "recent1hDep": 2,
       "waitMin": null,
-      "trend": "up",
+      "trend": "down",
       "fillRate": 0.3563,
       "rankHint": "most-low",
       "fillMethod": "lantern"
@@ -38,11 +38,11 @@
     "stall3": {
       "label": "第3乗り場",
       "terminal": "T2",
-      "occ": 25,
-      "recent1hDep": 7,
-      "waitMin": 214,
-      "trend": "flat",
-      "fillRate": 0.3378,
+      "occ": 11,
+      "recent1hDep": 3,
+      "waitMin": 220,
+      "trend": "down",
+      "fillRate": 0.1486,
       "rankHint": "most-active",
       "fillMethod": "lantern"
     },
@@ -80,5 +80,5 @@
   },
   "sourceStale": false,
   "countSource": "lantern",
-  "cameraLiveAt": "2026-11-29T00:12:43+09:00"
+  "cameraLiveAt": "2026-11-29T00:18:44+09:00"
 }
