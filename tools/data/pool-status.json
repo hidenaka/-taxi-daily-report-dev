@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-29T01:00:38+09:00",
+  "generatedAt": "2026-11-29T01:06:41+09:00",
   "total": {
-    "occ": 101,
+    "occ": 100,
     "level": "普通"
   },
   "activity": {
@@ -49,11 +49,11 @@
     "stall4": {
       "label": "第4乗り場",
       "terminal": "T2",
-      "occ": 39,
+      "occ": 38,
       "recent1hDep": 1,
       "waitMin": null,
       "trend": "down",
-      "fillRate": 0.6,
+      "fillRate": 0.5846,
       "rankHint": null,
       "fillMethod": "count"
     }
@@ -80,5 +80,5 @@
   },
   "sourceStale": false,
   "countSource": "lantern",
-  "cameraLiveAt": "2026-11-29T01:00:46+09:00"
+  "cameraLiveAt": "2026-11-29T01:06:46+09:00"
 }
