@@ -1,21 +1,21 @@
 {
- "generatedAt": "2026-11-29T04:02:05+09:00",
+ "generatedAt": "2026-11-29T04:08:07+09:00",
  "unit": "台",
  "bins30End": [
-  "02:32",
-  "03:02",
-  "03:32",
-  "04:02"
+  "02:38",
+  "03:08",
+  "03:38",
+  "04:08"
  ],
  "stalls": {
   "stall1": {
    "lastHour": 2,
-   "last30": 1,
+   "last30": 0,
    "bins30": [
-    10,
-    3,
-    1,
-    1
+    7,
+    2,
+    2,
+    0
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
@@ -84,27 +84,27 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T04:02:05+09:00",
+   "lastFrameAt": "2026-11-29T04:07:07+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1628,
+     "n": 1627,
      "mae": 2.0
     },
     "1": {
-     "n": 1623,
+     "n": 1622,
      "mae": 2.01
     }
    }
   },
   "stall2": {
    "lastHour": 8,
-   "last30": 3,
+   "last30": 1,
    "bins30": [
-    6,
-    4,
-    5,
-    3
+    8,
+    2,
+    7,
+    1
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -172,8 +172,8 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 0,
-   "lastFrameAt": "2026-11-29T04:02:05+09:00",
+   "inQueue": 1,
+   "lastFrameAt": "2026-11-29T04:08:07+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -187,17 +187,17 @@
    }
   },
   "stall3": {
-   "lastHour": 6,
+   "lastHour": 5,
    "last30": 0,
    "bins30": [
     5,
-    1,
-    6,
+    2,
+    5,
     0
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
-    4,
+    3,
     5
    ],
    "forecastWeights": [
@@ -262,7 +262,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 2,
-   "lastFrameAt": "2026-11-29T04:02:05+09:00",
+   "lastFrameAt": "2026-11-29T04:08:07+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -279,8 +279,8 @@
    "lastHour": 1,
    "last30": 1,
    "bins30": [
-    2,
-    2,
+    3,
+    0,
     0,
     1
    ],
@@ -351,7 +351,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 3,
-   "lastFrameAt": "2026-11-29T04:02:05+09:00",
+   "lastFrameAt": "2026-11-29T04:08:07+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
