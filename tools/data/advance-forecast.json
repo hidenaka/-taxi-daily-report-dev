@@ -1,8 +1,8 @@
 {
   "schema_version": 4,
-  "generatedAt": "2026-11-29T04:56:00+09:00",
+  "generatedAt": "2026-11-29T05:02:00+09:00",
   "note": "15分あたりの列移動回数(相対指標)。計測の都合で実際より少なめに出る。出庫台数=列移動回数×横台数(rowWidth)。",
-  "trainedRows": 17338,
+  "trainedRows": 17339,
   "flightApplied": true,
   "learnedLag": {
     "stall1": {
@@ -37,7 +37,7 @@
     "stall4": 8
   },
   "current": {
-    "time": "04:56",
+    "time": "05:02",
     "stalls": {
       "stall1": {
         "actual": 0,
@@ -459,6 +459,26 @@
         "nightRate": 0.014,
         "imageQcLowRate": 0.175
       }
+    },
+    {
+      "time": "04:45",
+      "stalls": {
+        "stall1": 0,
+        "stall2": 0,
+        "stall3": 0,
+        "stall4": 0
+      },
+      "quality": {
+        "confidence": "reference",
+        "condition": "early",
+        "reasons": [
+          "early"
+        ],
+        "sampleRows": 3676,
+        "rainRate": 0.195,
+        "nightRate": 0.008,
+        "imageQcLowRate": 0.034
+      }
     }
   ],
   "slots": [
@@ -466,8 +486,8 @@
       "time": "00:00",
       "stalls": {
         "stall1": 0.3,
-        "stall2": 0.6,
-        "stall3": 2.9,
+        "stall2": 0.3,
+        "stall3": 1.5,
         "stall4": 0.1
       },
       "quality": {
@@ -510,7 +530,7 @@
         "stall1": 0.1,
         "stall2": 0.3,
         "stall3": 0.2,
-        "stall4": 0.5
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "reference",
@@ -874,7 +894,7 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 3670,
+        "sampleRows": 3676,
         "rainRate": 0.195,
         "nightRate": 0.008,
         "imageQcLowRate": 0.034
@@ -894,9 +914,9 @@
         "reasons": [
           "early"
         ],
-        "sampleRows": 3672,
+        "sampleRows": 3677,
         "rainRate": 0.192,
-        "nightRate": 0.009,
+        "nightRate": 0.008,
         "imageQcLowRate": 0.011
       }
     },
@@ -926,7 +946,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.8
+        "stall4": 0.4
       },
       "quality": {
         "confidence": "normal",
@@ -944,7 +964,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.3
+        "stall4": 0.6
       },
       "quality": {
         "confidence": "normal",
@@ -962,7 +982,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.3
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
@@ -980,7 +1000,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0,
-        "stall4": 0.1
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
@@ -1105,7 +1125,7 @@
       "stalls": {
         "stall1": 0,
         "stall2": 0,
-        "stall3": 0.3,
+        "stall3": 0.2,
         "stall4": 0
       },
       "quality": {
@@ -1124,7 +1144,7 @@
         "stall1": 0,
         "stall2": 0,
         "stall3": 0.1,
-        "stall4": 0.1
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
@@ -1141,7 +1161,7 @@
       "stalls": {
         "stall1": 0,
         "stall2": 0.1,
-        "stall3": 0.7,
+        "stall3": 0.3,
         "stall4": 0.1
       },
       "quality": {
@@ -1160,7 +1180,7 @@
         "stall1": 0,
         "stall2": 0.1,
         "stall3": 0.1,
-        "stall4": 0.1
+        "stall4": 0
       },
       "quality": {
         "confidence": "normal",
@@ -1175,8 +1195,8 @@
     {
       "time": "09:00",
       "stalls": {
-        "stall1": 0.1,
-        "stall2": 0.1,
+        "stall1": 0.2,
+        "stall2": 0.3,
         "stall3": 0.3,
         "stall4": 0
       },
@@ -1193,9 +1213,9 @@
     {
       "time": "09:15",
       "stalls": {
-        "stall1": 0.2,
-        "stall2": 0.2,
-        "stall3": 0.4,
+        "stall1": 0.1,
+        "stall2": 0.3,
+        "stall3": 0.5,
         "stall4": 0.1
       },
       "quality": {
@@ -1212,9 +1232,9 @@
       "time": "09:30",
       "stalls": {
         "stall1": 0,
-        "stall2": 0.6,
+        "stall2": 0.4,
         "stall3": 0.4,
-        "stall4": 0.2
+        "stall4": 0.1
       },
       "quality": {
         "confidence": "normal",
@@ -1230,7 +1250,7 @@
       "time": "09:45",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.1,
+        "stall2": 0.2,
         "stall3": 0.3,
         "stall4": 0.1
       },
@@ -1266,8 +1286,8 @@
       "time": "10:15",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.3,
-        "stall3": 0.9,
+        "stall2": 0.1,
+        "stall3": 1,
         "stall4": 0
       },
       "quality": {
@@ -1283,7 +1303,7 @@
     {
       "time": "10:30",
       "stalls": {
-        "stall1": 0.3,
+        "stall1": 0.2,
         "stall2": 0.2,
         "stall3": 0.3,
         "stall4": 0
@@ -1301,9 +1321,9 @@
     {
       "time": "10:45",
       "stalls": {
-        "stall1": 0.5,
+        "stall1": 0.4,
         "stall2": 0.3,
-        "stall3": 0.6,
+        "stall3": 0.7,
         "stall4": 0
       },
       "quality": {
@@ -1320,7 +1340,7 @@
       "time": "11:00",
       "stalls": {
         "stall1": 0.3,
-        "stall2": 0.4,
+        "stall2": 0.3,
         "stall3": 0.2,
         "stall4": 0.1
       },
@@ -1339,7 +1359,7 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 0.3,
-        "stall3": 0.3,
+        "stall3": 0.4,
         "stall4": 0.1
       },
       "quality": {
@@ -1357,7 +1377,7 @@
       "stalls": {
         "stall1": 0.4,
         "stall2": 0.4,
-        "stall3": 0.4,
+        "stall3": 0.5,
         "stall4": 0.1
       },
       "quality": {
@@ -1373,7 +1393,7 @@
     {
       "time": "11:45",
       "stalls": {
-        "stall1": 0.3,
+        "stall1": 0.4,
         "stall2": 0.2,
         "stall3": 0.3,
         "stall4": 0.1
@@ -1392,9 +1412,9 @@
       "time": "12:00",
       "stalls": {
         "stall1": 0.1,
-        "stall2": 0.5,
-        "stall3": 0.5,
-        "stall4": 0.1
+        "stall2": 0.3,
+        "stall3": 0.4,
+        "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
@@ -1411,7 +1431,7 @@
       "stalls": {
         "stall1": 0.5,
         "stall2": 0.2,
-        "stall3": 0.4,
+        "stall3": 0.9,
         "stall4": 0.1
       },
       "quality": {
@@ -1427,8 +1447,8 @@
     {
       "time": "12:30",
       "stalls": {
-        "stall1": 0.5,
-        "stall2": 0.7,
+        "stall1": 0.3,
+        "stall2": 0.5,
         "stall3": 0.4,
         "stall4": 0.4
       },
@@ -1445,8 +1465,8 @@
     {
       "time": "12:45",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 1.2,
+        "stall1": 0.7,
+        "stall2": 1.1,
         "stall3": 0.4,
         "stall4": 0.1
       },
@@ -1465,7 +1485,7 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 0.6,
-        "stall3": 0.7,
+        "stall3": 0.5,
         "stall4": 0.3
       },
       "quality": {
@@ -1483,7 +1503,7 @@
       "stalls": {
         "stall1": 0.5,
         "stall2": 0.6,
-        "stall3": 1.6,
+        "stall3": 1.9,
         "stall4": 0.1
       },
       "quality": {
@@ -1499,9 +1519,9 @@
     {
       "time": "13:30",
       "stalls": {
-        "stall1": 0.8,
-        "stall2": 1.6,
-        "stall3": 0.3,
+        "stall1": 0.9,
+        "stall2": 1.4,
+        "stall3": 0.4,
         "stall4": 0.1
       },
       "quality": {
@@ -1518,7 +1538,7 @@
       "time": "13:45",
       "stalls": {
         "stall1": 0.4,
-        "stall2": 1.1,
+        "stall2": 1,
         "stall3": 0.5,
         "stall4": 0.2
       },
@@ -1535,8 +1555,8 @@
     {
       "time": "14:00",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 1.2,
+        "stall1": 0.5,
+        "stall2": 0.6,
         "stall3": 1.1,
         "stall4": 0.5
       },
@@ -1555,8 +1575,8 @@
       "stalls": {
         "stall1": 0.2,
         "stall2": 0.4,
-        "stall3": 1,
-        "stall4": 0.4
+        "stall3": 1.1,
+        "stall4": 0.3
       },
       "quality": {
         "confidence": "normal",
@@ -1573,8 +1593,8 @@
       "stalls": {
         "stall1": 0.2,
         "stall2": 0.7,
-        "stall3": 0.6,
-        "stall4": 0.4
+        "stall3": 0.7,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
@@ -1590,9 +1610,9 @@
       "time": "14:45",
       "stalls": {
         "stall1": 1.2,
-        "stall2": 1,
+        "stall2": 1.3,
         "stall3": 0.5,
-        "stall4": 0.6
+        "stall4": 0.7
       },
       "quality": {
         "confidence": "normal",
@@ -1608,9 +1628,9 @@
       "time": "15:00",
       "stalls": {
         "stall1": 0.2,
-        "stall2": 1,
-        "stall3": 1.3,
-        "stall4": 0.5
+        "stall2": 0.9,
+        "stall3": 0.6,
+        "stall4": 0.7
       },
       "quality": {
         "confidence": "normal",
@@ -1627,8 +1647,8 @@
       "stalls": {
         "stall1": 0.7,
         "stall2": 0.3,
-        "stall3": 2.3,
-        "stall4": 0.5
+        "stall3": 2.1,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "normal",
@@ -1643,10 +1663,10 @@
     {
       "time": "15:30",
       "stalls": {
-        "stall1": 0.3,
+        "stall1": 0.2,
         "stall2": 0.5,
-        "stall3": 0.9,
-        "stall4": 0.9
+        "stall3": 1.6,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "normal",
@@ -1661,10 +1681,10 @@
     {
       "time": "15:45",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 1,
-        "stall3": 0.8,
-        "stall4": 0.5
+        "stall1": 1.1,
+        "stall2": 0.6,
+        "stall3": 0.9,
+        "stall4": 0.6
       },
       "quality": {
         "confidence": "normal",
@@ -1679,10 +1699,10 @@
     {
       "time": "16:00",
       "stalls": {
-        "stall1": 1.4,
-        "stall2": 0.3,
-        "stall3": 1.3,
-        "stall4": 0.8
+        "stall1": 0.7,
+        "stall2": 1.3,
+        "stall3": 0.7,
+        "stall4": 1.5
       },
       "quality": {
         "confidence": "normal",
@@ -1698,9 +1718,9 @@
       "time": "16:15",
       "stalls": {
         "stall1": 0.3,
-        "stall2": 0.7,
+        "stall2": 0.5,
         "stall3": 0.6,
-        "stall4": 0.5
+        "stall4": 1.2
       },
       "quality": {
         "confidence": "normal",
@@ -1715,9 +1735,9 @@
     {
       "time": "16:30",
       "stalls": {
-        "stall1": 0.7,
-        "stall2": 0.5,
-        "stall3": 0.9,
+        "stall1": 0.4,
+        "stall2": 0.8,
+        "stall3": 0.4,
         "stall4": 0.6
       },
       "quality": {
@@ -1733,9 +1753,9 @@
     {
       "time": "16:45",
       "stalls": {
-        "stall1": 0.8,
-        "stall2": 0.4,
-        "stall3": 0.7,
+        "stall1": 0.5,
+        "stall2": 0.5,
+        "stall3": 0.8,
         "stall4": 0.4
       },
       "quality": {
@@ -1751,10 +1771,10 @@
     {
       "time": "17:00",
       "stalls": {
-        "stall1": 0.8,
+        "stall1": 1,
         "stall2": 0.4,
-        "stall3": 1,
-        "stall4": 1
+        "stall3": 0.8,
+        "stall4": 1.1
       },
       "quality": {
         "confidence": "normal",
@@ -1771,8 +1791,8 @@
       "stalls": {
         "stall1": 0.2,
         "stall2": 0.2,
-        "stall3": 0.5,
-        "stall4": 0.6
+        "stall3": 0.8,
+        "stall4": 2.2
       },
       "quality": {
         "confidence": "normal",
@@ -1787,10 +1807,10 @@
     {
       "time": "17:30",
       "stalls": {
-        "stall1": 1.1,
-        "stall2": 0.1,
-        "stall3": 1.9,
-        "stall4": 1.1
+        "stall1": 1.5,
+        "stall2": 0.2,
+        "stall3": 1.3,
+        "stall4": 2
       },
       "quality": {
         "confidence": "normal",
@@ -1805,10 +1825,10 @@
     {
       "time": "17:45",
       "stalls": {
-        "stall1": 0.8,
-        "stall2": 0.6,
-        "stall3": 1,
-        "stall4": 1.7
+        "stall1": 1.2,
+        "stall2": 0.3,
+        "stall3": 1.1,
+        "stall4": 0.6
       },
       "quality": {
         "confidence": "normal",
@@ -1823,9 +1843,9 @@
     {
       "time": "18:00",
       "stalls": {
-        "stall1": 0.8,
+        "stall1": 0.9,
         "stall2": 0.5,
-        "stall3": 0.6,
+        "stall3": 0.8,
         "stall4": 1.6
       },
       "quality": {
@@ -1841,7 +1861,7 @@
     {
       "time": "18:15",
       "stalls": {
-        "stall1": 0.6,
+        "stall1": 0.5,
         "stall2": 1.1,
         "stall3": 2.3,
         "stall4": 2.4
@@ -1859,10 +1879,10 @@
     {
       "time": "18:30",
       "stalls": {
-        "stall1": 0.5,
+        "stall1": 0.6,
         "stall2": 0.4,
-        "stall3": 1.3,
-        "stall4": 0.9
+        "stall3": 1.2,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "normal",
@@ -1877,10 +1897,10 @@
     {
       "time": "18:45",
       "stalls": {
-        "stall1": 0.3,
+        "stall1": 0.4,
         "stall2": 0.3,
-        "stall3": 2.3,
-        "stall4": 0.4
+        "stall3": 1.6,
+        "stall4": 1.4
       },
       "quality": {
         "confidence": "normal",
@@ -1897,8 +1917,8 @@
       "stalls": {
         "stall1": 0.5,
         "stall2": 0.3,
-        "stall3": 1.1,
-        "stall4": 0.7
+        "stall3": 1.3,
+        "stall4": 1.3
       },
       "quality": {
         "confidence": "reference",
@@ -1915,9 +1935,9 @@
     {
       "time": "19:15",
       "stalls": {
-        "stall1": 1.1,
-        "stall2": 0.2,
-        "stall3": 1,
+        "stall1": 1,
+        "stall2": 0.3,
+        "stall3": 0.9,
         "stall4": 0.4
       },
       "quality": {
@@ -1936,9 +1956,9 @@
       "time": "19:30",
       "stalls": {
         "stall1": 0.2,
-        "stall2": 0.5,
-        "stall3": 1.1,
-        "stall4": 0.1
+        "stall2": 0.3,
+        "stall3": 1,
+        "stall4": 0.2
       },
       "quality": {
         "confidence": "reference",
@@ -1955,9 +1975,9 @@
     {
       "time": "19:45",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 0.3,
-        "stall3": 0.9,
+        "stall1": 0.8,
+        "stall2": 0.6,
+        "stall3": 1,
         "stall4": 0.3
       },
       "quality": {
@@ -1976,8 +1996,8 @@
       "time": "20:00",
       "stalls": {
         "stall1": 0.7,
-        "stall2": 1.6,
-        "stall3": 1.1,
+        "stall2": 1.5,
+        "stall3": 0.7,
         "stall4": 0.4
       },
       "quality": {
@@ -1997,8 +2017,8 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 1,
-        "stall3": 1,
-        "stall4": 1.1
+        "stall3": 1.3,
+        "stall4": 1.3
       },
       "quality": {
         "confidence": "reference",
@@ -2015,9 +2035,9 @@
     {
       "time": "20:30",
       "stalls": {
-        "stall1": 0.6,
-        "stall2": 0.7,
-        "stall3": 0.8,
+        "stall1": 0.3,
+        "stall2": 1.5,
+        "stall3": 1.7,
         "stall4": 0.5
       },
       "quality": {
@@ -2035,10 +2055,10 @@
     {
       "time": "20:45",
       "stalls": {
-        "stall1": 1,
+        "stall1": 1.1,
         "stall2": 0.5,
-        "stall3": 0.6,
-        "stall4": 1.1
+        "stall3": 0.7,
+        "stall4": 1.3
       },
       "quality": {
         "confidence": "reference",
@@ -2057,7 +2077,7 @@
       "stalls": {
         "stall1": 0.3,
         "stall2": 1,
-        "stall3": 2.1,
+        "stall3": 2.5,
         "stall4": 0.7
       },
       "quality": {
@@ -2076,10 +2096,10 @@
     {
       "time": "21:15",
       "stalls": {
-        "stall1": 0.3,
-        "stall2": 0.8,
-        "stall3": 2.2,
-        "stall4": 0.8
+        "stall1": 0.7,
+        "stall2": 1.1,
+        "stall3": 2.5,
+        "stall4": 1
       },
       "quality": {
         "confidence": "reference",
@@ -2099,8 +2119,8 @@
       "stalls": {
         "stall1": 0.4,
         "stall2": 1.9,
-        "stall3": 3.4,
-        "stall4": 0.5
+        "stall3": 2,
+        "stall4": 1.6
       },
       "quality": {
         "confidence": "reference",
@@ -2118,10 +2138,10 @@
     {
       "time": "21:45",
       "stalls": {
-        "stall1": 0.5,
-        "stall2": 1.4,
-        "stall3": 3.7,
-        "stall4": 0.6
+        "stall1": 0.7,
+        "stall2": 0.8,
+        "stall3": 3.2,
+        "stall4": 0.7
       },
       "quality": {
         "confidence": "reference",
@@ -2140,8 +2160,8 @@
       "time": "22:00",
       "stalls": {
         "stall1": 1.1,
-        "stall2": 3,
-        "stall3": 0.7,
+        "stall2": 3.4,
+        "stall3": 1.4,
         "stall4": 0.4
       },
       "quality": {
@@ -2161,9 +2181,9 @@
       "time": "22:15",
       "stalls": {
         "stall1": 1.5,
-        "stall2": 0.6,
-        "stall3": 2.4,
-        "stall4": 1
+        "stall2": 1.1,
+        "stall3": 2.2,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "reference",
@@ -2182,9 +2202,9 @@
       "time": "22:30",
       "stalls": {
         "stall1": 1.1,
-        "stall2": 0.6,
+        "stall2": 1.1,
         "stall3": 2.6,
-        "stall4": 1.4
+        "stall4": 1.7
       },
       "quality": {
         "confidence": "reference",
@@ -2202,9 +2222,9 @@
     {
       "time": "22:45",
       "stalls": {
-        "stall1": 0.4,
-        "stall2": 1,
-        "stall3": 2.5,
+        "stall1": 0.6,
+        "stall2": 1.5,
+        "stall3": 3.2,
         "stall4": 0.3
       },
       "quality": {
@@ -2224,8 +2244,8 @@
       "time": "23:00",
       "stalls": {
         "stall1": 0.9,
-        "stall2": 0.8,
-        "stall3": 1.9,
+        "stall2": 0.7,
+        "stall3": 1.1,
         "stall4": 1.3
       },
       "quality": {
@@ -2246,8 +2266,8 @@
       "stalls": {
         "stall1": 1.3,
         "stall2": 0.6,
-        "stall3": 1.5,
-        "stall4": 0.3
+        "stall3": 3.4,
+        "stall4": 0.5
       },
       "quality": {
         "confidence": "reference",
@@ -2267,7 +2287,7 @@
       "stalls": {
         "stall1": 0.5,
         "stall2": 0.4,
-        "stall3": 0.8,
+        "stall3": 1.4,
         "stall4": 0.8
       },
       "quality": {
@@ -2287,8 +2307,8 @@
       "time": "23:45",
       "stalls": {
         "stall1": 0.5,
-        "stall2": 0.3,
-        "stall3": 2,
+        "stall2": 0.2,
+        "stall3": 1.7,
         "stall4": 0.6
       },
       "quality": {
