@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-29T04:25:58+09:00",
+  "generatedAt": "2026-11-29T04:32:01+09:00",
   "total": {
     "occ": 47,
     "level": "空き"
@@ -82,7 +82,7 @@
         "airline": "JAL",
         "fromName": "マニラ",
         "seatCount": 200,
-        "lobbyExitMinutes": 54,
+        "lobbyExitMinutes": 48,
         "lobbyExitTime": "05:20"
       },
       {
@@ -90,12 +90,12 @@
         "airline": "ANA",
         "fromName": "サンフランシスコ",
         "seatCount": 264,
-        "lobbyExitMinutes": 58,
+        "lobbyExitMinutes": 52,
         "lobbyExitTime": "05:24"
       }
     ]
   },
   "sourceStale": false,
   "countSource": "lantern",
-  "cameraLiveAt": "2026-11-29T04:26:17+09:00"
+  "cameraLiveAt": "2026-11-29T04:32:20+09:00"
 }
