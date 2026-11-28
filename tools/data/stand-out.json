@@ -1,21 +1,21 @@
 {
- "generatedAt": "2026-11-29T06:15:00+09:00",
+ "generatedAt": "2026-11-29T06:20:58+09:00",
  "unit": "台",
  "bins30End": [
-  "04:45",
-  "05:15",
-  "05:45",
-  "06:15"
+  "04:50",
+  "05:20",
+  "05:50",
+  "06:20"
  ],
  "stalls": {
   "stall1": {
-   "lastHour": 7,
-   "last30": 2,
+   "lastHour": 6,
+   "last30": 3,
    "bins30": [
     2,
-    4,
-    5,
-    2
+    6,
+    3,
+    3
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
@@ -35,7 +35,7 @@
     2,
     2,
     11,
-    0,
+    1,
     0,
     0,
     0,
@@ -83,13 +83,13 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 1,
-   "lastFrameAt": "2026-11-29T06:14:17+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T06:20:23+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
      "n": 1628,
-     "mae": 2.01
+     "mae": 2.0
     },
     "1": {
      "n": 1623,
@@ -98,13 +98,13 @@
    }
   },
   "stall2": {
-   "lastHour": 9,
-   "last30": 4,
+   "lastHour": 7,
+   "last30": 3,
    "bins30": [
-    4,
     3,
     5,
-    4
+    4,
+    3
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -173,7 +173,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T06:14:17+09:00",
+   "lastFrameAt": "2026-11-29T06:20:23+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -187,13 +187,13 @@
    }
   },
   "stall3": {
-   "lastHour": 11,
-   "last30": 4,
+   "lastHour": 10,
+   "last30": 5,
    "bins30": [
     8,
     5,
-    7,
-    4
+    5,
+    5
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
@@ -213,7 +213,7 @@
     6,
     11,
     11,
-    2,
+    3,
     0,
     0,
     0,
@@ -262,7 +262,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 3,
-   "lastFrameAt": "2026-11-29T06:14:17+09:00",
+   "lastFrameAt": "2026-11-29T06:20:23+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -277,12 +277,12 @@
   },
   "stall4": {
    "lastHour": 20,
-   "last30": 8,
+   "last30": 10,
    "bins30": [
     0,
-    2,
-    12,
-    8
+    5,
+    10,
+    10
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -302,7 +302,7 @@
     1,
     1,
     19,
-    3,
+    6,
     0,
     0,
     0,
@@ -350,8 +350,8 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 3,
-   "lastFrameAt": "2026-11-29T06:14:17+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T06:20:23+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
