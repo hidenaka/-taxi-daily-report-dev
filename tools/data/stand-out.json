@@ -1,26 +1,26 @@
 {
- "generatedAt": "2026-11-29T03:56:04+09:00",
+ "generatedAt": "2026-11-29T04:02:05+09:00",
  "unit": "台",
  "bins30End": [
-  "02:26",
-  "02:56",
-  "03:26",
-  "03:56"
+  "02:32",
+  "03:02",
+  "03:32",
+  "04:02"
  ],
  "stalls": {
   "stall1": {
    "lastHour": 2,
    "last30": 1,
    "bins30": [
-    14,
-    4,
+    10,
+    3,
     1,
     1
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
     1,
-    1
+    5
    ],
    "forecastWeights": [
     0.158,
@@ -82,37 +82,9 @@
    ],
    "typicalDays": 42,
    "typicalKind": "all",
-   "delayBoost": {
-    "seats": 9671,
-    "hourly": [
-     4.5,
-     3.6,
-     2.4,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0
-    ]
-   },
+   "delayBoost": null,
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T03:56:01+09:00",
+   "lastFrameAt": "2026-11-29T04:02:05+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -126,18 +98,18 @@
    }
   },
   "stall2": {
-   "lastHour": 7,
+   "lastHour": 8,
    "last30": 3,
    "bins30": [
     6,
-    5,
     4,
+    5,
     3
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
-    1,
-    2
+    2,
+    3
    ],
    "forecastWeights": [
     0.235,
@@ -149,7 +121,7 @@
     30,
     9,
     11,
-    7,
+    8,
     0,
     0,
     0,
@@ -199,37 +171,9 @@
    ],
    "typicalDays": 42,
    "typicalKind": "all",
-   "delayBoost": {
-    "seats": 9671,
-    "hourly": [
-     4.5,
-     3.6,
-     2.4,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0
-    ]
-   },
-   "inQueue": 1,
-   "lastFrameAt": "2026-11-29T03:56:01+09:00",
+   "delayBoost": null,
+   "inQueue": 0,
+   "lastFrameAt": "2026-11-29T04:02:05+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -243,18 +187,18 @@
    }
   },
   "stall3": {
-   "lastHour": 7,
+   "lastHour": 6,
    "last30": 0,
    "bins30": [
-    7,
-    0,
-    7,
+    5,
+    1,
+    6,
     0
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
-    3,
-    4
+    4,
+    5
    ],
    "forecastWeights": [
     0.188,
@@ -316,37 +260,9 @@
    ],
    "typicalDays": 42,
    "typicalKind": "all",
-   "delayBoost": {
-    "seats": 9671,
-    "hourly": [
-     4.5,
-     3.6,
-     2.4,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0
-    ]
-   },
+   "delayBoost": null,
    "inQueue": 2,
-   "lastFrameAt": "2026-11-29T03:56:02+09:00",
+   "lastFrameAt": "2026-11-29T04:02:05+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -363,7 +279,7 @@
    "lastHour": 1,
    "last30": 1,
    "bins30": [
-    3,
+    2,
     2,
     0,
     1
@@ -371,7 +287,7 @@
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
     2,
-    2
+    4
    ],
    "forecastWeights": [
     0.167,
@@ -433,37 +349,9 @@
    ],
    "typicalDays": 42,
    "typicalKind": "all",
-   "delayBoost": {
-    "seats": 9671,
-    "hourly": [
-     4.5,
-     3.6,
-     2.4,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0,
-     0.0
-    ]
-   },
+   "delayBoost": null,
    "inQueue": 3,
-   "lastFrameAt": "2026-11-29T03:56:01+09:00",
+   "lastFrameAt": "2026-11-29T04:02:05+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
