@@ -1,137 +1,84 @@
 {
-  "generatedAt": "2026-11-28T23:59:30+09:00",
+  "generatedAt": "2026-11-29T00:06:09+09:00",
   "total": {
-    "occ": 118,
+    "occ": 99,
     "level": "普通"
   },
   "activity": {
-    "recent1hDepartures": 16,
+    "recent1hDepartures": 15,
     "typical1h": null,
     "ratio": null,
     "level": "high",
-    "arrow": "flat",
+    "arrow": "up",
     "sameConditionCompare": null
   },
   "stalls": {
     "stall1": {
       "label": "第1乗り場",
       "terminal": "T1",
-      "occ": 5,
+      "occ": 0,
       "recent1hDep": 2,
-      "waitMin": 150,
+      "waitMin": 0,
       "trend": "flat",
-      "fillRate": 0.1563,
+      "fillRate": 0,
       "rankHint": null,
       "fillMethod": "lantern"
     },
     "stall2": {
       "label": "第2乗り場",
       "terminal": "T1",
-      "occ": 38,
-      "recent1hDep": 6,
+      "occ": 37,
+      "recent1hDep": 4,
       "waitMin": null,
       "trend": "up",
-      "fillRate": 0.4368,
+      "fillRate": 0.4253,
       "rankHint": "most-low",
       "fillMethod": "lantern"
     },
     "stall3": {
       "label": "第3乗り場",
       "terminal": "T2",
-      "occ": 33,
+      "occ": 19,
       "recent1hDep": 7,
-      "waitMin": null,
+      "waitMin": 163,
       "trend": "flat",
-      "fillRate": 0.4459,
+      "fillRate": 0.2568,
       "rankHint": "most-active",
       "fillMethod": "lantern"
     },
     "stall4": {
       "label": "第4乗り場",
       "terminal": "T2",
-      "occ": 42,
-      "recent1hDep": 1,
+      "occ": 43,
+      "recent1hDep": 2,
       "waitMin": null,
-      "trend": "down",
-      "fillRate": 0.6462,
+      "trend": "up",
+      "fillRate": 0.6615,
       "rankHint": null,
       "fillMethod": "count"
     }
   },
   "terminalArrivals": {
     "T1": {
-      "next30": 21,
-      "next60": 21
+      "next30": 0,
+      "next60": 0
     },
     "T2": {
-      "next30": 14,
-      "next60": 147
+      "next30": 0,
+      "next60": 0
     }
   },
   "terminalArrivalsList": {
-    "T1": [
-      {
-        "flightNumber": "JL378",
-        "airline": "JAL",
-        "fromName": "北九州",
-        "seatCount": 166,
-        "lobbyExitMinutes": 3,
-        "lobbyExitTime": "24:03"
-      }
-    ],
-    "T2": [
-      {
-        "flightNumber": "NH988",
-        "airline": "ANA",
-        "fromName": "千歳",
-        "seatCount": 194,
-        "lobbyExitMinutes": 1,
-        "lobbyExitTime": "24:01"
-      },
-      {
-        "flightNumber": "NH1098",
-        "airline": "ANA",
-        "fromName": "那覇",
-        "seatCount": 405,
-        "lobbyExitMinutes": 38,
-        "lobbyExitTime": "24:38"
-      }
-    ]
+    "T1": [],
+    "T2": []
   },
   "noribaArrivalsList": {
     "1": [],
-    "2": [
-      {
-        "flightNumber": "JL378",
-        "airline": "JAL",
-        "fromName": "北九州",
-        "seatCount": 166,
-        "lobbyExitMinutes": 3,
-        "lobbyExitTime": "24:03"
-      }
-    ],
-    "3": [
-      {
-        "flightNumber": "NH988",
-        "airline": "ANA",
-        "fromName": "千歳",
-        "seatCount": 194,
-        "lobbyExitMinutes": 1,
-        "lobbyExitTime": "24:01"
-      }
-    ],
-    "4": [
-      {
-        "flightNumber": "NH1098",
-        "airline": "ANA",
-        "fromName": "那覇",
-        "seatCount": 405,
-        "lobbyExitMinutes": 38,
-        "lobbyExitTime": "24:38"
-      }
-    ]
+    "2": [],
+    "3": [],
+    "4": []
   },
   "sourceStale": false,
   "countSource": "lantern",
-  "cameraLiveAt": "2026-11-28T23:59:52+09:00"
+  "cameraLiveAt": "2026-11-29T00:06:10+09:00"
 }
