@@ -1,20 +1,20 @@
 {
- "generatedAt": "2026-11-29T00:49:03+09:00",
+ "generatedAt": "2026-11-29T00:55:03+09:00",
  "unit": "台",
  "bins30End": [
-  "23:19",
-  "23:49",
-  "00:19",
-  "00:49"
+  "23:25",
+  "23:55",
+  "00:25",
+  "00:55"
  ],
  "stalls": {
   "stall1": {
-   "lastHour": 17,
+   "lastHour": 15,
    "last30": 6,
    "bins30": [
-    11,
+    12,
     8,
-    11,
+    9,
     6
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
@@ -29,7 +29,7 @@
    ],
    "forecastBase": "own",
    "todayHourly": [
-    12,
+    13,
     0,
     0,
     0,
@@ -111,8 +111,8 @@
      0.0
     ]
    },
-   "inQueue": 3,
-   "lastFrameAt": "2026-11-29T00:48:27+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T00:54:29+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -126,13 +126,13 @@
    }
   },
   "stall2": {
-   "lastHour": 34,
-   "last30": 17,
+   "lastHour": 33,
+   "last30": 15,
    "bins30": [
+    15,
     13,
-    14,
-    17,
-    17
+    18,
+    15
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -146,7 +146,7 @@
    ],
    "forecastBase": "own",
    "todayHourly": [
-    28,
+    30,
     0,
     0,
     0,
@@ -228,13 +228,13 @@
      0.0
     ]
    },
-   "inQueue": 3,
-   "lastFrameAt": "2026-11-29T00:48:27+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T00:54:29+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
      "n": 1626,
-     "mae": 1.97
+     "mae": 1.98
     },
     "1": {
      "n": 1622,
@@ -246,8 +246,8 @@
    "lastHour": 13,
    "last30": 5,
    "bins30": [
+    13,
     9,
-    14,
     8,
     5
    ],
@@ -263,7 +263,7 @@
    ],
    "forecastBase": "own",
    "todayHourly": [
-    10,
+    11,
     0,
     0,
     0,
@@ -346,7 +346,7 @@
     ]
    },
    "inQueue": 1,
-   "lastFrameAt": "2026-11-29T00:48:27+09:00",
+   "lastFrameAt": "2026-11-29T00:54:29+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -363,8 +363,8 @@
    "lastHour": 17,
    "last30": 10,
    "bins30": [
-    7,
-    10,
+    9,
+    8,
     7,
     10
    ],
@@ -380,7 +380,7 @@
    ],
    "forecastBase": "own",
    "todayHourly": [
-    16,
+    17,
     0,
     0,
     0,
@@ -462,8 +462,8 @@
      0.0
     ]
    },
-   "inQueue": 1,
-   "lastFrameAt": "2026-11-29T00:48:27+09:00",
+   "inQueue": 3,
+   "lastFrameAt": "2026-11-29T00:54:29+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -472,7 +472,7 @@
     },
     "1": {
      "n": 1622,
-     "mae": 2.33
+     "mae": 2.34
     }
    }
   }
