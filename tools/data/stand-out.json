@@ -1,21 +1,21 @@
 {
- "generatedAt": "2026-11-29T05:32:46+09:00",
+ "generatedAt": "2026-11-29T05:38:49+09:00",
  "unit": "台",
  "bins30End": [
-  "04:02",
-  "04:32",
-  "05:02",
-  "05:32"
+  "04:08",
+  "04:38",
+  "05:08",
+  "05:38"
  ],
  "stalls": {
   "stall1": {
-   "lastHour": 9,
-   "last30": 7,
+   "lastHour": 7,
+   "last30": 4,
    "bins30": [
-    1,
     0,
     2,
-    7
+    3,
+    4
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
@@ -83,13 +83,13 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 0,
-   "lastFrameAt": "2026-11-29T05:31:50+09:00",
+   "inQueue": 1,
+   "lastFrameAt": "2026-11-29T05:37:54+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
      "n": 1628,
-     "mae": 2.0
+     "mae": 2.01
     },
     "1": {
      "n": 1623,
@@ -98,12 +98,12 @@
    }
   },
   "stall2": {
-   "lastHour": 8,
+   "lastHour": 9,
    "last30": 5,
    "bins30": [
-    3,
+    1,
+    5,
     4,
-    3,
     5
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
@@ -123,7 +123,7 @@
     11,
     8,
     6,
-    6,
+    8,
     0,
     0,
     0,
@@ -173,7 +173,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T05:31:50+09:00",
+   "lastFrameAt": "2026-11-29T05:37:54+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -188,12 +188,12 @@
   },
   "stall3": {
    "lastHour": 13,
-   "last30": 7,
+   "last30": 8,
    "bins30": [
     0,
-    6,
-    6,
-    7
+    7,
+    5,
+    8
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
@@ -212,7 +212,7 @@
     7,
     6,
     11,
-    8,
+    9,
     0,
     0,
     0,
@@ -262,27 +262,27 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 2,
-   "lastFrameAt": "2026-11-29T05:32:51+09:00",
+   "lastFrameAt": "2026-11-29T05:37:54+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1627,
+     "n": 1626,
      "mae": 2.09
     },
     "1": {
-     "n": 1622,
+     "n": 1621,
      "mae": 2.11
     }
    }
   },
   "stall4": {
-   "lastHour": 8,
-   "last30": 8,
+   "lastHour": 11,
+   "last30": 9,
    "bins30": [
     1,
     1,
-    0,
-    8
+    2,
+    9
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -301,7 +301,7 @@
     5,
     1,
     1,
-    8,
+    11,
     0,
     0,
     0,
@@ -350,8 +350,8 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 3,
-   "lastFrameAt": "2026-11-29T05:32:51+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T05:38:54+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
