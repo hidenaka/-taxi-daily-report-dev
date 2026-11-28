@@ -1,18 +1,18 @@
 {
- "generatedAt": "2026-11-29T05:08:39+09:00",
+ "generatedAt": "2026-11-29T05:14:40+09:00",
  "unit": "台",
  "bins30End": [
-  "03:38",
-  "04:08",
-  "04:38",
-  "05:08"
+  "03:44",
+  "04:14",
+  "04:44",
+  "05:14"
  ],
  "stalls": {
   "stall1": {
    "lastHour": 5,
    "last30": 3,
    "bins30": [
-    2,
+    1,
     0,
     2,
     3
@@ -83,33 +83,33 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 0,
-   "lastFrameAt": "2026-11-29T05:07:38+09:00",
+   "inQueue": 2,
+   "lastFrameAt": "2026-11-29T05:13:42+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1627,
+     "n": 1628,
      "mae": 2.0
     },
     "1": {
-     "n": 1622,
+     "n": 1623,
      "mae": 2.01
     }
    }
   },
   "stall2": {
-   "lastHour": 9,
-   "last30": 4,
+   "lastHour": 7,
+   "last30": 3,
    "bins30": [
-    6,
-    1,
     5,
-    4
+    3,
+    4,
+    3
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
-    5,
-    7
+    4,
+    6
    ],
    "forecastWeights": [
     0.235,
@@ -173,7 +173,7 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 1,
-   "lastFrameAt": "2026-11-29T05:08:39+09:00",
+   "lastFrameAt": "2026-11-29T05:13:42+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -187,13 +187,13 @@
    }
   },
   "stall3": {
-   "lastHour": 12,
-   "last30": 5,
+   "lastHour": 13,
+   "last30": 4,
    "bins30": [
-    5,
+    3,
     0,
-    7,
-    5
+    8,
+    4
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
@@ -212,7 +212,7 @@
     7,
     6,
     11,
-    1,
+    2,
     0,
     0,
     0,
@@ -262,26 +262,26 @@
    "typicalKind": "all",
    "delayBoost": null,
    "inQueue": 3,
-   "lastFrameAt": "2026-11-29T05:08:39+09:00",
+   "lastFrameAt": "2026-11-29T05:14:42+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1626,
+     "n": 1627,
      "mae": 2.1
     },
     "1": {
-     "n": 1621,
+     "n": 1622,
      "mae": 2.12
     }
    }
   },
   "stall4": {
-   "lastHour": 3,
+   "lastHour": 2,
    "last30": 2,
    "bins30": [
+    1,
+    1,
     0,
-    1,
-    1,
     2
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
@@ -350,17 +350,17 @@
    "typicalDays": 42,
    "typicalKind": "all",
    "delayBoost": null,
-   "inQueue": 1,
-   "lastFrameAt": "2026-11-29T05:08:39+09:00",
+   "inQueue": 3,
+   "lastFrameAt": "2026-11-29T05:14:42+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1628,
+     "n": 1629,
      "mae": 2.27
     },
     "1": {
-     "n": 1623,
-     "mae": 2.34
+     "n": 1624,
+     "mae": 2.33
     }
    }
   }
