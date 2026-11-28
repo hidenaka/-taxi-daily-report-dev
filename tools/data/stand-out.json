@@ -1,26 +1,26 @@
 {
- "generatedAt": "2026-11-29T02:55:47+09:00",
+ "generatedAt": "2026-11-29T03:01:51+09:00",
  "unit": "台",
  "bins30End": [
-  "01:25",
-  "01:55",
-  "02:25",
-  "02:55"
+  "01:31",
+  "02:01",
+  "02:31",
+  "03:01"
  ],
  "stalls": {
   "stall1": {
-   "lastHour": 18,
-   "last30": 4,
+   "lastHour": 13,
+   "last30": 3,
    "bins30": [
-    4,
-    4,
-    14,
-    4
+    3,
+    8,
+    10,
+    3
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
     2,
-    2
+    1
    ],
    "forecastWeights": [
     0.158,
@@ -112,11 +112,11 @@
     ]
    },
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T02:55:33+09:00",
+   "lastFrameAt": "2026-11-29T03:01:36+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1627,
+     "n": 1628,
      "mae": 2.0
     },
     "1": {
@@ -126,18 +126,18 @@
    }
   },
   "stall2": {
-   "lastHour": 11,
-   "last30": 5,
+   "lastHour": 10,
+   "last30": 4,
    "bins30": [
     3,
+    7,
     6,
-    6,
-    5
+    4
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
-    3,
-    2
+    2,
+    1
    ],
    "forecastWeights": [
     0.235,
@@ -229,11 +229,11 @@
     ]
    },
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T02:55:33+09:00",
+   "lastFrameAt": "2026-11-29T03:01:36+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1627,
+     "n": 1628,
      "mae": 2.0
     },
     "1": {
@@ -243,17 +243,17 @@
    }
   },
   "stall3": {
-   "lastHour": 7,
-   "last30": 0,
+   "lastHour": 6,
+   "last30": 1,
    "bins30": [
-    8,
-    4,
     7,
-    0
+    5,
+    5,
+    1
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
-    4,
+    3,
     3
    ],
    "forecastWeights": [
@@ -265,7 +265,7 @@
    "todayHourly": [
     12,
     12,
-    6,
+    7,
     0,
     0,
     0,
@@ -345,12 +345,12 @@
      0.0
     ]
    },
-   "inQueue": 2,
-   "lastFrameAt": "2026-11-29T02:55:33+09:00",
+   "inQueue": 3,
+   "lastFrameAt": "2026-11-29T03:01:36+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1625,
+     "n": 1626,
      "mae": 2.1
     },
     "1": {
@@ -360,18 +360,18 @@
    }
   },
   "stall4": {
-   "lastHour": 5,
+   "lastHour": 4,
    "last30": 2,
    "bins30": [
-    5,
-    2,
+    4,
     3,
+    2,
     2
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
     2,
-    2
+    3
    ],
    "forecastWeights": [
     0.167,
@@ -463,11 +463,11 @@
     ]
    },
    "inQueue": 3,
-   "lastFrameAt": "2026-11-29T02:55:33+09:00",
+   "lastFrameAt": "2026-11-29T03:01:36+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
-     "n": 1627,
+     "n": 1628,
      "mae": 2.27
     },
     "1": {
