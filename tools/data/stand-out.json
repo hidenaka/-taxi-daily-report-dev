@@ -1,21 +1,21 @@
 {
- "generatedAt": "2026-11-29T03:38:01+09:00",
+ "generatedAt": "2026-11-29T03:44:02+09:00",
  "unit": "台",
  "bins30End": [
-  "02:08",
-  "02:38",
-  "03:08",
-  "03:38"
+  "02:14",
+  "02:44",
+  "03:14",
+  "03:44"
  ],
  "stalls": {
   "stall1": {
-   "lastHour": 4,
-   "last30": 2,
+   "lastHour": 3,
+   "last30": 1,
    "bins30": [
-    12,
-    7,
+    15,
+    5,
     2,
-    2
+    1
    ],
    "countingSince": "2026-11-29T00:01:04+09:00",
    "forecast30": [
@@ -112,7 +112,7 @@
     ]
    },
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T03:37:53+09:00",
+   "lastFrameAt": "2026-11-29T03:43:56+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -126,17 +126,17 @@
    }
   },
   "stall2": {
-   "lastHour": 9,
-   "last30": 7,
+   "lastHour": 8,
+   "last30": 5,
    "bins30": [
     5,
     8,
-    2,
-    7
+    3,
+    5
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
-    2,
+    1,
     2
    ],
    "forecastWeights": [
@@ -229,7 +229,7 @@
     ]
    },
    "inQueue": 0,
-   "lastFrameAt": "2026-11-29T03:37:53+09:00",
+   "lastFrameAt": "2026-11-29T03:43:56+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -244,12 +244,12 @@
   },
   "stall3": {
    "lastHour": 7,
-   "last30": 5,
+   "last30": 3,
    "bins30": [
     4,
-    5,
-    2,
-    5
+    3,
+    4,
+    3
    ],
    "countingSince": "2026-11-29T00:03:05+09:00",
    "forecast30": [
@@ -346,7 +346,7 @@
     ]
    },
    "inQueue": 2,
-   "lastFrameAt": "2026-11-29T03:37:53+09:00",
+   "lastFrameAt": "2026-11-29T03:43:56+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
@@ -360,13 +360,13 @@
    }
   },
   "stall4": {
-   "lastHour": 0,
-   "last30": 0,
+   "lastHour": 1,
+   "last30": 1,
    "bins30": [
     4,
     3,
     0,
-    0
+    1
    ],
    "countingSince": "2026-11-29T00:00:03+09:00",
    "forecast30": [
@@ -383,7 +383,7 @@
     19,
     7,
     5,
-    0,
+    1,
     0,
     0,
     0,
@@ -462,8 +462,8 @@
      0.0
     ]
    },
-   "inQueue": 4,
-   "lastFrameAt": "2026-11-29T03:37:53+09:00",
+   "inQueue": 3,
+   "lastFrameAt": "2026-11-29T03:43:56+09:00",
    "status": "ok",
    "forecastEval": {
     "0": {
